@@ -4,6 +4,7 @@ const slotChangeListener = Symbol("slotChangedListener");
 const childListChanged = Symbol("lightChildrenChanged");
 const checkVisibleChildrenChanged = Symbol("slotChildrenChanged");
 const listenForSlotChanges = Symbol("listenForSlotChanges");
+const onConnection = Symbol("onConnection");
 
 export const ChildrenChangedMixin = function (Base) {
   /**
@@ -29,7 +30,7 @@ export const ChildrenChangedMixin = function (Base) {
    *
    * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
    * a) Detachment: ChildrenChangedMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
-   * b) Content assignment: slotted children in the elements lightDOM are handled the same as normal children.
+   * b) Content assignment: changes to assignedNodes of slotted children are notified as if the change happened to a normal child.
    *
    * @param Base class extending HTMLElement
    * @returns {ChildrenChangedMixin}
@@ -55,18 +56,24 @@ export const ChildrenChangedMixin = function (Base) {
       this[MO] = new MutationObserver(() => this[childListChanged]());
       this[slotChildren] = [];
       this[slotChangeListener] = this[checkVisibleChildrenChanged].bind(this);
+      if (this.isConnected)
+        Promise.resolve().then(() => this[onConnection]());
     }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
-      this[MO].observe(this, {childList: true});
-      // if (this.children && this.children.length !== 0)
-        Promise.resolve().then(() => this[childListChanged]());
+      this[onConnection]();
     }
 
     disconnectedCallback() {
       if (super.disconnectedCallback) super.disconnectedCallback();
       this[MO].disconnect();
+    }
+
+    [onConnection]() {
+      this[MO].observe(this, {childList: true});
+      // if (this.children && this.children.length !== 0)
+      Promise.resolve().then(() => this[childListChanged]());
     }
 
     [childListChanged]() {
@@ -84,7 +91,7 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [listenForSlotChanges]() {
-      const newSlotChildren = ChildrenChangedMixin.querySelectorAllHostSlot(this);
+      const newSlotChildren = ChildrenChangedMixin.slotChildren(this);      //or..  ChildrenChangedMixin.querySelectorAllHostSlot(this);
       for (let oldSlot of this[slotChildren]) {         //remove no longer used slotchange listeners
         if (newSlotChildren.indexOf(oldSlot) === -1)
           oldSlot.removeEventListener("slotchange", this[slotChangeListener]);
@@ -97,24 +104,19 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     //todo is there anything like querySelectorAll(":host>slot")?
-    static querySelectorAllHostSlot(host) {
-      const res = [];
-      const slots = host.querySelectorAll("slot") || [];
-      for (let i = 0; i < slots.length; i++) {
-        let slot = slots[i];
-        if (slot.parentNode === host)
-          res.push(slot);
-      }
-      return res;
+    static slotChildren(host) {
+      return Array.from(host.children || []).filter((child) => child.constructor.name === "HTMLSlotElement");
     }
 
     static getVisibleChildren(el) {
       let res = [];
       for (let i = 0; i < el.children.length; i++) {
         let child = el.children[i];
-        if (child.constructor.name === "HTMLSlotElement")
-          res = res.concat(child.assignedNodes());
-        else
+        if (child.constructor.name === "HTMLSlotElement") {
+          let assignedNodes = child.assignedNodes();
+          for (let j = 0; j < assignedNodes.length; j++)
+            res.push(assignedNodes[j]);
+        } else
           res.push(child);
       }
       return res;

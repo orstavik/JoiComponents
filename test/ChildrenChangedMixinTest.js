@@ -163,7 +163,62 @@ describe('ChildrenChangedMixin', function () {
     document.querySelector("body").removeChild(el);
   });
 
-  //todo verify that MutationObservers are disconnected when detached.
+  it("connected-disconnected-connected. childrenChangedCallback only triggered when connected + MutationObserver only called once when micro task queued.", function (done) {
+    const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+      childrenChangedCallback(newChildren, oldChildren) {
+        expect(oldChildren).to.be.equal(undefined);
+        expect(newChildren.length).to.be.equal(3);
+        expect(newChildren[0].nodeName).to.be.equal("DIV");
+        expect(newChildren[1].nodeName).to.be.equal("DIV");
+        expect(newChildren[2].nodeName).to.be.equal("DIV");
+        done();
+      }
+    };
+    customElements.define("connected-disconnected-connected", Subclass);
+    const el = new Subclass();
+    el.appendChild(document.createElement("div"));    //is not triggered.
+    document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
+    document.querySelector("body").removeChild(el);   //disconnect
+    el.appendChild(document.createElement("div"));    //is not triggered.
+    el.appendChild(document.createElement("div"));    //is not triggered.
+    document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
+    document.querySelector("body").removeChild(el);
+  });
+
+  it("connected-wait-disconnected-connected. childrenChangedCallback only triggered when connected.", function (done) {
+    let counter = 0;
+
+    const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+      childrenChangedCallback(newChildren, oldChildren) {
+        if (counter === 0) {
+          expect(oldChildren).to.be.equal(undefined);
+          expect(newChildren.length).to.be.equal(1);
+          expect(newChildren[0].nodeName).to.be.equal("DIV");
+        }
+        if (counter === 1) {
+          expect(oldChildren.length).to.be.equal(1);
+          expect(newChildren.length).to.be.equal(3);
+          expect(newChildren[0].nodeName).to.be.equal("DIV");
+          expect(newChildren[1].nodeName).to.be.equal("DIV");
+          expect(newChildren[2].nodeName).to.be.equal("DIV");
+          done();
+        }
+        counter++;
+      }
+    };
+    customElements.define("connected-settimeout-disconnected-connected", Subclass);
+    const el = new Subclass();
+    el.appendChild(document.createElement("div"));    //is not triggered.
+    document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
+    document.querySelector("body").removeChild(el);   //disconnect
+    setTimeout(() => {
+      el.appendChild(document.createElement("div"));    //is not triggered.
+      el.appendChild(document.createElement("div"));    //is not triggered.
+      document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
+      document.querySelector("body").removeChild(el);
+    }, 0);
+  });
+
   //todo verify that eventListeners are removed when disconnected.
   //todo verify that slots can be added dynamically
   //todo verify that slots can be replaced dynamically

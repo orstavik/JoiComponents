@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+<script>
+  function printInfoAboutExampleComponents(time) {
+    console.log(" ");
+    console.log("*** " + time + " ***");
+    let exes = document.querySelectorAll("example-component");
+    console.log("Found #" + (exes ? exes.length : 0) + " example-components.");
+    for (let i = 0; i < exes.length; i++) {
+      let ex = exes[i];
+      console.log("example-component: " + ex.id + " .children.length:" + ex.children.length);
+      console.log("example-component.exampleComponentLog: " + ex.exampleComponentLog);
+    }
+  }
+
+  window.printInfoAboutExampleComponents = printInfoAboutExampleComponents;
+  printInfoAboutExampleComponents("Start");
+</script>
+
+
+<example-component id="ex1">
+  <span>a</span>
+  <span>b</span>
+  <span>c</span>
+</example-component>
+
+<script>
+  printInfoAboutExampleComponents("after ex1");
+</script>
+
+
+<example-component id="ex2">
+  <span>d</span>
+  <script>
+    printInfoAboutExampleComponents("during ex2");
+  </script>
+  <span>e</span>
+  <span>f</span>
+</example-component>
+
+
+<script type="module">
+  import {ChildrenChangedMixin} from "../src/ChildrenChangedMixin.js";
+
+  class ExampleComponent extends ChildrenChangedMixin(HTMLElement) {
+
+    constructor() {
+      super();
+      this.exampleComponentLog(`${this.id} constructor,  .isConnected: ` + this.isConnected);
+    }
+
+    connectedCallback() {
+      this.exampleComponentLog(`${this.id} connectedCallback`);
+    }
+
+    childrenChangedCallback(newList, oldList) {
+      this.exampleComponentLog(`${this.id} childrenChangedCallback`);
+    }
+
+    exampleComponentLog(msg) {
+      console.warn(msg);
+    }
+  }
+
+  printInfoAboutExampleComponents("Before customElements.define");
+  customElements.define("example-component", ExampleComponent);
+  printInfoAboutExampleComponents("After customElements.define");
+</script>
+
+<example-component id="ex3">
+  <span>z</span>
+  <span>x</span>
+  <span>y</span>
+</example-component>
+
+<script>
+  printInfoAboutExampleComponents("after ex3");
+</script>
+
+<example-component id="ex4">
+  <span>1</span>
+  <script>
+    printInfoAboutExampleComponents("during ex4");
+  </script>
+  <span>2</span>
+  <span>3</span>
+</example-component>
+</body>
+</html>
