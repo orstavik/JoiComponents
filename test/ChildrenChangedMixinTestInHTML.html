@@ -15,8 +15,32 @@
     }
   }
 
+  function testDocumentState(expect) {
+    let res = Array.from(document.querySelectorAll("example-component") || []).map(ex => ({
+      id: ex.id,
+      childCount: ex.children.length,
+      method: ex.exampleComponentLog ? ex.exampleComponentLog.name : "undefined"
+    }));
+    if (res.length !== expect.length)
+      return res.length + "  !==   " + expect.length;
+    for (let i = 0; i < res.length; i++) {
+      let a = res[i];
+      let b = expect[i];
+      if (a.id !== b.id || a.childCount !== b.childCount || a.method !== b.method)
+        return JSON.stringify(res[i]) + "    !==    " + JSON.stringify(expect[i]);
+    }
+    return true;
+  }
+
+  function createDiv(msg, success) {
+    const div = document.createElement("div");
+    div.style.background = success === true ? "green" : "red";
+    div.textContent = msg + ":   " + success;
+    document.querySelector("body").appendChild(div);
+  }
+
   window.printInfoAboutExampleComponents = printInfoAboutExampleComponents;
-  printInfoAboutExampleComponents("Start");
+  createDiv("start", testDocumentState([]));
 </script>
 
 
@@ -27,14 +51,19 @@
 </example-component>
 
 <script>
-  printInfoAboutExampleComponents("after ex1");
+  createDiv("after ex1", testDocumentState([
+    {id: "ex1", childCount: 3, method: "undefined"}
+  ]));
 </script>
 
 
 <example-component id="ex2">
   <span>d</span>
   <script>
-    printInfoAboutExampleComponents("during ex2");
+    createDiv("during ex2", testDocumentState([
+      {id: "ex1", childCount: 3, method: "undefined"},
+      {id: "ex2", childCount: 2, method: "undefined"},
+    ]));
   </script>
   <span>e</span>
   <span>f</span>
@@ -42,31 +71,60 @@
 
 
 <script type="module">
+
+  let expecteds = [
+    "ex1 constructor true",
+    "ex1 connectedCallback",
+    "ex2 constructor true",
+    "ex2 connectedCallback",
+    "ex3 constructor true",
+    "ex3 connectedCallback",
+    "ex4 constructor true",
+    "ex4 connectedCallback",
+    "ex1 childrenChangedCallback",
+    "ex2 childrenChangedCallback",
+    "ex3 childrenChangedCallback",
+    "ex4 childrenChangedCallback"
+  ];
+
   import {ChildrenChangedMixin} from "../src/ChildrenChangedMixin.js";
 
   class ExampleComponent extends ChildrenChangedMixin(HTMLElement) {
 
     constructor() {
       super();
-      this.exampleComponentLog(`${this.id} constructor,  .isConnected: ` + this.isConnected);
+      let testValue = expecteds.shift();
+      createDiv(testValue, (this.id+" constructor "+this.isConnected) === testValue)
     }
 
     connectedCallback() {
-      this.exampleComponentLog(`${this.id} connectedCallback`);
+      let testValue = expecteds.shift();
+      createDiv(testValue, (this.id+" connectedCallback") === testValue)
     }
 
     childrenChangedCallback(newList, oldList) {
-      this.exampleComponentLog(`${this.id} childrenChangedCallback`);
+      let testValue = expecteds.shift();
+      createDiv(testValue, (this.id+" childrenChangedCallback") === testValue)
     }
 
     exampleComponentLog(msg) {
-      console.warn(msg);
+      //nothing here
     }
   }
 
-  printInfoAboutExampleComponents("Before customElements.define");
+  createDiv("Before customElements.define", testDocumentState([
+    {id: "ex1", childCount: 3, method: "undefined"},
+    {id: "ex2", childCount: 4, method: "undefined"},
+    {id: "ex3", childCount: 3, method: "undefined"},
+    {id: "ex4", childCount: 4, method: "undefined"},
+  ]));
   customElements.define("example-component", ExampleComponent);
-  printInfoAboutExampleComponents("After customElements.define");
+  createDiv("After customElements.define", testDocumentState([
+    {id: "ex1", childCount: 3, method: "exampleComponentLog"},
+    {id: "ex2", childCount: 4, method: "exampleComponentLog"},
+    {id: "ex3", childCount: 3, method: "exampleComponentLog"},
+    {id: "ex4", childCount: 4, method: "exampleComponentLog"},
+  ]));
 </script>
 
 <example-component id="ex3">
@@ -76,13 +134,22 @@
 </example-component>
 
 <script>
-  printInfoAboutExampleComponents("after ex3");
+  createDiv("after ex3", testDocumentState([
+    {id: "ex1", childCount: 3, method: "undefined"},
+    {id: "ex2", childCount: 4, method: "undefined"},
+    {id: "ex3", childCount: 3, method: "undefined"},
+  ]));
 </script>
 
 <example-component id="ex4">
   <span>1</span>
   <script>
-    printInfoAboutExampleComponents("during ex4");
+    createDiv("during ex4", testDocumentState([
+      {id: "ex1", childCount: 3, method: "undefined"},
+      {id: "ex2", childCount: 4, method: "undefined"},
+      {id: "ex3", childCount: 3, method: "undefined"},
+      {id: "ex4", childCount: 2, method: "undefined"},
+    ]));
   </script>
   <span>2</span>
   <span>3</span>
