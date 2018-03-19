@@ -5,7 +5,7 @@ const childListChanged = Symbol("lightChildrenChanged");
 const checkVisibleChildrenChanged = Symbol("slotChildrenChanged");
 const listenForSlotChanges = Symbol("listenForSlotChanges");
 const onConnection = Symbol("onConnection");
-const visibleChildren = Symbol("visibleChildren");
+const lastNotifiedVisibleChildren = Symbol("lastNotifiedVisibleChildren");
 
 export const ChildrenChangedMixin = function (Base) {
   /**
@@ -39,29 +39,31 @@ export const ChildrenChangedMixin = function (Base) {
    *  1) when the element is reconnected (disconnected and then reconnected to the DOM),
    *  2) when the element is updated (when the constructor is called when the element has already been connected to the DOM).
    *
-   * @param Base class extending HTMLElement
+   * @param Base class that extends HTMLElement
    * @returns {ChildrenChangedMixin}
    * @constructor
    */
   return class ChildrenChangedMixin extends Base {
 
-    /**
-     * Triggers when the list of visible children changes,
-     * due to changes in list of children or a slotchange event of a child slot.
-     *
-     * @param newChildList the current list of visible children
-     * @param oldChildList the previous list of visible children
-     */
-    childrenChangedCallback(newChildList, oldChildList) {
-      if (super.childrenChangedCallback) super.childrenChangedCallback(newChildList, oldChildList);
+    // childrenChangedCallback(newChildList, oldChildList) { ... }
+
+    getVisibleChildren() {
+      let res = [];
+      for (let i = 0; i < this.children.length; i++) {
+        let child = this.children[i];
+        if (child.constructor.name === "HTMLSlotElement") {
+          let assignedNodes = child.assignedNodes();
+          for (let j = 0; j < assignedNodes.length; j++)
+            res.push(assignedNodes[j]);
+        } else
+          res.push(child);
+      }
+      return res;
     }
 
-    get visibleChildren() {
-      return this[visibleChildren];
-    }
-
-    set visibleChildren(willThrowError) {
-      throw new Error("Illegal setter. element.visibleChildren can only be read, not set.");
+    //todo is there anything like querySelectorAll(":host>slot")?
+    slotChildren() {
+      return Array.from(this.children || []).filter((child) => child.constructor.name === "HTMLSlotElement");
     }
 
     constructor() {
@@ -95,16 +97,17 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [checkVisibleChildrenChanged]() {
-      const oldChildList = this[visibleChildren];
-      const newChildList = ChildrenChangedMixin.flattenVisibleChildren(this);
+      const oldChildList = this[lastNotifiedVisibleChildren];
+      const newChildList = this.getVisibleChildren();
       if (ChildrenChangedMixin.arrayEquals(oldChildList, newChildList))
         return;
-      this[visibleChildren] = newChildList;
-      this.childrenChangedCallback(newChildList, oldChildList);
+      this[lastNotifiedVisibleChildren] = newChildList;
+      if (this.childrenChangedCallback)
+        this.childrenChangedCallback(newChildList, oldChildList);
     }
 
     [listenForSlotChanges]() {
-      const newSlotChildren = ChildrenChangedMixin.slotChildren(this);      //or..  ChildrenChangedMixin.querySelectorAllHostSlot(this);
+      const newSlotChildren = this.slotChildren();
       for (let oldSlot of this[slotChildren]) {         //remove no longer used slotchange listeners
         if (newSlotChildren.indexOf(oldSlot) === -1)
           oldSlot.removeEventListener("slotchange", this[slotChangeListener]);
@@ -114,25 +117,6 @@ export const ChildrenChangedMixin = function (Base) {
           newSlot.addEventListener("slotchange", this[slotChangeListener]);
       }
       this[slotChildren] = newSlotChildren;
-    }
-
-    //todo is there anything like querySelectorAll(":host>slot")?
-    static slotChildren(host) {
-      return Array.from(host.children || []).filter((child) => child.constructor.name === "HTMLSlotElement");
-    }
-
-    static flattenVisibleChildren(el) {
-      let res = [];
-      for (let i = 0; i < el.children.length; i++) {
-        let child = el.children[i];
-        if (child.constructor.name === "HTMLSlotElement") {
-          let assignedNodes = child.assignedNodes();
-          for (let j = 0; j < assignedNodes.length; j++)
-            res.push(assignedNodes[j]);
-        } else
-          res.push(child);
-      }
-      return res;
     }
 
     static arrayEquals(a, b) {

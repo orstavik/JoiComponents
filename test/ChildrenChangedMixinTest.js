@@ -33,6 +33,20 @@ describe('ChildrenChangedMixin', function () {
     expect(el.test()).to.be.equal("abc");
   });
 
+  it(".visibleChildren property", function () {
+    const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+    };
+    customElements.define("visible-children-property", Subclass);
+    const el = new Subclass();
+    assert(el.getVisibleChildren().length === 0);
+    let child = document.createElement("div");
+    el.appendChild(child);
+    el.appendChild(document.createElement("slot"));
+    assert(el.getVisibleChildren().length === 1);
+    el.removeChild(child);
+    assert(el.getVisibleChildren().length === 0);
+  });
+  
   it("ChildrenChangedMixin add DIV imperative and trigger childrenChangedCallback", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
       childrenChangedCallback(newChildren, oldChildren) {
@@ -109,19 +123,19 @@ describe('ChildrenChangedMixin', function () {
         done();
       }
     };
-    customElements.define("inner-smirkovsky", InnerElementThatObserveChildren);
+    customElements.define("inner-component", InnerElementThatObserveChildren);
 
     const OuterElementThatSlotsStuff = class extends HTMLElement {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
         this.shadowRoot.innerHTML = `
-          <inner-smirkovsky>
+          <inner-component>
             <slot></slot>
-          </inner-smirkovsky>`;
+          </inner-component>`;
       }
     };
-    customElements.define("outer-smirkovsky", OuterElementThatSlotsStuff);
+    customElements.define("outer-component", OuterElementThatSlotsStuff);
 
     const el = new OuterElementThatSlotsStuff();
     //things are not slotted until something is added to the DOM
