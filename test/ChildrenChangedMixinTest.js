@@ -112,7 +112,39 @@ describe('ChildrenChangedMixin', function () {
     document.querySelector("body").removeChild(el);
   });
 
-  it("The super inner-outer-slot test 1", function (done) {
+  it("The super inner-outer-slot test 1", function () {
+
+    const InnerElementThatObserveChildren = class extends ChildrenChangedMixin(HTMLElement) {
+    };
+    customElements.define("inner-component-1", InnerElementThatObserveChildren);
+
+    const OuterElementThatSlotsStuff = class extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `
+          <inner-component-1>
+            <slot></slot>
+          </inner-component-1>`;
+      }
+    };
+    customElements.define("outer-component-1", OuterElementThatSlotsStuff);
+
+    const outer = new OuterElementThatSlotsStuff();
+    const inner = outer.shadowRoot.children[0];
+    const innerSlot = inner.children[0];
+
+    assert(inner.getVisibleChildren().length === 0);
+    let slotted = document.createElement("div");
+    outer.appendChild(slotted);
+    assert(inner.getVisibleChildren().length === 1);
+    inner.removeChild(innerSlot);
+    assert(inner.getVisibleChildren().length === 0);
+    inner.appendChild(innerSlot);
+    assert(inner.getVisibleChildren().length === 1);
+  });
+
+  it("The super inner-outer-slot test 2", function (done) {
 
     const InnerElementThatObserveChildren = class extends ChildrenChangedMixin(HTMLElement) {
 
@@ -234,7 +266,5 @@ describe('ChildrenChangedMixin', function () {
   });
 
   //todo verify that eventListeners are removed when disconnected.
-  //todo verify that slots can be added dynamically
-  //todo verify that slots can be replaced dynamically
-  //todo make some tests showing that it does not do wrong
+  //todo make some tests showing that it does not go outside of its realm.. don't know how
 });
