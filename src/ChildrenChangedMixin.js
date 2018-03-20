@@ -1,5 +1,5 @@
 const MO = Symbol("childListenerObserver");
-const slotChildren = Symbol("slotChildren");
+const slotIsActive = Symbol("slotChildren");
 const slotChangeListener = Symbol("slotChangedListener");
 const childListChanged = Symbol("lightChildrenChanged");
 const checkVisibleChildrenChanged = Symbol("slotChildrenChanged");
@@ -66,15 +66,20 @@ export const ChildrenChangedMixin = function (Base) {
       return res;
     }
 
-    //todo is there a querySelectorAll(":host>slot")?
-    slotChildren() {
-      return Array.from(this.children || []).filter((child) => child.constructor.name === "HTMLSlotElement");
+    static hasSlotChildren(el) {
+      if (!el.children)
+        return false;
+      for (let i = 0; i < el.children.length; i++) {
+        if (el.children[i].constructor.name === "HTMLSlotElement")
+          return true;
+      }
+      return false;
     }
 
     constructor() {
       super();
       this[MO] = new MutationObserver(() => this[childListChanged]());
-      this[slotChildren] = [];
+      this[slotIsActive] = false;
       this[slotChangeListener] = this[checkVisibleChildrenChanged].bind(this, false);
       if (this.isConnected)
         Promise.resolve().then(() => this[onConnection]());
@@ -111,16 +116,14 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [listenForSlotChanges]() {
-      const newSlotChildren = this.slotChildren();
-      for (let oldSlot of this[slotChildren]) {         //remove no longer used slotchange listeners
-        if (newSlotChildren.indexOf(oldSlot) === -1)
-          oldSlot.removeEventListener("slotchange", this[slotChangeListener]);
+      const hasSlot = ChildrenChangedMixin.hasSlotChildren(this);
+      if (hasSlot && !this[slotIsActive]) {
+        this[slotIsActive] = true;
+        this.addEventListener("slotchange", this[slotChangeListener]);
+      } else if (!hasSlot && this[slotIsActive]) {
+        this[slotIsActive] = false;
+        this.removeEventListener("slotchange", this[slotChangeListener]);
       }
-      for (let newSlot of newSlotChildren) {            //add new slotchange listeners
-        if (this[slotChildren].indexOf(newSlot) === -1)
-          newSlot.addEventListener("slotchange", this[slotChangeListener]);
-      }
-      this[slotChildren] = newSlotChildren;
     }
 
     static arrayEquals(a, b) {
