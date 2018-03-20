@@ -7,42 +7,41 @@ const listenForSlotChanges = Symbol("listenForSlotChanges");
 const onConnection = Symbol("onConnection");
 const lastNotifiedVisibleChildren = Symbol("lastNotifiedVisibleChildren");
 
+/**
+ * ChildrenChangedMixin adds a reactive lifecycle hook .childrenChangedCallback(...) to its subclasses.
+ * .childrenChangedCallback(...) is triggered every time
+ *   1) a child changes or
+ *   2) a slot that is a child changes.
+ *
+ * About 2) slotted children.
+ * If a <slot> element is a direct child of the element, the .childrenChangedCallback is
+ * triggered every time an element is either added or removed from the slot
+ * (ie. whenever a "slotchange" event is triggered on a slotted child element).
+ *
+ * ChildrenChangedMixin also adds a property .visibleChildren to its subclasses.
+ * .visibleChildren is the flattened list of:
+ *   a) all (first level) children, except slot,
+ *   b) the slotted children of the excluded slots
+ * The new and old visibleChildren are passed as the parameters of the
+ * .childrenChangedCallback(newVisibleChildren, oldVisibleChildren) method.
+ *
+ * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
+ * a) Detachment: ChildrenChangedMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
+ * b) Content assignment: changes to assignedNodes of slotted children are notified as if the change happened to a normal child.
+ *
+ * .childrenChangedCallback(...) is very similar to .attributeChangedCallback(...) in that
+ *   a) it triggers a reactive function whenever a certain type of mutation of the element's lightDOM changes, and
+ *   b) gives a reactive API to a facility that is already provided on the platform through the MutationObserver API.
+ *
+ * .childrenChangedCallback(...) is triggered when a change occurs while the element is connected to the DOM.
+ * .childrenChangedCallback(...) is also called:
+ *  1) when the element is reconnected (disconnected and then reconnected to the DOM),
+ *  2) when the element is updated (when the constructor is called when the element has already been connected to the DOM).
+ *
+ * @param Base class that extends HTMLElement
+ * @returns {ChildrenChangedMixin} class that extends HTMLElement
+ */
 export const ChildrenChangedMixin = function (Base) {
-  /**
-   * ChildrenChangedMixin adds a reactive lifecycle hook .childrenChangedCallback(...) to its subclasses.
-   * .childrenChangedCallback(...) is triggered every time
-   *   1) a child changes or
-   *   2) a slot that is a child changes.
-   *
-   * About 2) slotted children.
-   * If a <slot> element is a direct child of the element, the .childrenChangedCallback is
-   * triggered every time an element is either added or removed from the slot
-   * (ie. whenever a "slotchange" event is triggered on a slotted child element).
-   *
-   * ChildrenChangedMixin also adds a property .visibleChildren to its subclasses.
-   * .visibleChildren is the flattened list of:
-   *   a) all (first level) children, except slot,
-   *   b) the slotted children of the excluded slots
-   * The new and old visibleChildren are passed as the parameters of the
-   * .childrenChangedCallback(newVisibleChildren, oldVisibleChildren) method.
-   *
-   * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
-   * a) Detachment: ChildrenChangedMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
-   * b) Content assignment: changes to assignedNodes of slotted children are notified as if the change happened to a normal child.
-   *
-   * .childrenChangedCallback(...) is very similar to .attributeChangedCallback(...) in that
-   *   a) it triggers a reactive function whenever a certain type of mutation of the element's lightDOM changes, and
-   *   b) gives a reactive API to a facility that is already provided on the platform through the MutationObserver API.
-   *
-   * .childrenChangedCallback(...) is triggered when a change occurs while the element is connected to the DOM.
-   * .childrenChangedCallback(...) is also called:
-   *  1) when the element is reconnected (disconnected and then reconnected to the DOM),
-   *  2) when the element is updated (when the constructor is called when the element has already been connected to the DOM).
-   *
-   * @param Base class that extends HTMLElement
-   * @returns {ChildrenChangedMixin}
-   * @constructor
-   */
   return class ChildrenChangedMixin extends Base {
 
     /**
@@ -67,7 +66,7 @@ export const ChildrenChangedMixin = function (Base) {
       return res;
     }
 
-    //todo missing something like querySelectorAll(":host>slot")?
+    //todo is there a querySelectorAll(":host>slot")?
     slotChildren() {
       return Array.from(this.children || []).filter((child) => child.constructor.name === "HTMLSlotElement");
     }
