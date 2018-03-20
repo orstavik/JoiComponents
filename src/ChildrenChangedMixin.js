@@ -93,12 +93,12 @@ export const ChildrenChangedMixin = function (Base) {
     [onConnection]() {
       this[MO].observe(this, {childList: true});
       // if (this.children && this.children.length !== 0)
-      Promise.resolve().then(() => this[childListChanged](true));
+      Promise.resolve().then(() => this[childListChanged]());
     }
 
     [childListChanged]() {
       this[listenForSlotChanges]();
-      this[checkVisibleChildrenChanged]();
+      this[checkVisibleChildrenChanged](true);
     }
 
     [checkVisibleChildrenChanged](checkListEquality) {
