@@ -1,5 +1,28 @@
 {
-  "devDependencies": {
-    "elix": "latest"
-  }
+  "name": "children-changed-callback",
+  "version": "1.0.0",
+  "description": "Mixin to provide subclasses of HTMLElement with .childrenChangedCallback(newList, oldList) and .visibleChildren().",
+  "main": "src/ChildrenChangedCallback.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orstavik/children-changed-callback.git"
+  },
+  "keywords": [
+    "HTMLElement",
+    "childList",
+    "slotchange",
+    "childrenChangedCallback"
+  ],
+  "author": "Ivar Orstavik",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/orstavik/children-changed-callback/issues"
+  },
+  "homepage": "https://github.com/orstavik/children-changed-callback#readme"
 }

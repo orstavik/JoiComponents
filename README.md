@@ -61,6 +61,8 @@ option that would react to any changes of the "visible children".
 
 ref:
  * https://github.com/webcomponents/gold-standard/wiki/Content-Assignment
+ * https://github.com/webcomponents/gold-standard/wiki/Detachment                                  
+ * Is there a "web comp gold standard" for dynamic DOM. The element reacts well when for instance children changes dynamically in the DOM?
  * https://www.polymer-project.org/2.0/docs/devguide/shadow-dom#observe-nodes
  * https://www.polymer-project.org/2.0/docs/api/classes/Polymer.FlattenedNodesObserver 
  
