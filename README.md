@@ -7,7 +7,7 @@ This mixin adds two methods to an HTMLElement
 You use it as follows:
 
 ```javascript
-import {ChildrenChangedMixin} from "/some/where/src/ChildrenChangedMixin.js";
+import {ChildrenChangedMixin} from "https://unpkg.com/children-changed-callback/src/ChildrenChangedMixin.js";
 
 class MyWebComponent extends ChildrenChangedMixin(HTMLElement) {
                                                
