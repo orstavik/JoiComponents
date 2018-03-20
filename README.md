@@ -25,9 +25,9 @@ class MyWebComponent extends ChildrenChangedMixin(HTMLElement) {
 }
 customElements.define("my-web-component", MyWebComponent);
 const el = new MyWebComponent();
-el.appendChild(document.createElement("div"));
-document.querySelector("body").appendChild(el);//.childrenChangedCallback gets triggered when connected to DOM.
-el.appendChild(document.createElement("div")); //.childrenChangedCallback gets triggered when connected and childList changes.
+el.appendChild(document.createElement("div")); //.childrenChangedCallback is NOT triggered since el is not connected to DOM.
+document.querySelector("body").appendChild(el);//.childrenChangedCallback is triggered when el gets connected to DOM.
+el.appendChild(document.createElement("div")); //.childrenChangedCallback is triggered while el is connected and childList changes.
 ```
 
 ### "visibleChildren" of HTMLElements
@@ -60,7 +60,8 @@ Another approach would be to extend MutationObserver to provide something like a
 option that would react to any changes of the "visible children". 
 
 ref:
- * https://www.polymer-project.org/2.0/docs/devguide/shadow-dom
+ * https://github.com/webcomponents/gold-standard/wiki/Content-Assignment
+ * https://www.polymer-project.org/2.0/docs/devguide/shadow-dom#observe-nodes
  * https://www.polymer-project.org/2.0/docs/api/classes/Polymer.FlattenedNodesObserver 
  
  ### Some considerations about _slotchange_ 
