@@ -45,7 +45,13 @@ export const ChildrenChangedMixin = function (Base) {
    */
   return class ChildrenChangedMixin extends Base {
 
-    // childrenChangedCallback(newChildList, oldChildList) { ... }
+    /**
+     * Override this method to do actions when children changes.
+     * @param newChildList
+     * @param oldChildList
+     */
+    childrenChangedCallback(newChildList, oldChildList) {
+    }
 
     getVisibleChildren() {
       let res = [];
@@ -61,7 +67,7 @@ export const ChildrenChangedMixin = function (Base) {
       return res;
     }
 
-    //todo is there anything like querySelectorAll(":host>slot")?
+    //todo missing something like querySelectorAll(":host>slot")?
     slotChildren() {
       return Array.from(this.children || []).filter((child) => child.constructor.name === "HTMLSlotElement");
     }
@@ -70,7 +76,7 @@ export const ChildrenChangedMixin = function (Base) {
       super();
       this[MO] = new MutationObserver(() => this[childListChanged]());
       this[slotChildren] = [];
-      this[slotChangeListener] = this[checkVisibleChildrenChanged].bind(this);
+      this[slotChangeListener] = this[checkVisibleChildrenChanged].bind(this, false);
       if (this.isConnected)
         Promise.resolve().then(() => this[onConnection]());
     }
@@ -88,7 +94,7 @@ export const ChildrenChangedMixin = function (Base) {
     [onConnection]() {
       this[MO].observe(this, {childList: true});
       // if (this.children && this.children.length !== 0)
-      Promise.resolve().then(() => this[childListChanged]());
+      Promise.resolve().then(() => this[childListChanged](true));
     }
 
     [childListChanged]() {
@@ -96,14 +102,13 @@ export const ChildrenChangedMixin = function (Base) {
       this[checkVisibleChildrenChanged]();
     }
 
-    [checkVisibleChildrenChanged]() {
+    [checkVisibleChildrenChanged](checkListEquality) {
       const oldChildList = this[lastNotifiedVisibleChildren];
       const newChildList = this.getVisibleChildren();
-      if (ChildrenChangedMixin.arrayEquals(oldChildList, newChildList))
+      if (checkListEquality && ChildrenChangedMixin.arrayEquals(oldChildList, newChildList))
         return;
       this[lastNotifiedVisibleChildren] = newChildList;
-      if (this.childrenChangedCallback)
-        this.childrenChangedCallback(newChildList, oldChildList);
+      this.childrenChangedCallback(newChildList, oldChildList);
     }
 
     [listenForSlotChanges]() {
