@@ -46,10 +46,15 @@ export const ChildrenChangedMixin = function (Base) {
 
     /**
      * Override this method to do actions when children changes.
+     * todo remove childrenChangedCallback?
+     * todo This will cause an error when the developer uses ChildrenChangedMixin and forgets
+     * todo to implement the childrenChangedCallback method.
+     *
      * @param newChildList
      * @param oldChildList
      */
     childrenChangedCallback(newChildList, oldChildList) {
+      if (super.childrenChangedCallback) super.childrenChangedCallback(newChildList, oldChildList);
     }
 
     getVisibleChildren() {
@@ -82,7 +87,7 @@ export const ChildrenChangedMixin = function (Base) {
       this[slotIsActive] = false;
       this[slotChangeListener] = this[checkVisibleChildrenChanged].bind(this, false);
       if (this.isConnected)
-        Promise.resolve().then(() => this[onConnection]());
+        this[onConnection]();
     }
 
     connectedCallback() {

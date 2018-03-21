@@ -29,6 +29,7 @@ el.appendChild(document.createElement("div")); //.childrenChangedCallback is NOT
 document.querySelector("body").appendChild(el);//.childrenChangedCallback is triggered when el gets connected to DOM.
 el.appendChild(document.createElement("div")); //.childrenChangedCallback is triggered while el is connected and childList changes.
 ```
+ * [Test of ChildrenChangedCallback in codepen: https://codepen.io/orstavik/pen/XEMWLE](https://codepen.io/orstavik/pen/XEMWLE)
 
 ### "visibleChildren" of HTMLElements
 Using ```<slot>``` is a way to declaratively in the HTML arrange html components at
@@ -60,9 +61,9 @@ Another approach would be to extend MutationObserver to provide something like a
 option that would react to any changes of the "visible children". 
 
 ref:
+ * https://github.com/webcomponents/gold-standard/wiki/Content-Changes
  * https://github.com/webcomponents/gold-standard/wiki/Content-Assignment
  * https://github.com/webcomponents/gold-standard/wiki/Detachment                                  
- * Is there a "web comp gold standard" for dynamic DOM. The element reacts well when for instance children changes dynamically in the DOM?
  * https://www.polymer-project.org/2.0/docs/devguide/shadow-dom#observe-nodes
  * https://www.polymer-project.org/2.0/docs/api/classes/Polymer.FlattenedNodesObserver 
  
