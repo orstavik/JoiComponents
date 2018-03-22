@@ -133,22 +133,23 @@
   <span>y</span>
 </example-component>
 
-<script>
-  createDiv("after ex3", testDocumentState([
-    {id: "ex1", childCount: 3, method: "undefined"},
-    {id: "ex2", childCount: 4, method: "undefined"},
-    {id: "ex3", childCount: 3, method: "undefined"},
+<script type="module">
+  createDiv("after ex3, should be complete since script type='module' runs after full parse", testDocumentState([
+    {id: "ex1", childCount: 3, method: "exampleComponentLog"},
+    {id: "ex2", childCount: 4, method: "exampleComponentLog"},
+    {id: "ex3", childCount: 3, method: "exampleComponentLog"},
+    {id: "ex4", childCount: 4, method: "exampleComponentLog"}
   ]));
 </script>
 
 <example-component id="ex4">
   <span>1</span>
-  <script>
-    createDiv("during ex4", testDocumentState([
-      {id: "ex1", childCount: 3, method: "undefined"},
-      {id: "ex2", childCount: 4, method: "undefined"},
-      {id: "ex3", childCount: 3, method: "undefined"},
-      {id: "ex4", childCount: 2, method: "undefined"},
+  <script type="module">
+    createDiv("during ex4, should be complete since script type='module' runs after full parse", testDocumentState([
+      {id: "ex1", childCount: 3, method: "exampleComponentLog"},
+      {id: "ex2", childCount: 4, method: "exampleComponentLog"},
+      {id: "ex3", childCount: 3, method: "exampleComponentLog"},
+      {id: "ex4", childCount: 4, method: "exampleComponentLog"}
     ]));
   </script>
   <span>2</span>

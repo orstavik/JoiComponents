@@ -4,7 +4,6 @@ const slotChangeListener = Symbol("slotChangedListener");
 const childListChanged = Symbol("lightChildrenChanged");
 const checkVisibleChildrenChanged = Symbol("slotChildrenChanged");
 const listenForSlotChanges = Symbol("listenForSlotChanges");
-const onConnection = Symbol("onConnection");
 const lastNotifiedVisibleChildren = Symbol("lastNotifiedVisibleChildren");
 
 /**
@@ -86,24 +85,18 @@ export const ChildrenChangedMixin = function (Base) {
       this[MO] = new MutationObserver(() => this[childListChanged]());
       this[slotIsActive] = false;
       this[slotChangeListener] = this[checkVisibleChildrenChanged].bind(this, false);
-      if (this.isConnected)
-        this[onConnection]();
     }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
-      this[onConnection]();
+      this[MO].observe(this, {childList: true});
+      // if (this.children && this.children.length !== 0)
+      Promise.resolve().then(() => this[childListChanged]());
     }
 
     disconnectedCallback() {
       if (super.disconnectedCallback) super.disconnectedCallback();
       this[MO].disconnect();
-    }
-
-    [onConnection]() {
-      this[MO].observe(this, {childList: true});
-      // if (this.children && this.children.length !== 0)
-      Promise.resolve().then(() => this[childListChanged]());
     }
 
     [childListChanged]() {
