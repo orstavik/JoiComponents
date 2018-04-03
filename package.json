@@ -1,6 +1,6 @@
 {
   "name": "children-changed-callback",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Mixin to provide subclasses of HTMLElement with .childrenChangedCallback(newList, oldList) and .visibleChildren().",
   "main": "src/ChildrenChangedCallback.js",
   "directories": {
