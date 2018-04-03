@@ -51,9 +51,10 @@ export const ChildrenChangedMixin = function (Base) {
      *
      * @param oldChildList
      * @param newChildList
+     * @param isSlotChange true if the children changed is due to a slotchange event
      */
-    childrenChangedCallback(oldChildList, newChildList) {
-      if (super.childrenChangedCallback) super.childrenChangedCallback(oldChildList, newChildList);
+    childrenChangedCallback(oldChildList, newChildList, isSlotChange) {
+      if (super.childrenChangedCallback) super.childrenChangedCallback(oldChildList, newChildList, isSlotChange);
     }
 
     getVisibleChildren() {
@@ -84,7 +85,7 @@ export const ChildrenChangedMixin = function (Base) {
       super();
       this[MO] = new MutationObserver(() => this[childListChanged]());
       this[slotIsActive] = false;
-      this[slotChangeListener] = this[checkVisibleChildrenChanged].bind(this, false);
+      this[slotChangeListener] = () => this[checkVisibleChildrenChanged](true);
     }
 
     connectedCallback() {
@@ -101,16 +102,16 @@ export const ChildrenChangedMixin = function (Base) {
 
     [childListChanged]() {
       this[listenForSlotChanges]();
-      this[checkVisibleChildrenChanged](true);
+      this[checkVisibleChildrenChanged](false);
     }
 
-    [checkVisibleChildrenChanged](checkListEquality) {
+    [checkVisibleChildrenChanged](isSlotChange) {
       const oldChildList = this[lastNotifiedVisibleChildren];
       const newChildList = this.getVisibleChildren();
-      if (checkListEquality && ChildrenChangedMixin.arrayEquals(oldChildList, newChildList))
+      if (!isSlotChange && ChildrenChangedMixin.arrayEquals(oldChildList, newChildList))
         return;
       this[lastNotifiedVisibleChildren] = newChildList;
-      this.childrenChangedCallback(oldChildList, newChildList);
+      this.childrenChangedCallback(oldChildList, newChildList, isSlotChange);
     }
 
     [listenForSlotChanges]() {

@@ -46,7 +46,7 @@ describe('ChildrenChangedMixin', function () {
     el.removeChild(child);
     assert(el.getVisibleChildren().length === 0);
   });
-  
+
   it("ChildrenChangedMixin add DIV imperative and trigger childrenChangedCallback", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
       childrenChangedCallback(oldChildren, newChildren) {
@@ -209,6 +209,51 @@ describe('ChildrenChangedMixin', function () {
     document.querySelector("body").removeChild(el);
   });
 
+  it("isSlotChange", function (done) {
+
+    let counter = 0;
+
+    const InnerElementIsSlot = class extends ChildrenChangedMixin(HTMLElement) {
+
+      childrenChangedCallback(oldChildren, newChildren, isSlotchange) {
+        if (counter === 0) {
+          expect(oldChildren).to.be.equal(undefined);
+          expect(newChildren.length).to.be.equal(0);
+          assert(!isSlotchange);
+          counter++;
+          return;
+        }
+        if (counter === 1) {
+          expect(oldChildren.length).to.be.equal(0);
+          expect(newChildren.length).to.be.equal(1);
+          expect(newChildren[0].nodeName).to.be.equal("P");
+          assert(isSlotchange);
+          done();
+        }
+      }
+    };
+    customElements.define("inner-is-slot", InnerElementIsSlot);
+
+    const OuterElementIsSlot = class extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `
+          <inner-is-slot>
+            <slot></slot>
+          </inner-is-slot>`;
+      }
+    };
+    customElements.define("outer-is-slot", OuterElementIsSlot);
+
+    const el = new OuterElementIsSlot();
+    document.querySelector("body").appendChild(el);
+    Promise.resolve().then(() => {
+      el.appendChild(document.createElement("p"));
+      document.querySelector("body").removeChild(el);
+    });
+  });
+
   it("connected-disconnected-connected. childrenChangedCallback only triggered when connected + MutationObserver only called once when micro task queued.", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
       childrenChangedCallback(oldChildren, newChildren) {
@@ -257,12 +302,12 @@ describe('ChildrenChangedMixin', function () {
     el.appendChild(document.createElement("div"));    //is not triggered.
     document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
     document.querySelector("body").removeChild(el);   //disconnect
-    setTimeout(() => {
+    Promise.resolve().then(() => {
       el.appendChild(document.createElement("div"));    //is not triggered.
       el.appendChild(document.createElement("div"));    //is not triggered.
       document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
       document.querySelector("body").removeChild(el);
-    }, 0);
+    });
   });
 
   //todo verify that eventListeners are removed when disconnected.
