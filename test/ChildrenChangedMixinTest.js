@@ -49,7 +49,7 @@ describe('ChildrenChangedMixin', function () {
   
   it("ChildrenChangedMixin add DIV imperative and trigger childrenChangedCallback", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
-      childrenChangedCallback(newChildren, oldChildren) {
+      childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
         expect(newChildren[0].nodeName).to.be.equal("DIV");
@@ -65,7 +65,7 @@ describe('ChildrenChangedMixin', function () {
 
   it("ChildrenChangedMixin add SLOT imperative and trigger childrenChangedCallback", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
-      childrenChangedCallback(newChildren, oldChildren) {
+      childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(0);
         done();
@@ -80,7 +80,7 @@ describe('ChildrenChangedMixin', function () {
 
   it("ChildrenChangedMixin added DIV and then SLOT imperative and trigger childrenChangedCallback", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
-      childrenChangedCallback(newChildren, oldChildren) {
+      childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
         expect(newChildren[0].nodeName).to.be.equal("DIV");
@@ -97,7 +97,7 @@ describe('ChildrenChangedMixin', function () {
 
   it("ChildrenChangedMixin added DIV and then SLOT imperative and trigger childrenChangedCallback, mutation observer called between each invocation.", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
-      childrenChangedCallback(newChildren, oldChildren) {
+      childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
         expect(newChildren[0].nodeName).to.be.equal("DIV");
@@ -148,7 +148,7 @@ describe('ChildrenChangedMixin', function () {
 
     const InnerElementThatObserveChildren = class extends ChildrenChangedMixin(HTMLElement) {
 
-      childrenChangedCallback(newChildren, oldChildren) {
+      childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
         expect(newChildren[0].nodeName).to.be.equal("DIV");
@@ -180,7 +180,7 @@ describe('ChildrenChangedMixin', function () {
 
     const InnerElementThatObserveChildren = class extends ChildrenChangedMixin(HTMLElement) {
 
-      childrenChangedCallback(newChildren, oldChildren) {
+      childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
         expect(newChildren[0].nodeName).to.be.equal("DIV");
@@ -211,7 +211,7 @@ describe('ChildrenChangedMixin', function () {
 
   it("connected-disconnected-connected. childrenChangedCallback only triggered when connected + MutationObserver only called once when micro task queued.", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
-      childrenChangedCallback(newChildren, oldChildren) {
+      childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(3);
         expect(newChildren[0].nodeName).to.be.equal("DIV");
@@ -235,7 +235,7 @@ describe('ChildrenChangedMixin', function () {
     let counter = 0;
 
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
-      childrenChangedCallback(newChildren, oldChildren) {
+      childrenChangedCallback(oldChildren, newChildren) {
         if (counter === 0) {
           expect(oldChildren).to.be.equal(undefined);
           expect(newChildren.length).to.be.equal(1);

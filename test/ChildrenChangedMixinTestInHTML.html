@@ -102,7 +102,7 @@
       createDiv(testValue, (this.id+" connectedCallback") === testValue)
     }
 
-    childrenChangedCallback(newList, oldList) {
+    childrenChangedCallback(oldList, newList) {
       let testValue = expecteds.shift();
       createDiv(testValue, (this.id+" childrenChangedCallback") === testValue)
     }

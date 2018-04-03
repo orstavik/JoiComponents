@@ -49,11 +49,11 @@ export const ChildrenChangedMixin = function (Base) {
      * todo This will cause an error when the developer uses ChildrenChangedMixin and forgets
      * todo to implement the childrenChangedCallback method.
      *
-     * @param newChildList
      * @param oldChildList
+     * @param newChildList
      */
-    childrenChangedCallback(newChildList, oldChildList) {
-      if (super.childrenChangedCallback) super.childrenChangedCallback(newChildList, oldChildList);
+    childrenChangedCallback(oldChildList, newChildList) {
+      if (super.childrenChangedCallback) super.childrenChangedCallback(oldChildList, newChildList);
     }
 
     getVisibleChildren() {
@@ -110,7 +110,7 @@ export const ChildrenChangedMixin = function (Base) {
       if (checkListEquality && ChildrenChangedMixin.arrayEquals(oldChildList, newChildList))
         return;
       this[lastNotifiedVisibleChildren] = newChildList;
-      this.childrenChangedCallback(newChildList, oldChildList);
+      this.childrenChangedCallback(oldChildList, newChildList);
     }
 
     [listenForSlotChanges]() {
