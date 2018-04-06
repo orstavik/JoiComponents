@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+<script type="module"></script>
+
+<example-component id="ex1" style="display: inline-block; width:100%;">
+  <span> ExampleComponent a ExampleComponent a ExampleComponent a ExampleComponent a ExampleComponent a</span>
+  <span> ExampleComponent ab ExampleComponent ab ExampleComponent ab ExampleComponent ab ExampleComponent ab</span>
+  <span> ExampleComponent abc ExampleComponent abc ExampleComponent abc ExampleComponent abc ExampleComponent abc</span>
+</example-component>
+
+<script type="module">
+
+  import {SizeChangedMixin} from "../src/SizeChangedMixin.js";
+
+  class ExampleComponent extends SizeChangedMixin(HTMLElement) {
+
+    sizeChangedCallback(rect) {
+      console.log(rect);
+    }
+  }
+
+  customElements.define("example-component", ExampleComponent);
+
+  setInterval(() => {
+    let el = document.querySelector("#ex1");
+    el.style.width = (parseInt(el.style.width)-1)+"%";
+  }, 3000);
+</script>
+
+</body>
+</html>
