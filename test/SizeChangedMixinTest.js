@@ -33,14 +33,24 @@ describe('SizeChangedMixin', function () {
     expect(el.test()).to.be.equal("abc");
   });
 
-  it("inline-block + .getContentRect() returns {width: 0, height: 0, top: 0, left: 0}", function () {
+  it(".getContentRect() returns {width: 0, height: 0, top: 0, left: 0}", function () {
     const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
     };
     customElements.define("get-content-size", Subclass);
     const el = new Subclass();
-    el.innerText = "getBoundingClientRect() is empty if the element is out of the DOM.";
-    expect(el.style.display).to.be.equal("inline-block");
     expect(el.getContentRect()).to.deep.equal({width: 0, height: 0, top: 0, left: 0});
+  });
+
+  it("style.display set to inline-block on connection", function () {
+    const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
+    };
+    customElements.define("style-inline-block", Subclass);
+    const el = new Subclass();
+    document.querySelector("body").appendChild(el);
+    expect(el.style.display).to.be.equal("inline-block");
+    Promise.resolve().then(() => {
+      document.querySelector("body").removeChild(el);
+    });
   });
 
   it("getBoundingClientRect() on not connected elements", function () {
@@ -55,7 +65,7 @@ describe('SizeChangedMixin', function () {
     expect(el.getBoundingClientRect().bottom).to.be.equal(0);
   });
 
-  it("connect an element to document", function () {
+  it("call sizeChangedCallback on connecting an element to document", function () {
     const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
       sizeChangedCallback(rect) {
         expect(rect.top).to.be.equal(0);
@@ -70,42 +80,60 @@ describe('SizeChangedMixin', function () {
     document.querySelector("body").appendChild(el);
     document.querySelector("body").removeChild(el);
   });
+});
 
-  // it("change style width of a connected element", function (done) {
-  // it("change style padding of a connected element", function (done) {
-  // it("change position of a connected element that should not trigger", function (done) {
-  // it("change padding and width so it does not change the size and does not trigger", function (done) {
-  it("change content of a connected element", function (done) {
-    let counter = 0;
-    let firstWidth;
+// it("change style width of a connected element", function (done) {
+// it("change style padding of a connected element", function (done) {
+// it("change position of a connected element that should not trigger", function (done) {
+// it("change padding and width so it does not change the size and does not trigger", function (done) {
+describe("sizeChangedCallback(rect)", function () {
+
+  let prevWidth, testHook;
+
+  before(() => {
     const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
       sizeChangedCallback(rect) {
-        if (counter === 0) {
-          expect(rect.top).to.be.equal(0);
-          expect(rect.left).to.be.equal(0);
-          assert(rect.width > 0);
-          assert(rect.height > 0);
-          firstWidth = rect.width;
-          counter++;
-        } else if (counter === 1) {
-          expect(rect.top).to.be.equal(0);
-          expect(rect.left).to.be.equal(0);
-          assert(rect.width > firstWidth);
-          assert(rect.height > 0);
-          done();
-        }
+        console.log("hook");
+        testHook(rect);
       }
     };
-    customElements.define("change-size-changed-content", Subclass);
-    const el = new Subclass();
+    customElements.define("size-changed-x", Subclass);
+  });
+  it("change content of a connected element", function (done) {
+
+
+    testHook = function (rect) {
+      console.log("test1");
+      expect(rect.top).to.be.equal(0);
+      expect(rect.left).to.be.equal(0);
+      assert(rect.width > 0);
+      assert(rect.height > 0);
+      prevWidth = rect.width;
+    };
+    const el = document.createElement("size-changed-x");
     el.innerText = "here we go.";
     document.querySelector("body").appendChild(el);
-    Promise.resolve().then(() => {
-      el.innerText = el.innerText + " again..";
-      setTimeout(() => {
-        document.querySelector("body").removeChild(el);
-      }, 20);
-    });
+
+    window.requestAnimationFrame(
+      () => window.requestAnimationFrame(
+        () => {
+          testHook = function (rect) {
+            console.log("test2");
+            expect(rect.top).to.be.equal(0);
+            expect(rect.left).to.be.equal(0);
+            assert(rect.width > prevWidth);
+            assert(rect.height > 0);
+            done();
+          };
+          const el = document.querySelector("size-changed-x");
+          el.style.fontWeight = "bold";
+          // el.innerText = el.innerText + " again..";
+        }));
+
+  });
+  after(() => {
+    // const el = document.querySelector("size-changed-x");
+    // document.querySelector("body").removeChild(el);
   });
 
   /*

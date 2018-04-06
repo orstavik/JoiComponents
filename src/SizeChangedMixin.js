@@ -65,19 +65,13 @@ class ResizeObserverRAF {
   }
 }
 
-const RO = Symbol("ResizeObserver");
-const ROpoly = Symbol("ResizeObserverRAFPolyfill");
-const observeFrame = Symbol("observeFrame");
-const observeFrameRAF = Symbol("observeFrameRAF");
-const initObserver = Symbol("initObserver");
-
 const sizeChangedOnAll = entries => {
   for (let entry of entries)
     entry.target.sizeChangedCallback(entry.contentRect);
 };
 const sizeChangedCallbackObserver = window.ResizeObserver ? new ResizeObserver(sizeChangedOnAll) : new ResizeObserverRAF(sizeChangedOnAll);
 
-//todo add attribute for using polling
+//todo switch between RAF and ResizeObserver using attributes
 /**
  * todo this does not work with "display: inline"
  * todo works with inline-block, block, flex, grid, probably more. Make a complete list
@@ -98,14 +92,15 @@ export const SizeChangedMixin = function (Base) {
       if (super.sizeChangedCallback) super.sizeChangedCallback(rect);
     }
 
-    constructor(){
-      super();
-      this.style.display = "inline-block";
-    }
-
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
-      sizeChangedCallbackObserver.observe(this);
+      this.style.display = "inline-block";
+      window.requestAnimationFrame(() => sizeChangedCallbackObserver.observe(this));
+      //There is a strange race condition when setting style and calling ResizeObserver.observe().
+      //By delaying the observe call until the next RAF, the style of the element has updated and the observe()
+      //will be registered.
+      //TODO test how it is to change the display type during observation??
+      //todo use RAF based observation if the display type is inline??
       this.sizeChangedCallback(this.getContentRect());
     }
 
