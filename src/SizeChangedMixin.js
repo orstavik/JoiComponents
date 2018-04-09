@@ -39,6 +39,7 @@ class ResizeObserverRAF {
     }
     //second, filter the list to remove all rects that have not changed contentBox (ie. they have only moved or similar)
     //ATT!! This method relies on .getContentRect() being added to the HTMLElement observed.
+    //todo to make this function in the same way as the native ResizeObserver, i should move the getContentRect into the element and cache it??
     const entries = [];
     for (let obj of altered) {
       const currentContentBox = obj.getContentRect();
@@ -61,18 +62,21 @@ class ResizeObserverRAF {
 
   static diffPadding(currentPadding, previousPadding) {
     //todo make this one, don't know how padding looks..
+    //todo if the element can skip saving different padding, then this can be done using dirtyChecking.
     throw new Error("wtf?! do something");
   }
 }
 
 const sizeChangedOnAll = entries => {
   for (let entry of entries)
+    //todo cache here to check if the size is different than last time.. do i need to do that for ResizeObserver??
     entry.target.sizeChangedCallback(entry.contentRect);
 };
 const sizeChangedCallbackObserver = window.ResizeObserver ? new ResizeObserver(sizeChangedOnAll) : new ResizeObserverRAF(sizeChangedOnAll);
 
-//todo switch between RAF and ResizeObserver using attributes
 /**
+ * The
+ *
  * todo this does not work with "display: inline"
  * todo works with inline-block, block, flex, grid, probably more. Make a complete list
  *
@@ -92,22 +96,43 @@ export const SizeChangedMixin = function (Base) {
       if (super.sizeChangedCallback) super.sizeChangedCallback(rect);
     }
 
+    /**
+     * The first run observation will not happen until the frame _after_ the element is connected.
+     * If it is important to run sizeChangedCallback on the first connectedCallback, do it manually like this:
+     * el.sizeChangedCallback(el.getContentRect());
+     * todo Is this true for ResizeObserverRAF too?
+     *
+     * Reasoning:
+     * 1. Custom elements' style are by default {display: "inline"}
+     * 2. the ResizeObserver.observe ignores elements with {display: inline}
+     * 3. when you set the this.style.display = "inline-block", the style and layout are not immediately updated.
+     * 4. so, if ResizeObserver.observe(this) runs directly after this.style.display = "inline-block",
+     *    it will still ignore this element as its display: inline has not yet updated to inline-block.
+     * 5. But, by delaying the ResizeObserver.observe(this) to the coming requestAnimationFrame,
+     *    it has updated the display property of this, and thus the .observe() will not ignore it.
+     */
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this.style.display = "inline-block";
       window.requestAnimationFrame(() => sizeChangedCallbackObserver.observe(this));
-      //There is a strange race condition when setting style and calling ResizeObserver.observe().
-      //By delaying the observe call until the next RAF, the style of the element has updated and the observe()
-      //will be registered.
-      //TODO test how it is to change the display type during observation??
-      //todo use RAF based observation if the display type is inline??
-      this.sizeChangedCallback(this.getContentRect());
+      //todo this.sizeChangedCallback(this.getContentRect());
+      //todo and then filter the sizeChangedCallback to avoid calling twice for equal contentRect
     }
 
     disconnectedCallback() {
       if (super.disconnectedCallback) super.disconnectedCallback();
       sizeChangedCallbackObserver.disconnect(this);
     }
+
+    //TODO test how it is to change the display type during observation??
+
+    //todo use RAF based observation if the display type is inline?? so if style changes to inline, switch automatically to rAF?
+
+    //todo switch between RAF and ResizeObserver using attributes
+
+    //todo make getPadding(forceUpdateBoolean)
+
+    //todo make getContentRect(forceUpdateBoolean)
 
     getContentRect() {
       const boundBox = this.getBoundingClientRect();
