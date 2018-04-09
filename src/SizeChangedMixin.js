@@ -1,90 +1,99 @@
+const lastContentRect = Symbol("lastContentRect");
+const lastBoundBox = Symbol("lastBoundBox");
+const padding = Symbol("style.padding");
+const paddingAsNumbers = Symbol("style.padding.asNumbers");
+const callSizeChangedIfSizeChanged = Symbol("callSizeChangedIfSizeChanged");
+const contentRectCache = Symbol('contentRectCache');
+
+function diffRect(a, b) {
+  if (!a && !b)
+    return false;
+  if (!a || !b)
+    return true;
+  return a.width !== b.width || a.height !== b.height || a.top !== b.top || a.left !== b.left;
+}
+
 class ResizeObserverRAF {
   constructor(cb) {
-    this._boundingRects = new Map();
-    this._contentRects = new Map();
-    this._paddings = new Map();
+    this._boundObjs = new Set();
+    this._boundingRects = new WeakMap();
+    this._paddings = new WeakMap();
     this._cb = cb;
     this._rafLoopInstance = this._rafLoop.bind(this);
   }
 
   observe(obj) {
-    this._boundingRects.set(obj, null);
-    if (this._boundingRects.length === 1)
+    this._boundObjs.add(obj);
+    if (this._boundObjs.length === 1)
       window.requestAnimationFrame(this._rafLoopInstance);
   }
 
   disconnect(obj) {
-    this._boundingRects.delete(obj);
-    if (this._boundingRects.length === 0)
+    this._boundObjs.delete(obj);
+    if (this._boundObjs.length === 0)
       window.cancelAnimationFrame(this._rafLoopInstance);
   }
 
   _rafLoop() {
     //first, find all elements where the boundingClientRect OR the padding style have changed.
-    const altered = [];
-    for (let obj of this._boundingRects.keys()) {
+    const entries = [];
+    for (let obj of this._boundObjs) {
       const currentBoundingRect = obj.getBoundingClientRect();
       const previousBoundingRect = this._boundingRects.get(obj);
-      const currentPadding = obj.style.padding;
+      const currentPadding = window.getComputedStyle(obj).getPropertyValue("padding");
       const previousPadding = this._paddings.get(obj);
-      let diffBoundingRect = ResizeObserverRAF.diffRect(currentBoundingRect, previousBoundingRect);
-      let diffPadding = ResizeObserverRAF.diffPadding(currentPadding, previousPadding);
+      let diffBoundingRect = diffRect(currentBoundingRect, previousBoundingRect);
+      let diffPadding = currentPadding !== previousPadding;
       if (!diffBoundingRect && !diffPadding)
         continue;
-      altered.push(obj);
+      entries.push({target: obj, contentRect: obj.getContentRect()});
       if (diffBoundingRect)
         this._boundingRects.set(obj, currentBoundingRect);
       if (diffPadding)
         this._paddings.set(obj, currentBoundingRect);
     }
-    //second, filter the list to remove all rects that have not changed contentBox (ie. they have only moved or similar)
-    //ATT!! This method relies on .getContentRect() being added to the HTMLElement observed.
-    //todo to make this function in the same way as the native ResizeObserver, i should move the getContentRect into the element and cache it??
-    const entries = [];
-    for (let obj of altered) {
-      const currentContentBox = obj.getContentRect();
-      const previousContentBox = this._contentRects.get(obj);
-      if (ResizeObserverRAF.diffRect(currentContentBox, previousContentBox)) {
-        this._contentRects.set(obj, currentContentBox);
-        entries.push({target: obj, contentRect: currentContentBox});
-      }
-    }
-    //third, run the callback([{target, contentRect}]) on the objs that have changed contentRect
+    //second, run the callback([{target, contentRect}]) on the objs that have changed contentRect
     this._cb(entries);
 
     //finally, run again next rAF
     window.requestAnimationFrame(this._rafLoopInstance);
   }
-
-  static diffRect(a, b) {
-    return !b || a.width !== b.width || a.height !== b.height || a.top !== b.top || a.left !== b.left;
-  }
-
-  static diffPadding(currentPadding, previousPadding) {
-    //todo make this one, don't know how padding looks..
-    //todo if the element can skip saving different padding, then this can be done using dirtyChecking.
-    throw new Error("wtf?! do something");
-  }
 }
 
-const sizeChangedOnAll = entries => {
+
+//this method filters out any calls that might trigger a resizeObserver, but that has not changed the contentRect.
+const onlyOnSizeChangedOnAll = entries => {
   for (let entry of entries)
-    //todo cache here to check if the size is different than last time.. do i need to do that for ResizeObserver??
-    entry.target.sizeChangedCallback(entry.contentRect);
+    entry.target[callSizeChangedIfSizeChanged](entry.contentRect);
 };
-const sizeChangedCallbackObserver = window.ResizeObserver ? new ResizeObserver(sizeChangedOnAll) : new ResizeObserverRAF(sizeChangedOnAll);
+const sizeChangedCallbackObserver = window.ResizeObserver ? new ResizeObserver(onlyOnSizeChangedOnAll) : new ResizeObserverRAF(onlyOnSizeChangedOnAll);
 
 /**
- * The
+ * All elements implementing SizeChangedMixin have changes in their size observed.
  *
- * todo this does not work with "display: inline"
- * todo works with inline-block, block, flex, grid, probably more. Make a complete list
+ * A. In Chrome, this is done using ResizeObserver. The ResizeObserver has the following limitations:
+ * 1. it does not observe {display: inline} elements.
+ * 2. it runs three-order after layout in a special ResizeObserver que.
+ *
+ * B. In other browsers, this is done in the requestAnimationQue.
  *
  * @param Base class that extends HTMLElement
  * @returns {SizeChangedMixin} class that extends HTMLElement
  */
 export const SizeChangedMixin = function (Base) {
   return class SizeChangedMixin extends Base {
+
+    constructor() {
+      super();
+      this[contentRectCache] = undefined;
+      this[padding] = undefined;
+      this[paddingAsNumbers] = {top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0};
+    }
+
+    [callSizeChangedIfSizeChanged](rect) {
+      if (diffRect(rect, this[contentRectCache]))
+        this.sizeChangedCallback(this[contentRectCache] = rect);
+    }
 
     /**
      * Override this method to do actions when children changes.
@@ -110,13 +119,22 @@ export const SizeChangedMixin = function (Base) {
      *    it will still ignore this element as its display: inline has not yet updated to inline-block.
      * 5. But, by delaying the ResizeObserver.observe(this) to the coming requestAnimationFrame,
      *    it has updated the display property of this, and thus the .observe() will not ignore it.
+     *
+     * Or is it because:
+     * 1. ResizeObserver.observe ignores elements not yet connected to the DOM
+     * 2. So you have to delay the call until after the element is finished connected,
+     *    ie. until after the connectedCallback function is completed.
+     * 3. By delaying the ResizeObserver.observe(this) to the coming requestAnimationFrame,
+     *    the connectedCallback is completed, and thus the .observe() will not ignore it.
      */
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this.style.display = "inline-block";
+      // window.getComputedStyle(this);               //alt. 1: did not work
+      // sizeChangedCallbackObserver.observe(this);   //alt. 1: did not work
       window.requestAnimationFrame(() => sizeChangedCallbackObserver.observe(this));
-      //todo this.sizeChangedCallback(this.getContentRect());
-      //todo and then filter the sizeChangedCallback to avoid calling twice for equal contentRect
+      //todo call at startup and then filter the sizeChangedCallback to avoid calling twice for equal contentRect
+      // this[callSizeChangedIfSizeChanged](this.getContentRect());
     }
 
     disconnectedCallback() {
@@ -130,28 +148,36 @@ export const SizeChangedMixin = function (Base) {
 
     //todo switch between RAF and ResizeObserver using attributes
 
-    //todo make getPadding(forceUpdateBoolean)
-
-    //todo make getContentRect(forceUpdateBoolean)
+    getPaddingPixels() {
+      let style = window.getComputedStyle(this);
+      let pad = style.getPropertyValue("padding");
+      if (this[padding] === pad)
+        return this[paddingAsNumbers];
+      let p = {
+        top: parseFloat(style.getPropertyValue("padding-top") || 0),
+        right: parseFloat(style.getPropertyValue("padding-right") || 0),
+        bottom: parseFloat(style.getPropertyValue("padding-bottom") || 0),
+        left: parseFloat(style.getPropertyValue("padding-left") || 0)
+      };
+      p.width = p.left + p.right;
+      p.height = p.top + p.bottom;
+      return this[paddingAsNumbers] = p;
+    }
 
     getContentRect() {
+      const prevBoundBox = this[lastBoundBox];
       const boundBox = this.getBoundingClientRect();
-      const padding = this.style.padding;
-      let pr = 0;
-      let pl = 0;
-      let pb = 0;
-      let pt = 0;
-      if (padding) {
-        pr = parseFloat(padding.right);
-        pl = parseFloat(padding.left);
-        pb = parseFloat(padding.bottom);
-        pt = parseFloat(padding.top);
-      }
-      return {
-        width: boundBox.right - boundBox.left - pl - pr,
-        height: boundBox.bottom - boundBox.top - pt - pb,
-        top: pt,
-        left: pl
+      const prevPadding = this[paddingAsNumbers];
+      const padding = this.getPaddingPixels();
+      //no changes, return previous contentRect
+      if (prevPadding === padding && prevBoundBox === boundBox) //todo check if the boundBox changes or is immutable..
+        return this[lastContentRect];
+      //else
+      return this[lastContentRect] = {
+        width: boundBox.right - boundBox.left - padding.width,
+        height: boundBox.bottom - boundBox.top - padding.height,
+        top: padding.top,
+        left: padding.left
       };
     }
   }

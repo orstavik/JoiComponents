@@ -161,8 +161,24 @@ describe("sizeChangedCallback(rect)", function () {
     document.querySelector("body").removeChild(el);
   });
 
-
-
   //todo verify that listeners are removed when disconnected.
   //todo make some tests showing that it does not go outside of its realm.. don't know how
+});
+
+//https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle
+describe("test of window.getComputedStyle for padding", function () {
+
+  it("change content of a connected element", function (done) {
+    const el = document.createElement("div");
+    el.style['padding-left'] = "10%";
+    document.querySelector("body").appendChild(el);
+    const style = getComputedStyle(el);
+
+    // el.style.background = "blue";
+    console.log("padding", style.getPropertyValue("padding"));
+    console.log("padding-top", style.getPropertyValue("padding-top"));
+    // style.getPropertyValue("padding")
+    document.querySelector("body").removeChild(el);
+    done();
+  });
 });
