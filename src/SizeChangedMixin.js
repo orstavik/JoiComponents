@@ -85,13 +85,12 @@ export const SizeChangedMixin = function (Base) {
      * and if you need to parse transform matrix, you can do still do it, but using your own rAF listener that
      * checks and parses the style.transform tag for changes.
      *
-     * 2 Problems with ResizeObserver:
+     * Problems with ResizeObserver:
      * 1. It does not allow us to observe directly after style.display = inline-block
-     * 2. The DOMRect that ResizeObserver is slightly different from getBoundingClientRect().width-padding.width
+     * 2. The DOMRect that ResizeObserver is slightly different from clientWidth and clientHeight.
+     //todo check with the polyfills: Why ResizeObserver spec that clientWidth and clientHeight is not the same as clientRect. Confusing. Hard to polyfillish.     * Comment: ResizeObserverRAF does not have this problem (untested hypothesis).
      *
      * Problem 1 reasoning:
-     *
-     * ResizeObserverRAF does not have this problem (untested hypothesis).
      *
      * 1. Custom elements' style are by default {display: "inline"}
      * 2. the ResizeObserver.observe ignores elements with {display: inline}
@@ -101,18 +100,15 @@ export const SizeChangedMixin = function (Base) {
      * 5. But, by delaying the ResizeObserver.observe(this) to the coming requestAnimationFrame,
      *    it has updated the display property of this, and thus the .observe() will not ignore it.
      *
-     * Or is it because:
+     * Or it is because:
      * 1. ResizeObserver.observe ignores elements not yet connected to the DOM
-     * 2. So you have to delay the call until after the element is finished connected,
-     *    ie. until after the connectedCallback function is completed.
+     * 2. Somewhere in Chrome, the element is still registered as notConnected
      * 3. By delaying the ResizeObserver.observe(this) to the coming requestAnimationFrame,
      *    the connectedCallback is completed, and thus the .observe() will not ignore it.
      */
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this.style.display = "inline-block";
-      // window.getComputedStyle(this);               //alt. 1: did not work
-      // sizeChangedCallbackObserver.observe(this);   //alt. 1: did not work
       window.requestAnimationFrame(() => defaultResizeObserver.observe(this));
       //todo the sizeChangedCallback filter to avoid calling twice for equal contentRect does not work for ResizeObserver due to error in calculation..
       // this.sizeChangedCallback(this.getContentRect());
@@ -139,4 +135,3 @@ export const SizeChangedMixin = function (Base) {
     }
   }
 };
-//todo check with the polyfills. why ResizeObserver spec that clientWidth and clientHeight is not the same as clientRect. Confusing. Hard to polyfillish.
