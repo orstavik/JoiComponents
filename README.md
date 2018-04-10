@@ -3,6 +3,8 @@ Two independent, standalone mixins that provide two callback hooks for web compo
 * .sizeChangedCallback
 * .childrenChangedCallback
 
+These mixins are based on the [Functional Mixin for listener-to-reactive-method pairs](tutorials/Pattern1_ReactiveMethod.md).
+
 ## .sizeChangedCallback
 The purpose of this SizeChangedMixin is to provide a function hook that is triggered
 everytime the size of the contentRectangle of the webcomponent changes, but only once per frame.
