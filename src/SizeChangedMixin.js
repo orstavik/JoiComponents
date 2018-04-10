@@ -37,7 +37,7 @@ const onlyOnSizeChangedOnAll = entries => {
   for (let entry of entries)
     entry.target.sizeChangedCallback(entry.contentRect);
 };
-const chromeResizeObserver = !window.ResizeObserver ? new ResizeObserver(onlyOnSizeChangedOnAll) : undefined;
+const chromeResizeObserver = window.ResizeObserver ? new ResizeObserver(onlyOnSizeChangedOnAll) : undefined;
 const rafResizeObserver = new ResizeObserverRAF(onlyOnSizeChangedOnAll);
 const defaultResizeObserver = chromeResizeObserver || rafResizeObserver;
 

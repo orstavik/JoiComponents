@@ -1,4 +1,4 @@
-import {SizeChangedMixin} from "../src/SizeChangedMixin.js";
+import {SizeChangedMixin} from "../../src/SizeChangedMixin.js";
 
 const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
 
@@ -91,11 +91,6 @@ describe('sizeChangedCallback simple', function () {
   });
 });
 
-//TODO test how it is to change the display type during observation??
-//todo test if the style can be changed to inline after it has been observed, or if this will cause problems.
-// todo it("change style padding of a connected element", function (done) {
-// todo it("change position of a connected element that should not trigger", function (done) {
-// todo it("change padding and width so it does not change the size and does not trigger", function (done) {
 describe("sizeChangedCallback(rect) size-changed-x", function () {
 
   let prevWidth, testHook;
@@ -107,6 +102,12 @@ describe("sizeChangedCallback(rect) size-changed-x", function () {
       }
     };
     customElements.define("size-changed-x", Subclass);
+
+    const container = document.createElement("div");
+    container.id = "testContainer";
+    container.style.width = "300px";
+    container.style.height = "300px";
+    document.querySelector("body").appendChild(container);
   });
 
   it("Frame 0: connect element", function (done) {
@@ -118,7 +119,7 @@ describe("sizeChangedCallback(rect) size-changed-x", function () {
     };
     const el = document.createElement("size-changed-x");
     el.innerText = "size-changed-x:";
-    document.querySelector("body").appendChild(el);
+    document.querySelector("#testContainer").appendChild(el);
   });
 
   it("Frame 1: change element.innerText", function (done) {
@@ -147,23 +148,122 @@ describe("sizeChangedCallback(rect) size-changed-x", function () {
     });
   });
 
-  it("Frame 3: change element.style.padding DOES NOT affect the contentRect", function (done) {
+  it("Frame 3: change element.style.padding, margin, border DOES NOT trigger sizeChangedCallback", function (done) {
     raf_x(3, () => {
       testHook = function (rect) {
         assert(false);
       };
       const el = document.querySelector("size-changed-x");
-      // el.style.fontWeight = "bold";
       el.style.padding = "10px 20px";
-      requestAnimationFrame(()=>done());
+      el.style.margin = "10px 20px";
+      el.style.border = "10px solid white";
+      requestAnimationFrame(() => done());
+    });
+  });
+
+  it("Frame 4: produce new layout but with the same contentRect DOES NOT trigger sizeChangedCallback", function (done) {
+    raf_x(4, () => {
+      testHook = function (rect) {
+        assert(false);
+      };
+      const container = document.querySelector("#testContainer");
+      const el = document.querySelector("size-changed-x");
+
+      container.style.display = "grid";
+      container.style.gridTemplateColumns = "auto auto";
+
+      el.style.display = "inline-block";
+      el.innerText =
+        "innerText innerText innerText innerText innerText innerText innerText innerText innerText " +
+        "innerText innerText innerText innerText innerText innerText innerText innerText innerText " +
+        "innerText innerText innerText innerText innerText innerText innerText innerText innerText ";
+      el.style.padding = "0";
+      el.style.margin = "0";
+      el.style.border = "0";
+      el.style.width = "";
+      el.style.height = "100px";
+      //el is now 300 wide
+
+      const sib = document.createElement("div");
+      sib.style.padding = "0";
+      sib.style.margin = "0";
+      sib.style.border = "0";
+      sib.style.width = "200px";
+      sib.style.height = "300px";
+
+      container.appendChild(sib);
+
+      requestAnimationFrame(() => {
+        done()
+      });
     });
   });
 
   after(() => {
-    const el = document.querySelector("size-changed-x");
-    document.querySelector("body").removeChild(el);
+    const el = document.querySelector("#testContainer");
+    document.querySelector("body").removeChild(el)
+  });
+});
+
+describe("test of switching between inline and inline-block", function () {
+
+  let testHook;
+
+  before(() => {
+    const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
+      sizeChangedCallback(rect) {
+        testHook(rect);
+      }
+    };
+    customElements.define("size-changed-inline-switch", Subclass);
+
+    const container = document.createElement("div");
+    container.id = "testContainer";
+    container.style.width = "300px";
+    container.style.height = "300px";
+    document.querySelector("body").appendChild(container);
   });
 
-  //todo verify that listeners are removed when disconnected.
-  //todo make some tests showing that it does not go outside of its realm.. don't know how
+  it("Frame 0: connect element", function (done) {
+    testHook = function (rect) {
+      assert(rect.width > 0);
+      assert(rect.height > 0);
+      done();
+    };
+    const el = document.createElement("size-changed-inline-switch");
+    el.innerText = "size-changed-x:";
+    document.querySelector("#testContainer").appendChild(el);
+  });
+
+  it("Frame 1: inflight change to display: inline triggers a sizeChangedCallback with values 0,0 for ResizeObserver", function (done) {
+    raf_x(1, () => {
+      testHook = function (rect) {
+        assert(rect.width === 0);
+        assert(rect.height === 0);
+        done();
+      };
+      const el = document.querySelector("size-changed-inline-switch");
+      el.style.display = "inline";
+    });
+  });
+
+  it("Frame 2: inflight change to display: block triggers a sizeChangedCallback with values 100, 100", function (done) {
+    raf_x(2, () => {
+      testHook = function (rect) {
+        assert(rect.width === 100);
+        assert(rect.height === 100);
+        done();
+      };
+      const el = document.querySelector("size-changed-inline-switch");
+      el.style.display = "inline-block";
+      el.style.width = "100px";
+      el.style.height = "100px";
+    });
+  });
+
+  after(() => {
+    const el = document.querySelector("#testContainer");
+    document.querySelector("body").removeChild(el)
+  });
 });
+//todo verify that listeners are removed when disconnected.

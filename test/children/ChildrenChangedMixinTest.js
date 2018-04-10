@@ -1,4 +1,4 @@
-import {ChildrenChangedMixin} from "../src/ChildrenChangedMixin.js";
+import {ChildrenChangedMixin} from "../../src/ChildrenChangedMixin.js";
 
 describe('ChildrenChangedMixin', function () {
 
