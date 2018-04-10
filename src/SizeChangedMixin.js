@@ -42,17 +42,27 @@ const rafResizeObserver = new ResizeObserverRAF(onlyOnSizeChangedOnAll);
 const defaultResizeObserver = chromeResizeObserver || rafResizeObserver;
 
 /**
+ * The purpose of this SizeChangedMixin is to provide a function hook that is triggered
+ * everytime the size of the contentRectangle of the webcomponent changes, but only once per frame.
+ * Such a hook has two primary use-cases:
+ * 1. "web-component mediaquery": You need to change the innerDOM of an element based on its available screen size.
+ * 2. You want to change some attributes of dependent elements (such as size or position) based on a combination of
+ * size and/or content.
+ *
  * All elements implementing SizeChangedMixin have changes in their _inner_ size observed.
  * "Inner size" is defined as "contentRect" in Chrome's ResizeObserver,
- * or clientWidth and clientHeight in other browsers.
+ * or "window.getComputedStyle(this).width+height".
  *
- * A. In Chrome, this is done using ResizeObserver. The ResizeObserver has the following limitations:
- * 1. must wait until the next frame to observe size changes.
- * 2. it does not observe {display: inline} elements.
- * 3. it runs three-order after layout in a special ResizeObserver que.
+ * In Chrome, this is done using ResizeObserver. The ResizeObserver has the following limitations:
+ * 1. it does not observe {display: inline} elements.
+ * 2. it runs three-order after layout in a special ResizeObserver que.
  *
+ * In other browsers, this is done in the requestAnimationQue.
  *
- * B. In other browsers, this is done in the requestAnimationQue.
+ * ATT!! sizeChangedCallback does not take into account css transforms. Neither in ResizeObserver nor rAF mode.
+ * This is not a big problem as layout of the children are likely to want to be transformed with the parent,
+ * and if you need to parse transform matrix, you can do still do it, but using your own rAF listener that
+ * checks and parses the style.transform tag for changes.
  *
  * @param Base class that extends HTMLElement
  * @returns {SizeChangedMixin} class that extends HTMLElement
@@ -76,42 +86,15 @@ export const SizeChangedMixin = function (Base) {
     }
 
     /**
-     * The first run observation will not happen until the frame _after_ the element is connected.
-     * If it is important to run sizeChangedCallback on the first connectedCallback, do it manually like this:
-     * el.sizeChangedCallback(el.getContentRect()); //this.sizeChangedCallback(this.getContentRect());
      *
-     * ATT!! sizeChangedCallback does not take into account css transforms. Neither in ResizeObserver nor rAF mode.
-     * This is not a big problem as layout of the children are likely to want to be transformed with the parent,
-     * and if you need to parse transform matrix, you can do still do it, but using your own rAF listener that
-     * checks and parses the style.transform tag for changes.
-     *
-     * Problems with ResizeObserver:
-     * 1. It does not allow us to observe directly after style.display = inline-block
      * 2. The DOMRect that ResizeObserver is slightly different from clientWidth and clientHeight.
-     //todo check with the polyfills: Why ResizeObserver spec that clientWidth and clientHeight is not the same as clientRect. Confusing. Hard to polyfillish.     * Comment: ResizeObserverRAF does not have this problem (untested hypothesis).
+     * todo check with the polyfills: Do ResizeObserver contentRect differ from computed width height?
      *
-     * Problem 1 reasoning:
-     *
-     * 1. Custom elements' style are by default {display: "inline"}
-     * 2. the ResizeObserver.observe ignores elements with {display: inline}
-     * 3. when you set the this.style.display = "inline-block", the style and layout are not immediately updated.
-     * 4. so, if ResizeObserver.observe(this) runs directly after this.style.display = "inline-block",
-     *    it will still ignore this element as its display: inline has not yet updated to inline-block.
-     * 5. But, by delaying the ResizeObserver.observe(this) to the coming requestAnimationFrame,
-     *    it has updated the display property of this, and thus the .observe() will not ignore it.
-     *
-     * Or it is because:
-     * 1. ResizeObserver.observe ignores elements not yet connected to the DOM
-     * 2. Somewhere in Chrome, the element is still registered as notConnected
-     * 3. By delaying the ResizeObserver.observe(this) to the coming requestAnimationFrame,
-     *    the connectedCallback is completed, and thus the .observe() will not ignore it.
      */
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this.style.display = "inline-block";
-      window.requestAnimationFrame(() => defaultResizeObserver.observe(this));
-      //todo the sizeChangedCallback filter to avoid calling twice for equal contentRect does not work for ResizeObserver due to error in calculation..
-      // this.sizeChangedCallback(this.getContentRect());
+      defaultResizeObserver.observe(this)
     }
 
     disconnectedCallback() {
@@ -128,8 +111,8 @@ export const SizeChangedMixin = function (Base) {
      */
     getContentRect() {
       const style = window.getComputedStyle(this);
-      const width = style.width === "" ? 0 : parseFloat(style.width);   //- (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0)
-      const height = style.height === "" ? 0 : parseFloat(style.height); // - (parseFloat(style.paddingTop) || 0) - (parseFloat(style.paddingBottom) || 0)
+      const width = style.width === "" ? 0 : parseFloat(style.width);
+      const height = style.height === "" ? 0 : parseFloat(style.height);
       if (this[contentRectCache].width !== width || this[contentRectCache].height !== height)
         this[contentRectCache] = {width, height};
       return this[contentRectCache];
