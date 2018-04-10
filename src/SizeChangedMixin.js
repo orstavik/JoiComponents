@@ -99,10 +99,14 @@ export const SizeChangedMixin = function (Base) {
     }
 
     /**
-     * returns the same object (that can be dirtychecked) if contentRect is unchanged.
+     * Forces style update if cachedOnly is false.
+     * @params cachedOnly if true, returns the last contentRect from cache, and will not trigger getComputedStyle.
      * @returns {{width: getComputedStyle(this).width, height: getComputedStyle(this).height}}
+     *          returns the same object if contentRect is unchanged (dirtychecking viable).
      */
-    getContentRect() {
+    getContentRect(cachedOnly) {
+      if (cachedOnly)
+        return this[contentRectCache];
       const style = window.getComputedStyle(this);
       const width = style.width === "" ? 0 : parseFloat(style.width);
       const height = style.height === "" ? 0 : parseFloat(style.height);
