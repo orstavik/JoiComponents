@@ -1,4 +1,5 @@
 const contentRectCache = Symbol('contentRectCache');
+const resizeObserver = Symbol('resizeObserverInstance');
 
 class ResizeObserverRAF {
   constructor(cb) {
@@ -28,8 +29,8 @@ class ResizeObserverRAF {
         this._rects.set(obj, nowRect);                      //and update cache
       }
     }
-    this._cb(entries);                                          //run callback([{target, contentRect}]) on changes
-    window.requestAnimationFrame(this._rafLoopInstance);        //check again next rAF
+    this._cb(entries);                                      //run callback([{target, contentRect}]) on changes
+    window.requestAnimationFrame(this._rafLoopInstance);    //check again next rAF
   }
 }
 
@@ -39,7 +40,6 @@ const onlyOnSizeChangedOnAll = entries => {
 };
 const chromeResizeObserver = window.ResizeObserver ? new ResizeObserver(onlyOnSizeChangedOnAll) : undefined;
 const rafResizeObserver = new ResizeObserverRAF(onlyOnSizeChangedOnAll);
-const defaultResizeObserver = chromeResizeObserver || rafResizeObserver;
 
 /**
  * The purpose of this SizeChangedMixin is to provide a function hook that is triggered
@@ -64,6 +64,8 @@ const defaultResizeObserver = chromeResizeObserver || rafResizeObserver;
  * and if you need to parse transform matrix, you can do still do it, but using your own rAF listener that
  * checks and parses the style.transform tag for changes.
  *
+ * todo do the contentRect DOMRect from chrome ResizeObserver differ slightly from getComputedStyle().width and .height? and why?
+ *
  * @param Base class that extends HTMLElement
  * @returns {SizeChangedMixin} class that extends HTMLElement
  */
@@ -73,6 +75,7 @@ export const SizeChangedMixin = function (Base) {
     constructor() {
       super();
       this[contentRectCache] = {width: 0, height: 0};
+      this[resizeObserver] = chromeResizeObserver || rafResizeObserver;
     }
 
     /**
@@ -85,29 +88,20 @@ export const SizeChangedMixin = function (Base) {
       if (super.sizeChangedCallback) super.sizeChangedCallback(rect);
     }
 
-    /**
-     *
-     * 2. The DOMRect that ResizeObserver is slightly different from clientWidth and clientHeight.
-     * todo check with the polyfills: Do ResizeObserver contentRect differ from computed width height?
-     *
-     */
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this.style.display = "inline-block";
-      defaultResizeObserver.observe(this)
+      this[resizeObserver].observe(this)
     }
 
     disconnectedCallback() {
       if (super.disconnectedCallback) super.disconnectedCallback();
-      defaultResizeObserver.unobserve(this);
+      this[resizeObserver].unobserve(this);
     }
 
-    //todo use RAF based observation if the display type is inline?? so if style changes to inline, switch automatically to rAF?
-
-    //todo switch between RAF and ResizeObserver using attributes
-
     /**
-     * returns the same object if clientWidth and clientHeight unchanged (can be dirtychecked).
+     * returns the same object (that can be dirtychecked) if contentRect is unchanged.
+     * @returns {{width: getComputedStyle(this).width, height: getComputedStyle(this).height}}
      */
     getContentRect() {
       const style = window.getComputedStyle(this);
@@ -117,5 +111,29 @@ export const SizeChangedMixin = function (Base) {
         this[contentRectCache] = {width, height};
       return this[contentRectCache];
     }
+
+    /**
+     * Not implemented as it is unlikely that it will be very useful.
+     * Only makes sense in browsers that support "ResizeObserver"
+     * @param {"ResizeObserver" || "requestAnimationFrame"} name
+     * @returns true if the switch was successful, false if no switch was or could be made
+     */
+    // changeResizeObserver(name = "requestAnimationFrame") {
+    //   if ((name === "requestAnimationFrame" && this[resizeObserver] === rafResizeObserver) ||
+    //     (name === "ResizeObserver" && this[resizeObserver] === chromeResizeObserver))
+    //     return false;
+    //
+    //   this[resizeObserver].unobserve(this);
+    //   if (name === "requestAnimationFrame") {
+    //     this[resizeObserver] = rafResizeObserver;
+    //     this[resizeObserver].observe(this);
+    //     return true;
+    //   } else if (chromeResizeObserver && name === "ResizeObserver") {
+    //     this[resizeObserver] = chromeResizeObserver;
+    //     this[resizeObserver].observe(this);
+    //     return true;
+    //   }
+    //   return false;
+    // }
   }
 };

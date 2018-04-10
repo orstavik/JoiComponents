@@ -1,3 +1,87 @@
+#Joi Mixins
+Two independent, standalone mixins that provide two callback hooks for web components: 
+* .sizeChangedCallback
+* .childrenChangedCallback
+
+## .sizeChangedCallback
+The purpose of this SizeChangedMixin is to provide a function hook that is triggered
+everytime the size of the contentRectangle of the webcomponent changes, but only once per frame.
+Such a hook has two primary use-cases:
+1. "web-component mediaquery": You need to change the innerDOM of an element based on its available screen size.
+2. You want to change some attributes of dependent elements (such as size or position) based on a combination of
+size and/or content.
+
+All elements implementing SizeChangedMixin have changes in their _inner_ size observed.
+"Inner size" is defined as "contentRect" in Chrome's ResizeObserver,
+or "window.getComputedStyle(this).width+height".
+
+In Chrome, this is done using ResizeObserver. The ResizeObserver has the following limitations:
+1. it does not observe {display: inline} elements.
+2. it runs three-order after layout in a special ResizeObserver que.
+
+In other browsers, this is done in the requestAnimationQue.
+
+ATT!! sizeChangedCallback does not take into account css transforms. Neither in ResizeObserver nor rAF mode.
+This is not a big problem as layout of the children are likely to want to be transformed with the parent,
+and if you need to parse transform matrix, you can do still do it, but using your own rAF listener that
+checks and parses the style.transform tag for changes.
+
+You use it as follows:
+
+```javascript
+import {SizeChangedMixin} from "https://rawgit.com/orstavik/children-changed-callback/master/src/SizeChangedMixin.js";
+
+class MyWebComponent extends SizeChangedMixin(HTMLElement) {
+                                               
+
+  sizeChangedCallback({width, height}) {
+    //called every time the contentRectangle's width or height (the inner frame) of this element changes
+    //but only while the instance of MyWebComponent is connected to the DOM.
+  }                                                                
+  
+  
+}
+customElements.define("my-web-component", MyWebComponent);
+const el = new MyWebComponent();
+//1. .sizeChangedCallback is NOT triggered since el is not connected to DOM.
+el.style.width = "100px";
+//2. .sizeChangedCallback is triggered when el gets connected to DOM.
+document.querySelector("body").appendChild(el);
+//3. .sizeChangedCallback is triggered while el is connected and its size changes, 
+//but only once per frame, hence the setTimeout.
+setTimeout( () => el.style.width = "200px", 100);
+```                                                                   
+### Pattern basaed .sizeChangedCallback for fullscreen resizes?
+If you are tracking the full screen size, use this pattern instead of the sizeChangedMixin:
+
+```javascript
+class MyWebComponent extends HTMLElement {
+                                               
+  constructor(){
+    super();
+    this._resizeListener = e => this.sizeChangedCallback({width: window.innerWidth, height: window.innerHeight});
+  }
+  
+  connectedCallback(){
+    window.addEventListener("resize", this._resizeListener);
+    this.sizeChangedCallback({width: window.innerWidth, height: window.innerHeight});
+  }
+
+  disconnectedCallback(){
+    window.removeEventListener("resize", this._resizeListener);
+  }
+
+  sizeChangedCallback({width, height}) {
+    //set up your shadowDOM here.
+    //make sure you cache your last width and height, so that you don't redraw the shadowDom everytime you don't want.
+  }                                                                
+}
+customElements.define("my-web-component", MyWebComponent);
+```                                                                   
+This is a direct parallel to css mediaquery. 
+The benefit of using this js based pattern for web components, 
+is that you can alter both the style and the shadowDom of your webcomponents here.
+
 ## .childrenChangedCallback
 
 This mixin adds two methods to an HTMLElement
