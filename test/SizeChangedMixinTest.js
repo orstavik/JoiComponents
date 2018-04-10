@@ -1,6 +1,14 @@
 import {SizeChangedMixin} from "../src/SizeChangedMixin.js";
 
+const requestAnimationFrame_x_2 = cb => requestAnimationFrame(() => requestAnimationFrame(cb));
+const requestAnimationFrame_x = (counter, cb) => {
+  requestAnimationFrame(counter === 1 ?
+    cb :
+    () => requestAnimationFrame_x(counter - 1, cb));
+};
+
 describe('SizeChangedMixin', function () {
+
 
   it("extend HTMLElement class and make an element", function () {
     const SizeChangedElement = SizeChangedMixin(HTMLElement);
@@ -53,6 +61,7 @@ describe('SizeChangedMixin', function () {
     });
   });
 
+  //ATT!! the child cannot be removed until after the next ResizeObservation, the simplest way to get there is 2 x rAF
   it("call sizeChangedCallback on connecting an element to document - using constructor", function (done) {
     const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
       sizeChangedCallback(rect) {
@@ -65,13 +74,10 @@ describe('SizeChangedMixin', function () {
     const el = new Subclass();
     el.innerText = "here we go.";
     document.querySelector("body").appendChild(el);
-    requestAnimationFrame(() => {               //ATT!! the child cannot be removed until after the next ResizeObservation
-      requestAnimationFrame(() => {             //ATT!! the simplest way to get there is 2 x rAF
-        document.querySelector("body").removeChild(el);
-      });
-    });
+    requestAnimationFrame_x_2(() => document.querySelector("body").removeChild(el));
   });
 
+  //ATT!! the child cannot be removed until after the next ResizeObservation, the simplest way to get there is 2 x rAF
   it("call sizeChangedCallback on connecting an element to document - using document.createElement", function (done) {
     const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
       sizeChangedCallback(rect) {
@@ -84,10 +90,8 @@ describe('SizeChangedMixin', function () {
     const el = document.createElement("connect-size-changed-create");
     el.innerText = "here we go.";
     document.querySelector("body").appendChild(el);
-    requestAnimationFrame(() => {               //ATT!! the child cannot be removed until after the next ResizeObservation
-      requestAnimationFrame(() => {             //ATT!! the simplest way to get there is 2 x rAF
-        document.querySelector("body").removeChild(el)
-      })
+    requestAnimationFrame_x(3, () => {
+      document.querySelector("body").removeChild(el)
     });
   });
 });
@@ -110,6 +114,7 @@ describe("sizeChangedCallback(rect)", function () {
     };
     customElements.define("size-changed-x", Subclass);
   });
+
   it("change content of a connected element", function (done) {
 
 
@@ -120,21 +125,20 @@ describe("sizeChangedCallback(rect)", function () {
     };
     const el = document.createElement("size-changed-x");
     el.innerText = "here we go.";
-    document.querySelector("body").appendChild(el);     //given enough time, this will call the testHook function twice!!
+    document.querySelector("body").appendChild(el);
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        testHook = function (rect) {
-          assert(rect.width > prevWidth);
-          assert(rect.height > 0);
-          done();
-        };
-        const el = document.querySelector("size-changed-x");
-        // el.style.fontWeight = "bold";
-        el.innerText = el.innerText + " again..";
-      });
+    requestAnimationFrame_x_2(() => {
+      testHook = function (rect) {
+        assert(rect.width > prevWidth);
+        assert(rect.height > 0);
+        done();
+      };
+      const el = document.querySelector("size-changed-x");
+      // el.style.fontWeight = "bold";
+      el.innerText = el.innerText + " again..";
     });
   });
+
   after(() => {
     const el = document.querySelector("size-changed-x");
     document.querySelector("body").removeChild(el);

@@ -13,7 +13,7 @@ class ResizeObserverRAF {
     this._rects.set(obj, undefined);
   }
 
-  disconnect(obj) {
+  unobserve(obj) {
     this._rects.delete(obj);
     if (this._rects.size === 0)
       window.cancelAnimationFrame(this._rafLoopInstance);
@@ -116,7 +116,7 @@ export const SizeChangedMixin = function (Base) {
 
     disconnectedCallback() {
       if (super.disconnectedCallback) super.disconnectedCallback();
-      defaultResizeObserver.disconnect(this);
+      defaultResizeObserver.unobserve(this);
     }
 
     //todo use RAF based observation if the display type is inline?? so if style changes to inline, switch automatically to rAF?
