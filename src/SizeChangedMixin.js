@@ -37,7 +37,7 @@ const onlyOnSizeChangedOnAll = entries => {
   for (let entry of entries)
     entry.target.sizeChangedCallback(entry.contentRect);
 };
-const chromeResizeObserver = window.ResizeObserver ? new ResizeObserver(onlyOnSizeChangedOnAll) : undefined;
+const chromeResizeObserver = !window.ResizeObserver ? new ResizeObserver(onlyOnSizeChangedOnAll) : undefined;
 const rafResizeObserver = new ResizeObserverRAF(onlyOnSizeChangedOnAll);
 const defaultResizeObserver = chromeResizeObserver || rafResizeObserver;
 
@@ -124,13 +124,14 @@ export const SizeChangedMixin = function (Base) {
     //todo switch between RAF and ResizeObserver using attributes
 
     /**
-     * returns the same object if clientWidth and clientHeight unchanged.
+     * returns the same object if clientWidth and clientHeight unchanged (can be dirtychecked).
      */
     getContentRect() {
-      const w = this.clientWidth;
-      const h = this.clientHeight;
-      if (this[contentRectCache].width !== w || this[contentRectCache].height !== h)
-        this[contentRectCache] = {width: w, height: h};
+      const style = window.getComputedStyle(this);
+      const width = style.width === "" ? 0 : parseFloat(style.width);   //- (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0)
+      const height = style.height === "" ? 0 : parseFloat(style.height); // - (parseFloat(style.paddingTop) || 0) - (parseFloat(style.paddingBottom) || 0)
+      if (this[contentRectCache].width !== width || this[contentRectCache].height !== height)
+        this[contentRectCache] = {width, height};
       return this[contentRectCache];
     }
   }

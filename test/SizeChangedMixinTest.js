@@ -2,8 +2,7 @@ import {SizeChangedMixin} from "../src/SizeChangedMixin.js";
 
 const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
 
-describe('SizeChangedMixin', function () {
-
+describe('SizeChangedMixin basics', function () {
 
   it("extend HTMLElement class and make an element", function () {
     const SizeChangedElement = SizeChangedMixin(HTMLElement);
@@ -55,8 +54,10 @@ describe('SizeChangedMixin', function () {
       document.querySelector("body").removeChild(el);
     });
   });
+});
 
-  //ATT!! the child cannot be removed until after the next ResizeObservation, the simplest way to get there is 2 x rAF
+//ATT!! the child cannot be removed until after the next ResizeObservation, the simplest way to get there is 2 x rAF
+describe('sizeChangedCallback simple', function () {
   it("call sizeChangedCallback on connecting an element to document - using constructor", function (done) {
     const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
       sizeChangedCallback(rect) {
@@ -65,14 +66,13 @@ describe('SizeChangedMixin', function () {
         done();
       }
     };
-    customElements.define("connect-size-changed", Subclass);
+    customElements.define("simple-a", Subclass);
     const el = new Subclass();
     el.innerText = "here we go.";
     document.querySelector("body").appendChild(el);
     raf_x(2, () => document.querySelector("body").removeChild(el));
   });
 
-  //ATT!! the child cannot be removed until after the next ResizeObservation, the simplest way to get there is 2 x rAF
   it("call sizeChangedCallback on connecting an element to document - using document.createElement", function (done) {
     const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
       sizeChangedCallback(rect) {
@@ -81,8 +81,8 @@ describe('SizeChangedMixin', function () {
         done();
       }
     };
-    customElements.define("connect-size-changed-create", Subclass);
-    const el = document.createElement("connect-size-changed-create");
+    customElements.define("simple-b", Subclass);
+    const el = document.createElement("simple-b");
     el.innerText = "here we go.";
     document.querySelector("body").appendChild(el);
     raf_x(2, () => {
@@ -93,11 +93,10 @@ describe('SizeChangedMixin', function () {
 
 //TODO test how it is to change the display type during observation??
 //todo test if the style can be changed to inline after it has been observed, or if this will cause problems.
-// todo it("change style width of a connected element", function (done) {
 // todo it("change style padding of a connected element", function (done) {
 // todo it("change position of a connected element that should not trigger", function (done) {
 // todo it("change padding and width so it does not change the size and does not trigger", function (done) {
-describe("sizeChangedCallback(rect)", function () {
+describe("sizeChangedCallback(rect) size-changed-x", function () {
 
   let prevWidth, testHook;
 
@@ -110,7 +109,7 @@ describe("sizeChangedCallback(rect)", function () {
     customElements.define("size-changed-x", Subclass);
   });
 
-  it("change content of a connected element", function (done) {
+  it("Frame 0: connect element", function (done) {
     testHook = function (rect) {
       assert(rect.width > 0);
       assert(rect.height > 0);
@@ -118,11 +117,11 @@ describe("sizeChangedCallback(rect)", function () {
       done();
     };
     const el = document.createElement("size-changed-x");
-    el.innerText = "here we go.";
+    el.innerText = "size-changed-x:";
     document.querySelector("body").appendChild(el);
   });
 
-  it("change content of a connected element x2", function (done) {
+  it("Frame 1: change element.innerText", function (done) {
     raf_x(1, () => {
       testHook = function (rect) {
         assert(rect.width > prevWidth);
@@ -130,8 +129,33 @@ describe("sizeChangedCallback(rect)", function () {
         done();
       };
       const el = document.querySelector("size-changed-x");
-      // el.style.fontWeight = "bold";
       el.innerText = el.innerText + " again..";
+    });
+  });
+
+  it("Frame 2: change element.style.width", function (done) {
+    raf_x(2, () => {
+      testHook = function (rect) {
+        assert(rect.width === 100);
+        assert(rect.height === 100);
+        done();
+      };
+      const el = document.querySelector("size-changed-x");
+      // el.style.fontWeight = "bold";
+      el.style.width = "100px";
+      el.style.height = "100px";
+    });
+  });
+
+  it("Frame 3: change element.style.padding DOES NOT affect the contentRect", function (done) {
+    raf_x(3, () => {
+      testHook = function (rect) {
+        assert(false);
+      };
+      const el = document.querySelector("size-changed-x");
+      // el.style.fontWeight = "bold";
+      el.style.padding = "10px 20px";
+      requestAnimationFrame(()=>done());
     });
   });
 
