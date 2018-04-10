@@ -54,8 +54,9 @@ const rafResizeObserver = new ResizeObserverRAF(onlyOnSizeChangedOnAll);
  * or "window.getComputedStyle(this).width+height".
  *
  * In Chrome, this is done using ResizeObserver. The ResizeObserver has the following limitations:
- * 1. it does not observe {display: inline} elements.
- * 2. it runs three-order after layout in a special ResizeObserver que.
+ * 1. sometimes the contentRect is different from the getComputedStyle.width and .height values!! Why?? (see last test)
+ * 2. it does not observe {display: inline} elements.
+ * 3. it runs three-order after layout in a special ResizeObserver que.
  *
  * In other browsers, this is done in the requestAnimationQue.
  *
@@ -63,8 +64,6 @@ const rafResizeObserver = new ResizeObserverRAF(onlyOnSizeChangedOnAll);
  * This is not a big problem as layout of the children are likely to want to be transformed with the parent,
  * and if you need to parse transform matrix, you can do still do it, but using your own rAF listener that
  * checks and parses the style.transform tag for changes.
- *
- * todo do the contentRect DOMRect from chrome ResizeObserver differ slightly from getComputedStyle().width and .height? and why?
  *
  * @param Base class that extends HTMLElement
  * @returns {SizeChangedMixin} class that extends HTMLElement

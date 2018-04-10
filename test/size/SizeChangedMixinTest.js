@@ -212,7 +212,7 @@ describe("test of switching between inline and inline-block", function () {
   before(() => {
     const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
       sizeChangedCallback(rect) {
-        testHook(rect);
+        testHook(rect, this.getContentRect());
       }
     };
     customElements.define("size-changed-inline-switch", Subclass);
@@ -247,17 +247,17 @@ describe("test of switching between inline and inline-block", function () {
     });
   });
 
-  it("Frame 2: inflight change to display: block triggers a sizeChangedCallback with values 100, 100", function (done) {
+  it("Frame 2: inflight change to display: block triggers a sizeChangedCallback with DIFFERING values from getContentRect and the contentRect from ResizeObserver", function (done) {
     raf_x(2, () => {
-      testHook = function (rect) {
-        assert(rect.width === 100);
-        assert(rect.height === 100);
+      testHook = function (rect, rect2) {
+        assert(rect.width > 0);
+        assert(rect.height > 0);
+        assert(rect.width !== rect2.width);  //slight difference in Chrome!!
+        assert(rect.height === rect2.height);
         done();
       };
       const el = document.querySelector("size-changed-inline-switch");
       el.style.display = "inline-block";
-      el.style.width = "100px";
-      el.style.height = "100px";
     });
   });
 
