@@ -1,11 +1,6 @@
 import {SizeChangedMixin} from "../src/SizeChangedMixin.js";
 
-const requestAnimationFrame_x_2 = cb => requestAnimationFrame(() => requestAnimationFrame(cb));
-const requestAnimationFrame_x = (counter, cb) => {
-  requestAnimationFrame(counter === 1 ?
-    cb :
-    () => requestAnimationFrame_x(counter - 1, cb));
-};
+const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
 
 describe('SizeChangedMixin', function () {
 
@@ -74,7 +69,7 @@ describe('SizeChangedMixin', function () {
     const el = new Subclass();
     el.innerText = "here we go.";
     document.querySelector("body").appendChild(el);
-    requestAnimationFrame_x_2(() => document.querySelector("body").removeChild(el));
+    raf_x(2, () => document.querySelector("body").removeChild(el));
   });
 
   //ATT!! the child cannot be removed until after the next ResizeObservation, the simplest way to get there is 2 x rAF
@@ -90,7 +85,7 @@ describe('SizeChangedMixin', function () {
     const el = document.createElement("connect-size-changed-create");
     el.innerText = "here we go.";
     document.querySelector("body").appendChild(el);
-    requestAnimationFrame_x(3, () => {
+    raf_x(2, () => {
       document.querySelector("body").removeChild(el)
     });
   });
@@ -116,18 +111,19 @@ describe("sizeChangedCallback(rect)", function () {
   });
 
   it("change content of a connected element", function (done) {
-
-
     testHook = function (rect) {
       assert(rect.width > 0);
       assert(rect.height > 0);
       prevWidth = rect.width;
+      done();
     };
     const el = document.createElement("size-changed-x");
     el.innerText = "here we go.";
     document.querySelector("body").appendChild(el);
+  });
 
-    requestAnimationFrame_x_2(() => {
+  it("change content of a connected element x2", function (done) {
+    raf_x(1, () => {
       testHook = function (rect) {
         assert(rect.width > prevWidth);
         assert(rect.height > 0);
