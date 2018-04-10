@@ -43,7 +43,7 @@ customElements.define("my-web-component", MyWebComponent);
 ```                                                                   
 ### Practical use of listener-to-reactive-method pairs in web components
 1. The setup of listeners and reactive callback method form a pair.
-It is the job of the listeners initialized and managed in the constructor() and (dis)connectedCallback() 
+It is the job of the listeners initialized and managed in the `constructor()`, `connectedCallback()` and `disconnectedCallback()` 
 to find out **when** the action needs to be triggered. These listeners then trigger the 
 reactive callback method and pass it the basic information about the event. 
 All the logic as to **how** the element should react is organized from within this reactive method.
@@ -94,6 +94,7 @@ const OnlineOfflineMixin = function(Base) {
       
     }                                                                                     
 };
+
 class MyWebComponent extends OnlineOfflineMixin(HTMLElement) {
                                                
   connectedCallback(){                   
@@ -105,7 +106,7 @@ class MyWebComponent extends OnlineOfflineMixin(HTMLElement) {
     super.disconnectedCallback();        //don't forget this
     //do your stuff here
   }
-
+                                        
   onlineOfflineCallback(isOnline) {                                            //The reactive method
     if(isOnline)                                                                       
       console.log("Online! The world is your oyster.");                                
@@ -115,14 +116,32 @@ class MyWebComponent extends OnlineOfflineMixin(HTMLElement) {
 }                                                                                      
 customElements.define("my-web-component", MyWebComponent);
 ```                                                                   
-You don't have to implement 
-
+1. When you are using a functional mixin pattern on the `HTMLElement`, 
+you might want to mix your mixins with other functional mixins.
+These other mixins are almost always going to implement not only a `constructor`, 
+but also their own `connectedCallback()` and `disconnectedCallback()`.
+By calling any parent `connectedCallback()` and `disconnectedCallback()` before you run your code,
+your functional mixin will be able to work together with other functional mixins.
+ATT!! In the functional mixin, you must also check to see `if(super.connectedCallback)` and 
+`if(disconnectedCallback)` exists before you call it. The reason is that `HTMLElement` doesn't have 
+this method, and if your mixin is either at the core of the functional mixin cluster or
+is used on its own, a direct call to a non-existing super.connectedCallback would throw an `Error`.
+2. It is better not to implement `onlineOfflineCallback()`. The reason for this is that
+if you use this functional mixin but then forget to implement the corresponding callback method in your
+custom element class, then your code will throw an Error the first time the callback triggers.
+This will likely help you remove functional mixins that you don't use anymore from your custom elements,
+and this is very beneficial as listening for the callback triggers is likely to be a heavy task for the
+browser to perform.
+3. When you are using a functional mixin that uses `connectedCallback` and `disconnectedCallback`,
+**you must remember to call `super.connectedCallback` and `super.disconnectedCallback`**. If you forget this,
+the functional mixin will not be able to manage its listening task. This mirrors the behavior you do when
+calling `constructor() { super(); ...` first when extending another class. 
 
 ### Opinion 
 It is my opinion that ONLY the **listener-to** part of the listener-to-reactive-method pair pattern
 can and should be split out as a Functional Mixin. The main argument for this is that detecting 
 **when** an external event occurs is likely **not** connected to any other functionality in your 
 custom element. This makes it possible for the mixin to be fully agnostic as to what kind of 
-HTMLElement it is applied to. If a custom element needs to combine the input of several 
+`HTMLElement` it is applied to. If a custom element needs to combine the input of several 
 different **listener-to** sources, it should do so itself directly.
                                                                                                  
