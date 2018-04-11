@@ -11,7 +11,8 @@ functional mixins for some more complex use-cases.
 #### Patterns for generic web components
 
 * [Reactive method](tutorials/Pattern1_ReactiveMethod.md)
-* [Functional Mixin](tutorials/Pattern2_FunctionalMixin.md)
+* [Functional mixin](tutorials/Pattern2_FunctionalMixin.md)
+* [two-faced-collection (OlLi)](tutorials/Pattern3_TwoFacedCollection.md)
 
 #### Functional mixins for reactive-method hooks
 
