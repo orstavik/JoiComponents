@@ -1,4 +1,4 @@
-#SizeChangedMixin
+# SizeChangedMixin
 The purpose of `SizeChangedMixin` is to provide a reactive method called `sizeChangedCallback(contentRect)`
 and the method `getContentRect()`.
 The SizeChangedMixin observes the contentRectangle of the custom element, and then triggers 
@@ -9,7 +9,7 @@ its available screen size.
 2. You want to change some attributes of dependent elements (such as size or position) 
 based on a combination of size and/or content (cf. [ChildrenChangedMixin](ChildrenChangedMixin.md)).
 
-###Example of use:
+### Example of use:
 
 ```javascript
 import {SizeChangedMixin} from "https://rawgit.com/orstavik/JoiComponents/master/src/SizeChangedMixin.js";
@@ -38,7 +38,7 @@ changes, while the element is connected to the DOM.
 and once per frame per element, to trigger a second callback, 
 we must delay the trigger until a later point (here using `setTimeout(..., 100)`).
 
-##getContentRect()
+## getContentRect()
 `getContentRect(cachedOnly)` is a function that returns the "inner size" of the element in which 
 shadowDom and children can be rendered. The "inner size" of the element is defined as 
 ```javascript

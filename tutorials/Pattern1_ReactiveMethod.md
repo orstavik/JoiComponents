@@ -1,4 +1,4 @@
-## Pattern 1: listener-to-reactive-method pairs
+# Pattern 1: listener-to-reactive-method pairs
 The purpose of this pattern is to enable a custom element to **react** to an event or callback
 as **efficiently** and **simply** as possible.
 For **efficiency**, the element must only observe or listen for an event while it is connected

@@ -1,4 +1,4 @@
-## Pattern 2: Functional Mixins for listener-to-reactive-method pairs
+# Pattern 2: Functional Mixins for listener-to-reactive-method pairs
 Sometimes, the task of finding out **when** the reactive method should be triggered is not trivial.
 This can be caused by several reasons:
 * different browsers might implement different API that the element needs to harmonize/polyfill,

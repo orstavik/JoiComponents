@@ -1,4 +1,4 @@
-#JoiComponents
+# JoiComponents
 
 JoiComponents is a package of both a couple of patterns and Mixins for developing simple, 
 reusable and joiful web components. The package is designed to be used both directly via services 
@@ -8,12 +8,12 @@ JoiComponents consists of two types of resources: First, a few patterns
 that explains how generic UI web components should be built; Second, a couple of independent, standalone 
 functional mixins for some more complex use-cases.
 
-####Patterns for generic web components
+#### Patterns for generic web components
 
 * [Reactive method](tutorials/Pattern1_ReactiveMethod.md)
 * [Functional Mixin](tutorials/Pattern2_FunctionalMixin.md)
 
-####Functional mixins for reactive-method hooks
+#### Functional mixins for reactive-method hooks
 
 * [SizeChangedMixin](tutorials/SizeChangedMixin.md)
 * [ChildrenChangedCallback](tutorials/ChildrenChangedMixin.md)

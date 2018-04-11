@@ -1,10 +1,10 @@
-#ChildrenChangedMixin
+# ChildrenChangedMixin
 
 `ChildrenChangedMixin` adds two methods to an `HTMLElement`
 * `.childrenChangedCallback(newVisibleChildren, oldVisibleChildren)`
 * `.getVisibleChildren()`
 
-###Example
+### Example
 
 ```javascript
 import {ChildrenChangedMixin} from "https://unpkg.com/joicomponents/src/ChildrenChangedMixin.js";
@@ -29,7 +29,7 @@ el.appendChild(document.createElement("div")); //.childrenChangedCallback is NOT
 document.querySelector("body").appendChild(el);//.childrenChangedCallback is triggered when el gets connected to DOM.
 el.appendChild(document.createElement("div")); //.childrenChangedCallback is triggered while el is connected and childList changes.
 ```
-###Tests
+### Tests
 * [ChildrenChangedCallback in codepen: https://codepen.io/orstavik/pen/XEMWLE](https://codepen.io/orstavik/pen/XEMWLE)
 
 ### "visibleChildren" of HTMLElements
