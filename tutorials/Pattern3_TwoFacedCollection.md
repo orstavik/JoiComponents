@@ -21,7 +21,7 @@ To illustrate the two-faced-collection pattern, I will make a custom implementat
 The example uses [ChildrenChangedMixin](ChildrenChangedMixin.md) so that it automatically updates itself when new
 child Li are added to the dynamic DOM and so that it can handle slotted Li elements on par with normal Li elements.
 
-#### Defining and using two custom element types
+#### Defining two custom element types
 ```javascript
 import { ChildrenChangedMixin } from "https://unpkg.com/joicompontents@1.1.0/src/ChildrenChangedMixin.js";
 
@@ -55,7 +55,6 @@ class LiWc extends HTMLElement {
 customElements.define("ol-wc", OlWc);
 customElements.define("li-wc", LiWc);
 ```
-__Explanation__
 1. The LiWc item element (LI) sets up a default shadowDom in which the number of the LI element thus far
 is unspecified (`#. `).
 2. When the OL is first connected, or whenever the list of visible children changes, 
@@ -64,7 +63,7 @@ and notifies all LI children about their LI-only order in the list by calling `e
 3. When the LI element is notified about an updated position in its list, 
 it updates it shadowDom to display that position.
 
-
+#### Using two custom element types
 The OlWc container element (OL) can contain several LiWc item elements (LI) as children.
 These elements can be added in the template (as in the example below), added dynamically via 
 `querySelector("ol-wc"").appendChild(newLiChild)`, or as a slot inside another custom element.
@@ -84,42 +83,29 @@ Which looks like so:
 ```
 
 ## Why do we need a component pair for this type of lists?
-we need to avoid updating the DOM of arbitrary child elements. 
-The Item type (ie. LI element) functions as a wrapper in which 
-the container element can modify the shadowDom and style.
+1. We do not want the collection element (OL) to neither alter the lightDom around itself nor its children.
+Such changes would be extremely hard to manage. Such added content would look and feel the same as
+content in the original template and content added dynamically.
+The item element (LI) serves as a placeholder for the dynamic alterations 
+that the container element needs to perform, so that the changes are isolated in the shadowDom and style 
+of this item element so that they don't get confused with other parts of the DOM.
 
-This pattern becomes more important when you need 
-1. to add more complex functionality such as custom UIX event handling etc to the element,
-2. add more complex template or style to the shadowDom, or
-3. handle the children differently either based on their content, their type and/or their position
-in the collection.
-
-
-1. HTML is a declarative language. HTML iteration is based on list of children. 
-2. HTML does not have for-loops, instead it has a list of children (and list of attributes). 
-The DOM can be manipulated from outside contexts such as JS. 
-These contexts can have a changing time dimension, and thus dynamically change the DOM and the list of children for HTML elements. 
-Child elements is the HTML equivalent of a for-loop.
-3. Because HTML iteration is based on list of children, whenever you need to manipulate the DOM between 
-elements in a sequence, you must make wrappers around those elements. This wrapper is the LI-type element.
-4. The relationship between the container (UL-type) element and the item (LI-type) element is 
-that the child must trigger an organizing function in the parent container in connectedCallback, 
-or better in the childrenChangedCallback (that will batch several such connectedCallbacks). 
-The parent can then update the content of each individual child.
-5. The implied golden rule is that HTML elements should try to avoid changing the DOM of 
-unrelated HTML elements. The reason is that in order to achieve some visual or other effect, 
-the container component needs to add some style features, attributes, DOM-content or otherwise 
-ALTER the child elements ligthDOM or shadowDOM data. To alter a child's data is a breach of the 
-HTML contract. It is a golden rule that unrelated elements do not override or alter each other. 
-Therefore, when a container needs to do substantial work on its children, then they need to have 
-a container element for each child, so that the unrelated child content is not disturbed. Hence, 
-the ul-li pair pattern.
+2. This pattern becomes more important when you need to:
+    1. add more complex functionality such as custom UIX event handling etc to the element,
+    2. add more complex template or style to the shadowDom, or
+    3. handle the children differently either based on a) their content, 
+    b) their type and/or c) their position in the collection.
 
 ### Test
 [Test on codepen](https://codepen.io/orstavik/pen/KoeLme)
 
 ### Opinion
-This pattern might feel a bit wrong at first, especially if you are a javascript developer.
-In JS, it would be wrong to create two types (two classes) in order to create a custom collection
-with custom behavior into which to put objects: you don't need to create an ItemClass in order to
-wrap objects you put in a CustomCollection.
+This pattern feels a bit wrong at first, especially if you are a javascript developer.
+In JS, such a pattern would be wrong. You should not create two types (two classes) like this 
+in order to create a custom collection with custom behavior into which to put objects: 
+you don't need to create an ItemClass in order to wrap objects you put in a CustomCollection.
+
+However, in HTML template language you don't have the same imperative logic. You don't have for loops. 
+You don't have variables. So. Designing HTML templates require a different logic than what you would do 
+in JS. Using a wrapper element in HTML gives you both a) a different way to specify which children elements 
+are to be iterated over how and when, and b) an alterable container into which data can vary from time to time. 
