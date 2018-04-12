@@ -41,7 +41,10 @@ class MyWebComponent extends HTMLElement {
 }                                                                                      //
 customElements.define("my-web-component", MyWebComponent);
 ```    
-
+1. Instantiate a listener function object (closure).
+2. Connect the listener function to both the "online" and "offline" events.
+3. React to changes in the reactive method.
+            
 Try it on [codepen.io](https://codepen.io/orstavik/pen/bvJjOd).
                                                                
 ### Practical use of listener-to-reactive-method pairs in web components
