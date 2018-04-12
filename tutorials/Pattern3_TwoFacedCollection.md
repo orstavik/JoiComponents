@@ -5,6 +5,9 @@ An HTML collection element is defined as an HTML element that needs to handle a 
 The two-faced-collection pattern is needed for HTML collection elements that need to either:
 1. control changes for individual child elements based on information from the group as a whole, or
 2. work with the spaces between each element.
+When making two-faced-collections, use [ChildrenChangedMixin](ChildrenChangedMixin.md) to 
+a) simplify the act of listening for dynamic changes to the DOM, and 
+b) process slotted items on par with normal items.
 
 HTML collections that do not need to interact with individual children based on group status, 
 or work with the conceptual space between children elements, 
@@ -16,10 +19,7 @@ The container and the item type in the two-faced-collection pattern are strongly
 Do not attempt to generalize the usage of each type to function independently, but treat them as 
 inseperable and use them together as a pair.
 
-### Example: custom OL+LI pair
-To illustrate the two-faced-collection pattern, I will make a custom implementation of an ordered list (OL+LI).
-The example uses [ChildrenChangedMixin](ChildrenChangedMixin.md) so that it automatically updates itself when new
-child Li are added to the dynamic DOM and so that it can handle slotted Li elements on par with normal Li elements.
+### Example: custom OL + LI
 
 #### Defining two custom element types
 ```javascript
@@ -44,7 +44,7 @@ class LiWc extends HTMLElement {
   connectedCallback() {
     super.connectedCallback();
     this.attachShadow({ mode: "open" });
-    this.style.display = "inherit";
+    this.style.display = "inherit";                      
     this.shadowRoot.innerHTML = `<span>#.</span><slot></slot>`;   //[1]
   }
   updateNumber(num) {                                             
@@ -81,6 +81,20 @@ Which looks like so:
   2. two
   3. three
 ```
+Try it yourself here:
+
+<p data-height="265" data-theme-id="dark" data-slug-hash="KoeLme" data-default-tab="html,result" data-user="orstavik" data-embed-version="2" data-pen-title="ul-wc" class="codepen">See the Pen <a href="https://codepen.io/orstavik/pen/KoeLme/">ul-wc</a> by orstavik (<a href="https://codepen.io/orstavik">@orstavik</a>) on <a href="https://codepen.io">CodePen</a>.</p>
+<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+
+### Example: custom columns
+In this example, a set of columns is created by:
+1. making a grid in the parent container, 
+2. adding a left border on all the children items, and
+3. hiding the left border only on the first item inside the container at all times.
+
+<p data-height="265" data-theme-id="dark" data-slug-hash="BrPKNp" data-default-tab="js,result" data-user="orstavik" data-embed-version="2" data-pen-title="Horisontal Grid" class="codepen">See the Pen <a href="https://codepen.io/orstavik/pen/BrPKNp/">Horisontal Grid</a> by orstavik (<a href="https://codepen.io/orstavik">@orstavik</a>) on <a href="https://codepen.io">CodePen</a>.</p>
+<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+
 
 ## Why do we need a component pair for this type of lists?
 1. We do not want the collection element (OL) to neither alter the lightDom around itself nor its children.
@@ -96,8 +110,6 @@ of this item element so that they don't get confused with other parts of the DOM
     3. handle the children differently either based on a) their content, 
     b) their type and/or c) their position in the collection.
 
-### Test
-[Test on codepen](https://codepen.io/orstavik/pen/KoeLme)
 
 ### Opinion
 This pattern feels a bit wrong at first, especially if you are a javascript developer.
@@ -105,7 +117,8 @@ In JS, such a pattern would be wrong. You should not create two types (two class
 in order to create a custom collection with custom behavior into which to put objects: 
 you don't need to create an ItemClass in order to wrap objects you put in a CustomCollection.
 
-However, in HTML template language you don't have the same imperative logic. You don't have for loops. 
-You don't have variables. So. Designing HTML templates require a different logic than what you would do 
-in JS. Using a wrapper element in HTML gives you both a) a different way to specify which children elements 
-are to be iterated over how and when, and b) an alterable container into which data can vary from time to time. 
+However, in HTML, you don't have the same imperative logic as in JS. You don't have `for`-loops. 
+You don't have variables. Therefore, designing HTML templates require a different logic than what 
+you would do in JS. Using a wrapper element in HTML gives you both a) a different way to specify 
+which children elements are to be iterated over how and when, and b) an alterable container into 
+which data can vary from time to time. 
