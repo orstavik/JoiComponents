@@ -81,20 +81,15 @@ Which looks like so:
   2. two
   3. three
 ```
-Try it yourself here:
+[Custom Ol Li example on codepen.io](https://codepen.io/orstavik/pen/KoeLme).
 
-<iframe height='265' scrolling='no' title='ul-wc' src='//codepen.io/orstavik/embed/KoeLme/?height=265&theme-id=dark&default-tab=html,result&embed-version=2' frameborder='no' allowtransparency='true' allowfullscreen='true' style='width: 100%;'>
-See the Pen <a href='https://codepen.io/orstavik/pen/KoeLme/'>ul-wc</a> by orstavik (<a href='https://codepen.io/orstavik'>@orstavik</a>) on <a href='https://codepen.io'>CodePen</a>.
-</iframe>
 ### Example: custom columns
 In this example, a set of columns is created by:
 1. making a grid in the parent container, 
 2. adding a left border on all the children items, and
 3. hiding the left border only on the first item inside the container at all times.
 
-<p data-height="265" data-theme-id="dark" data-slug-hash="BrPKNp" data-default-tab="js,result" data-user="orstavik" data-embed-version="2" data-pen-title="Horisontal Grid" class="codepen">See the Pen <a href="https://codepen.io/orstavik/pen/BrPKNp/">Horisontal Grid</a> by orstavik (<a href="https://codepen.io/orstavik">@orstavik</a>) on <a href="https://codepen.io">CodePen</a>.</p>
-<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
-
+[Custom column example on codepen.io](https://codepen.io/orstavik/pen/BrPKNp).
 
 ## Why do we need a component pair for this type of lists?
 1. We do not want the collection element (OL) to neither alter the lightDom around itself nor its children.
@@ -105,11 +100,10 @@ that the container element needs to perform, so that the changes are isolated in
 of this item element so that they don't get confused with other parts of the DOM.
 
 2. This pattern becomes more important when you need to:
-    1. add more complex functionality such as custom UIX event handling etc to the element,
+    1. add more complex functionality such as custom UIX event handling to the element,
     2. add more complex template or style to the shadowDom, or
     3. handle the children differently either based on a) their content, 
     b) their type and/or c) their position in the collection.
-
 
 ### Opinion
 This pattern feels a bit wrong at first, especially if you are a javascript developer.
@@ -121,4 +115,4 @@ However, in HTML, you don't have the same imperative logic as in JS. You don't h
 You don't have variables. Therefore, designing HTML templates require a different logic than what 
 you would do in JS. Using a wrapper element in HTML gives you both a) a different way to specify 
 which children elements are to be iterated over how and when, and b) an alterable container into 
-which data can vary from time to time. 
+which data can vary from time to time.
