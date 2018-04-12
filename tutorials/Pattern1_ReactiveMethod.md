@@ -40,7 +40,10 @@ class MyWebComponent extends HTMLElement {
   }                                                                                    //
 }                                                                                      //
 customElements.define("my-web-component", MyWebComponent);
-```                                                                   
+```    
+
+Try it on [codepen.io](https://codepen.io/orstavik/pen/bvJjOd).
+                                                               
 ### Practical use of listener-to-reactive-method pairs in web components
 1. The setup of listeners and reactive callback method form a pair.
 It is the job of the listeners initialized and managed in the `constructor()`, `connectedCallback()` and `disconnectedCallback()` 
