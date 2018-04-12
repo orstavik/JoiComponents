@@ -18,32 +18,34 @@ class MyWebComponent extends HTMLElement {
                                                
   constructor(){
     super();
-    this._onlineOfflineListener = e => this.onlineOfflineCallback(navigator.onLine);   //init
+    this._onlineOfflineListener = e => this.onlineOfflineCallback(navigator.onLine);   //[1]
   }
   
   connectedCallback(){
-    window.addEventListener("online", this._onlineOfflineListener);                    //connect
+    window.addEventListener("online", this._onlineOfflineListener);                    //[2]
     window.addEventListener("offline", this._onlineOfflineListener);                   //
-    this.onlineOffline(navigator.onLine);                                              //startup
+    this.onlineOffline(navigator.onLine);                                              //[3]
   }
                                                             
   disconnectedCallback(){
-    window.addEventListener("online", this._onlineOfflineListener);                    //disconnect
+    window.addEventListener("online", this._onlineOfflineListener);                    //[4]
     window.addEventListener("offline", this._onlineOfflineListener);                   //
   }
 
-  onlineOfflineCallback(isOnline) {                                                    //The reactive method
+  onlineOfflineCallback(isOnline) {                                                    //[5]
     if(isOnline)                                                                       //
       console.log("Online! The world is your oyster.");                                //
     else                                                                               //
       console.log("Offline! Finally some piece of mind.");                             //
-  }                                                                                    //
-}                                                                                      //
+  }                                                                                    
+}                                                                                      
 customElements.define("my-web-component", MyWebComponent);
 ```    
 1. Instantiate a listener function object (closure).
-2. Connect the listener function to both the "online" and "offline" events.
-3. React to changes in the reactive method.
+2. Connect the listener function to both the "online" and "offline" events.       
+3. Call the function on startup to get situation at startup.
+4. Disconnect the listener function when not needed.
+5. React to changes in the reactive method.
             
 Try it on [codepen.io](https://codepen.io/orstavik/pen/bvJjOd).
                                                                
