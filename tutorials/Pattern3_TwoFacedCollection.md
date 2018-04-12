@@ -83,9 +83,9 @@ Which looks like so:
 ```
 Try it yourself here:
 
-<p data-height="265" data-theme-id="dark" data-slug-hash="KoeLme" data-default-tab="html,result" data-user="orstavik" data-embed-version="2" data-pen-title="ul-wc" class="codepen">See the Pen <a href="https://codepen.io/orstavik/pen/KoeLme/">ul-wc</a> by orstavik (<a href="https://codepen.io/orstavik">@orstavik</a>) on <a href="https://codepen.io">CodePen</a>.</p>
-<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
-
+<iframe height='265' scrolling='no' title='ul-wc' src='//codepen.io/orstavik/embed/KoeLme/?height=265&theme-id=dark&default-tab=html,result&embed-version=2' frameborder='no' allowtransparency='true' allowfullscreen='true' style='width: 100%;'>
+See the Pen <a href='https://codepen.io/orstavik/pen/KoeLme/'>ul-wc</a> by orstavik (<a href='https://codepen.io/orstavik'>@orstavik</a>) on <a href='https://codepen.io'>CodePen</a>.
+</iframe>
 ### Example: custom columns
 In this example, a set of columns is created by:
 1. making a grid in the parent container, 
