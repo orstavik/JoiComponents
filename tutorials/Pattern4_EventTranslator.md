@@ -15,8 +15,7 @@ class TrippleClickElement extends HTMLElement {
   constructor(){
     super();                               
     this._clickListener = (e) => this._onClickListener(e);    //[1]
-    this._twoClick = 0;                                       //
-    this._oneClick = 0;                                       //
+    this._twoClick = this._oneClick = -1000;                  //
   }
 
   connectedCallback(){  
@@ -30,13 +29,13 @@ class TrippleClickElement extends HTMLElement {
   _onClickListener(e) {
     //e.stopPropagation();                                    //[3i]
     //e.preventDefault();                                     //
-    if (e.timestamp - this._twoClick < 600) {                 //[3ii]
+    if ((e.timeStamp - this._twoClick) < 600) {               //[3ii]
       this._twoClick = 0;
       this._oneClick = 0;
-      this.dispatchEvent("tripple-click", {composed: true, bubbles: true});
-    } else {                                                                                 
+      this.dispatchEvent(new CustomEvent("tripple-click", {composed: true, bubbles: true}));
+    } else {
       this._twoClick = this._oneClick;                        
-      this._oneClick = e.timestamp;
+      this._oneClick = e.timeStamp;
     }
   }
 }
@@ -59,18 +58,22 @@ adds and removes the listener for the underlying events.
 ```
 
 ```javascript
-function logTrippleClicks(e){
-  console.log(e.type, " from: ", e.target.localName, " at: ", e.timestamp);
+function logTrippleClicks(e){  
+  console.log(e.type, " from: ", e.target.localName, " at: ", e.timeStamp);
 }                     
 const clickMe = document.querySelector("tripple-click-element");
-clickMe.addEventListener("tripple-click", logTrippleClicks);    
-clickMe.click();                                                
-clickMe.click();
-clickMe.click();    //tripple-click from: tripple-click-element at: 123456789
-clickMe.removeEventListener("tripple-click", logTrippleClicks);  
+clickMe.addEventListener("tripple-click", e =>logTrippleClicks(e));    
+setTimeout(()=> {
+  clickMe.click();                     
+  clickMe.click();
+  clickMe.click();    
+  //tripple-click from: tripple-click-element at: 123456789
+}, 1000);
+//remove the listener when it is no longer necessary.
+//clickMe.removeEventListener("tripple-click", logTrippleClicks);  
 ```
 
-[TrippleClickElement on codepen.io](https://codepen.io/orstavik/pen/KoeLme).
+[TrippleClickElement on codepen.io](https://codepen.io/orstavik/pen/GxaxbL).
 
 ## Discussion of the event-translator pattern
 At first sight the pattern seem overly complex and heavy handed. 
