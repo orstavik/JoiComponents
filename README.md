@@ -9,13 +9,11 @@ that explains how generic UI web components should be built; Second, a couple of
 functional mixins for some more complex use-cases.
 
 #### Patterns for generic web components
-
 * [Reactive method](tutorials/Pattern1_ReactiveMethod.md)
 * [Functional mixin](tutorials/Pattern2_FunctionalMixin.md)
 * [Event translator](tutorials/Pattern4_EventTranslator.md)
 * [two-faced-collection (OlLi)](tutorials/Pattern3_TwoFacedCollection.md)
 
 #### Functional mixins for reactive-method hooks
-
-* [SizeChangedMixin](tutorials/SizeChangedMixin.md)
-* [ChildrenChangedCallback](tutorials/ChildrenChangedMixin.md)
+* [ChildrenChangedCallback](tutorials/Mixin1_ChildrenChangedMixin.md)
+* [SizeChangedMixin](tutorials/Mixin2_SizeChangedMixin.md)
