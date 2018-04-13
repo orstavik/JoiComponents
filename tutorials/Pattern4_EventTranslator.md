@@ -109,3 +109,16 @@ In addition, some event translation require:
 5. extensive testing.
 
 If so, apply the EventTranslator pattern as a [FunctionalMixin](Pattern2_FunctionalMixin.md).
+
+### App-specific custom events vs event-translators for generic events.
+
+There are several reasons why you might need your own events. Sometimes, you want to diferentiate your 
+app logic events from generic events. This might be the user hitting a login button, and instead of 
+having this event just named "click", you capture the click event and throw it again as a "login-click"
+or something else. This enables you to avoid handling the event in middle layer, and just let it propagate 
+all the way to the top. This is app-specific events.
+
+A more generic use-case would be to translate a series of other events that no browser, or only a few browsers,
+support into a dependable event. [DraggingEventMixin](Mixin3_DraggingEventMixin.md) is a good example of such an
+event. Establishing such generic use-case FunctionalEvent patterns or mixins should most likely be 
+setup as FunctionalMixins.
