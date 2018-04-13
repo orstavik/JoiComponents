@@ -57,24 +57,23 @@ export const DraggingEventMixin = function (Base) {
     }
 
     [move](e) {
-      this.addEventListener(this[moveListener]);
       const detail = {
-        moveX: e.clientX - this[previousMoveEvent].clientX,
-        moveY: e.clientY - this[previousMoveEvent].clientY,
-        moveStartX: e.clientX - this[startEvent].clientX,
-        moveStartY: e.clientY - this[startEvent].clientY,
-        x: mouseevent.x,
-        y: mouseevent.y,
-        clientX: mouseevent.clientX,
-        clientY: mouseevent.clientY,
-        layerX: mouseevent.layerX,
-        layerY: mouseevent.layerY,
-        offsetX: mouseevent.offsetX,
-        offsetY: mouseevent.offsetY,
-        pageX: mouseevent.pageX,
-        pageY: mouseevent.pageY,
-        screenX: mouseevent.screenX,
-        screenY: mouseevent.screenY
+        moveX: e.x - this[previousMoveEvent].x,
+        moveY: e.y - this[previousMoveEvent].y,
+        moveStartX: e.x - this[startEvent].x,
+        moveStartY: e.y - this[startEvent].y,
+        x: e.x,
+        y: e.y,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        layerX: e.layerX,
+        layerY: e.layerY,
+        offsetX: e.offsetX,
+        offsetY: e.offsetY,
+        pageX: e.pageX,
+        pageY: e.pageY,
+        screenX: e.screenX,
+        screenY: e.screenY
       };
       this[previousMoveEvent] = e;
       this.dispatchEvent(new CustomEvent("dragging", {bubbles: true, composed: true, detail}));
@@ -82,8 +81,8 @@ export const DraggingEventMixin = function (Base) {
 
     [stop](e) {
       this.releasePointerCapture(e.pointerId);
-      this.removeEventListener("pointermove", this[startListener]);
-      this.removeEventListener("pointerup", this[startListener]);
+      this.removeEventListener("pointermove", this[moveListener]);
+      this.removeEventListener("pointerup", this[stopListener]);
       this[startEvent] = undefined;
       this[previousMoveEvent] = undefined;
     }
