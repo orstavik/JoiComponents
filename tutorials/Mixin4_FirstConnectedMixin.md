@@ -1,8 +1,7 @@
 # FirstConnectedMixin
 The purpose of `FirstConnectedMixin` is to add a callback hook the first, and only first time, 
 the Element is connected to a DOM.
-
-`FirstConnectedMixin` echoes the .ready() callback in Polymer.
+`FirstConnectedMixin` is inspired by the Polymer.ready() callback.
 
 ### Example of use:
 
@@ -32,20 +31,18 @@ and you can test it like this:
 ```javascript
 const allo = document.createElement("allo-allo");
 const body = document.querySelector("body");
-function connectAndDisconnect() {
-  body.appendChild(allo);
-  requestAnimationFrame(()=>requestAnimationFrame(()=> body.removeChild(allo)));
-}
-connectAndDisconnect();
+setTimeout(()=> body.appendChild(allo), 0);
 //1. I will tell this only once.
 //2. Do you remember what I told you.
 //3. Ahh, 'Enri! `Enri!
-setTimeout(connectAndDisconnect, 100);
+setTimeout(()=> body.removeChild(allo), 1000);
+setTimeout(()=> body.appendChild(allo), 2000);
 //2. Do you remember what I told you.
 //3. Ahh, 'Enri! `Enri!
-setTimeout(connectAndDisconnect, 200);
+setTimeout(()=> body.removeChild(allo), 3000);
+setTimeout(()=> body.appendChild(allo), 4000);
 //2. Do you remember what I told you.
 //3. Ahh, 'Enri! `Enri!
 ```                      
 
-Test it out on [codepen](https://codepen.io/orstavik/pen/XEwPaE).
+Test it out on [codepen](https://codepen.io/orstavik/pen/pLmYEM).
