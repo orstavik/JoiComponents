@@ -12,6 +12,7 @@ functional mixins for some more complex use-cases.
 
 * [Reactive method](tutorials/Pattern1_ReactiveMethod.md)
 * [Functional mixin](tutorials/Pattern2_FunctionalMixin.md)
+* [Event translator](tutorials/Pattern4_EventTranslator.md)
 * [two-faced-collection (OlLi)](tutorials/Pattern3_TwoFacedCollection.md)
 
 #### Functional mixins for reactive-method hooks
