@@ -1,5 +1,4 @@
 # JoiComponents
-
 JoiComponents is a package of both a couple of patterns and Mixins for developing simple, 
 reusable and joiful web components. The package is designed to be used both directly via services 
 like unpkg.com or rawgit.com, but can be downloaded via both git and npm as well.
@@ -14,6 +13,7 @@ functional mixins for some more complex use-cases.
 * [Event translator](tutorials/Pattern4_EventTranslator.md)
 * [two-faced-collection (OlLi)](tutorials/Pattern3_TwoFacedCollection.md)
 
-#### Functional mixins for reactive-method hooks
+#### Functional mixins
 * [ChildrenChangedCallback](tutorials/Mixin1_ChildrenChangedMixin.md)
 * [SizeChangedMixin](tutorials/Mixin2_SizeChangedMixin.md)
+* [DraggingEventMixin](tutorials/Mixin3_DraggingEventMixin.md)
