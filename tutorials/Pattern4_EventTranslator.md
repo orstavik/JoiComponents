@@ -87,14 +87,12 @@ and implementation of the same logic must be applied.
 listen for tripple-click on some elements, while not on others of the same type. This can however be 
 fixed by adding the following function to the TrippleClickElement class:
 ```javascript
-...
-  trippleClick(onOff = true) {
-    if (onOff)
-      this.addEventListener("click", this._clickListener);
-    else
-      this.removeEventListener("click", this._clickListener);
-  }
-...
+trippleClick(onOff = true) {
+  if (onOff)
+    this.addEventListener("click", this._clickListener);
+  else
+    this.removeEventListener("click", this._clickListener);
+}
 ```
 
 The main reasons for using such a pattern and creating custom elements when you need to translate events,
