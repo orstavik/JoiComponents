@@ -98,7 +98,7 @@ class FirstConnectedMixin extends HTMLElement {
   }
 ```
 
-## Reasons not to use FirstConnectedMixin 
+## When not to use FirstConnectedMixin 
 1. If your element is not reconnected to the DOM multiple times, but is added once, and 
 then left alone, then a separation of `firstConnectedCallback()` and regular `connectedCallback()`is
 unnecessary.
@@ -110,5 +110,5 @@ outweigh the complexity of splitting `connectedCallback()` in two.
 My recommendation is to:
 1. Consider if you really need to split `connectedCallback()`, and then don't do it if you don't need to.
 2. Use the single line plug if it is just a one time thing, and add a reference in your code to this page.
-3. Use the FirstConnectedMixin if you are using several FunctionalMixins or if you use it in several different 
-components in your app.
+3. Use the FirstConnectedMixin if you are using several FunctionalMixins.
+4. Use the FirstConnectedMixin if you use it in several different components in your app.
