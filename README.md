@@ -19,3 +19,4 @@ functional mixins for some more complex use-cases.
 * [SizeChangedMixin](tutorials/Mixin2_SizeChangedMixin.md)
 * [DraggingEventMixin](tutorials/Mixin3_DraggingEventMixin.md)
 * [FirstConnectedMixin](tutorials/Mixin4_FirstConnectedMixin.md)
+* [EnterViewMixin](tutorials/Mixin5_EnterViewMixin.md)

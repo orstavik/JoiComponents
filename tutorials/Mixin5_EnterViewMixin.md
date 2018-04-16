@@ -8,7 +8,7 @@ No fallback using requestAnimationFrame implemented.
 ### Example: LazyLoadData 
 
 ```javascript
-import {EnterViewMixin} from "https://rawgit.com/orstavik/joicomponents/master/src/EnterViewMixin.js";
+import {EnterViewMixin} from "https://rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js";
 
 class LazyLoadImage extends EnterViewMixin(HTMLElement) {
   
