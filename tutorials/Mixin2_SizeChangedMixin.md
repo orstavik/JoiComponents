@@ -102,3 +102,4 @@ the definition of `getContentRect()` that uses `getComputedStyle()`.
 * https://github.com/WICG/ResizeObserver/issues/3
 * https://github.com/w3ctag/design-principles/issues/78
 * https://github.com/wnr/element-resize-detector
+* https://github.com/ebidel/demos/blob/master/dom_resize_events.html#L152-L170

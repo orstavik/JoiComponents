@@ -12,6 +12,7 @@ functional mixins for some more complex use-cases.
 * [Functional mixin](tutorials/Pattern2_FunctionalMixin.md)
 * [Event translator](tutorials/Pattern4_EventTranslator.md)
 * [two-faced-collection (OlLi)](tutorials/Pattern3_TwoFacedCollection.md)
+* [Template construction](tutorials/Pattern5_ConstructTemplate.md)
 
 #### Functional mixins
 * [ChildrenChangedCallback](tutorials/Mixin1_ChildrenChangedMixin.md)
