@@ -1,8 +1,10 @@
 const enterView = Symbol("hasEntered");
 
 const enterViewObserver = new IntersectionObserver(entries => {
-  for (let entry of entries)
-    entry.enterViewCallback();
+  for (let entry of entries) {
+    if (entry.isIntersecting)
+      entry.target.enterViewCallback();
+  }
 });
 
 export const EnterViewMixin = (Base) => {
