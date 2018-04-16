@@ -1,6 +1,6 @@
 const enterView = Symbol("hasEntered");
 
-const enterViewObserver = new InterSectionObserver(entries => {
+const enterViewObserver = new IntersectionObserver(entries => {
   for (entry of entries)
     entry.enterViewCallback();
 });
