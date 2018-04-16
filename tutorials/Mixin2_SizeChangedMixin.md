@@ -92,3 +92,13 @@ tag at requestAnimationFrame-time.
 3. Chrome's `ResizeObserver` does not observe `{display: inline}` elements.
 4. In Chrome, the `contentRect` parameter created by `ResizeObserver` can differ slightly from 
 the definition of `getContentRect()` that uses `getComputedStyle()`.
+
+#### References
+* https://wicg.github.io/ResizeObserver/
+* https://github.com/WICG/ResizeObserver/blob/master/explainer.md
+* https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+* https://developers.google.com/web/fundamentals/performance/rendering/avoid-large-complex-layouts-and-layout-thrashing
+* https://googlechrome.github.io/samples/resizeobserver/
+* https://github.com/WICG/ResizeObserver/issues/3
+* https://github.com/w3ctag/design-principles/issues/78
+* https://github.com/wnr/element-resize-detector

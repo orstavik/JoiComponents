@@ -47,3 +47,7 @@ and once per frame per element, to trigger a second callback,
 we must delay the trigger until a later point (here using `setTimeout(..., 100)`).
 
 Test it out on [codepen](https://codepen.io/orstavik/pen/XEwPaE).
+
+#### References
+* https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events
+* https://github.com/jquery/PEP

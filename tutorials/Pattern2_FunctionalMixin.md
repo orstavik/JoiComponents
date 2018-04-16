@@ -91,5 +91,5 @@ custom element. This makes it possible for the mixin to be fully agnostic as to 
 `HTMLElement` it is applied to. If a custom element needs to combine the input of several 
 different **listener-to** sources, it should do so itself directly.  
 
-###More resources
-* ["Real" Mixins with JavaScript Classes](http://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/)                                                                                               
+#### References
+* http://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/                                                                                               

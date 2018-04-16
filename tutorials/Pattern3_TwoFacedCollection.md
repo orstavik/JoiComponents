@@ -116,3 +116,6 @@ You don't have variables. Therefore, designing HTML templates require a differen
 you would do in JS. Using a wrapper element in HTML gives you both a) a different way to specify 
 which children elements are to be iterated over how and when, and b) an alterable container into 
 which data can vary from time to time.
+
+#### References
+* https://dom.spec.whatwg.org/#shadow-tree-slots

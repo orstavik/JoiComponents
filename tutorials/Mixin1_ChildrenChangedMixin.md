@@ -1,7 +1,7 @@
 # ChildrenChangedMixin
 
 `ChildrenChangedMixin` adds two methods to an `HTMLElement`
-* `.childrenChangedCallback(newVisibleChildren, oldVisibleChildren)`
+* `.childrenChangedCallback(newVisibleChildren, oldVisibleChildren, isSlotChange)`
 * `.getVisibleChildren()`
 
 ### Example
@@ -16,7 +16,7 @@ class MyWebComponent extends ChildrenChangedMixin(HTMLElement) {
     const myVisibleChildren = this.getVisibleChildren(); //this can be called even when not connected
   }
   
-  childrenChangedCallback(newChildren, oldChildren) {
+  childrenChangedCallback(newChildren, oldChildren, isSlotChange) {
     //this method is called everytime a visible child changes
     //but only while the instance of MyWebComponent is connected to the DOM.
   }
@@ -66,7 +66,8 @@ ref:
  * https://github.com/webcomponents/gold-standard/wiki/Content-Assignment
  * https://github.com/webcomponents/gold-standard/wiki/Detachment                                  
  * https://www.polymer-project.org/2.0/docs/devguide/shadow-dom#observe-nodes
- * https://www.polymer-project.org/2.0/docs/api/classes/Polymer.FlattenedNodesObserver 
+ * https://www.polymer-project.org/2.0/docs/api/classes/Polymer.FlattenedNodesObserver
+ * https://github.com/w3c/webcomponents/issues/493#issuecomment-218077582 
  
 ### Some considerations about _slotchange_ 
  

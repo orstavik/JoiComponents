@@ -59,3 +59,7 @@ All the logic as to **how** the element should react is organized from within th
 3. Several such listener-to-reactive-method pairs can be set up at the same time. 
 However, if there are more than two or three such pairs active at the same time, 
 you might consider splitting them out as [Functional Mixins](Pattern2_FunctionalMixin.md).
+
+#### References
+* https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
+* https://html.spec.whatwg.org/multipage/custom-elements.html#enqueue-a-custom-element-callback-reaction
