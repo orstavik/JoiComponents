@@ -42,8 +42,8 @@ class PinchBlock extends PinchEventMixin(HTMLElement) { //[1]
     super.connectedCallback();
     this.style.display = "block"; 
     this.style.position = "fixed"; 
-    this.style.left = "300px";                
-    this.style.top = "300px";
+    this.style.left = "100px";
+    this.style.top = "100px";
     this.style.width = "300px";
     this.style.height = "300px";
     this.style.background = "red";
@@ -55,8 +55,7 @@ class PinchBlock extends PinchEventMixin(HTMLElement) { //[1]
   }
   
   _onPinch(e){
-    const rotation = e.detail.rotationStart;
-    this.style.transform =`rotate(${rotation}deg)`;
+    this.style.transform =`rotate(-${e.detail.rotationStart}deg)`;
   }
 }
 customElements.define("pinch-block", PinchBlock);
@@ -64,7 +63,7 @@ customElements.define("pinch-block", PinchBlock);
 1. Adding the functional mixin `PinchEventMixin(HTMLElement)`. 
 PinchBlock elements will now dispatch pinch events when pressed with two fingers.
 
-Test it out on [codepen]().
+[Test the example on codepen](https://codepen.io/orstavik/pen/rvBopM).
 
 #### References
 * zingTouch

@@ -84,9 +84,9 @@ export const PinchEventMixin = function (Base) {
       this[startDistance] = distance(x1, y1, x2, y2);
       this[startAngle] = angle(x1, y1, x2, y2);
 
-      this.addEventListener("touchmove", this[moveListener]);
-      this.addEventListener("touchend", this[endListener]);
-      this.addEventListener("touchcancel", this[endListener]);
+      window.addEventListener("touchmove", this[moveListener]);
+      window.addEventListener("touchend", this[endListener]);
+      window.addEventListener("touchcancel", this[endListener]);
       this.dispatchEvent(new CustomEvent("pinchstart", {bubbles: true, composed: true, detail: e}));
     }
 
@@ -120,8 +120,9 @@ export const PinchEventMixin = function (Base) {
         return;
       if (e.targetTouches[0].identifier === this[id1] && e.targetTouches[1].identifier === this[id2])
         return;
-      this.removeEventListener("touchmove", this[moveListener]);
-      this.removeEventListener("touchend", this[endListener]);
+      window.removeEventListener("touchmove", this[moveListener]);
+      window.removeEventListener("touchend", this[endListener]);
+      window.removeEventListener("touchcancel", this[endListener]);
       this[startDistance] = undefined;
       this[startAngle] = undefined;
       this[lastDistance] = undefined;
