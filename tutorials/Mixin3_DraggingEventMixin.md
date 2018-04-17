@@ -4,6 +4,8 @@ The `DraggingEventMixin` is built using the [EventTranslator](Pattern4_EventTran
 [FunctionalMixin](Pattern2_FunctionalMixin.md) patterns.
 The `DraggingEventMixin` **depends on pointerevents**.
 
+Todo: must add dragging-start and dragging-stop.
+
 ### Example of use:
 
 ```javascript

@@ -1,0 +1,65 @@
+# PinchEventMixin
+`PinchEventMixin` adds support for pinch, expand and rotate gestures to a custom element.
+`PinchEventMixin` translates two-finger touch events into a series of pinch-events.
+
+The `PinchEventMixin` is built using the [EventTranslator](Pattern4_EventTranslator.md) and 
+[FunctionalMixin](Pattern2_FunctionalMixin.md) patterns. 
+It translates a sequence of `touchstart`, `touchmove` and `touchend` events into a series of 
+pinch events.
+
+#### Events:
+1. `pinchstart` is fired when two fingers first are *pressed on this element*.
+The detail of the event is the `touchstart` event that triggered `pinchstart`.
+2. `pinchmove` is fired when these same two fingers move.
+The detail is:
+   * distance        (since last `pinchmove`)
+   * distanceStart   (since `pinchstart`)
+   * rotation        (since last `pinchmove`)
+   * rotationStart   (since `pinchstart`)
+3. `pinchend` is fired when one of the original fingers are lifted from the screen.
+The detail of the event is the original touchend event.
+
+#### Property:
+* `.minPinchDistance = 10`: number - the minimum change of distance between fingers to trigger pinchmove (in pixels).
+* `.minPinchRotation = 1` : number - the minimum change of rotation (in degrees).    
+
+### Example of use:
+
+```javascript
+import {PinchEventMixin} from PinchEventMixin;
+
+class PinchBlock extends PinchEventMixin(HTMLElement) { //[1]
+
+  constructor(){
+    super();
+    this._onPinchListener = e => this._onPinch(e);      //[2]
+  }
+
+  connectedCallback(){
+    super.connectedCallback();
+    this.style.display = "block"; 
+    this.style.position = "fixed"; 
+    this.style.left = "300px";                
+    this.style.top = "300px";
+    this.style.background = "red";
+    this.addEventListener("pinch", this._onPinchListener);
+  }
+  
+  disconnectedCallback(){
+    this.removeEventListener("pinch", this._onPinchListener);    
+  }
+  
+  _onPinch(e){
+    this.style.left = (parseFloat(this.style.left) + e.detail.x) + "px";
+    this.style.top = (parseFloat(this.style.top) + e.detail.y) + "px";
+  }
+}
+customElements.define("pinch-block", PinchBlock);
+```                                                                   
+1. Adding the functional mixin `PinchEventMixin(HTMLElement)`. 
+PinchBlock elements will now dispatch dragging events when dragged.
+
+Test it out on [codepen]().
+
+#### References
+* zingTouch
