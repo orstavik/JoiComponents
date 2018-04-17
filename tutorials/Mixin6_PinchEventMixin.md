@@ -16,6 +16,9 @@ The detail is:
    * distanceStart   (since `pinchstart`)
    * rotation        (since last `pinchmove`)
    * rotationStart   (since `pinchstart`)
+   * TODO: add distanceX and distanceY also, 
+     so that for example scaling can be done 
+     using separate x and y values 
 3. `pinchend` is fired when one of the original fingers are lifted from the screen.
 The detail of the event is the original touchend event.
 
@@ -26,7 +29,7 @@ The detail of the event is the original touchend event.
 ### Example of use:
 
 ```javascript
-import {PinchEventMixin} from PinchEventMixin;
+import {PinchEventMixin} from "https://rawgit.com/orstavik/JoiComponents/master/src/PinchEventMixin.js";
 
 class PinchBlock extends PinchEventMixin(HTMLElement) { //[1]
 
@@ -41,6 +44,8 @@ class PinchBlock extends PinchEventMixin(HTMLElement) { //[1]
     this.style.position = "fixed"; 
     this.style.left = "300px";                
     this.style.top = "300px";
+    this.style.width = "300px";
+    this.style.height = "300px";
     this.style.background = "red";
     this.addEventListener("pinch", this._onPinchListener);
   }
@@ -50,14 +55,14 @@ class PinchBlock extends PinchEventMixin(HTMLElement) { //[1]
   }
   
   _onPinch(e){
-    this.style.left = (parseFloat(this.style.left) + e.detail.x) + "px";
-    this.style.top = (parseFloat(this.style.top) + e.detail.y) + "px";
+    const rotation = e.detail.rotationStart;
+    this.style.transform =`rotate(${rotation}deg)`;
   }
 }
 customElements.define("pinch-block", PinchBlock);
 ```                                                                   
 1. Adding the functional mixin `PinchEventMixin(HTMLElement)`. 
-PinchBlock elements will now dispatch dragging events when dragged.
+PinchBlock elements will now dispatch pinch events when pressed with two fingers.
 
 Test it out on [codepen]().
 

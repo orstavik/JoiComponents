@@ -2,8 +2,8 @@ const startDistance = Symbol("startDistance");
 const startAngle = Symbol("startAngle");
 const lastDistance = Symbol("lastDistance");
 const lastAngle = Symbol("lastAngle");
-
-const active = Symbol("active");
+const id1 = Symbol("touchId1");
+const id2 = Symbol("touchId2");
 
 const startListener = Symbol("touchStartListener");
 const moveListener = Symbol("touchMoveListener");
@@ -51,6 +51,8 @@ export const PinchEventMixin = function (Base) {
       this[startAngle] = undefined;
       this[lastDistance] = undefined;
       this[lastAngle] = undefined;
+      this[id1] = undefined;
+      this[id2] = undefined;
 
       this[startListener] = (e) => this[start](e);
       this[moveListener] = (e) => this[move](e);
@@ -71,8 +73,10 @@ export const PinchEventMixin = function (Base) {
     }
 
     [start](e) {
-      if (e.targetTouches.length !== 2)                                           //two fingers start, then start listening for move
-        return;                                                                   //todo three fingers start, stop listening for move??
+      if (this[id1] !== undefined || e.targetTouches.length < 2)
+        return;
+      this[id1] = e.targetTouches[0].identifier;
+      this[id2] = e.targetTouches[1].identifier;
       const x1 = e.targetTouches[0].pageX;
       const y1 = e.targetTouches[0].pageY;
       const x2 = e.targetTouches[1].pageX;
@@ -106,8 +110,15 @@ export const PinchEventMixin = function (Base) {
       this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, composed: true, detail}));
     }
 
+    /**
+     * This is only called when one of the events triggered when the pinch is active.
+     * You can add more fingers (accidentally touch the screen with more fingers while you rotate or pinch),
+     * but you cannot take one of the two original target fingers off the screen.
+     */
     [end](e) {
-      if (e.targetTouches.length >= 2)      //todo I need to check if one of the original fingers have been removed. so I need to keep an id of the original fingers.
+      if (this[id1] === undefined)
+        return;
+      if (e.targetTouches[0].identifier === this[id1] && e.targetTouches[1].identifier === this[id2])
         return;
       this.removeEventListener("touchmove", this[moveListener]);
       this.removeEventListener("touchend", this[endListener]);
@@ -115,6 +126,8 @@ export const PinchEventMixin = function (Base) {
       this[startAngle] = undefined;
       this[lastDistance] = undefined;
       this[lastAngle] = undefined;
+      this[id1] = undefined;
+      this[id2] = undefined;
       this.dispatchEvent(new CustomEvent("pinchend", {bubbles: true, composed: true, detail: e}));
     }
   }
