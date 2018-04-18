@@ -1,6 +1,10 @@
 const startDistance = Symbol("startDistance");
+const startDistanceX = Symbol("startDistanceX");
+const startDistanceY = Symbol("startDistanceY");
 const startAngle = Symbol("startAngle");
 const lastDistance = Symbol("lastDistance");
+const lastDistanceX = Symbol("lastDistanceX");
+const lastDistanceY = Symbol("lastDistanceY");
 const lastAngle = Symbol("lastAngle");
 const id1 = Symbol("touchId1");
 const id2 = Symbol("touchId2");
@@ -15,7 +19,7 @@ const end = Symbol("touchEnd");
 function angle(x1, y1, x2, y2) {
   const radians = Math.atan2(y1 - y2, x1 - x2);
   const degree = radians * 180 / Math.PI;
-  return degree < 0 ? degree + 360 : degree;
+  return -(degree < 0 ? degree + 360 : degree);
 }
 
 function distance(x1, y1, x2, y2) {
@@ -35,7 +39,11 @@ function distance(x1, y1, x2, y2) {
  *   .detail = original touchstart event
  *  - pinchmove
  *    .detail.distance        (distance since last pinchmove)
+ *           .distanceX       (distance in X dimension since last pinchmove)
+ *           .distanceY       (distance in Y dimension since last pinchmove)
  *           .distanceStart   (distance since last pinchstart)
+ *           .distanceXStart  (distance in X dimension since last pinchstart)
+ *           .distanceYStart  (distance in Y dimension since last pinchstart)
  *           .rotation        (rotation since last pinchmove)
  *           .rotationStart   (rotation since last pinchstart)
  *  - pinchend
@@ -48,8 +56,12 @@ export const PinchEventMixin = function (Base) {
     constructor() {
       super();
       this[startDistance] = undefined;
+      this[startDistanceX] = undefined;
+      this[startDistanceY] = undefined;
       this[startAngle] = undefined;
       this[lastDistance] = undefined;
+      this[lastDistanceX] = undefined;
+      this[lastDistanceY] = undefined;
       this[lastAngle] = undefined;
       this[id1] = undefined;
       this[id2] = undefined;
@@ -82,6 +94,8 @@ export const PinchEventMixin = function (Base) {
       const x2 = e.targetTouches[1].pageX;
       const y2 = e.targetTouches[1].pageY;
       this[startDistance] = distance(x1, y1, x2, y2);
+      this[startDistanceX] = x2 > x1 ? x2-x1 : x1-x2;
+      this[startDistanceY] = y2 > y1 ? y2-y1 : y1-y2;
       this[startAngle] = angle(x1, y1, x2, y2);
 
       window.addEventListener("touchmove", this[moveListener]);
@@ -95,18 +109,26 @@ export const PinchEventMixin = function (Base) {
       const y1 = e.targetTouches[0].pageY;
       const x2 = e.targetTouches[1].pageX;
       const y2 = e.targetTouches[1].pageY;
+      const distX = x2 > x1 ? x2-x1 : x1-x2;
+      const distY = y2 > y1 ? y2-y1 : y1-y2;
       const d = distance(x1, y1, x2, y2);
       const a = angle(x1, y1, x2, y2);
 
       const detail = {
         distance: this[lastDistance] - d,
+        distanceX: this[lastDistanceX] - distX,
+        distanceY: this[lastDistanceY] - distY,
         rotation: this[lastAngle] - a,
         distanceStart: this[startDistance] - d,
+        distanceXStart: this[startDistanceX] - distX,
+        distanceYStart: this[startDistanceY] - distY,
         rotationStart: this[startAngle] - a
       };
 
       this[lastDistance] = d;
       this[lastAngle] = a;
+      this[lastDistanceX] = distX;
+      this[lastDistanceY] = distY;
       this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, composed: true, detail}));
     }
 
@@ -124,8 +146,12 @@ export const PinchEventMixin = function (Base) {
       window.removeEventListener("touchend", this[endListener]);
       window.removeEventListener("touchcancel", this[endListener]);
       this[startDistance] = undefined;
+      this[startDistanceX] = undefined;
+      this[startDistanceY] = undefined;
       this[startAngle] = undefined;
       this[lastDistance] = undefined;
+      this[lastDistanceX] = undefined;
+      this[lastDistanceY] = undefined;
       this[lastAngle] = undefined;
       this[id1] = undefined;
       this[id2] = undefined;
