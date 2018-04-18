@@ -1,4 +1,4 @@
-# Pattern 2: IsolatedFunctionalMixins
+# Pattern 2: Isolated functional mixins for HTMLElement
 Sometimes, the task of finding out **when** the reactive method should be triggered is not trivial.
 This can be caused by several reasons:
 * different browsers might implement different API that the element needs to harmonize/polyfill,
@@ -94,7 +94,8 @@ A mixin is isolated, **IsolatedFunctionalMixin** when it
 1. does not change the underlying Base prototype nor events, and  
 2. only relies on a limited set of implied dependencies (such as the HTMLElement here in JoiComponents).
 
-In JoiComponents all **first-level** IsolatedFunctionalMixins should depend only on HTMLElement as Base, 
+In JoiComponents all **first-level** IsolatedFunctionalMixins should depend only on HTMLElement as Base,
+and **only** `constructor()`, `connectedCallback()`, and `disconnectedCallback()` (not `attributeChangedCallback()`). 
 they should therefore not rely on and build on each other, and they should not change inherent properties 
 nor events from that element. Second-level FunctionalMixins can be built by depending on one or more of 
 established functional mixins ~around~ the Base, but it is recommended to not do so, but instead try to
