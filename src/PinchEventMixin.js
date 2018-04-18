@@ -29,6 +29,36 @@ function distance(x1, y1, x2, y2) {
 }
 
 /**
+ * todo should i be tolerant of more than one finger coming in contact with the screen? I think maybe not..
+ * todo How then to run two finger gesture in parallell with three finger gesture?
+ * todo should i calculate velocity?? Or should I let the client handle that? It will cost,
+ * todo and the velocity of either angle or distance can be calculated based on the incoming event input.
+ * todo should I add the two fingers x1, y1, x2, y2 coordinates to the start and move detail??
+ * todo should I rename the PinchEvent to TwoFingerGesture?
+ *
+ * Todo: alternative approaches to preventing default actions / default gestures for the element.
+ * 1. add "touch-action: none" or "touch-action: pan-x" to the style of
+ * a) the element itself and/or
+ * b) any parent element up so far as to cover the area
+ * that you think the user might get in contact with during the gesture.
+ * This is bad because a) it is not supported in Safari and b) it might require you to block touch-action such as
+ * essential pan-based scrolling and pinch zooming on the entire screen.
+ *
+ * 2. add "touch-action: none" when the gesture event is triggered
+ * (at the same time as the eventListeners for the move and up are added).
+ * a) I should probably do this with "touch-action: none" on the body element.
+ * So to prevent it happening on the entire screen. That means that we need to cache the value of that property,
+ * so that when the gesture stops, we restore that property to its original state.
+ * In addition, e.preventDefault() is run on move event.
+ * This seems like a better strategy.
+ * Open questions are:
+ * 1. will the browser intercept on the first move?? for example zoom just a little bit before it reacts? I think not.
+ * 2. if we run e.preventDefault(), is it necessary at all to stress with the css touch-action property?
+ * Will the default scroll in a browser ever run before the e.preventDefault is called?
+ * And if so, can that be considered just a bug and not to be considered?
+ *
+ * To implement 2, i need a this[]
+ *
  * Mixin for two-finger pinch, expand and rotate gestures.
  * The pinch event is fired when two fingers are pressed and moved against the screen.
  * PinchEventMixin translates a sequence of touchstart, touchmove
@@ -44,8 +74,8 @@ function distance(x1, y1, x2, y2) {
  *           .distanceStart   (distance since last pinchstart)
  *           .distanceXStart  (distance in X dimension since last pinchstart)
  *           .distanceYStart  (distance in Y dimension since last pinchstart)
- *           .rotation        (rotation since last pinchmove)
- *           .rotationStart   (rotation since last pinchstart)
+ *           .rotation        (clockwise rotation since last pinchmove)
+ *           .rotationStart   (clockwise rotation since last pinchstart)
  *  - pinchend
  *   .detail = original touchend event
  * @param Base
@@ -87,6 +117,7 @@ export const PinchEventMixin = function (Base) {
     [start](e) {
       if (this[id1] !== undefined || e.targetTouches.length < 2)
         return;
+      e.preventDefault();
       this[id1] = e.targetTouches[0].identifier;
       this[id2] = e.targetTouches[1].identifier;
       const x1 = e.targetTouches[0].pageX;
@@ -105,6 +136,7 @@ export const PinchEventMixin = function (Base) {
     }
 
     [move](e) {
+      e.preventDefault();
       const x1 = e.targetTouches[0].pageX;
       const y1 = e.targetTouches[0].pageY;
       const x2 = e.targetTouches[1].pageX;
@@ -138,6 +170,7 @@ export const PinchEventMixin = function (Base) {
      * but you cannot take one of the two original target fingers off the screen.
      */
     [end](e) {
+      e.preventDefault();
       if (this[id1] === undefined)
         return;
       if (e.targetTouches[0].identifier === this[id1] && e.targetTouches[1].identifier === this[id2])

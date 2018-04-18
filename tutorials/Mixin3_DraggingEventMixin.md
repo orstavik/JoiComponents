@@ -1,6 +1,6 @@
 # DraggingEventMixin
 The purpose of `DraggingEventMixin` is to add a dragging event for an event.
-The `DraggingEventMixin` is built using the [EventTranslator](Pattern4_EventTranslator.md) and 
+The `DraggingEventMixin` is built using the [EventComposition](Pattern4_EventComposition.md) and 
 [FunctionalMixin](Pattern2_FunctionalMixin.md) patterns.
 The `DraggingEventMixin` **depends on pointerevents**.
 

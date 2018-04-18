@@ -2,7 +2,7 @@
 `PinchEventMixin` adds support for pinch, expand and rotate gestures to a custom element.
 `PinchEventMixin` translates two-finger touch events into a series of pinch-events.
 
-The `PinchEventMixin` is built using the [EventTranslator](Pattern4_EventTranslator.md) and 
+The `PinchEventMixin` is built using the [EventComposition](Pattern4_EventComposition.md) and 
 [FunctionalMixin](Pattern2_FunctionalMixin.md) patterns. 
 It translates a sequence of `touchstart`, `touchmove` and `touchend` events into a series of 
 pinch events.

@@ -10,6 +10,11 @@ const previousMoveEvent = Symbol("previousMoveEvent");
 /**
  * !!! Dependency: pointerevents !!!
  *
+ * Todo this is a single touch or mouse or pointer gesture.
+ * todo should i add velocity
+ * todo add start dragging
+ * todo add end dragging
+ *
  * Mixin that translates a sequence of pointerdown, pointermove and pointerup events into a series of dragging events.
  * The dragging event is fired when pointerdown + pointermove.
  * The dragging event has the properties:

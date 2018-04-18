@@ -1,4 +1,4 @@
-# Pattern 2: Functional Mixins for listener-to-reactive-method pairs
+# Pattern 2: IsolatedFunctionalMixins
 Sometimes, the task of finding out **when** the reactive method should be triggered is not trivial.
 This can be caused by several reasons:
 * different browsers might implement different API that the element needs to harmonize/polyfill,
@@ -7,8 +7,9 @@ thus filling the component with trivia that obfuscates the rest of the element l
 * the task of listening for the trigger can be made more efficient if it is 
 coordinated for all the components, for example in a shared xObserver instance.
 
-If the "listener-to" part of the pattern balloons, then you likely want to split this functionality out as a
-separate functional mixins to isolate this aspect of your code to keep things simpler and facilitate unit-testing.
+If the "listen to" part of the pattern balloons, then you likely want to split this functionality 
+out as a separate functional mixins to isolate this aspect of your code to keep things simpler and 
+facilitate unit-testing.
 
 ### Example 
 In this example, we will convert the onlineOfflineCallback example above into a functional mixin.
@@ -83,13 +84,35 @@ browser to perform.
 the functional mixin will not be able to manage its listening task. This mirrors the behavior you do when
 calling `constructor() { super(); ...` first when extending another class. 
 
-### Opinion 
-It is my opinion that ONLY the **listener-to** part of the listener-to-reactive-method pair pattern
-can and should be split out as a Functional Mixin. The main argument for this is that detecting 
-**when** an external event occurs is likely **not** connected to any other functionality in your 
-custom element. This makes it possible for the mixin to be fully agnostic as to what kind of 
-`HTMLElement` it is applied to. If a custom element needs to combine the input of several 
-different **listener-to** sources, it should do so itself directly.  
+### IsolatedFunctionalMixin
+When separating code into a FunctionalMixin, the FunctionalMixin most likely can and will make some 
+assumptions as to what resources is available in the Base prototype parameter. 
+These assumptions form implicit bindings for the mixin, and in order for these implied dependencies 
+to be manageable and scalable, they should adhere to strict limits. 
+
+A mixin is isolated, **IsolatedFunctionalMixin** when it 
+1. does not change the underlying Base prototype nor events, and  
+2. only relies on a limited set of implied dependencies (such as the HTMLElement here in JoiComponents).
+
+In JoiComponents all **first-level** IsolatedFunctionalMixins should depend only on HTMLElement as Base, 
+they should therefore not rely on and build on each other, and they should not change inherent properties 
+nor events from that element. Second-level FunctionalMixins can be built by depending on one or more of 
+established functional mixins ~around~ the Base, but it is recommended to not do so, but instead try to
+either build additional first-level IsolatedFunctionalMixins around HTMLElement or put the needed functionality 
+in the end result custom element.
+
+### Is .render() an anti-pattern?
+Using second-level FunctionalMixins, it is possible to create functional hooks for how a custom element
+should react to certain events (other than as trigger a reactive method or dispatch a composed event).
+One prime candidate use-case for such a second-level method is .render().
+However, this creates a highly complex architecture around the FunctionalMixins themselves.
+
+It is my opinion that ONLY **IsolatedFunctionalMixins** should be used to trigger only **reactive methods**
+or dispatch **composed events**. Detecting **when** an external event occurs does **not** need to
+depend on any custom functionality outside HTMLElement and the platform API. 
+If the FunctionalMixin is given wider limits of dependencies apart from HTMLElement,
+then the FunctionalMixin will cease to be limited only to platform resources and start to be dependent
+on a shared "primary" resource / framework, however small that might be.
 
 #### References
 * http://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/                                                                                               

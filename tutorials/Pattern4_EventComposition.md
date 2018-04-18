@@ -1,11 +1,23 @@
-# Pattern event-translator
+# Pattern EventComposition
 
-EventTranslator is a pattern for transforming a series of events into a series of other (custom) events.
-It is a variant of the ReactiveMethod pattern, but instead of treating the reactive method as an 
-external endpoint, it treats the reactive method as internal processing (a middle step) that is to 
-produce an event (the end result) for external consumption. 
+EventComposition is a pattern for transforming a series of events into a series of other (custom) events.
+Examples of EventCompositions are:
+* **gestures**, such as swipe and pinch,  
+* **drag**, and 
+* **click** and **doubleclick**.
+
+When creating an EventComposition you listen, most likely in a sequential order, 
+to a series of underlying events.
+When the events come in a certain pattern described by a) time, b) sequence, and/or c) value 
+(such as position of fingers in gestures), then the EventComposition is detected and a new
+composed event is dispatched.
+
+EventComposition is a variant of the ReactiveMethod pattern, but 
+instead of treating the reactive method as an external endpoint, 
+it treats the reactive method as internal processing (a middle step) 
+that produces an event (the end result) for external consumption. 
 Where the ReactiveMethod pattern only *listen-then-react*, 
-the EventTranslator *listen-then-process-then-dispatch*.
+the EventComposition *listen-then-process-then-dispatch*.
 
 ### Example: tripple-click-element
 
@@ -53,7 +65,7 @@ adds and removes the listener for the underlying events.
 #### How to use tripple-click-element
 ```html
 <tripple-click-element>
-  3 is your lucky number
+  3 clicks for good luck!
 </tripple-click-element>                                                    
 ```
 
@@ -75,7 +87,7 @@ setTimeout(()=> {
 
 [TrippleClickElement on codepen.io](https://codepen.io/orstavik/pen/GxaxbL).
 
-## Discussion of the event-translator pattern
+## Discussion of the EventComposition pattern
 At first sight the pattern seem overly complex and heavy handed. 
 Why do we need to create a special custom component to achieve something 
 as simple as just translating 3 clicks to a tripple-click? In addition,
@@ -106,9 +118,28 @@ In addition, some event translation require:
 4. complex processing of the event data coming in and/or going out, and/or
 5. extensive testing.
 
-If so, apply the EventTranslator pattern as a [FunctionalMixin](Pattern2_FunctionalMixin.md).
+If so, apply the EventComposition pattern as a [FunctionalMixin](Pattern2_FunctionalMixin.md).
 
-### App-specific custom events vs event-translators for generic events.
+## Conflict between different ComposedEvents
+As long as the composed event neither alters the original event nor stops its propagation, 
+instances of the EventComposition pattern themselves should not cause any conflict. 
+
+However, the handling of different ComposedEvents might interrupt each others functioning.
+If you on a button bind two the two composed events a) `tripple-click` to an alert function
+and b) `doubleclick` to a function that deletes the button itself, then `tripple-click` will be 
+hard to trigger and your ComposedEvents conflict with one another. Such conflicts should be handled
+by the user of the ComposedEvents, and not the custom element that issues them.
+
+## Conflict between ComposedEvent gestures and some browsers/OSes
+
+* double-tap to zoom: because some browsers and touch devices provide an underlying response by 
+the browsers to zoom when doubletap'ed, then the browsers must wait 350ms after a click has been made to 
+verify that the user's click was not the first part of a double-tap meant to zoom. To avoid such delay,
+the css `touch-action` attribute can be added.
+
+* multi-touch gestures such as four finger swipes.
+
+## App-specific custom events vs EventCompositions for generic events.
 
 There are several reasons why you might need your own events. Sometimes, you want to diferentiate your 
 app logic events from generic events. This might be the user hitting a login button, and instead of 
