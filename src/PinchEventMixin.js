@@ -145,17 +145,20 @@ export const PinchEventMixin = function (Base) {
       const distY = y2 > y1 ? y2-y1 : y1-y2;
       const d = distance(x1, y1, x2, y2);
       const a = angle(x1, y1, x2, y2);
-
       const detail = {
-        distance: this[lastDistance] - d,
-        distanceX: this[lastDistanceX] - distX,
-        distanceY: this[lastDistanceY] - distY,
-        rotation: this[lastAngle] - a,
+        distance: d,
+        distanceX: distX,
+        distanceY: distY,
+        distanceChange: this[lastDistance] - d,
+        distanceChangeX: this[lastDistanceX] - distX,
+        distanceChangeY: this[lastDistanceY] - distY,
         distanceStart: this[startDistance] - d,
         distanceXStart: this[startDistanceX] - distX,
         distanceYStart: this[startDistanceY] - distY,
+        rotation: this[lastAngle] - a,
         rotationStart: this[startAngle] - a
       };
+      detail.velocity = detail.distanceChange / (this[lastTime] - e.timeStamp);
 
       this[lastDistance] = d;
       this[lastAngle] = a;
