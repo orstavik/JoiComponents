@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+<style>
+  scale-block {
+    display: block;
+    position: fixed;
+    left: 100px;
+    top: 500px;
+    width: 300px;
+    height: 300px;
+    background: blue;
+  }
+</style>
+<script src="https://hammerjs.github.io/dist/hammer.js"></script>
+<script src="//cdn.rawgit.com/hammerjs/touchemulator/0.0.2/touch-emulator.js"></script>
+<script> TouchEmulator(); </script>
+
+<scale-block id="ex1">
+  scale me!
+</scale-block>
+
+<script type="module">
+
+  import {PinchEventMixin} from "../../src/PinchEventMixin.js";
+
+  class ScaleBlock extends PinchEventMixin(HTMLElement) {
+
+    constructor() {
+      super();
+      this._onPinchListener = e => this._onPinch(e);
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      this.addEventListener("pinch", this._onPinchListener);
+    }
+
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this.removeEventListener("pinch", this._onPinchListener);
+    }
+
+    _onPinch(e) {
+      const widthPercent = e.detail.width / e.detail.startWidth;
+      const heightPercent = e.detail.height / e.detail.startHeight;
+      this.style.transform = `scaleX(${widthPercent}) scaleY(${heightPercent})`;
+    }
+  }
+
+  customElements.define("scale-block", ScaleBlock);
+</script>
+
+</body>
+</html>
