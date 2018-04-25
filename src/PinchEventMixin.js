@@ -22,12 +22,6 @@ function calcAngle(x1, y1, x2, y2) {
   return -(degree < 0 ? degree + 360 : degree);
 }
 
-function distance(x1, y1, x2, y2) {
-  const xD = (x1 + x2) / 2;
-  const yD = (y1 + y2) / 2;
-  return Math.sqrt(xD * xD + yD * yD);
-}
-
 /**
  * Mixin for two-finger pinch, expand and rotate gestures.
  * The pinch event is fired when two fingers are pressed and moved against the screen.
@@ -36,24 +30,19 @@ function distance(x1, y1, x2, y2) {
  *
  * Events:
  *  - pinchstart
- *    .detail.touchevent
- *           .x1, .y1, .x2, .y2
+ *    .detail: {touchevent, x1, y1, x2, y2, diagonal, width, height, screenAngle}
  *  - pinchmove
- *    .detail.touchevent
- *           .x1, .y1, .x2, .y2
- *           .width
- *           .height
- *           .diagonal
- *           .diagonalStart
- *           .widthStart
- *           .heightStart
- *           .diagonalLast
- *           .widthLast
- *           .heightLast
- *           .rotation        (clockwise rotation since previous pinchmove)
- *           .rotationStart   (clockwise rotation since pinchstart)
+ *    .detail: {
+ *           touchevent,
+ *           x1, y1, x2, y2,
+ *           width, height, diagonal,
+ *           widthStart, heightStart, diagonalStart,
+ *           widthLast, heightLast, diagonalLast,
+ *           rotationLast,                          //clockwise rotation since previous pinchmove
+ *           rotationStart                          //clockwise rotation since pinchstart
+ *     }
  *  - pinchend
- *    .detail.touchevent
+ *    .detail: {touchevent}
  *
  * To save cost per event, velocity is not calculated for every event.
  * Velocity can be calculated as (can be applied to width, height, diagonal, angle):
@@ -132,10 +121,14 @@ export const PinchEventMixin = function (Base) {
       const y1 = e.targetTouches[0].pageY;
       const x2 = e.targetTouches[1].pageX;
       const y2 = e.targetTouches[1].pageY;
-      this[startDiagonal] = distance(x1, y1, x2, y2);
-      this[startWidth] = x2 > x1 ? x2 - x1 : x1 - x2;
-      this[startHeight] = y2 > y1 ? y2 - y1 : y1 - y2;
-      this[startAngle] = calcAngle(x1, y1, x2, y2);
+      const width = x2 > x1 ? x2 - x1 : x1 - x2;
+      const height = y2 > y1 ? y2 - y1 : y1 - y2;
+      const diagonal = Math.sqrt(width * width + height * height);
+      const screenAngle = calcAngle(x1, y1, x2, y2);
+      this[startWidth] = width;
+      this[startHeight] = height;
+      this[startDiagonal] = diagonal;
+      this[startAngle] = screenAngle;
 
       window.addEventListener("touchmove", this[moveListener]);
       window.addEventListener("touchend", this[endListener]);
@@ -143,7 +136,7 @@ export const PinchEventMixin = function (Base) {
       this.dispatchEvent(new CustomEvent("pinchstart", {
         bubbles: true,
         composed: true,
-        detail: {touchevent: e, x1, y1, x2, y2}
+        detail: {touchevent: e, x1, y1, x2, y2, diagonal, width, height, screenAngle}
       }));
     }
 
@@ -155,7 +148,7 @@ export const PinchEventMixin = function (Base) {
       const y2 = e.targetTouches[1].pageY;
       const width = x2 > x1 ? x2 - x1 : x1 - x2;
       const height = y2 > y1 ? y2 - y1 : y1 - y2;
-      const diagonal = distance(x1, y1, x2, y2);
+      const diagonal = Math.sqrt(width * width + height * height);
       const angle = calcAngle(x1, y1, x2, y2);
       const detail = {
         touchevent: e,
@@ -193,7 +186,7 @@ export const PinchEventMixin = function (Base) {
       if (this[id1] === undefined)
         return;
       if ((e.targetTouches[0] && e.targetTouches[0].identifier === this[id1]) &&
-          (e.targetTouches[1] && e.targetTouches[1].identifier === this[id2]))
+        (e.targetTouches[1] && e.targetTouches[1].identifier === this[id2]))
         return;
       window.removeEventListener("touchmove", this[moveListener]);
       window.removeEventListener("touchend", this[endListener]);
