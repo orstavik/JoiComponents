@@ -1,23 +1,24 @@
 # Pattern 2: Isolated functional mixins for HTMLElement
-Sometimes, the task of finding out **when** the reactive method should be triggered is not trivial.
-This can be caused by several reasons:
-* different browsers might implement different API that the element needs to harmonize/polyfill,
-* information can be spread over several sources and require processing, 
-thus filling the component with trivia that obfuscates the rest of the element logic, and/or
-* the task of listening for the trigger can be made more efficient if it is 
-coordinated for all the components, for example in a shared xObserver instance.
+Often, the task of finding out **when** the reactive method should be triggered is not trivial:
+* Different browsers might implement different API that the element must harmonize/polyfill.
+* Information can be spread over several sources and require processing. 
+This fills the component with trivial code that obfuscates the rest of the element logic.
+* The task of listening for the external trigger event can be made more efficient if it is 
+coordinated for all the components of this type (such as in 
+[ChildrenChangedMixin](Mixin1_ChildrenChangedMixin.md) and [SizeChangedMixin](Mixin2_SizeChangedMixin.md)).
 
-If the "listen to" part of the pattern balloons, then you likely want to split this functionality 
-out as a separate functional mixins to isolate this aspect of your code to keep things simpler and 
-facilitate unit-testing.
+If the "listen-to" functionality of a ReactiveMethod balloons, 
+then you likely want to split this functionality out as a separate functional mixin. 
+This will help you encapsulate and isolate this aspect of your code which will keep 
+your component simpler and facilitate unit-testing.
 
 ### Example 
-In this example, we will convert the onlineOfflineCallback example above into a functional mixin.
-This example is so simple, that it is likely that most developers would prefer not to split this 
-code out as a separate listener. But, to explain the pattern, this "too simple" example is well suited.
+In this example, we will convert the [`.onlineOfflineCallback(isOnline)`](chapter2/Pattern1_ReactiveMethod.md)
+example from the previous chapter into a functional mixin.
+
 ```javascript
-const OnlineOfflineMixin = function(Base) {
-  return class extends Base {                                                  //listening management
+const OnlineOfflineMixin = function(Base) {                              //[0] listening
+  return class extends Base {                                                  
       constructor(){
         super();
         this._onlineOfflineListener = e => this.onlineOfflineCallback(navigator.onLine);   
@@ -36,25 +37,26 @@ const OnlineOfflineMixin = function(Base) {
         window.addEventListener("offline", this._onlineOfflineListener);                  
       }                                                                                                                                                                               
       //onlineOfflineCallback(isOnline) {
-      //  don't implement this here                                       //[2]
+      //  don't implement this in ReactiveMethod,                         //[2]
+      //  but implement this for EventComposition                         //[2]
       //} 
       
     }                                                                                     
 };
 
-class MyWebComponent extends OnlineOfflineMixin(HTMLElement) {
+class MyWebComponent extends OnlineOfflineMixin(HTMLElement) {            //[0] reaction
                                                
-  connectedCallback(){                   
-    super.connectedCallback();                                            //[3]      
-    //do your stuff here
+  connectedCallback(){                                                    //[3]
+    super.connectedCallback();                                            //don't forget this      
+    //do your stuff here                                                  
   }
                                                             
   disconnectedCallback(){                                                 //[3]
-    super.disconnectedCallback();        //don't forget this
+    super.disconnectedCallback();                                         //don't forget this
     //do your stuff here
   }
                                         
-  onlineOfflineCallback(isOnline) {                                            //The reactive method
+  onlineOfflineCallback(isOnline) {                                       //[0] The reactive method
     if(isOnline)                                                                       
       console.log("Online! The world is your oyster.");                                
     else                                                                               
@@ -62,58 +64,220 @@ class MyWebComponent extends OnlineOfflineMixin(HTMLElement) {
   }                                                                                    
 }                                                                                      
 customElements.define("my-web-component", MyWebComponent);
-```                                                                   
+``` 
+0. When setting up an IsolatedFunctionalMixin, the code of the ReactiveMethod is split into two parts:
+* a functional mixin responsible for listening for the external event, and
+* a web component applying this mixin to its HTMLElement superclass that 
+controls the reaction of the external event.
+                                                                  
 1. When you are using a functional mixin pattern on the `HTMLElement`, 
-you might want to mix your mixins with other functional mixins.
+you often want to use many mixins at the same time.
 These other mixins are almost always going to implement not only a `constructor`, 
 but also their own `connectedCallback()` and `disconnectedCallback()`.
-By calling any parent `connectedCallback()` and `disconnectedCallback()` before you run your code,
-your functional mixin will be able to work together with other functional mixins.
-ATT!! In the functional mixin, you must also check to see `if(super.connectedCallback)` and 
-`if(disconnectedCallback)` exists before you call it. The reason is that `HTMLElement` doesn't have 
-this method, and if your mixin is either at the core of the functional mixin cluster or
-is used on its own, a direct call to a non-existing super.connectedCallback would throw an `Error`.
-2. It is better not to implement `onlineOfflineCallback()`. The reason for this is that
-if you use this functional mixin but then forget to implement the corresponding callback method in your
-custom element class, then your code will throw an Error the first time the callback triggers.
-This will likely help you remove functional mixins that you don't use anymore from your custom elements,
-and this is very beneficial as listening for the callback triggers is likely to be a heavy task for the
-browser to perform.
+By calling any parent `connectedCallback()` and `disconnectedCallback()`,
+your functional mixin will be able to work together with other functional mixins on HTMLElement.
+But. HTMLElement itself *does not* implement `connectedCallback()` and `disconnectedCallback()`.
+Therefore, you must first check `if(super.connectedCallback)` and `if(disconnectedCallback)` exists 
+before calling them.
+
+2. If you are making an IsolatedFunctionalMixin for a ReactiveMethod,
+you most often should not implement `.onlineOfflineCallback(isOnline)` in the mixin function.
+If you add this mixin to your class, but then forget or later stop using the callback method,
+the event will trigger an Error the first time the underlying event is triggered. 
+This will remind you to either implement the callback or remove the mixin 
+(which probably perform some not trivial observations that should be considered too costly to just
+be left lying around).
+However, if you use the IsolatedFunctionalMixin pattern for EventComposition as described in the
+next chapter, you will of course implement an equivalent of this method in the mixin.
+
 3. When you are using a functional mixin that uses `connectedCallback` and `disconnectedCallback`,
-**you must remember to call `super.connectedCallback` and `super.disconnectedCallback`**. If you forget this,
-the functional mixin will not be able to manage its listening task. This mirrors the behavior you do when
-calling `constructor() { super(); ...` first when extending another class. 
+**you must remember to call `super.connectedCallback` and `super.disconnectedCallback`** in the component itself. 
+If you forget this, you will not get an Error, but the functional mixin will not be activated or deactivated.
+This closely resemble the compulsory call to `super()` in the `constructor()` of any class that extends another class. 
 
-### IsolatedFunctionalMixin
-When separating code into a FunctionalMixin, the FunctionalMixin most likely can and will make some 
-assumptions as to what resources is available in the Base prototype parameter. 
-These assumptions form implicit bindings for the mixin, and in order for these implied dependencies 
-to be manageable and scalable, they should adhere to strict limits. 
+### Constraints for "IsolatedFunctionalMixin"?
 
-A mixin is isolated, **IsolatedFunctionalMixin** when it 
-1. does not change the underlying Base prototype nor events, and  
-2. only relies on a limited set of implied dependencies (such as the HTMLElement here in JoiComponents).
+##### Step 1: Expanding the `Base` to include `HTMLElement`
+All functional mixins are applied to a `Base` class.
+All mixins make some **implicit assumptions** about what resources are available in their `Base`
+in order to complete their tasks. One implicit assumption is that all `Base` classes 
+has a constructor called `super` and that any subclass that implement a constructor themselves
+must first call this `super` constructor before running their own constructor instructions.
 
-In JoiComponents all **first-level** IsolatedFunctionalMixins should depend only on HTMLElement as Base,
-and **only** `constructor()`, `connectedCallback()`, and `disconnectedCallback()` (not `attributeChangedCallback()`). 
-they should therefore not rely on and build on each other, and they should not change inherent properties 
-nor events from that element. Second-level FunctionalMixins can be built by depending on one or more of 
-established functional mixins ~around~ the Base, but it is recommended to not do so, but instead try to
-either build additional first-level IsolatedFunctionalMixins around HTMLElement or put the needed functionality 
-in the end result custom element.
+When you are making functional mixins for web components, the `Base` for the functional mixin 
+will be `HTMLElement` (to be precise, the `Base` can an HTMLElement or a subclass of HTMLElement, 
+but we refer to that here as just `HTMLElement`).
+When making `HTMLElement`s there are some rules that must be followed such as "neither attributes nor shadowDom 
+content can be set in constructor".
+By defining our `Base` element as `HTMLElement` we are adding these rules to our implied assumptions,
+and we can say that we are "*expanding* our `Base` to include `HTMLElement`".
 
-### Is .render() an anti-pattern?
-Using second-level FunctionalMixins, it is possible to create functional hooks for how a custom element
-should react to certain events (other than as trigger a reactive method or dispatch a composed event).
-One prime candidate use-case for such a second-level method is .render().
-However, this creates a highly complex architecture around the FunctionalMixins themselves.
+When the `Base` includes `HTMLElement`, all the resources available in the `HTMLElement` 
+are available to the functional mixin. This includes:
+* lifecycle methods `connectedCallback()`, `disconnectedCallback()`, `attributeChangedCallback()` ++.
+* other methods such as `.addEventlistener()`
+* +++ 
 
-It is my opinion that ONLY **IsolatedFunctionalMixins** should be used to trigger only **reactive methods**
-or dispatch **composed events**. Detecting **when** an external event occurs does **not** need to
-depend on any custom functionality outside HTMLElement and the platform API. 
-If the FunctionalMixin is given wider limits of dependencies apart from HTMLElement,
-then the FunctionalMixin will cease to be limited only to platform resources and start to be dependent
-on a shared "primary" resource / framework, however small that might be.
+##### Step 2: Expanding *and* constraining the `Base` to include functional mixins of `HTMLElement`
+Many functional mixins can be combined together on the same element, for example:
+```javascript                                               
+class MyComponent extends MixinA(MixinB(HTMLElement)) { 
+  ...
+}
+```
+The `Base` of MixinA is the product of `MixinB` applied to `HTMLElement`.
+This is the main point of functional mixins; they provide a means to implement multiple inheritance.
+When making mixins, it is also a good rule of thumb to as far as possible make the order of mixins irrelevant.
+This means that `MixinA(MixinB(Base))` and `MixinB(MixinB(Base))` should be functionally equivalent.
+
+The ability to combine our mixins like this, expands the number of classes that can be the `Base` greatly.
+Our `Base` must include *both* `HTMLElement` *and* other functional mixins with the same `Base`.
+
+##### Step 3: Constraining the `Base` to ensure compatibility between mixins
+To combine several functional mixins together also adds some *constraints* to our `Base`.
+Let's look at an example: 
+```javascript                                               
+function MixinA (Base){
+  return class extends Base { 
+    connectedCallback(){
+      //some important stuff
+    }
+  }
+}
+
+function MixinB (Base){
+  return class extends Base { 
+    connectedCallback(){
+      //more important stuff
+    }
+  }
+}
+
+class MyComponent extends MixinA(MixinB(HTMLElement)) { 
+  connectedCallback(){
+    //at least useful
+  }
+}
+```
+
+Both `MyComponent`, `MixinA`, and `MixinB` rely on and implement `connectedCallback()`. 
+When the element is then connected to the DOM, the `MyComponent.connectedCallback()` is called.
+However, if `MixinA` and `MixinB` both rely on their `connectedCallback()` to be run to function 
+correctly, then a *constraint* is added to `MyComponent` and `MixinA` that they should call their
+`super.connectedCallback()`. The example then looks like this:
+
+```
+function MixinA (Base){
+  return class extends Base { 
+    connectedCallback(){
+      super.connectedCallback();
+      //some important stuff
+    }
+  }
+}
+
+function MixinB (Base){
+  return class extends Base { 
+    connectedCallback(){
+      //more important stuff
+    }
+  }
+}
+
+class MyComponent extends MixinA(MixinB(HTMLElement)) { 
+  connectedCallback(){
+      super.connectedCallback();
+    //at least useful
+  }
+}
+```
+But, there are some problems here:
+1. Mixins should be able to be run on their own, ie. MixinA could be applied to HTMLElement directly.
+```
+class MyComponent2 extends MixinA(HTMLElement) { 
+  ...
+```
+2. The order of mixins should not matter. MixinA could be placed inside MixinB, and it should not matter.
+```
+class MyComponent3 extends MixinB(MixinA(HTMLElement)) { 
+  ...                                                                                  
+```
+
+To allow MixinA to be applied both directly to HTMLElement and another mixin that already uses the 
+`.connectedCallback()`, a check to see if the connectedCallback method exists on the parent must be added.
+This makes MixinA able to handle both HTMLElement and MixinB(HTMLElement) as its base. This same rules must 
+then be applied to MixinB. The end result ends up looking like this.
+```
+function MixinA (Base){
+  return class extends Base { 
+    connectedCallback(){
+      if(super.connectedCallback) super.connectedCallback();
+      //some important stuff
+    }
+  }
+}
+
+function MixinB (Base){
+  return class extends Base { 
+    connectedCallback(){
+      if(super.connectedCallback) super.connectedCallback();
+      //more important stuff
+    }
+  }
+}
+
+class MyComponent extends MixinA(MixinB(HTMLElement)) { 
+  connectedCallback(){
+      super.connectedCallback();
+    //at least useful
+  }
+}
+```
+The `Base` of our web component mixins therefore has the additional contraint that 
+"if the mixin overrides one of `HTMLElement`s lifecycle methods, 
+the mixin must first check if the superclass has this lifecycle method, and if so call it".
+This applies to `.connectedCallback()`, `.disconnectedCallback()`, +++.
+
+##### Step 4: Constraining the `Base` using self-imposed restrictions
+However, when mixing mixins, the bigger the `Base` of assumption is, the bigger the area of potential
+conflicts become and the more taxing on the developers concentration the complexity of the class 
+hierarchy becomes. This is especially true for lifecycle methods. Therefore, it is wise to constrain 
+the `Base` as much as possible.
+
+Due to the before-mentioned limitations of the HTMLElement constructor, and the lack of a destructor on 
+HTMLElement, `.connectedCallback()` and `.disconnectedCallback()` play a crucial role in the lifecycle 
+and activity of all HTMLElements. The `Base` for our mixins must therefore include the assumption that
+other mixins might use these lifecycle methods. But, apart from these two methods, 
+we add the constraint that other mixins do:               
+1. *not* implement any other lifecycle methods
+2. *not* alter or stop any other events or behavior of the HTMLElement 
+without clearly warning the user about this.
+
+##### *Isolated* functional mixins
+The `Base` of a functional mixin is the implied assumptions we have about it's constraints and expanded 
+properties. In this book, the `Base` of our functional mixins is constrained to:
+* HTMLElement or
+* functional mixins on HTMLElement that:
+   * may or may not implement `.connectedCallback()` and `.disconnectedCallback()`,
+   * does not implement any other reactive methods such as `attributeChangedCallback()`, and
+   * does *not* alter or stop any other events or behavior of the HTMLElement 
+     without clearly warning the user about this.
+
+When the set of constraints is clearly and narrowly defined, the mixins can become more **isolated**.
+Outside of the defined constraints, there is little room for conflict.
+There are few and clear bindings between the mixin and it's Base.
+This means that the mixins can be more freely mixed and are more likely to be used in isolation.
+Fewer bindings and implied dependencies also makes the mixins simpler to manage and
+enables them to be tested as a unit. The more **isolated** the Base of a set of functional mixins are, 
+the more manageable and scalable their use becomes. 
+This is why the pattern is called **IsolatedFunctionalMixin**.
+
+Only **IsolatedFunctionalMixins** are needed to trigger **ReactiveMethod** and **ComposedEvent**. 
+Adding a bigger `Base` and additional dependencies for the functional mixins, will likely be too complex
+to manage independently by the developer. To lessen that complexity, a custom subclass of 
+HTMLElement (cf. PolymerElement) will become prefential, and this shared library must be universally 
+applied and creates a universal dependency. It is the intent of this book to avoid any such universal
+dependency except a (polyfilled) platform.
 
 #### References
 * http://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/                                                                                               

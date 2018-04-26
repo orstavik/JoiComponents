@@ -20,7 +20,7 @@ If you want to copy them into your web component and/or adapt them to your preci
 Web components are not fully supported by all browsers in use, and therefore some polyfills must be included 
 to patch the browsers that need it. This is described in the first part of this book. 
 
-## How to build (and polyfill) an app using web components?
+## Chapter 1: How to build (and polyfill) an app using web components?
 1. [Create your first custom element](tutorials/chapter1/Pattern1_CreateElement.md)
 2. [Template construction](tutorials/chapter1/Pattern5_ConstructTemplate.md)
 <!--_3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
@@ -32,23 +32,23 @@ to patch the browsers that need it. This is described in the first part of this 
 explain that custom elements with content in the lightDom should be considered app-specific components.
 -->
 
-## JS Patterns for generic web components
-1. [Reactive method](tutorials/Pattern1_ReactiveMethod.md)
+## Chapter 2: JS Patterns for generic web components
+1. [Reactive method](tutorials/chapter2/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](tutorials/Pattern2_FunctionalMixin.md)
 3. [EventComposition](tutorials/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
 
-## HTML Patterns for generic web components
+## Chapter 3: HTML Patterns for generic web components
 1. [HTML is always a list](tutorials/Pattern0_HTMLList.md) (todo add the `<Ul-Li>` example)
 2. [two-faced-collection](tutorials/Pattern3_TwoFacedCollection.md) (such as `<Ol>`+`<Li>`)
 3. [ResponsiveLayout](tutorials/Pattern7_ResponsiveLayout.md) (alternative to css media queries + css pseudo for custom elements)
 
-## Lifecycle mixins (generic custom element)
+## Chapter 4: Lifecycle mixins (generic custom element)
 * [.childrenChangedCallback()](tutorials/Mixin1_ChildrenChangedMixin.md)
 * [.sizeChangedCallback()](tutorials/Mixin2_SizeChangedMixin.md)
 * [.firstConnectedCallback()](tutorials/Mixin4_FirstConnectedMixin.md)
 * [.enterViewCallback()](tutorials/Mixin5_EnterViewMixin.md)
 
-## Composed events mixins (Gestures and other conventional events)
+## Chapter 5: Composed events mixins (Gestures and other conventional events)
 * [DraggingEventMixin](tutorials/Mixin3_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
 * [PinchEventMixin](tutorials/Mixin6_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
 <!--* [SwipeEventMixin] (tutorials/Mixin7_SwipeEventMixin.md) (MultiFingerGesture)-->
