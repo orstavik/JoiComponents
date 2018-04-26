@@ -47,7 +47,7 @@ class MyComponent2 extends FirstConnectedMixin(HTMLElement) {
   }
 }
 ```
-By adding [FirstConnectedMixin](Mixin4_FirstConnectedMixin.md) the shadowRoot is *only* instantiated
+By adding [FirstConnectedMixin](../Mixin4_FirstConnectedMixin.md) the shadowRoot is *only* instantiated
 the first time the element is connected.
 
 ### Stage 3: HTMLTemplateElement + FirstConnectedMixin

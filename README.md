@@ -15,43 +15,43 @@ Every mixin has no other dependencies than itself and the platform.
 And there are no shared dependencies, neither explicit nor implicit, between the mixins. 
 They are isolated to the HTMLElement.
 If you want to use the mixins directly, go right ahead (and use for example rawgit.com or unpkg.com). 
-If you want to copy them into your webcomponent and/or adapt them to your precise need, do so freely.
+If you want to copy them into your web component and/or adapt them to your precise need, do so freely.
 
 Web components are not fully supported by all browsers in use, and therefore some polyfills must be included 
 to patch the browsers that need it. This is described in the first part of this book. 
 
-<!---
 ## How to build (and polyfill) an app using web components?
-1. create your first custom element
-2. where, when and how to polyfill customElement?
+1. [Create your first custom element](tutorials/chapter1/Pattern1_CreateElement.md)
+2. [Template construction](tutorials/chapter1/Pattern5_ConstructTemplate.md)
+<!--_3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
+4. [Attribute reaction](tutorials/Pattern6_AttributeReaction.md)
+<!---
+3. [How to polyfill for web components](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
 3. create a custom element with a template
-4. where, when and how to polyfill template?
 5. create a custom element with shadowDom
-6. where, when and how to polyfill shadowDom?
+explain that custom elements with content in the lightDom should be considered app-specific components.
 -->
 
 ## JS Patterns for generic web components
 1. [Reactive method](tutorials/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](tutorials/Pattern2_FunctionalMixin.md)
 3. [EventComposition](tutorials/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
-5. [Template construction](tutorials/Pattern5_ConstructTemplate.md)
-6. [Attribute reaction](tutorials/Pattern6_AttributeReaction.md)
 
 ## HTML Patterns for generic web components
-0. [HTML is always a list](tutorials/Pattern0_HTMLList.md) (todo add the `<Ul-Li>` example)
-4. [two-faced-collection](tutorials/Pattern3_TwoFacedCollection.md) (such as `<Ol>`+`<Li>`)
+1. [HTML is always a list](tutorials/Pattern0_HTMLList.md) (todo add the `<Ul-Li>` example)
+2. [two-faced-collection](tutorials/Pattern3_TwoFacedCollection.md) (such as `<Ol>`+`<Li>`)
+3. [ResponsiveLayout](tutorials/Pattern7_ResponsiveLayout.md) (alternative to css media queries + css pseudo for custom elements)
 
-## Isolated functional mixins
-#### 1. Reactive methods:
+## Lifecycle mixins (generic custom element)
 * [.childrenChangedCallback()](tutorials/Mixin1_ChildrenChangedMixin.md)
 * [.sizeChangedCallback()](tutorials/Mixin2_SizeChangedMixin.md)
 * [.firstConnectedCallback()](tutorials/Mixin4_FirstConnectedMixin.md)
 * [.enterViewCallback()](tutorials/Mixin5_EnterViewMixin.md)
 
-#### 2. Event compositions:
+## Composed events mixins (Gestures and other conventional events)
 * [DraggingEventMixin](tutorials/Mixin3_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
 * [PinchEventMixin](tutorials/Mixin6_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
-* todo SwipeEventMixin] tutorials/Mixin7_SwipeEventMixin.md) (MultiFingerGesture)
+<!--* [SwipeEventMixin] (tutorials/Mixin7_SwipeEventMixin.md) (MultiFingerGesture)-->
 
 <!---
 ## Design patterns for app specific web components:
