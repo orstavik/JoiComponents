@@ -1,28 +1,33 @@
-# Pattern two-faced-collection (OlLi)
-## (alternative name: helicopter parent)
+# Pattern: HelicopterParentChild (`<OL>`+`<LI>`)
 
-Two-faced-collection is a pattern for creating a certain type of custom element collections.
-An HTML collection element is defined as an HTML element that needs to handle a group of items (children) **of unknown quantity**.
-The two-faced-collection pattern is needed for HTML collection elements that need to either:
-1. control changes for individual child elements based on information from the group as a whole, or
-2. work with the spaces between each element.
-When making two-faced-collections, use [ChildrenChangedMixin](ChildrenChangedMixin.md) to 
+The HelicopterParentChild pattern is used to create custom HTML collections (lists). 
+These collections need to do something more than what the default HTML list provide:
+1. **change one or several children elements** based on either their position in the group or group size, and/or
+2. **customize the space** between each element.
+
+When a parent element needs to *change* something in a child element,
+the two elements quickly develop tight bindings.                                               
+The parent might need to change either style, content, attributes, properties, call some method, etc. 
+Such changes quickly become very messy if the boundaries of the child are not respected.
+Therefore, whenever a HelicopterParent element needs to adapt some properties in or around its children,
+a custom element type should also be created for the child element: a HelicopterChild.
+
+So, a HelicopterParent should always have a HelicopterChild. If not, the HelicopterParent will 
+hover around and make changes to all kinds of other children elements with unknown and potentially
+catastrophic effects. I repeat: do not allow a HelicopterParent to fly around and interfere freely;
+always pair the HelicopterParent with a HelicopterChild that has developed techniques and builtin methods 
+to handle and *mainly contain* the well-meaning, but meddling parental interference.
+
+((HTML collections that handles a group of items (children) *of predefined quantity* can use named slots.))
+
+## Example 1: custom OL + LI
+In this example we look at a HelicopterParent that needs to *change one or more children elements based on 
+their position in the group*.
+When making the HelicopterParent element, I use the [ChildrenChangedMixin](ChildrenChangedMixin.md) to 
 a) simplify the act of listening for dynamic changes to the DOM, and 
 b) process slotted items on par with normal items.
 
-HTML collections that do not need to interact with individual children based on group status, 
-or work with the conceptual space between children elements, 
-can simply put all such elements into a single slot and be done with it. 
-HTML collections that handles a group of items (children) *of predescribed quantity* 
-can simply use named slots.
-
-The container and the item type in the two-faced-collection pattern are strongly codependent.
-Do not attempt to generalize the usage of each type to function independently, but treat them as 
-inseperable and use them together as a pair.
-
-### Example: custom OL + LI
-
-#### Defining two custom element types
+### Defining two custom element types
 ```javascript
 import { ChildrenChangedMixin } from "https://unpkg.com/joicompontents@1.1.0/src/ChildrenChangedMixin.js";
 
@@ -64,7 +69,7 @@ and notifies all LI children about their LI-only order in the list by calling `e
 3. When the LI element is notified about an updated position in its list, 
 it updates it shadowDom to display that position.
 
-#### Using two custom element types
+### Using two custom element types
 The OlWc container element (OL) can contain several LiWc item elements (LI) as children.
 These elements can be added in the template (as in the example below), added dynamically via 
 `querySelector("ol-wc"").appendChild(newLiChild)`, or as a slot inside another custom element.
@@ -84,15 +89,16 @@ Which looks like so:
 ```
 [Custom Ol Li example on codepen.io](https://codepen.io/orstavik/pen/KoeLme).
 
-### Example: custom columns
-In this example, a set of columns is created by:
+### Example 2: custom columns
+In this example we look at a HelicopterParent that needs to *customize the space between each element*.
+The example is a custom collection of columns with a border between them:
 1. making a grid in the parent container, 
 2. adding a left border on all the children items, and
 3. hiding the left border only on the first item inside the container at all times.
 
 [Custom column example on codepen.io](https://codepen.io/orstavik/pen/BrPKNp).
 
-## Why do we need a component pair for this type of lists?
+## The allure of a generalized HelicopterParent
 1. We do not want the collection element (OL) to neither alter the lightDom around itself nor its children.
 Such changes would be extremely hard to manage. Such added content would look and feel the same as
 content in the original template and content added dynamically.
@@ -106,7 +112,17 @@ of this item element so that they don't get confused with other parts of the DOM
     3. handle the children differently either based on a) their content, 
     b) their type and/or c) their position in the collection.
 
-### Opinion
+This cannot be said often enough, so I repeat the warning. 
+Do NOT attempt to generalize parental interference. 
+Parental interference needs to be hemmed in.
+Given time, all parents will exceed their given mandate, 
+interfere inappropriately, and cause problems and bugs.
+Only a customized child of a parent that has learned the 
+methods of interpreting the parent and contain their 
+interference properly should be exposed to such interference.
+*This advice only applies to HTML elements of course.*
+
+#### Opinion
 This pattern feels a bit wrong at first, especially if you are a javascript developer.
 In JS, such a pattern would be wrong. You should not create two types (two classes) like this 
 in order to create a custom collection with custom behavior into which to put objects: 

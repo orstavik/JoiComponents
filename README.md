@@ -44,9 +44,10 @@ explain that custom elements with content in the lightDom should be considered a
 
 ## Chapter 4: HTML Patterns for generic web components
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
-2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern0_HTMLList.md)
-3. [HelicopterParents (`<ol>+<li>`)](book/chapter4/Pattern3_TwoFacedCollection.md)
-4. [ResponsiveLayout](book/chapter4/Pattern7_ResponsiveLayout.md) (alternative to css media queries + css pseudo for custom elements)
+2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
+3. [HelicopterParents (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParent.md)
+4. [ResponsiveLayout](book/chapter4/Pattern3_ResponsiveLayout.md) 
+(alternative to css media queries + css pseudo for custom elements)
 
 ## Chapter 5: Composed events mixins (Gestures and other conventional events)
 * [DraggingEventMixin](book/chapter5/Mixin3_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
