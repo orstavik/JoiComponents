@@ -18,6 +18,11 @@ catastrophic effects. I repeat: do not allow a HelicopterParent to fly around an
 always pair the HelicopterParent with a HelicopterChild that has developed techniques and builtin methods 
 to handle and *mainly contain* the well-meaning, but meddling parental interference.
 
+The HelicopterParentChild pattern usefulness increases with:
+1. the complexity of custom functionality of the parent or child (UIX, event handling, etc.),
+2. the quantity of template and/or style in parent or child, or
+3. special case treatment of different children based on their content, type and/or position in the collection.
+
 ((HTML collections that handles a group of items (children) *of predefined quantity* can use named slots.))
 
 ## Example 1: custom OL + LI
@@ -99,18 +104,29 @@ The example is a custom collection of columns with a border between them:
 [Custom column example on codepen.io](https://codepen.io/orstavik/pen/BrPKNp).
 
 ## The allure of a generalized HelicopterParent
-1. We do not want the collection element (OL) to neither alter the lightDom around itself nor its children.
-Such changes would be extremely hard to manage. Such added content would look and feel the same as
-content in the original template and content added dynamically.
-The item element (LI) serves as a placeholder for the dynamic alterations 
-that the container element needs to perform, so that the changes are isolated in the shadowDom and style 
-of this item element so that they don't get confused with other parts of the DOM.
+Still, the desire to avoid a custom child type and create a generalized HelicopterParent element 
+might still haunt you. You want it. You want it bad. To try to help you avoid the frustration, annoyance,
+and heartbreak that result from trying to make a generalized HelicopterParent, 
+I will here describe some of the problems of applying a HelicopterParent on another "unkowning" element.
 
-2. This pattern becomes more important when you need to:
-    1. add more complex functionality such as custom UIX event handling to the element,
-    2. add more complex template or style to the shadowDom, or
-    3. handle the children differently either based on a) their content, 
-    b) their type and/or c) their position in the collection.
+The HelicopterParent needs to change something of the child element.
+If the HelicopterParent needs to change the DOM around the element, it has no other recourse than 
+to change the lightDOM of its own children (ie. add or remove children).
+Elements added to the lightDOM, will need to be removed when changes occcur.
+Elements removed from the lightDom, need to be cached and put back.
+Such lightDom manipulation is far messier and far more fragile than the shadowDom manipulation the 
+HelicopterParentChild pattern provides.
+Even more, changes to the lightDom is likely to be affected by other CSS style rules that applies to the lightDom.
+The HelicopterParent does not know about these rules, should not know about them, and 
+must therefor be highly specific in order not to be overrun by them.
+A generalizedd HelicopterParent that needs to alter the lightDom in or around its children 
+in order to manage them would be extremely hard to manage
+
+The HelicopterChild element (`<LI>`) serves as a placeholder for the dynamic alterations 
+that the container element needs to perform. This placeholder can house and isolate such 
+alterations in its own style, attributes, and shadowDom.
+This isolation will contain the parents interference 
+so that it doesn't interfere with other parts of the DOM.
 
 This cannot be said often enough, so I repeat the warning. 
 Do NOT attempt to generalize parental interference. 
@@ -122,17 +138,25 @@ methods of interpreting the parent and contain their
 interference properly should be exposed to such interference.
 *This advice only applies to HTML elements of course.*
 
-#### Opinion
-This pattern feels a bit wrong at first, especially if you are a javascript developer.
-In JS, such a pattern would be wrong. You should not create two types (two classes) like this 
-in order to create a custom collection with custom behavior into which to put objects: 
-you don't need to create an ItemClass in order to wrap objects you put in a CustomCollection.
-
-However, in HTML, you don't have the same imperative logic as in JS. You don't have `for`-loops. 
-You don't have variables. Therefore, designing HTML templates require a different logic than what 
-you would do in JS. Using a wrapper element in HTML gives you both a) a different way to specify 
-which children elements are to be iterated over how and when, and b) an alterable container into 
-which data can vary from time to time.
+### Some final consolation
+The HelicopterParentChild pattern feels a bit wrong at first.
+Especially if you are a javascript developer.
+In JS, such a pattern most often would be wrong. You have better tools in your belt.
+In JS a simple loop would enable you to work between the elements of a list;
+A mapping function would enable you to adapt only some child elements in a list.
+In JS you can avoid creating two codependent classes like this.
+  
+In HTML, you have no `for`-loops. And no mapping functions neither. Yes, HTML is limited. 
+HTML requires a different mindset than JS.
+If you don't like this mindset, I understand where you are coming from. You come from JS. 
+Where you can think bigger thoughts.
+However, once you learn the HelicopterParentChild pattern, it is not all bad.
+You might even like it enough to use it in JS! 
+Just remember that with this pattern you contain the complex interaction of the HelicopterParent
+to its HelicopterChild. That means that if something goes wrong, you where the fault lies:
+the HelicopterParent, HelicopterChild or both. You also know that their interaction stays 
+in the family: any errors here should not directly affect any other element in your app. 
+And that is good. That makes it worth it.
 
 #### References
 * https://dom.spec.whatwg.org/#shadow-tree-slots
