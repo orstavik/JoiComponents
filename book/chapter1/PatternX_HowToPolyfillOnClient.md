@@ -108,3 +108,9 @@ However, most developers would like their web apps to support more than this.
 To do so, you must include 
 [the custom-elements polyfill "at the beginning of your page, before any code that manipulates the DOM"](https://github.com/webcomponents/custom-elements).
 https://caniuse.com/#search=es6%20classes
+
+
+<!--
+Web components are not fully supported by all browsers in use, and therefore some polyfills must be included 
+to patch the browsers that need it. This is described in the first part of this book. 
+-->

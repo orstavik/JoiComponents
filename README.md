@@ -1,4 +1,5 @@
 # Web component design patterns
+## The native web components cookbook
 "The web component design patterns" (WC patterns) is a set of recipes for developing simple and reusable web components. 
 WC Patterns does not rely on any framework: all patterns are intended to run natively on any browser 
 that supports the whatwg HTML spec for web components and vanilla es6. However, although different 
@@ -6,25 +7,22 @@ frameworks might require a different mode of implementation, most of the pattern
 be relevant for developers using other frameworks.
 
 WC patterns consists of two types of recipes:
-* patterns that explain how generic UI web components can be built and 
-* isolated functional mixins that both explain, implement, and make available small micro-libraries
-for a couple more complex use-cases.
+* patterns that explain how to build web components
+* isolated functional mixins that both explain and implement a few key, frequent use-cases.
 
-The isolated functional mixins presented in this cookbook is **not** a framework. 
-Every mixin has no other dependencies than itself and the platform. 
-And there are no shared dependencies, neither explicit nor implicit, between the mixins. 
-They are isolated to the HTMLElement.
-If you want to use the mixins directly, go right ahead (and use for example rawgit.com or unpkg.com). 
-If you want to copy them into your web component and/or adapt them to your precise need, do so freely.
+The isolated functional mixins presented do **not** make a framework. 
+In fact, it is the ambition with this book that you no longer need a framework to build
+scalable, manageable, simple, yet powerful web apps. Modern browsers now has all the power you desire.
+Hence, every mixin therefore has no other dependencies than itself and the (polyfilled) platform. 
 
-Web components are not fully supported by all browsers in use, and therefore some polyfills must be included 
-to patch the browsers that need it. This is described in the first part of this book. 
+So, if you want to test the mixins directly, go right ahead (and use them via rawgit.com or unpkg.com). 
+If you want to copy them into your web component and/or adapt them to fit your need, do so freely.
 
 ## Chapter 1: How to build (and polyfill) an app using web components?
-1. [Create your first custom element](tutorials/chapter1/Pattern1_CreateElement.md)
-2. [Template construction](tutorials/chapter1/Pattern5_ConstructTemplate.md)
+1. [Create your first custom element](book/chapter1/Pattern1_CreateElement.md)
+2. [Template construction](book/chapter1/Pattern5_ConstructTemplate.md)
 <!--_3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
-4. [Attribute reaction](tutorials/Pattern6_AttributeReaction.md)
+4. [Attribute reaction](book/chapter1/Pattern6_AttributeReaction.md)
 <!---
 3. [How to polyfill for web components](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
 3. create a custom element with a template
@@ -33,24 +31,26 @@ explain that custom elements with content in the lightDom should be considered a
 -->
 
 ## Chapter 2: JS Patterns for generic web components
-1. [Reactive method](tutorials/chapter2/Pattern1_ReactiveMethod.md)
-2. [Isolated functional mixin](tutorials/Pattern2_FunctionalMixin.md)
-3. [EventComposition](tutorials/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
+1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
+2. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
+3. [EventComposition](book/chapter2/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
+4. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md) (such as gestures, clicks, drag)
 
-## Chapter 3: HTML Patterns for generic web components
-1. [HTML is always a list](tutorials/Pattern0_HTMLList.md) (todo add the `<Ul-Li>` example)
-2. [two-faced-collection](tutorials/Pattern3_TwoFacedCollection.md) (such as `<Ol>`+`<Li>`)
-3. [ResponsiveLayout](tutorials/Pattern7_ResponsiveLayout.md) (alternative to css media queries + css pseudo for custom elements)
+## Chapter 3: Lifecycle mixins (generic custom element)
+* [.childrenChangedCallback()](book/chapter3/Mixin1_ChildrenChangedMixin.md)
+* [.sizeChangedCallback()](book/chapter3/Mixin2_SizeChangedMixin.md)
+* [.firstConnectedCallback()](book/chapter3/Mixin4_FirstConnectedMixin.md)
+* [.enterViewCallback()](book/chapter3/Mixin5_EnterViewMixin.md)
 
-## Chapter 4: Lifecycle mixins (generic custom element)
-* [.childrenChangedCallback()](tutorials/Mixin1_ChildrenChangedMixin.md)
-* [.sizeChangedCallback()](tutorials/Mixin2_SizeChangedMixin.md)
-* [.firstConnectedCallback()](tutorials/Mixin4_FirstConnectedMixin.md)
-* [.enterViewCallback()](tutorials/Mixin5_EnterViewMixin.md)
+## Chapter 4: HTML Patterns for generic web components
+1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
+2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern0_HTMLList.md)
+3. [HelicopterParents (`<ol>+<li>`)](book/chapter4/Pattern3_TwoFacedCollection.md)
+4. [ResponsiveLayout](book/chapter4/Pattern7_ResponsiveLayout.md) (alternative to css media queries + css pseudo for custom elements)
 
 ## Chapter 5: Composed events mixins (Gestures and other conventional events)
-* [DraggingEventMixin](tutorials/Mixin3_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
-* [PinchEventMixin](tutorials/Mixin6_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
+* [DraggingEventMixin](book/chapter5/Mixin3_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
+* [PinchEventMixin](book/chapter5/Mixin6_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
 <!--* [SwipeEventMixin] (tutorials/Mixin7_SwipeEventMixin.md) (MultiFingerGesture)-->
 
 <!---

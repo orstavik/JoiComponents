@@ -1,4 +1,4 @@
-# Pattern 1: ReactiveMethod
+# Pattern: ReactiveMethod
 
 ### Example: Webcomponent that can respond to online/offline changes
 This simple example component reacts every time the network status changes.
@@ -61,7 +61,7 @@ All the logic as to **how** the element should react is organized within this re
 2. This pattern works equally well for event-based, observer-based and function-based callbacks.
 3. Several ReactiveMethods can be set up in the same element at the same time. 
 However, if an element has more than two or three ReactiveMethods, 
-you should probably split them out as [Functional Mixins](../Pattern2_FunctionalMixin.md).
+you should probably split them out as [Functional Mixins](Pattern2_FunctionalMixin.md).
 
 #### References
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements

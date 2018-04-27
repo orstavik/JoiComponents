@@ -1,4 +1,5 @@
 # Pattern two-faced-collection (OlLi)
+## (alternative name: helicopter parent)
 
 Two-faced-collection is a pattern for creating a certain type of custom element collections.
 An HTML collection element is defined as an HTML element that needs to handle a group of items (children) **of unknown quantity**.
@@ -12,7 +13,7 @@ b) process slotted items on par with normal items.
 HTML collections that do not need to interact with individual children based on group status, 
 or work with the conceptual space between children elements, 
 can simply put all such elements into a single slot and be done with it. 
-HTML collections that handles a group of items (children) *of known quantity* 
+HTML collections that handles a group of items (children) *of predescribed quantity* 
 can simply use named slots.
 
 The container and the item type in the two-faced-collection pattern are strongly codependent.

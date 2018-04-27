@@ -1,4 +1,4 @@
-# Pattern EventComposition
+# Pattern: EventComposition
 
 EventComposition is a pattern for transforming a series of events into a series of other (custom) events.
 Examples of EventCompositions are:
@@ -148,6 +148,6 @@ or something else. This enables you to avoid handling the event in middle layer,
 all the way to the top. This is app-specific events.
 
 A more generic use-case would be to translate a series of other events that no browser, or only a few browsers,
-support into a dependable event. [DraggingEventMixin](Mixin3_DraggingEventMixin.md) is a good example of such an
+support into a dependable event. [DraggingEventMixin](../chapter5/Mixin3_DraggingEventMixin.md) is a good example of such an
 event. Establishing such generic use-case FunctionalEvent patterns or mixins should most likely be 
 setup as FunctionalMixins.
