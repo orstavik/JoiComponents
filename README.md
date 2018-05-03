@@ -29,9 +29,8 @@ In this book, the web component design patterns will:
 <!--_3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
 4. [Attribute reaction](book/chapter1/Pattern6_AttributeReaction.md)
 <!---
-3. [Transpile polyfilled web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
-3. create a custom element with a template
-5. create a custom element with shadowDom
+5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
+
 explain that custom elements with content in the lightDom should be considered app-specific components.
 -->
 
@@ -51,35 +50,50 @@ explain that custom elements with content in the lightDom should be considered a
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
 2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
 3. [HelicopterParents (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParent.md)
-4. [ResponsiveLayout](book/chapter4/Pattern3_ResponsiveLayout.md) 
-(alternative to css media queries + css pseudo for custom elements)
 
 ## Chapter 5: Composed events mixins (Gestures and other conventional events)
 * [DraggingEventMixin](book/chapter5/Mixin3_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
 * [PinchEventMixin](book/chapter5/Mixin6_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
 <!--* [SwipeEventMixin] (tutorials/Mixin7_SwipeEventMixin.md) (MultiFingerGesture)-->
 
+## Chapter 6: Style
+1. [`this.style` is best](book/chapter6/Pattern1_this_style_rocks.md) 
+2. [Style with `:host()`](book/chapter6/Pattern2_host_with_style.md) 
+3. [CSS variables](book/chapter6/Pattern3_css_variables.md) 
+4. [Compound elements, replace CSS pseudo elements](book/chapter6/Pattern4_css_pseudo_elements.md) 
+5. [ResponsiveLayout, extend CSS media queries](book/chapter6/Pattern5_ResponsiveLayout.md)
+6. [Discussion about CSS pseudo elements and CSS media queries](book/chapter6/Discussion_mediaqueries_pseudoelements.md) 
 <!---
-## Design patterns for app specific web components:
-1. Props down, (custom) events up. 
-((ATT!! In generic custom elements, it is more children and attributes down, events up)).
-2. MVC. Catching app events on window (or another element event bus (https://stackoverflow.com/questions/42757051/web-components-design-pattern)
-).
-
+7. Discussion. Coherence and style
 * How to handle app-wide styling. Local coherence (cohesion), thematic coherence, global coherence.
 When and why to put the content of an element in the lightDom? In app-specific elements where you want 
 to apply global/thematic styles to the element. And when you have control of the use of that element.
 Don't split this piece of the app into too many pieces. These pieces of the app should mostly be about 
 template composition. And only minor event composition. If you need to apply a lot of UI logic, 
 you probably need a generic UI web component.
- 
-* Path based styling. Changing the path in the stylesheet, and not the class or attribute on the element.
+
+8. keep it light. App specific components and style. Non-composable, but universally stylable.
+
+9. Path based styling. Changing the path in the stylesheet, and not the class or attribute on the element.
 Sometimes you have a tree structure in your DOM that reflects a tree structure in you state data.
 When you have such a mapping, and you have everything in the same lightDOM accessible to the same stylesheets,
 you can instead of changing each element, change the css paths that attribute styles to each element.
 This is not for beginners. This is not necessarily a good pattern. But it is a pattern.
 
-## Centralized state management
+## Chapter 7: Composition of app-specific web components
+1. 
+2. props down, (custom) events up
+((ATT!! In generic custom elements, it is more children and attributes down, events up)).
+
+3. dispatch and observe, in a joiState
+
+2. MVC. Catching app events on window (or another element event bus 
+(https://stackoverflow.com/questions/42757051/web-components-design-pattern)
+).
+
+ 
+
+## Chapter 8: Single state management
 1. Using an event bus. With a state mananger.
 2. dispatching directly on an element. 
 3. the concept of immutability. and the benefits of dirty checking.

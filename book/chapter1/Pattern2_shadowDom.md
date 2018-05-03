@@ -46,7 +46,7 @@ class BasicComponent extends HTMLElement {
   }
   
   connectedCallback() {                                             //[1]
-    this.__firstTimeConnected || (this.__firstTimeConnected = true && this.firstConnectedCallback());
+    this.__firstTimeConnected || ((this.__firstTimeConnected = true) && this.firstConnectedCallback());
   }
   
   firstConnectedCallback(){                                         //[2]
@@ -58,6 +58,9 @@ class BasicComponent extends HTMLElement {
 2. This pattern adds a check that triggers a method `.firstConnectedCallback()` *only* the first time is connected to the DOM.
 
 Choose **Basic strategy** over the **Raw strategy** when elements can be reattached to the DOM multiple times.
+In [chapter 3, .firstConnectedCallback()](../chapter3/Mixin4_FirstConnectedMixin.md) you can read more 
+about why and how you need to relate to a custom elements life cycle methods 
+`constructor()`, `connectedCallback()` and  `disconnectedCallback()`.
 
 ## Template strategy: HTMLTemplateElement + .firstConnectedCallback()
 ```javascript

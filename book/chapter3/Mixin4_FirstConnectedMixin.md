@@ -3,6 +3,10 @@ The purpose of `FirstConnectedMixin` is to add a callback hook the first time, a
 the Element is connected to a DOM.
 `FirstConnectedMixin` is inspired by the Polymer.ready() callback.
 
+<!--
+todo add an image of the lifecycle methods constructor, connectedCallback, disconnectedCallback.
+-->
+
 Why do we need 3(!) methods to separate between **constructor-time**, **firstConnectedCallback-time**, 
 and (subsequent) **connectedCallback-time**? Well, it is actually not that hard.
 1. Browsers can create new HTMLElement instances in two ways: a) Using constructor `new MyHTMLElement()` 
@@ -62,7 +66,7 @@ To create a `firstConnectedCallback()` that runs just *before* the first
 class MyElement extends HTMLElement {
 
     connectedCallback() {
-      this.__firstTimeConnected || (this.__firstTimeConnected = true && this.firstConnectedCallback()); //[*]
+      this.__firstTimeConnected || ((this.__firstTimeConnected = true) && this.firstConnectedCallback()); //[*]
       if (super.connectedCallback) super.connectedCallback();
     }
     
