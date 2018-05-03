@@ -2,8 +2,9 @@
 
 The HelicopterParentChild pattern is used to create custom HTML collections (lists). 
 These collections need to do something more than what the default HTML list provide:
-1. **change one or several children elements** based on either their position in the group or group size, and/or
-2. **customize the space** between each element.
+1. **change one or several children elements** based on either their position in the group or group size, 
+2. **customize the space** between each element, and/or
+3. **input data as an array**.
 
 When a parent element needs to *change* something in a child element,
 the two elements quickly develop tight bindings.                                               
@@ -94,7 +95,7 @@ Which looks like so:
 ```
 [Custom Ol Li example on codepen.io](https://codepen.io/orstavik/pen/KoeLme).
 
-### Example 2: custom columns
+## Example 2: custom columns
 In this example we look at a HelicopterParent that needs to *customize the space between each element*.
 The example is a custom collection of columns with a border between them:
 1. making a grid in the parent container, 
@@ -102,6 +103,24 @@ The example is a custom collection of columns with a border between them:
 3. hiding the left border only on the first item inside the container at all times.
 
 [Custom column example on codepen.io](https://codepen.io/orstavik/pen/BrPKNp).
+
+## Example 3: input data array
+Some elements rely on extensive input data that is:
+* not intended to be visible on screen and therefore 
+* normally would be passed in as an attribute, but that 
+* takes the form of an array/list and therefore does not fit as an attribute. 
+
+To solve this use-case, the [input array data could be passed into the element as JSON](../chapter1/Pattern6_AttributeReaction.md).
+If the input values is a list of say 5 numbers, this approach is fine.
+However, if the input values is an array of urls, a JSONified array of long strings will be both 
+too long and too convoluted to properly read and manage.
+In such instances, it is better to pass the input data as child elements.
+By setting up this relationship as a HelicopterParentChild using the same convention as
+the standard HTML elements `<select>`+`<option>` and `<video>`+`<source>`.
+Here, the HelicopterParentChild gives an ergonomic structure both inside the element implementation 
+and a clear, readable structure in the use template.
+
+<!-- todo add Example-->
 
 ## The allure of a generalized HelicopterParent
 Still, the desire to avoid a custom child type and create a generalized HelicopterParent element 
