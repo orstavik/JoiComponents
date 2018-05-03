@@ -18,13 +18,18 @@ Hence, every mixin therefore has no other dependencies than itself and the (poly
 So, if you want to test the mixins directly, go right ahead (and use them via rawgit.com or unpkg.com). 
 If you want to copy them into your web component and/or adapt them to fit your need, do so freely.
 
+In this book, the web component design patterns will:
+1. first exemplify how to define custom elements in JS, and then 
+2. second exemplify how to use those definitions from HTML or JS.
+
 ## Chapter 1: How to build (and polyfill) an app using web components?
-1. [Create your first custom element](book/chapter1/Pattern1_CreateElement.md)
-2. [Template construction](book/chapter1/Pattern5_ConstructTemplate.md)
+1. [How to define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
+2. [Different strategies to create a shadowDom](book/chapter1/Pattern2_shadowDom.md)
+3. [Polyfill web components](book/chapter1/Pattern3_polyfill.md)
 <!--_3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
 4. [Attribute reaction](book/chapter1/Pattern6_AttributeReaction.md)
 <!---
-3. [How to polyfill for web components](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
+3. [Transpile polyfilled web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
 3. create a custom element with a template
 5. create a custom element with shadowDom
 explain that custom elements with content in the lightDom should be considered app-specific components.
@@ -42,7 +47,7 @@ explain that custom elements with content in the lightDom should be considered a
 * [.firstConnectedCallback()](book/chapter3/Mixin4_FirstConnectedMixin.md)
 * [.enterViewCallback()](book/chapter3/Mixin5_EnterViewMixin.md)
 
-## Chapter 4: HTML Patterns for generic web components
+## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
 2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
 3. [HelicopterParents (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParent.md)
@@ -82,4 +87,38 @@ This is not for beginners. This is not necessarily a good pattern. But it is a p
 5. what are computer functions? and the problem of either nesting reducers or redundant functionality.
 6. why use observers? and the problem of managing async actions in a sync centralized state.
 7. what is joiState and how to use it?
+-->
+
+<!--
+### What do you mean "web component"?
+
+Many different frameworks such as React and Angular enable developers to make components for the web.
+However, components tailored and dependent on a framework we call by that frameworks name, such as 
+"React component" or "Angular component". They are components made to be used on the web, 
+but they are not what is commonly refered to as "web components".
+
+"Web components" means a components that can run *natively* in a modern browser. 
+"Web components" always imply "*native* web components".
+They do not rely on a framework in browsers compliant with the whatwg and es6 specification.
+
+Still, "web components" can mean many different things. 
+On the one hand, when we say "web components", we might refer to the simplest custom element. 
+A custom element that uses neither shadowDom nor HTML template, and that is directly defined before use in the app (no es6 module loading).
+On the other hand, a "web component" might refer to a most advanced custom element.
+A custom element with a HTML template based shadowDom, written by someone else and loaded as an es6 module.
+
+To clarify this myriad of terms, I think it is wise to apply the following taxonomy.
+If you intend for a web component to be reused, it should be made available as an importable module.
+You should also highlight that the web component is intended to be "reusable", generic to many apps and 
+complying more thoroughly with HTML standards. You often should add the label "reusable" to that component.
+
+If you are talking about a `custom element` that uses neither shadowDom nor 
+
+Web components provide an excellent interface for integrating custom HTML+JS+CSS modules. 
+Once familiar with the makeup of web components, it is my contention that you no longer will need a framework.
+Web components is enough. They provide a great means both to organize and stabilize your own work and 
+collaborate with others. It might not be perfect. And it needs to be polyfilled in old browsers. 
+But it will still provides you with the only, cleanest and simplest API for making native HTML+JS+CSS modules.
+
+
 -->
