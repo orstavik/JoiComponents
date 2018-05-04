@@ -50,6 +50,7 @@ explain that custom elements with content in the lightDom should be considered a
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
 2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
 3. [HelicopterParents (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParent.md)
+4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
 
 ## Chapter 5: Composed events mixins (Gestures and other conventional events)
 * [DraggingEventMixin](book/chapter5/Mixin3_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
