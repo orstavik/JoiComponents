@@ -11,9 +11,8 @@ const previousMoveEvent = Symbol("previousMoveEvent");
  * !!! Dependency: pointerevents !!!
  *
  * Todo this is a single touch or mouse or pointer gesture.
- * todo should i add velocity
- * todo add start dragging
- * todo add end dragging
+ * todo should i add velocity??
+ * todo test startdragging && enddragging
  *
  * Mixin that translates a sequence of pointerdown, pointermove and pointerup events into a series of dragging events.
  * The dragging event is fired when pointerdown + pointermove.
@@ -59,6 +58,8 @@ export const DraggingEventMixin = function (Base) {
       this.addEventListener("pointermove", this[moveListener]);
       this.addEventListener("pointerup", this[stopListener]);
       this.addEventListener("pointercancel", this[stopListener]);
+      const detail = {pointerevent: e, x: e.x, y: e.y};
+      this.dispatchEvent(new CustomEvent("draggingstart", {bubbles: true, composed: true, detail}));
     }
 
     [move](e) {
@@ -90,6 +91,8 @@ export const DraggingEventMixin = function (Base) {
       this.removeEventListener("pointerup", this[stopListener]);
       this[startEvent] = undefined;
       this[previousMoveEvent] = undefined;
+      const detail = {pointerevent: e};
+      this.dispatchEvent(new CustomEvent("draggingend", {bubbles: true, composed: true, detail}));
     }
   }
 };
