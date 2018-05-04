@@ -1,9 +1,10 @@
 const startListener = Symbol("pointerDownListener");
 const moveListener = Symbol("pointerMoveListener");
 const stopListener = Symbol("pointerUpListener");
-const start = Symbol("pointerDownListener");
-const move = Symbol("pointerMoveListener");
-const stop = Symbol("pointerUpListener");
+const start = Symbol("start");
+const move = Symbol("move");
+const end = Symbol("end");
+const fling = Symbol("fling");
 const cachedEvents = Symbol("cachedEvents");
 
 function calcAngle(x1, y1, x2, y2) {
@@ -40,7 +41,7 @@ export const FlingEventMixin = function (Base) {
       super();
       this[startListener] = (e) => this[start](e);
       this[moveListener] = (e) => this[move](e);
-      this[stopListener] = (e) => this[stop](e);
+      this[stopListener] = (e) => this[end](e);
       this[cachedEvents] = undefined;
     }
 
@@ -97,18 +98,18 @@ export const FlingEventMixin = function (Base) {
       this.dispatchEvent(dragEvent);
     }
 
-    [stop](e) {
+    [end](e) {
       this.releasePointerCapture(e.pointerId);
       this.removeEventListener("pointermove", this[moveListener]);
       this.removeEventListener("pointerup", this[stopListener]);
 
-      this.maybeAFling(e);
+      this[fling](e);
       this[cachedEvents] = undefined;
       const detail = {pointerevent: e};
       this.dispatchEvent(new CustomEvent("draggingend", {bubbles: true, composed: true, detail}));
     }
 
-    maybeAFling(e) {
+    [fling](e) {
       let endTime = e.timestamp;
       const lastMoveEvent = this[cachedEvents][this[cachedEvents].length - 1];
       const lastX = lastMoveEvent.x;
