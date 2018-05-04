@@ -7,18 +7,29 @@ const end = Symbol("end");
 const fling = Symbol("fling");
 const cachedEvents = Symbol("cachedEvents");
 
-function calcAngle(x1, y1, x2, y2) {
-  const radians = Math.atan2(y1 - y2, x1 - x2);
-  const degree = radians * 180 / Math.PI;
-  return -(degree < 0 ? degree + 360 : degree);
+// function calcAngle(x1, y1, x2, y2) {
+//   const radians = Math.atan2(y1 - y2, x1 - x2);
+//   const degree = radians * 180 / Math.PI;
+//   return -(degree < 0 ? degree + 360 : degree);
+// }
+
+function getFirstPastEventOlderThan(eventArray, endTime, flingSettingDuration) {
+  for (let i = eventArray.length - 1; i >= 0; i--) {
+    let pastEvent = eventArray[i];
+    let durationMs = endTime - pastEvent.detail.pointerevent.timeStamp;
+    if (durationMs > flingSettingDuration) {
+      return [pastEvent, durationMs];
+    }
+  }
+  return null;
 }
 
 /**
  * !!! Dependency: pointerevents !!!
  *
- * Todo this is a single touch or mouse or pointer gesture.
- *
  * Mixin that translates a sequence of pointerdown, pointermove and pointerup events into a series of dragging events.
+ * More extensive DraggingEventMixin.
+ * Adds "fling" event at the end, and also calculates the speed (px/ms).
  * The dragging event is fired when pointerdown + pointermove.
  * The dragging event has the properties:
  *  - detail.moveX        (x movement since last "dragging" event)
@@ -110,35 +121,39 @@ export const FlingEventMixin = function (Base) {
     }
 
     [fling](e) {
+      const flingSettingDuration = 200;
+      const flingSettingDistance = 50;
+
       let endTime = e.timeStamp;
       const lastMoveEvent = this[cachedEvents][this[cachedEvents].length - 1];
+      const [pastEvent, durationMs] = getFirstPastEventOlderThan(this[cachedEvents], endTime, flingSettingDuration);
+      if (!pastEvent)
+        return;
+
       const lastX = lastMoveEvent.detail.x;
       const lastY = lastMoveEvent.detail.y;
-      for (let i = this[cachedEvents].length - 1; i >= 0; i--) {
-        let pastEvent = this[cachedEvents][i];
-        let durationMs = endTime - pastEvent.detail.pointerevent.timeStamp;
-        if (durationMs > 200) {
-          const distX = lastX - pastEvent.detail.x;
-          const distY = lastY - pastEvent.detail.y;
-          const diagonalPx = Math.sqrt(distX * distX + distY * distY);
-          if (diagonalPx > 50) {
-            const detail = {
-              lastX,
-              lastY,
-              durationMs,
-              diagonalPx,
-              distX,
-              distY,
-              totalTime: endTime - this[cachedEvents][0].detail.pointerevent.timeStamp,
-              speedPxMs: diagonalPx / durationMs / 10,
-              xSpeedPxMs: distX / durationMs / 10,
-              ySpeedPxMs: distY / durationMs / 10,
-              angle: calcAngle(0, 0, distX, distY)
-            };
-            this.dispatchEvent(new CustomEvent("fling", {bubbles: true, composed: true, detail}));
-          }
+      const distX = lastX - pastEvent.detail.x;
+      const distY = lastY - pastEvent.detail.y;
+      const diagonalPx = Math.sqrt(distX * distX + distY * distY);
+      if (diagonalPx < flingSettingDistance)
+        return;
+
+      const startTime = this[cachedEvents][0].detail.pointerevent.timeStamp;
+      this.dispatchEvent(new CustomEvent("fling", {
+        bubbles: true, composed: true, detail: {
+          lastX,
+          lastY,
+          distX,
+          distY,
+          diagonalPx,
+          durationMs,
+          // totalTime: endTime - startTime,           //todo calculate this in the usecase?? yes, probably
+          speedPxMs: diagonalPx / durationMs,
+          xSpeedPxMs: distX / durationMs,
+          ySpeedPxMs: distY / durationMs,
+          // angle: calcAngle(0, 0, distX, distY)
         }
-      }
+      }));
     }
   }
 };
