@@ -127,9 +127,12 @@ export const FlingEventMixin = function (Base) {
               lastY,
               durationMs,
               diagonalPx,
-              speedPxMs: diagonalPx / durationMs,
               distX,
               distY,
+              totalTime: endTime - this[cachedEvents][0].pointerevent.timestamp,
+              speedPxMs: diagonalPx / durationMs,
+              xSpeedPxMs: distX / durationMs,
+              ySpeedPxMs: distY / durationMs,
               angle: calcAngle(0, 0, distX, distY)
             };
             this.dispatchEvent(new CustomEvent("fling", {bubbles: true, composed: true, detail}));

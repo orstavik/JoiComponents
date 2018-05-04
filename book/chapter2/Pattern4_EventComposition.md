@@ -151,3 +151,10 @@ A more generic use-case would be to translate a series of other events that no b
 support into a dependable event. [DraggingEventMixin](../chapter5/Mixin3_DraggingEventMixin.md) is a good example of such an
 event. Establishing such generic use-case FunctionalEvent patterns or mixins should most likely be 
 setup as FunctionalMixins.
+
+### Implementation comments
+Avoid too much calculation and process that cost time. 
+Events being processed like this will potentially be quite taxing for the browser.
+* Delay processing until it is truly necessary
+* Do not add edge-case processing into the Mixin, but instead add static methods that the 
+use components can apply themselves on the data when they need to. 
