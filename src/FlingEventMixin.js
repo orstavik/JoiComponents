@@ -70,10 +70,10 @@ export const FlingEventMixin = function (Base) {
       const startEvent = this[cachedEvents][0];
       const prevEvent = this[cachedEvents][this[cachedEvents].length - 1];
       const detail = {
-        moveX: e.x - prevEvent.x,
-        moveY: e.y - prevEvent.y,
-        moveStartX: e.x - startEvent.x,
-        moveStartY: e.y - startEvent.y,
+        moveX: e.x - prevEvent.detail.x,
+        moveY: e.y - prevEvent.detail.y,
+        moveStartX: e.x - startEvent.detail.x,
+        moveStartY: e.y - startEvent.detail.y,
         x: e.x,
         y: e.y,
         clientX: e.clientX,
@@ -90,7 +90,7 @@ export const FlingEventMixin = function (Base) {
       };
 
       detail.distancePx = Math.sqrt(detail.moveX * detail.moveX + detail.moveY * detail.moveY);
-      detail.durationMs = e.timestamp - prevEvent.pointerevent.timestamp;
+      detail.durationMs = e.timestamp - prevEvent.detail.pointerevent.timestamp;
       detail.velocityPxMs = detail.distancePx / detail.durationMs;
 
       const dragEvent = new CustomEvent("dragging", {bubbles: true, composed: true, detail});
@@ -110,16 +110,16 @@ export const FlingEventMixin = function (Base) {
     }
 
     [fling](e) {
-      let endTime = e.timestamp;
+      let endTime = e.timeStamp;
       const lastMoveEvent = this[cachedEvents][this[cachedEvents].length - 1];
-      const lastX = lastMoveEvent.x;
-      const lastY = lastMoveEvent.y;
+      const lastX = lastMoveEvent.detail.x;
+      const lastY = lastMoveEvent.detail.y;
       for (let i = this[cachedEvents].length - 1; i >= 0; i--) {
         let pastEvent = this[cachedEvents][i];
-        let durationMs = endTime - pastEvent.pointerevent.timestamp;
+        let durationMs = endTime - pastEvent.detail.pointerevent.timeStamp;
         if (durationMs > 200) {
-          const distX = lastX - pastEvent.x;
-          const distY = lastY - pastEvent.y;
+          const distX = lastX - pastEvent.detail.x;
+          const distY = lastY - pastEvent.detail.y;
           const diagonalPx = Math.sqrt(distX * distX + distY * distY);
           if (diagonalPx > 50) {
             const detail = {
@@ -129,10 +129,10 @@ export const FlingEventMixin = function (Base) {
               diagonalPx,
               distX,
               distY,
-              totalTime: endTime - this[cachedEvents][0].pointerevent.timestamp,
-              speedPxMs: diagonalPx / durationMs,
-              xSpeedPxMs: distX / durationMs,
-              ySpeedPxMs: distY / durationMs,
+              totalTime: endTime - this[cachedEvents][0].detail.pointerevent.timeStamp,
+              speedPxMs: diagonalPx / durationMs / 10,
+              xSpeedPxMs: distX / durationMs / 10,
+              ySpeedPxMs: distY / durationMs / 10,
               angle: calcAngle(0, 0, distX, distY)
             };
             this.dispatchEvent(new CustomEvent("fling", {bubbles: true, composed: true, detail}));
