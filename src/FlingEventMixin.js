@@ -29,7 +29,11 @@ function getFirstPastEventOlderThan(eventArray, endTime, flingSettingDuration) {
  *
  * Mixin that translates a sequence of pointerdown, pointermove and pointerup events into a series of dragging events.
  * More extensive DraggingEventMixin.
- * Adds "fling" event at the end, and also calculates the speed (px/ms).
+ * Adds "fling" event at the end, and also calculates the speed (px/ms) in both diagonal, x and y direction.
+ * Adds flingSettings {minDuration: 200, minDistance: 50};
+ * todo is it necessary to have minDistance??
+ * todo should we add angle as degree??
+ *
  * The dragging event is fired when pointerdown + pointermove.
  * The dragging event has the properties:
  *  - detail.moveX        (x movement since last "dragging" event)
@@ -54,6 +58,7 @@ export const FlingEventMixin = function (Base) {
       this[moveListener] = (e) => this[move](e);
       this[stopListener] = (e) => this[end](e);
       this[cachedEvents] = undefined;
+      this.flingSettings = {minDistance: 50, minDuration: 200};
     }
 
     connectedCallback() {
@@ -121,12 +126,9 @@ export const FlingEventMixin = function (Base) {
     }
 
     [fling](e) {
-      const flingSettingDuration = 200;
-      const flingSettingDistance = 50;
-
       let endTime = e.timeStamp;
       const lastMoveEvent = this[cachedEvents][this[cachedEvents].length - 1];
-      const [pastEvent, durationMs] = getFirstPastEventOlderThan(this[cachedEvents], endTime, flingSettingDuration);
+      const [pastEvent, durationMs] = getFirstPastEventOlderThan(this[cachedEvents], endTime, this.flingSettings.minDuration);
       if (!pastEvent)
         return;
 
@@ -135,7 +137,7 @@ export const FlingEventMixin = function (Base) {
       const distX = lastX - pastEvent.detail.x;
       const distY = lastY - pastEvent.detail.y;
       const diagonalPx = Math.sqrt(distX * distX + distY * distY);
-      if (diagonalPx < flingSettingDistance)
+      if (diagonalPx < this.flingSettings.minDistance)
         return;
 
       const startTime = this[cachedEvents][0].detail.pointerevent.timeStamp;
@@ -147,7 +149,6 @@ export const FlingEventMixin = function (Base) {
           distY,
           diagonalPx,
           durationMs,
-          // totalTime: endTime - startTime,           //todo calculate this in the usecase?? yes, probably
           speedPxMs: diagonalPx / durationMs,
           xSpeedPxMs: distX / durationMs,
           ySpeedPxMs: distY / durationMs,
