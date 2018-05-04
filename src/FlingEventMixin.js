@@ -115,26 +115,22 @@ export const FlingEventMixin = function (Base) {
       const lastX = lastMoveEvent.x;
       const lastY = lastMoveEvent.y;
       for (let i = this[cachedEvents].length - 1; i >= 0; i--) {
-        let event = this[cachedEvents][i];
-        let durationMs = endTime - event.pointerevent.timestamp;
+        let pastEvent = this[cachedEvents][i];
+        let durationMs = endTime - pastEvent.pointerevent.timestamp;
         if (durationMs > 200) {
-          const startX = event.x;
-          const startY = event.y;
-          const distX = lastX - startX;
-          const distY = lastY - startY;
-          const angle = calcAngle(0, 0, distX, distY);
+          const distX = lastX - pastEvent.x;
+          const distY = lastY - pastEvent.y;
           const diagonalPx = Math.sqrt(distX * distX + distY * distY);
-          const speed = diagonalPx / durationMs;
-          if (diagonalPx > 100) {                   //todo don't know the speed limit
+          if (diagonalPx > 50) {
             const detail = {
               lastX,
               lastY,
               durationMs,
               diagonalPx,
-              speed,
+              speedPxMs: diagonalPx / durationMs,
               distX,
               distY,
-              angle
+              angle: calcAngle(0, 0, distX, distY)
             };
             this.dispatchEvent(new CustomEvent("fling", {bubbles: true, composed: true, detail}));
           }
