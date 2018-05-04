@@ -53,11 +53,11 @@ explain that custom elements with content in the lightDom should be considered a
 4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
 
 ## Chapter 5: Composed events mixins (Gestures and other conventional events)
-* [DraggingEventMixin](book/chapter5/Mixin3_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
-* [PinchEventMixin](book/chapter5/Mixin6_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
-<!--* [SwipeEventMixin] (tutorials/Mixin7_SwipeEventMixin.md) (MultiFingerGesture)-->
+* [DraggingEventMixin](book/chapter5/Mixin1_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
+* [SwipeEventMixin](book/chapter5/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
+* [PinchEventMixin](book/chapter5/Mixin3_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
 
-## Chapter 6: Style
+## Chapter 6: Style                                   
 1. [`this.style` is best](book/chapter6/Pattern1_this_style_rocks.md) 
 2. [Style with `:host()`](book/chapter6/Pattern2_host_with_style.md) 
 3. [CSS variables](book/chapter6/Pattern3_css_variables.md) 
