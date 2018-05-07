@@ -7,11 +7,13 @@ const end = Symbol("end");
 const swipe = Symbol("swipe");
 const cachedEvents = Symbol("cachedEvents");
 
-// function calcAngle(x1, y1, x2, y2) {
-//   const radians = Math.atan2(y1 - y2, x1 - x2);
-//   const degree = radians * 180 / Math.PI;
-//   return -(degree < 0 ? degree + 360 : degree);
-// }
+/**
+ * @returns {number} the angle of a vector from 0,0 to x,y from 0 to 360 degrees.
+ *                   The angle starts at 12 o'clock and counts clockwise.
+ */
+function flingAngle(x = 0, y = 0) {
+  return ((Math.atan2(y, -x) * 180 / Math.PI)+270)%360;
+}
 
 function findLastEventOlderThan(events, testTime) {
   for (let i = events.length - 1; i >= 0; i--) {
@@ -28,8 +30,6 @@ function findLastEventOlderThan(events, testTime) {
  * More extensive DraggingEventMixin.
  * Adds "swipe" event at the end, and also calculates the speed (px/ms) in both diagonal, x and y direction.
  * Adds flingSettings {minDuration: 200, minDistance: 50};
- * todo is it necessary to have minDistance??
- * todo should we add angle as degree??
  *
  * The dragging event is fired when pointerdown + pointermove.
  * The dragging event has the properties:
@@ -44,7 +44,7 @@ function findLastEventOlderThan(events, testTime) {
  * !!! for Safari and older browsers use PEP: https://github.com/jquery/PEP !!!
  *
  * @param Base
- * @returns {FlingEventMixin}
+ * @returns {DragFlingGesture}
  */
 export const SwipeEventMixin = function (Base) {
   return class extends Base {
@@ -107,6 +107,7 @@ export const SwipeEventMixin = function (Base) {
           speedPxMs: diagonalPx / durationMs,
           xSpeedPxMs: distX / durationMs,
           ySpeedPxMs: distY / durationMs,
+          angle: flingAngle(distX, distY)
         }
       }));
     }

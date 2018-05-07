@@ -1,3 +1,4 @@
+const selectListener = Symbol("selectstartListener");
 const startListener = Symbol("pointerDownListener");
 const moveListener = Symbol("pointerMoveListener");
 const stopListener = Symbol("pointerUpListener");
@@ -19,59 +20,67 @@ function findLastEventOlderThan(events, timeTest) {
  * @returns {number} the angle of a vector from 0,0 to x,y from 0 to 360 degrees.
  *                   The angle starts at 12 o'clock and counts clockwise.
  */
-export function flingAngle(x = 0, y = 0) {
-  const degree = Math.atan2(-y, -x) * 180 / Math.PI;
-  return -(degree < 0 ? degree + 360 : degree);
+function flingAngle(x = 0, y = 0) {
+  return ((Math.atan2(y, -x) * 180 / Math.PI)+270)%360;
 }
 
 /**
  * !!! Dependency: pointerevents !!!
  *
- * Mixin that translates a sequence of pointerdown, pointermove and pointerup events into a series of dragging events.
- * More extensive DraggingEventMixin.
- * Adds "fling" event at the end, and also calculates the speed (px/ms) in both diagonal, x and y direction.
- * Adds flingSettings {minDuration: 200, minDistance: 50};
+ * Mixin that translates a sequence of pointer events to dragging+fling events.
+ *  - pointerdown => draggingstart
+ *  - pointermove => dragging
+ *  - pointerend => fling + dragend
  *
- * The dragging event is fired when pointerdown + pointermove.
- * The dragging event has the properties:
- *  - detail.moveX        (x movement since last "dragging" event)
- *  - detail.moveY        (y movement since last "dragging" event)
- *  - detail.moveStartX   (x movement since start of "dragging" events)
- *  - detail.moveStartY   (x movement since start of "dragging" events)
+ * The "fling" event only occurs if the dragging event before the dragend moved
+ * minimum 50px in one direction during the last 200ms.
+ * The minimum distance and duration can be changed using these properties on the element
+ *   .flingSettings.minDistance = 50;
+ *   .flingSettings.minDuration = 200;
  *
- * (Start coordinates = [e.detail.x-e.detail.moveStartX, e.detail.y-e.detail.moveStartY])
+ * dragging.detail && fling.detail
+ *                .x
+ *                .y
+ *                .distX
+ *                .distY
+ *                .diagonalPx
+ *                .durationMs
+ *                .speedPxMs
+ *                .pointerevent: e
  *
- * Todo add to use the startdragging event to get the dragging distance from the start to the end.
- *
- * Todo rename FlingEventMixin to DragFlingGesture? and SwipeGexture? and PinchGesture?
- *
- * Todo split drag and fling?
+ * only fling.detail
+ *                .xSpeedPxMs
+ *                .ySpeedPxMs
+ *                .angle
  *
  * !!! Dependency: pointerevents !!!
  * !!! for Safari and older browsers use PEP: https://github.com/jquery/PEP !!!
  *
  * @param Base
- * @returns {FlingEventMixin}
+ * @returns {DragFlingGesture}
  */
-export const FlingEventMixin = function (Base) {
+export const DragFlingGesture = function (Base) {
   return class extends Base {
 
     constructor() {
       super();
-      this[startListener] = (e) => this[start](e);
-      this[moveListener] = (e) => this[move](e);
-      this[stopListener] = (e) => this[end](e);
+      this[selectListener] = e => e.preventDefault();
+      this[startListener] = e => this[start](e);
+      this[moveListener] = e => this[move](e);
+      this[stopListener] = e => this[end](e);
       this[cachedEvents] = undefined;
       this.flingSettings = {minDistance: 50, minDuration: 200};
     }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
+      this.addEventListener("selectstart", this[selectListener]);
       this.addEventListener("pointerdown", this[startListener]);
     }
 
     disconnectedCallback() {
       if (super.disconnectedCallback) super.disconnectedCallback();
+      this.removeEventListener("selectstart", this[selectListener]);
       this.removeEventListener("pointerdown", this[startListener]);
     }
 
@@ -87,29 +96,19 @@ export const FlingEventMixin = function (Base) {
     }
 
     [move](e) {
+      const prevEvent = this[cachedEvents][this[cachedEvents].length - 1];
       this[cachedEvents].push(e);
 
-      const prevEvent = this[cachedEvents][this[cachedEvents].length - 1];
       const detail = {
-        moveX: e.x - prevEvent.x,
-        moveY: e.y - prevEvent.y,
+        distX: e.x - prevEvent.x,
+        distY: e.y - prevEvent.y,
         x: e.x,
         y: e.y,
-        clientX: e.clientX,
-        clientY: e.clientY,
-        layerX: e.layerX,
-        layerY: e.layerY,
-        offsetX: e.offsetX,
-        offsetY: e.offsetY,
-        pageX: e.pageX,
-        pageY: e.pageY,
-        screenX: e.screenX,
-        screenY: e.screenY,
         pointerevent: e
       };
-      detail.distancePx = Math.sqrt(detail.moveX * detail.moveX + detail.moveY * detail.moveY);
+      detail.diagonalPx = Math.sqrt(detail.distX * detail.distX + detail.distY * detail.distY);
       detail.durationMs = e.timestamp - prevEvent.timestamp;
-      detail.velocityPxMs = detail.distancePx / detail.durationMs;
+      detail.speedPxMs = detail.diagonalPx / detail.durationMs;
 
       this.dispatchEvent(new CustomEvent("dragging", {bubbles: true, composed: true, detail}));
     }
@@ -128,25 +127,25 @@ export const FlingEventMixin = function (Base) {
 
     [fling](e) {
       let endTime = e.timeStamp;
-      const lastMoveEvent = this[cachedEvents][this[cachedEvents].length - 1];
+      const stopEvent = this[cachedEvents][this[cachedEvents].length - 1];
       const testTime = endTime - this.flingSettings.minDuration;
-      const pastEvent = findLastEventOlderThan(this[cachedEvents], testTime);
-      if (!pastEvent)
+      const startEvent = findLastEventOlderThan(this[cachedEvents], testTime);
+      if (!startEvent)
         return;
 
-      const lastX = lastMoveEvent.x;
-      const lastY = lastMoveEvent.y;
-      const distX = lastX - pastEvent.x;
-      const distY = lastY - pastEvent.y;
+      const x = stopEvent.x;
+      const y = stopEvent.y;
+      const distX = x - startEvent.x;
+      const distY = y - startEvent.y;
       const diagonalPx = Math.sqrt(distX * distX + distY * distY);
       if (diagonalPx < this.flingSettings.minDistance)
         return;
 
-      const durationMs = endTime - pastEvent.timeStamp;
+      const durationMs = endTime - startEvent.timeStamp;
       this.dispatchEvent(new CustomEvent("fling", {
         bubbles: true, composed: true, detail: {
-          lastX,
-          lastY,
+          x,
+          y,
           distX,
           distY,
           diagonalPx,
