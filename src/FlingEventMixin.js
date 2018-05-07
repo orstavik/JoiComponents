@@ -7,21 +7,21 @@ const end = Symbol("end");
 const fling = Symbol("fling");
 const cachedEvents = Symbol("cachedEvents");
 
-// function calcAngle(x1, y1, x2, y2) {
-//   const radians = Math.atan2(y1 - y2, x1 - x2);
-//   const degree = radians * 180 / Math.PI;
-//   return -(degree < 0 ? degree + 360 : degree);
-// }
-
-function getFirstPastEventOlderThan(eventArray, endTime, flingSettingDuration) {
-  for (let i = eventArray.length - 1; i >= 0; i--) {
-    let pastEvent = eventArray[i];
-    let durationMs = endTime - pastEvent.detail.pointerevent.timeStamp;
-    if (durationMs > flingSettingDuration) {
-      return [pastEvent, durationMs];
-    }
+function findLastEventOlderThan(events, timeTest) {
+  for (let i = events.length - 1; i >= 0; i--) {
+    if (events[i].timeStamp < timeTest)
+      return events[i];
   }
   return null;
+}
+
+/**
+ * @returns {number} the angle of a vector from 0,0 to x,y from 0 to 360 degrees.
+ *                   The angle starts at 12 o'clock and counts clockwise.
+ */
+export function flingAngle(x = 0, y = 0) {
+  const degree = Math.atan2(-y, -x) * 180 / Math.PI;
+  return -(degree < 0 ? degree + 360 : degree);
 }
 
 /**
@@ -31,8 +31,6 @@ function getFirstPastEventOlderThan(eventArray, endTime, flingSettingDuration) {
  * More extensive DraggingEventMixin.
  * Adds "fling" event at the end, and also calculates the speed (px/ms) in both diagonal, x and y direction.
  * Adds flingSettings {minDuration: 200, minDistance: 50};
- * todo is it necessary to have minDistance??
- * todo should we add angle as degree??
  *
  * The dragging event is fired when pointerdown + pointermove.
  * The dragging event has the properties:
@@ -42,6 +40,12 @@ function getFirstPastEventOlderThan(eventArray, endTime, flingSettingDuration) {
  *  - detail.moveStartY   (x movement since start of "dragging" events)
  *
  * (Start coordinates = [e.detail.x-e.detail.moveStartX, e.detail.y-e.detail.moveStartY])
+ *
+ * Todo add to use the startdragging event to get the dragging distance from the start to the end.
+ *
+ * Todo rename FlingEventMixin to DragFlingGesture? and SwipeGexture? and PinchGesture?
+ *
+ * Todo split drag and fling?
  *
  * !!! Dependency: pointerevents !!!
  * !!! for Safari and older browsers use PEP: https://github.com/jquery/PEP !!!
@@ -76,20 +80,19 @@ export const FlingEventMixin = function (Base) {
       this.addEventListener("pointermove", this[moveListener]);
       this.addEventListener("pointerup", this[stopListener]);
       this.addEventListener("pointercancel", this[stopListener]);
+      this[cachedEvents] = [e];
+
       const detail = {pointerevent: e, x: e.x, y: e.y};
-      const dragStartEvent = new CustomEvent("draggingstart", {bubbles: true, composed: true, detail});
-      this[cachedEvents] = [dragStartEvent];
-      this.dispatchEvent(dragStartEvent);
+      this.dispatchEvent(new CustomEvent("draggingstart", {bubbles: true, composed: true, detail}));
     }
 
     [move](e) {
-      const startEvent = this[cachedEvents][0];
+      this[cachedEvents].push(e);
+
       const prevEvent = this[cachedEvents][this[cachedEvents].length - 1];
       const detail = {
-        moveX: e.x - prevEvent.detail.x,
-        moveY: e.y - prevEvent.detail.y,
-        moveStartX: e.x - startEvent.detail.x,
-        moveStartY: e.y - startEvent.detail.y,
+        moveX: e.x - prevEvent.x,
+        moveY: e.y - prevEvent.y,
         x: e.x,
         y: e.y,
         clientX: e.clientX,
@@ -104,23 +107,21 @@ export const FlingEventMixin = function (Base) {
         screenY: e.screenY,
         pointerevent: e
       };
-
       detail.distancePx = Math.sqrt(detail.moveX * detail.moveX + detail.moveY * detail.moveY);
-      detail.durationMs = e.timestamp - prevEvent.detail.pointerevent.timestamp;
+      detail.durationMs = e.timestamp - prevEvent.timestamp;
       detail.velocityPxMs = detail.distancePx / detail.durationMs;
 
-      const dragEvent = new CustomEvent("dragging", {bubbles: true, composed: true, detail});
-      this[cachedEvents].push(dragEvent);
-      this.dispatchEvent(dragEvent);
+      this.dispatchEvent(new CustomEvent("dragging", {bubbles: true, composed: true, detail}));
     }
 
     [end](e) {
+      this[fling](e);
+
       this.releasePointerCapture(e.pointerId);
       this.removeEventListener("pointermove", this[moveListener]);
       this.removeEventListener("pointerup", this[stopListener]);
-
-      this[fling](e);
       this[cachedEvents] = undefined;
+
       const detail = {pointerevent: e};
       this.dispatchEvent(new CustomEvent("draggingend", {bubbles: true, composed: true, detail}));
     }
@@ -128,19 +129,20 @@ export const FlingEventMixin = function (Base) {
     [fling](e) {
       let endTime = e.timeStamp;
       const lastMoveEvent = this[cachedEvents][this[cachedEvents].length - 1];
-      const [pastEvent, durationMs] = getFirstPastEventOlderThan(this[cachedEvents], endTime, this.flingSettings.minDuration);
+      const testTime = endTime - this.flingSettings.minDuration;
+      const pastEvent = findLastEventOlderThan(this[cachedEvents], testTime);
       if (!pastEvent)
         return;
 
-      const lastX = lastMoveEvent.detail.x;
-      const lastY = lastMoveEvent.detail.y;
-      const distX = lastX - pastEvent.detail.x;
-      const distY = lastY - pastEvent.detail.y;
+      const lastX = lastMoveEvent.x;
+      const lastY = lastMoveEvent.y;
+      const distX = lastX - pastEvent.x;
+      const distY = lastY - pastEvent.y;
       const diagonalPx = Math.sqrt(distX * distX + distY * distY);
       if (diagonalPx < this.flingSettings.minDistance)
         return;
 
-      const startTime = this[cachedEvents][0].detail.pointerevent.timeStamp;
+      const durationMs = endTime - pastEvent.timeStamp;
       this.dispatchEvent(new CustomEvent("fling", {
         bubbles: true, composed: true, detail: {
           lastX,
@@ -152,7 +154,7 @@ export const FlingEventMixin = function (Base) {
           speedPxMs: diagonalPx / durationMs,
           xSpeedPxMs: distX / durationMs,
           ySpeedPxMs: distY / durationMs,
-          // angle: calcAngle(0, 0, distX, distY)
+          angle: flingAngle(distX, distY)
         }
       }));
     }
