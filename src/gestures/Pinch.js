@@ -25,7 +25,7 @@ function calcAngle(x, y) {
 /**
  * Two-finger mixin for pinch, expand, rotate and doubledragging gestures.
  * The pinch event is fired when two fingers are pressed and moved against the screen.
- * PinchEventMixin translates a sequence of touchstart, touchmove
+ * PinchGesture translates a sequence of touchstart, touchmove
  * and touchend events into a series of pinch events.
  *
  * Events:
@@ -59,9 +59,9 @@ function calcAngle(x, y) {
  *   }
  *
  * @param Base
- * @returns {PinchEventMixin}
+ * @returns {PinchGesture}
  */
-export const PinchEventMixin = function (Base) {
+export const PinchGesture = function (Base) {
   return class extends Base {
     constructor() {
       super();
@@ -87,6 +87,10 @@ export const PinchEventMixin = function (Base) {
     }
 
     /**
+     * e.preventDefault() will make the browsers pan and scroll based on touch not happen.
+     * But, this might not be what you want. You might want a scroll to be unaffected by your mixin.
+     * And so, 
+     *
      * Todo: "touch-action: none" vs. e.preventDefault()
      * 1. add "touch-action: none" or "touch-action: pan-x" to the style of
      * a) the element itself and/or

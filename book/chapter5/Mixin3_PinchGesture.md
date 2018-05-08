@@ -1,8 +1,8 @@
-# PinchEventMixin
-`PinchEventMixin` adds support for pinch, expand and rotate gestures to a custom element.
-`PinchEventMixin` translates two-finger touch events into a series of pinch-events.
+# PinchGesture
+`PinchGesture` adds support for pinch, expand and rotate gestures to a custom element.
+`PinchGesture` translates two-finger touch events into a series of pinch-events.
 
-The `PinchEventMixin` is built using the [EventComposition](../chapter2/Pattern4_EventComposition.md) and 
+The `PinchGesture` is built using the [EventComposition](../chapter2/Pattern4_EventComposition.md) and 
 [FunctionalMixin](../chapter2/Pattern2_FunctionalMixin.md) patterns. 
 It translates a sequence of `touchstart`, `touchmove` and `touchend` events into a series of 
 pinch events.
@@ -29,9 +29,9 @@ The detail of the event is the original touchend event.
 ### Example of use:
 
 ```javascript
-import {PinchEventMixin} from "https://rawgit.com/orstavik/JoiComponents/master/src/PinchEventMixin.js";
+import {PinchGesture} from "https://rawgit.com/orstavik/JoiComponents/master/src/gestures/Pinch.js";
 
-class PinchBlock extends PinchEventMixin(HTMLElement) { //[1]
+class PinchBlock extends PinchGesture(HTMLElement) { //[1]
 
   constructor(){
     super();
@@ -60,7 +60,7 @@ class PinchBlock extends PinchEventMixin(HTMLElement) { //[1]
 }
 customElements.define("pinch-block", PinchBlock);
 ```                                                                   
-1. Adding the functional mixin `PinchEventMixin(HTMLElement)`. 
+1. Adding the functional mixin `PinchGesture(HTMLElement)`. 
 PinchBlock elements will now dispatch pinch events when pressed with two fingers.
 
 [Test the example on codepen](https://codepen.io/orstavik/pen/rvBopM).

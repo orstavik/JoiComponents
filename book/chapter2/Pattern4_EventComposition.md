@@ -141,14 +141,14 @@ the css `touch-action` attribute can be added.
 
 ## App-specific custom events vs EventCompositions for generic events.
 
-There are several reasons why you might need your own events. Sometimes, you want to diferentiate your 
+There are several reasons why you might need your own events. Sometimes, you want to differentiate your 
 app logic events from generic events. This might be the user hitting a login button, and instead of 
 having this event just named "click", you capture the click event and throw it again as a "login-click"
 or something else. This enables you to avoid handling the event in middle layer, and just let it propagate 
 all the way to the top. This is app-specific events.
 
 A more generic use-case would be to translate a series of other events that no browser, or only a few browsers,
-support into a dependable event. [DraggingEventMixin](../chapter5/Mixin3_DraggingEventMixin.md) is a good example of such an
+support into a dependable event. [DragFlingGesture](../chapter5/Mixin1_DragFlingGesture.md) is a good example of such an
 event. Establishing such generic use-case FunctionalEvent patterns or mixins should most likely be 
 setup as FunctionalMixins.
 
@@ -156,5 +156,6 @@ setup as FunctionalMixins.
 Avoid too much calculation and process that cost time. 
 Events being processed like this will potentially be quite taxing for the browser.
 * Delay processing until it is truly necessary
-* Do not add edge-case processing into the Mixin, but instead add static methods that the 
-use components can apply themselves on the data when they need to. 
+* Do not add edge-case processing into the Mixin. Alternatives are:                    
+  * provide a pure function that run on the basic data of the event
+  * create a separate mixin that handles the edge case.

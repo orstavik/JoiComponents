@@ -41,9 +41,9 @@
 
 <script type="module">
 
-  import {PinchEventMixin} from "../../src/PinchEventMixin.js";
+  import {PinchGesture} from "../../src/gestures/Pinch.js";
 
-  class ScaleBlock1 extends PinchEventMixin(HTMLElement) {
+  class ScaleBlock1 extends PinchGesture(HTMLElement) {
 
     constructor() {
       super();
@@ -66,7 +66,7 @@
       this.style.transform = `scaleX(${width}) scaleY(${height})`;
     }
   }
-  class ScaleBlock2 extends PinchEventMixin(HTMLElement) {
+  class ScaleBlock2 extends PinchGesture(HTMLElement) {
 
     constructor() {
       super();
@@ -88,7 +88,7 @@
       this.style.transform = `scale(${diagonal})`;
     }
   }
-  class RotateBlock extends PinchEventMixin(HTMLElement) {
+  class RotateBlock extends PinchGesture(HTMLElement) {
 
     constructor() {
       super();
@@ -106,7 +106,8 @@
     }
 
     _onPinch(e) {
-      this.style.transform =`rotate(${e.detail.rotationStart}deg)`;
+      const lastRotate = this.style.transform ? parseFloat(this.style.transform.substring(7)) : 0;
+      this.style.transform =`rotate(${lastRotate+e.detail.rotation}deg)`;
     }
   }
 
