@@ -8,6 +8,8 @@ const lastHeight = Symbol("lastHeight");
 const lastAngle = Symbol("lastAngle");
 const id1 = Symbol("touchId1");
 const id2 = Symbol("touchId2");
+const cachedEventDetails = Symbol("cachedEventDetails");
+const cachedTouchAction = Symbol("cachedTouchAction");
 
 const startListener = Symbol("touchStartListener");
 const moveListener = Symbol("touchMoveListener");
@@ -16,21 +18,19 @@ const start = Symbol("touchStart");
 const move = Symbol("touchMove");
 const end = Symbol("touchEnd");
 
-function calcAngle(x1, y1, x2, y2) {
-  const radians = Math.atan2(y1 - y2, x1 - x2);
-  const degree = radians * 180 / Math.PI;
-  return -(degree < 0 ? degree + 360 : degree);
+function calcAngle(x, y) {
+  return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
 }
 
 /**
- * Mixin for two-finger pinch, expand and rotate gestures.
+ * Two-finger mixin for pinch, expand, rotate and doubledragging gestures.
  * The pinch event is fired when two fingers are pressed and moved against the screen.
  * PinchEventMixin translates a sequence of touchstart, touchmove
  * and touchend events into a series of pinch events.
  *
  * Events:
  *  - pinchstart
- *    .detail: {touchevent, x1, y1, x2, y2, diagonal, width, height, screenAngle}
+ *    .detail: {touchevent, x1, y1, x2, y2, diagonal, width, height, angle, averageX, averageY}
  *  - pinchmove
  *    .detail: {
  *           touchevent,
@@ -40,14 +40,21 @@ function calcAngle(x1, y1, x2, y2) {
  *           widthLast, heightLast, diagonalLast,
  *           rotationLast,                          //clockwise rotation since previous pinchmove
  *           rotationStart                          //clockwise rotation since pinchstart
+ *           averageMoveX, averageMoveY             //two finger average movements
  *     }
  *  - pinchend
  *    .detail: {touchevent}
  *
- * To save cost per event, velocity is not calculated for every event.
- * Velocity can be calculated as (can be applied to width, height, diagonal, angle):
+ * Two finger gestures..
+ * I need different detail data for different type of events
+ *  - rotations for rotating
+ *  - distances for pinch
+ *  - movements averages for map drag
  *
- *   function velocity(nowLength, thenLength, now, then) {
+ * todo move this into the documentation for pinch
+ * Speed can be calculated as (can be applied to width, height, diagonal, angle):
+ *
+ *   function speed(nowLength, thenLength, now, then) {
  *     return (nowLength - thenLength) / (now - then);
  *   }
  *
@@ -58,14 +65,8 @@ export const PinchEventMixin = function (Base) {
   return class extends Base {
     constructor() {
       super();
-      this[startDiagonal] = undefined;
-      this[startWidth] = undefined;
-      this[startHeight] = undefined;
-      this[startAngle] = undefined;
-      this[lastDiagonal] = undefined;
-      this[lastWidth] = undefined;
-      this[lastHeight] = undefined;
-      this[lastAngle] = undefined;
+      this[cachedEventDetails] = undefined;
+      this[cachedTouchAction] = undefined;
       this[id1] = undefined;
       this[id2] = undefined;
 
@@ -107,73 +108,53 @@ export const PinchEventMixin = function (Base) {
      * Will the default scroll in a browser ever run before the e.preventDefault is called?
      * And if so, can that be considered just a bug and not to be considered?
      *
-     * To implement 2, i need a this[bodyTouchActionValue]
-     *
      * @param e
      */
     [start](e) {
       if (this[id1] !== undefined || e.targetTouches.length < 2)
         return;
       e.preventDefault();
-      this[id1] = e.targetTouches[0].identifier;
-      this[id2] = e.targetTouches[1].identifier;
-      const x1 = e.targetTouches[0].pageX;
-      const y1 = e.targetTouches[0].pageY;
-      const x2 = e.targetTouches[1].pageX;
-      const y2 = e.targetTouches[1].pageY;
-      const width = x2 > x1 ? x2 - x1 : x1 - x2;
-      const height = y2 > y1 ? y2 - y1 : y1 - y2;
-      const diagonal = Math.sqrt(width * width + height * height);
-      const screenAngle = calcAngle(x1, y1, x2, y2);
-      this[startWidth] = width;
-      this[startHeight] = height;
-      this[startDiagonal] = diagonal;
-      this[startAngle] = screenAngle;
-
+      //const body = document.querySelector("body");
+      // this[cachedTouchAction] = body.style.touchAction;
+      // body.style.touchAction = "none";                       //max1
       window.addEventListener("touchmove", this[moveListener]);
       window.addEventListener("touchend", this[endListener]);
       window.addEventListener("touchcancel", this[endListener]);
-      this.dispatchEvent(new CustomEvent("pinchstart", {
-        bubbles: true,
-        composed: true,
-        detail: {touchevent: e, x1, y1, x2, y2, diagonal, width, height, screenAngle}
-      }));
+
+      const f1 = e.targetTouches[0];
+      const f2 = e.targetTouches[1];
+      this[id1] = f1.identifier;
+      this[id2] = f2.identifier;
+
+      const detail = this.makeDetail(f2.pageX, f1.pageX, f2.pageY, f1.pageY, e);
+      this[cachedEventDetails] = [detail];
+      this.dispatchEvent(new CustomEvent("pinchstart", {bubbles: true, composed: true, detail}));
     }
 
     [move](e) {
       e.preventDefault();
-      const x1 = e.targetTouches[0].pageX;
-      const y1 = e.targetTouches[0].pageY;
-      const x2 = e.targetTouches[1].pageX;
-      const y2 = e.targetTouches[1].pageY;
+      const lastEventDetail = this[cachedEventDetails][this[cachedEventDetails].length - 1];
+      const startEventDetail = this[cachedEventDetails][0];
+
+      const f1 = e.targetTouches[0];
+      const f2 = e.targetTouches[1];
+      const detail = this.makeDetail(f2.pageX, f1.pageX, f2.pageY, f1.pageY, e);
+      detail.distDiagonal = detail.diagonal - lastEventDetail.diagonal;
+      detail.distWidth = detail.width - lastEventDetail.width;
+      detail.distHeight = detail.height - lastEventDetail.height;
+      detail.rotation = lastEventDetail.angle - detail.angle;
+      detail.rotationStart = startEventDetail.angle - detail.angle;
+
+      this[cachedEventDetails].push(detail);
+      this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, composed: true, detail}));
+    }
+
+    makeDetail(x2, x1, y2, y1, touchevent) {
       const width = x2 > x1 ? x2 - x1 : x1 - x2;
       const height = y2 > y1 ? y2 - y1 : y1 - y2;
       const diagonal = Math.sqrt(width * width + height * height);
-      const angle = calcAngle(x1, y1, x2, y2);
-      const detail = {
-        touchevent: e,
-        x1,
-        y1,
-        x2,
-        y2,
-        diagonal,
-        width,
-        height,
-        lastDiagonal: this[lastDiagonal],
-        lastWidth: this[lastWidth],
-        lastHeight: this[lastHeight],
-        startDiagonal: this[startDiagonal],
-        startWidth: this[startWidth],
-        startHeight: this[startHeight],
-        rotation: this[lastAngle] - angle,
-        rotationStart: this[startAngle] - angle
-      };
-
-      this[lastDiagonal] = diagonal;
-      this[lastAngle] = angle;
-      this[lastWidth] = width;
-      this[lastHeight] = height;
-      this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, composed: true, detail}));
+      const angle = calcAngle(x1 - x2, y1 - y2);
+      return {touchevent, x1, y1, x2, y2, diagonal, width, height, angle};
     }
 
     /**
@@ -188,17 +169,14 @@ export const PinchEventMixin = function (Base) {
       if ((e.targetTouches[0] && e.targetTouches[0].identifier === this[id1]) &&
         (e.targetTouches[1] && e.targetTouches[1].identifier === this[id2]))
         return;
+      //todo add the fling calculations for both rotation, pinch and doubledrag
       window.removeEventListener("touchmove", this[moveListener]);
       window.removeEventListener("touchend", this[endListener]);
       window.removeEventListener("touchcancel", this[endListener]);
-      this[startDiagonal] = undefined;
-      this[startWidth] = undefined;
-      this[startHeight] = undefined;
-      this[startAngle] = undefined;
-      this[lastDiagonal] = undefined;
-      this[lastWidth] = undefined;
-      this[lastHeight] = undefined;
-      this[lastAngle] = undefined;
+      //const body = document.querySelector("body");
+      // body.style.touchAction = this[cachedTouchAction];                       //max1
+      // this[cachedTouchAction] = undefined;
+      this[cachedEventDetails] = undefined;
       this[id1] = undefined;
       this[id2] = undefined;
       this.dispatchEvent(new CustomEvent("pinchend", {bubbles: true, composed: true, detail: {touchevent: e}}));

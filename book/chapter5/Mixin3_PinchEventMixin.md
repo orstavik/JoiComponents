@@ -16,7 +16,7 @@ The detail is:
    * distanceStart   (since `pinchstart`)
    * rotation        (since last `pinchmove`)
    * rotationStart   (since `pinchstart`)
-   * TODO: add distanceX and distanceY also, 
+   * TODO: add distX and distY also, 
      so that for example scaling can be done 
      using separate x and y values 
 3. `pinchend` is fired when one of the original fingers are lifted from the screen.

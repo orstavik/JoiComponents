@@ -67,7 +67,7 @@ export const DragFlingGesture = function (Base) {
 
     constructor() {
       super();
-      this[selectListener] = e => e.preventDefault();
+      this[selectListener] = e => e.preventDefault() && false;
       this[startListener] = e => this[start](e);
       this[moveListener] = e => this[move](e);
       this[stopListener] = e => this[end](e);
