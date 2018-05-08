@@ -46,7 +46,7 @@ function findLastEventOlderThan(events, testTime) {
  * @param Base
  * @returns {DragFlingGesture}
  */
-export const SwipeEventMixin = function (Base) {
+export const SwipeGesture = function (Base) {
   return class extends Base {
 
     constructor() {

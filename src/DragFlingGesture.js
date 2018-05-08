@@ -16,10 +16,6 @@ function findLastEventOlderThan(events, timeTest) {
   return null;
 }
 
-/**
- * @returns {number} the angle of a vector from 0,0 to x,y from 0 to 360 degrees.
- *                   The angle starts at 12 o'clock and counts clockwise.
- */
 function flingAngle(x = 0, y = 0) {
   return ((Math.atan2(y, -x) * 180 / Math.PI)+270)%360;
 }
@@ -38,7 +34,8 @@ function flingAngle(x = 0, y = 0) {
  *   .flingSettings.minDistance = 50;
  *   .flingSettings.minDuration = 200;
  *
- * dragging.detail && fling.detail
+ * dragging.detail
+ * fling.detail
  *                .x
  *                .y
  *                .distX
@@ -48,10 +45,16 @@ function flingAngle(x = 0, y = 0) {
  *                .speedPxMs
  *                .pointerevent: e
  *
- * only fling.detail
+ * fling.detail
  *                .xSpeedPxMs
  *                .ySpeedPxMs
  *                .angle
+ *
+ * The angle starts at 12 o'clock and counts clockwise from 0 to 360 degrees.
+ *  up/north:     0
+ *  right/east:  90
+ *  down/south: 180
+ *  left/west:  270
  *
  * !!! Dependency: pointerevents !!!
  * !!! for Safari and older browsers use PEP: https://github.com/jquery/PEP !!!

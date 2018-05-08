@@ -4,7 +4,7 @@
 
 <style></style>
 
-<scroll-div style="display: block; font-size: 164px; height: 100vh; overflow-y: scroll;">
+<scroll-div style="font-size: 164px; height: 100vh;">
   <div style="background:red">
     <div>A</div><div>B</div><div>C</div><div>D</div><div>E</div><div>F</div><div>G</div><div>H</div><div>I</div><div>J</div><div>K</div><div>L</div><div>M</div><div>N</div><div>O</div><div>P</div><div>Q</div><div>R</div><div>S</div><div>T</div><div>U</div><div>V</div><div>W</div><div>X</div><div>Y</div><div>Z</div>
   </div>
@@ -26,7 +26,6 @@
     constructor() {
       super();
       this._autoScroller = undefined;
-      this._onDragStartListener = e => this._onDraggingStart(e);
       this._onDraggingListener = e => this._onDragging(e);
       this._onFlingingListener = e => this._onFlinging(e);
       this._onDownListener = e => this._onDown(e);
@@ -34,8 +33,8 @@
 
     connectedCallback() {
       super.connectedCallback();
-      this.style.marginTop = 0;
-      this.addEventListener("draggingstart", this._onDragStartListener);
+      this.style.display = "block";
+      this.style.overflowY = "scroll";
       this.addEventListener("dragging", this._onDraggingListener);
       this.addEventListener("fling", this._onFlingingListener);
       this.addEventListener("pointerdown", this._onDownListener);
@@ -43,14 +42,9 @@
 
     disconnectedCallback() {
       super.disconnectedCallback();
-      this.removeEventListener("draggingstart", this._onDragStartListener);
       this.removeEventListener("dragging", this._onDraggingListener);
       this.removeEventListener("fling", this._onFlingingListener);
       this.removeEventListener("pointerdown", this._onDownListener);
-    }
-
-    _onDraggingStart(e) {
-      this.startTime = e.timeStamp;
     }
 
     _onDragging(e) {
@@ -63,11 +57,9 @@
 
     _onFlinging(e) {
       this.autoScroll(e.detail.distY * 0.3, 0.95);
-      console.log(e);
     }
 
     scroll(y) {
-      console.log("scroll ", y);
       this.scrollTop = (this.scrollTop || 0) + parseInt(y);
     }
 
