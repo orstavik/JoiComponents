@@ -129,30 +129,38 @@ to preventDefault() on `touchend`),
 you alert the browser that no native `double-tap to zoom` gesture is needed nor wanted. 
 This frees the mobile browser from having to wait and see if such a zoom might be intended,
 enabling the mobile browser to skip the obligatory 300ms grace period and dispatch the click 
-immediately.
+immediately.                          
 
 But, if you thought the complexities ended here, you would be.. an optimist. The web being web,
 nothing is as simple as just a list of alternative solutions. You have to moderate this list to
-take into account that some browsers support some of the solutions, while other browsers other 
-solutions. 
-However, The only thing the glue and ductape does is putting the wool back on the sheep.
-`<meta name="viewport">` and `touch-action` fix the problem of the conflicting gestures by 
-removing `double-tap to zoom`. And, web being web, Safari has not implemented `touch-action`,
-so for 
+take into account that no browser supports all the alternatives. In this case, Safari does not
+support CSS `touch-action`. And Chrome has started to execute some native event handlers such as
+scroll *before* the app's own event handlers, thus seriously disturbing the JS approach of 
+`e.preventDefault()`. 
+
+Here, in the case of removing `double-tap to zoom`, the remaining solution seems obvious.
+Add `<meta name="viewport" width="device-width">` to you html header, thus removing the native 
+`double-tap to zoom` gesture, and glue the yarn back on the sheep. But, as the next example will 
+show us, when it comes to `drag to pan to scroll`, it is better to just throw as much glue, ductape 
+and knots as you possibly can so that no matter where your poor sheep web app happens to be opened,
+the yarn sticks.
+
+After reading this, you might ask yourself: what just happened? Did you just tell me that
+the conflict between two native gestures that happened when mobile browsers added 
+`double-tap to zoom` can be fixed by me only by removing said native gesture? 
+Yup, that is basically it. The browsers fixed the conflict of 
+content-defined-for-large-desktop-screens+small-smartphone-screens by requiring the users to
+be patient. And we fix the problem of impatient users by removing the same `double-tap to zoom` 
+gesture. You cut the wool of the sheep, but now the sheep is cold. 
+Solution: Use glue and ductape and tie the yarn back on the sheep.
 
 
-So, basically, the browsers fixes our problem of impatience by giving us web developers the 
-tools to remove the `double-tap to zoom` gesture. The browsers tried to solve the conflict 
-using patience. When that didn't work, they just let us remove the youngest, least needed and 
-least loved offender. It's like parenting.
-You cut the wool of the sheep, but now the sheep is cold. Solution: Use glue, ductape and knots
-to put the yarn back on the sheep.
+## Example 2: Everyone wants drag!
 
-
-
-((Conflicts between custom composed events and natively implemented composed events))
-
-
+The previous example was a conflict between two native events.
+You are totally blameless for that.
+This next conflict you need make yourself. 
+It is time to loot at conflicts between custom gestures and native gestures.
 
 ## What the h*¤#% is CSS "touch-action: none" and "user-select: none"?
 The browsers have of course encountered conflicting gestures before. Heck, they made them!
