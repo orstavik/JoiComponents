@@ -109,6 +109,18 @@ attribute values such as `:host([size="large"])`, `:host([size="medium"])`.
 Elements are slotted as main, header, aside, footer. 
 More than one element can be placed in each slot in the layout, as illustrated with main.
 
+## `<meta name="viewport" content="width=device-width">`
+On mobile devices, you need to specify the width of [the layout viewport](https://www.quirksmode.org/mobile/viewports2.html), 
+ie. the width of the HTML document in CSS pixels.
+This is done using the `<meta name="viewport" content="width=device-width">` tag.
+If you are using a `ResponsiveLayout` to control the layout of the whole page,
+you want to add a the following `<meta name="viewport" content="width=device-width">`
+(or `<meta name="viewport" content="width=500">` if you want the layout of the html document 
+to be minimum 500px wide.
+
+The tag `<meta name="viewport" content="width=device-width">` is also used to [disable the 
+native double-tap to zoom gesture](https://developers.google.com/web/updates/2013/12/300ms-tap-delay-gone-away).
+For more on this see [Conflicting gestures](../chapter2/Discussion_conflicting_gestures.md).
 
 <!--- 
 1. Make a v2 of the example that adds custom zoom behavior
@@ -118,3 +130,7 @@ More than one element can be placed in each slot in the layout, as illustrated w
 ### References
 * More detail about [`grid-template-areas`](https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-areas)
 * This [video](https://www.youtube.com/watch?v=txZq7Laz7_4) describes the benefits of applying this pattern to creating responsive pages.
+* [Mdn on `<meta name="viewport">`](<meta name="viewport" content="width=device-width, initial-scale=1">)
+* Old discussion about `<meta name="viewport">`: [part1](https://www.quirksmode.org/mobile/viewports.html),
+[part2](https://www.quirksmode.org/mobile/viewports2.html)
+* [300ms-tap-delay and the viewport]()
