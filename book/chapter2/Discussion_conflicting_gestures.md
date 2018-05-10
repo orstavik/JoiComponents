@@ -188,40 +188,44 @@ on this method it too, we stop this native behavior interfering with our custom 
 And, just to be on the safe side, you can add the CSS property `user-selection: none` 
 on the element (a little extra glue never hurt, right?).
 
-### Jerky panning and laggy scroll and some more complexity? 
 But, as I mentioned before, we cannot just choose the solution we like on the web.
 Safari does not support the CSS `touch-action` property.
 And, in order to speed up native scroll behavior on the web, 
 Chrome has in general muted the effect of `event.preventDefault()`.
-Therefore, we must *both* add CSS `touch-action` *and* call `event.preventDefault()`.
-Now why is that? Why did the browsers choose different paths here? 
+Therefore, we must *both* add CSS `touch-action` *and* call `event.preventDefault()`
+*and* `user-selection: none` and the selectstart events `.preventDefault()`.
+Glue it, tape it, bind it! 
+Just make sure the yarn sticks on that sheep whatever the situation.
 
-In principle, things were actually pretty simple when it came to conflicting events.
-Call `event.preventDefault()` to stop any native event or functionality from your custom event.
-The problem was not in the ergonomics of event.preventDefault(): the problem was in 
-its negative impact on the performance of the native gestures.
+## Example 3: Jerky panning and laggy scroll and some more complexity? 
+In principle, things could be pretty simple when handling conflicting events.
+Just call `event.preventDefault()` in your event listeners and stop any native event or functionality.
+In principle this works fine. 
+In practice however, this implies always processing your custom event listener before processing 
+native event handlers for scrolling and panning, and that is the final conflict we will talk about here.
 
-Let's use our example of `drag'n'drop` a `div`. 
-When the finger moves across the page, a new drag event is dispatched 60fps.
-However, in most instances, the browser is either so slow or has so much to do, 
-that it does not manage to complete all its tasks at 60fps.
-When the browser does not, it simply drops a frame or two or three to catch up.
+In this example we create a custom drag gesture that should *not* prevent native scroll and pan gestures. 
+This custom drag gesture is only used to meassure how fast we are scrolling the page.
+When the finger moves across the page, a new drag event is dispatched at 60fps.
+However, in most instances, the browser is either too weak or too overworked to complete all of its tasks at 60fps.
+When the browser does not manage to keep up, it simply drops a couple of frames.
 However, this only applies to the JS-controlled frames. 
-The CSS controlled frames such as animations and transitions are handled independently 
-so that it can produce a smooth experience independently.
-During normal operations such as clicking, such dropped frames does not matter all that much.
-Only small movement of a few things are disturbed.
-However, if the entire screen is changing as is the case with scrolling and panning, 
+The CSS controlled frames such as animations and transitions are handled independently. 
+This means that CSS animations and transitions pass unhindered at 60fps, giving a smooth user experience.
+During normal operations such as clicking, such dropped frames in the JS world does not matter all that much.
+JS only affects a few elements on the screen.
+However, if many elements on the screen are changing frequently, 
 such dropped frames cause great disruption to our subconscious and hence the user experience.
-That gives us laggy scrolling and jerky panning. Yuk!
+And when we scroll and pan, that is exactly what happens.
+Enter laggy scrolling and jerky panning.
 
-Ok, so, how to fix that then? 
+Ok, yet another conflict. Now what is it this time and how do we fix it? 
 The first solution is to make the browser process scrolling and panning independently from the
-rest of the JS operations, similar to the handling of CSS animations and transitions. 
+rest of the JS operations, like it does with CSS animations and transitions. 
 If there are no registered event listeners for touch and scroll events, 
 this is straightforward.
 In such a case, the mobile browsers can easily:
-1. separate all the touch and scroll events, and
+1. separate all the touch and scroll events and 
 2. update the view when scrolling and panning independently,
 3. even when the browser did not have time to complete all its JS operations and must skip JS frames. 
  
@@ -235,33 +239,34 @@ In such instances, the web standard says that the mobile browser must:
 then the native scroll and pan will also miss a couple of frames.
 4. And this produces the jerky pan and laggy scroll.
 
-The moral of the story? If you don't want jerky pan and laggy scroll,
-don't add event listener for `touchmove`, `scroll` and (to a lesser degree) `touchstart`.
+Ok, so that is the solution? If you don't want jerky pan and laggy scroll,
+don't add event listener for `touchmove`, `scroll` and (to a lesser degree) `touchstart`?
+Yes, but only partially. Because this story has a twist.
 
-Now this story has a twist.
-Recently, Chrome has decided to unilaterally run native scrolling and panning events
+In 2017, Chrome decided to unilaterally run native scrolling and panning events
 *before* custom event listeners. This runs counter to the web standard([broke the web]()), 
 and creates big problems for `event.preventDefault()`. 
 But. It makes scrolling and panning much smoother.
-And native gestures can still be turned off using CSS `touch-action`.
+And since native gestures can be turned off using CSS `touch-action` in Chrome, 
+who really wants `event.preventDefault()` in the first place, right?
 
-But the real good news comes here. There is another way to fix this problem. 
-A way that is not only isolated to Chrome, but that can be applied to all mobile browsers.
-A method that simultaneously promises to fix laggy scroll and jerky pan, as well as can be hoped for 
-and with a solution adapted to all. It is time to InvadeAndRetreat! - our next design pattern 
-for web components.
+Chrome likely has a point, and their move to push EventListenerOptions and passive event listener by default 
+seems justifiable, if not yet justified. But, my trusty reader. The real twist and good news is yet to come. 
+There is namely another pattern to fix this and similar problems. 
+A pattern that is not only isolated to Chrome, but that can be applied to all mobile browsers.
+A pattern that simultaneously promises to fix laggy scroll and jerky pan. 
+It is time to InvadeAndRetreat! - our next design pattern for web components.
 
 ((
 todo I have some research that needs to be done in this chapter:
-* make demo of laggy scroll and jerky pan. Show how it can be turned off and on.
+* add the demos
+* make demo of laggy scroll and jerky pan. 
+Show how it can be turned off and on.
 ))
 
 
 
 <!--
-**But don't get too comfortable with this one 
-solution simplicity. As the next example will show you, most often, both superglue, duct tape 
-and knots.**
 
 When it comes to `drag to pan to scroll`, it is better to just throw as much glue, ductape 
 and knots as you possibly can so that no matter where your poor sheep web app happens to be opened,

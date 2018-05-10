@@ -38,7 +38,9 @@ explain that custom elements with content in the lightDom should be considered a
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
 3. [EventComposition](book/chapter2/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
-4. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md) (such as gestures, clicks, drag)
+4. [Discussion: conflicting gestures](book/chapter2/Discussion_conflicting_gestures.md) (such as gestures, clicks, drag)
+5. [InvadeAndRetreat!](book/chapter2/Pattern5_InvadeAndRetreat.md)
+6. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md) (such as gestures, clicks, drag)
 
 ## Chapter 3: Lifecycle mixins (generic custom element)
 * [.childrenChangedCallback()](book/chapter3/Mixin1_ChildrenChangedMixin.md)
