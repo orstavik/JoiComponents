@@ -155,38 +155,115 @@ gesture. You cut the wool of the sheep, but now the sheep is cold.
 Solution: Use glue and ductape and tie the yarn back on the sheep.
 
 
-## Example 2: Everyone wants drag!
+## Conflicts between native gestures and custom gestures
 
-The previous example was a conflict between two native events.
-You are totally blameless for that.
-This next conflict you need make yourself. 
-It is time to loot at conflicts between custom gestures and native gestures.
+The previous example was a conflict between two native gestures.
+You were totally blameless for that.
+This next conflict you need provoke yourself.
+This one will be all yours, and everyone will point their finger at you.
+It is time to look at conflicts between custom gestures and native gestures.
 
-## What the h*¤#% is CSS "touch-action: none" and "user-select: none"?
-The browsers have of course encountered conflicting gestures before. Heck, they made them!
-And therefore they have also tried to resolve these conflicts.
-The story of these solutions is both good news, and bad news. 
-Let's start with some the good news first.
+By themselves, gestures and composed events are simple and straight forward to produce:
+1. You listen for a couple of primitive events. 
+2. You cache and/or calculate some data from these events.
+3. And finally you dispatch a new custom event with these data.
 
-By themselves, gestures and composed events are simple and straight forward to make.
-You listen for a couple of events. Then you maybe cache some data and/or make some calculations.
-And then finally you dipatch a custom event based on these data and calculations.
-It is not magic, not at all.
-When you make them as (mixins for) web components, 
-this is both naturally and functionally well encapsulated, 
-simple to demonstrate and easy to test.
-So, by themselves, custom gestures are simple to make. This is good news.
+It is not magic. And, if you wrap them up in an isolated functional mixin for HTMLElement,
+it's even encapsulated, easy to demonstrate and testable.
+By themselves, custom gestures are simple to compose. So, what's the problem?
 
-But. When multiple events are composed over time, the response of these events 
-might interfere with each other. For example, a drag gesture might have been intended by the user
-to move a block on the screen, but it is by default interpreted to also be a page scroll by the browser.
-In addition, different browsers implement different native behavior for certain type of gestures/
-composed events. For example, some browsers implement double-tap to zoom.
-The bad news is that gestures and composed events might conflict with each other and 
-with native, gesture based functionality in the browser such as doubletap to zoom and drag to scroll.
+## Example 2: Everybody wants a drag!
+You want to move a `div` on the page with a `drag'n'drop` gesture. The user should:
+1. press down on the `div` with one of his finger, 
+2. then move his finger in any direction to move it, and
+3. then raise his finger to leave it in the new position.
 
-The really bad news is that the browsers have made a mess of the mechanisms the developer needs to 
-do to resolve such conflicts with the native browser gestures.
+But. Here we go waving our magic-index-finger-wand again. 
+This time to `drag'n'drop`. And we forgot that this magic wand is already programmed to: 
+* scroll up when we drag down,
+* scroll down when we drag up, 
+* go to previous page when we drag left, 
+* go to next page when we drag right, 
+* sometimes even reload when drag down beyond the screen, and
+* select text, when there is text on the element.
+
+All these native drag gestures now conflict with our custom `drag'n'drop` gesture.
+But why didn't anybody warn us?! Why didn't somebody raise their index-finger and wave it at us?!
+Ahh, now I see.. They were of course already using that same index-finger to navigate their 
+mobile browser.. It was already busy.. Silly me..
+
+So, we got no warning. Conflicting events don't give warnings. Ok. Fine. 
+But at least tell me how do to fix it? Sure! I'll just run in the back real quick and 
+get the ductape and 'the sailor's guide to tying knots'. 
+Glue or `<meta name="viewport">` is, as I'm sure you would also intuitively understand,
+does not apply to native drag gestures.
+
+The CSS `touch-action` property (ie. the ductape) allows us to control both the 
+native `double-tap to zoom` and the native `pan` gestures on any element.
+Add `touch-action: none` to your `drag'n'drop` element, and 
+your dragging gestures will not trigger any of the conflicts listed above.
+If you only need to drag the element horisontally, you could add
+`touch-action: pan-y` which would enable the browser to still listen for the horisontal pan events. 
+
+The JS `event.preventDefault()` method (ie. the tying of knots) allows us to 
+turn off the native events when we handle the primitive touch-events to ensure that no 
+native `pan`-based gestures will be dispatched by the browser. And, finally, 
+we must also listen for the `selectstart` event and call `e.preventDefault()` on it too
+to stop text selection interfering with our desired `drag'n'drop` behavior.
+
+But, as described above, the web being web, we cannot choose just one solution.
+Safari does not support the CSS `touch-action` property.
+And, in order to speed up native scroll behavior on the web, Chrome has muted 
+the effect of `event.preventDefault()`.
+Therefore, we must *both* add CSS `touch-action` *and* call `event.preventDefault()`. 
+
+### Jerky panning and laggy scroll and the reason for all the complexity? 
+In principle, things were actually pretty simple when it came to conflicting events.
+Call `event.preventDefault()` to stop the native events in your custom events.
+The problem was not in the ergonomics of event.preventDefault(): the problem was in 
+its negative impact on the performance of the native gestures.
+
+Let's use our example of `drag'n'drop` a `div`. 
+When the finger moves across the page, a new drag event can occur at 60fps.
+However, the browser is either so slow or has so much to do, that it does not manage to complete 
+all its tasks at 60fps, and sometimes need to drop a frame or two or three to catch up.
+During normal operations such as clicking, such dropped frames might not matter all that much.
+Only a few things are moving, and neither the delay nor the visual response of a clicking 
+button is big enough to disturb the users experience. However, if the entire screen is changing 
+as is the case with scrolling and panning, such dropped frames disturbs our users accustomed to
+similar, but smoother scrolling and panning from native apps.
+
+If there are no event listeners for touchevents, the mobile browser can easily see that it 
+can take a shortcut passed the normal JS event handling. This bypass enables the browser to 
+update the view when scrolling and panning, even when it did not have time to complete all its 
+JS operations and must skip a frame. *The browser can not skip the scroll operation for this 
+frame, even though it is still skipping the normal JS event handling for the same frame*. 
+But, if `event.preventDefault()` can be used to block the native scroll gesture, 
+and the application registers one (or even more) event listeners for `touchmove`, then 
+this bypass strategy is blocked and the browser must wait for the JS to complete in order for 
+it to process its scroll. The result is: If you add event listeners for `touchmove`, and to a lesser degree `touchstart`, 
+you will like get jerky and laggy scrolling behavior for your mobile web app.
+
+Ok, new problem, how to fix that one. 
+Well, the only browser to really venture into this territory is Chrome. 
+Chrome has unilaterally decided to run native event listeners for scrolling and panning 
+behavior *before* custom event listeners. This is counter to the standard, 
+where native event listeners for scrolling and panning behavior should run *after* 
+custom event listeners, and this is necessary for event.preventDefault() to actually mean 
+something so as to prevent conflict. In this instance, Chrome actually [broke the web]().
+
+There are clear benefits of this approach. When you can use CSS `touch-action` properties
+to block native scrolling and panning, then e.preventDefault is no longer strictly needed.
+And then relying on this breaking change in Chrome, you get both the means to avoid conflict 
+and smooth scrolling and panning behavior.
+However, this only solves the issue of lagging scrolling when your web app is opened in Chrome,
+and so to fix lagging and scrolling behavior in your other important browsers as well, 
+you need to rely on another pattern: InvadeAndRetreat! And this we will discuss in the next 
+chapter.
+
+
+
+<!--
 The browsers primary means to resolve conflicts between custom composed gestures defined by you 
 the developer was to call `.preventDefault()` on  `touch`, `scroll`, and `pointer` events.
 Calling `.preventDefault()` enabled the browser to for example stop scrolling 
@@ -232,8 +309,9 @@ applied to restricting other native gestures from starting, as well as captureri
 And that makes it very simple to make smart gestures that both disable native gestures and 
 capture its own events without neither causing a lot of 
 
+## What the h*¤#% is CSS "touch-action: none" and "user-select: none"?
 
-
+-->
 
 ## References                                                                   
 * https://github.com/WICG/EventListenerOptions/blob/gh-pages/explainer.md
