@@ -1,176 +1,151 @@
 # Discussion: Conflicting Gestures
 
-## Different strategies to solve conflicts
-How to deal with conflict? Should I avoid it, 
-and just hope it goes away if I don't confront it?
-Should I stand up for what is right, and go into each and every detail until 
+## Conflict resolution 101
+How to deal with conflict? Should I avoid it, wait it out, and hope it just goes away?
+Should I confront it, and go into each and every detail until 
 I find the highly intricate solution that solves everyone's problem? 
 Should I fight, and make sure that I get my needs met and leave the others to 
 struggle for theirs? 
-Or should I wait it out, and just hope that things will sort themselves out given time?
 One conflict, so many choices.
 
 The key to resolving conflicts is to identify and set proper boundaries.
 What parties are involved in the conflict?
 Which of the actors properties or functions are actually in conflict with each other?
 When does this conflict occur? And when does it end?
-The answer to these and similar questions all help to determine and contain the conflict.
-This makes it easier to determine solutions that don't affect the parties of the conflict. 
-Setting good boundaries both help individual agents to avoid conflicts with each other.
-*But*, once a conflict occurs, setting good boundaries around the conflict itself 
-also helps us find a good resolutions that do not produce unintended, unnecessary, bad side-effects.
+The questions all help to clarify and constrain the conflict.
 
-In web development, different strategies or design patterns exists for resolving conflicts 
-in general, and resolving conflicting gestures in particular. 
-First, I will explain why gestures often conflict.
-Second, I will give two examples of how the browsers traditionally has resolved these conflicts.
+Setting good boundaries *around the conflict itself* makes it easier to find solutions 
+that don't have unintended, unnecessary consequences.
+The clearer the boundaries around the conflict becomes, 
+the easier it becomes to develop solutions that don't inflict bad side-effects on the parties or third parties.
+And setting good boundaries *around parties that might get into conflict*
+help avoid conflicts happening in the first place.
 
 ## Pointing fingers: who to blame for conflicting gestures?
+One frequent source of conflicts on the mobile web is gestures.
+Mobile web browsers are limited. The have one touch-screen that must serve as both the input 
+and output between the user and the browser.
+It is possible to open up a keyboard, but that is small and slow, and it makes the 
+output screen even smaller. Therefore, we mainly use one finger gestures to control the browser.
 
-We, the users, are lazy. We are used to just pointing at stuff and getting what we want.
-Want to get a jacket? Sure, just tap on it in a webshop, and it is at your doorstep tomorrow.
+So. On the mobile web we are used to just pointing at stuff and getting what we want.
+Want a warm jacket? Sure, just tap on it in a webshop, and it is at your doorstep tomorrow.
 Need a new girlfriend? No problem, swipe your finger to the right.
 Text is too small? Doubletap to zoom.
 Want some more? Drag your finger to scroll.
-We are like a bunch of spoiled, ignorant magicians waving around our magic index-finger-wand.
-The world should understand our unspoken intent, comply and give us exactly what we want. 
-With no more than 20 millisecond delay.
+We are like a bunch of ignorant magicians waving around a magic index-finger-wand.
+When we wave this wand, we expect the world to understand exactly what we want,
+instantly.
 
-But, it is not the users who are the magicians.
-"No sir, the magicians are of course us, the web developers!"
-And we know, making magic is not really that magical. 
-It is just a series of very small steps, happening very fast. 
-Once taken apart, these magical gestures are mundane.
-
-But, even though they are mundane, they can still be problematic. 
-We, the web developers, made the index-finger-magic wand and gave it to the users.
-Now we, the users, are using the same finger for everything.
-This creates conflict. For example, the double-tap to zoom can also be viewed as two taps. 
-If you happen to double tap on the jacket in the webshop, does that mean that you want:
-a) two jackets, b) to zoom in, or c) one jacket and zoom in? 
-Or, on the dating site, you have zoomed in to take a closer look at the potential 
-next special person in your life. with 
-whom you are considering whether or not to spend the rest of your life. 
+But, to use one finger for everything creates conflict. 
+For example, the `double-tap to zoom` is made up of two taps, while `tap to click`.
+If you then tap twice on a jacket in a webshop, does that mean that you want:
+a) two jackets, b) to zoom in, or c) two jackets and zoom in? 
+Or, you zoom in to take a closer look at your potential soul-mate at the datingsite.
 And then you swipe right. Now was that swipe a pan to simply move the viewport?
 Or did you just say yes to something?
-
-These are gesture conflicts. Problems for you the magician web developer to solve.
-Next, we will look at the strategies/design patterns that you can use to solve these conflicts.
+You have a conflict on your hands (or in your index-finger to be more precise).
 
 ## Example 1: Delay that click for 300ms
 
-This is a story about two conflicting native(!) gestures: `tap to click` and `doubletap to zoom`.
-When smartphones with web browsers first appeared, 
+When smartphones and mobile browsers first appeared, 
 the web had been around for more than a decade.
 There were many sites and lots of content available. 
 And all that content was designed to be read on 1024x768 screens. 
 Not 320x480 screens like those on the smartphones. 
 
 To make all that existing content accessible, mobile browsers therefore had to zoom a lot. 
-And one guy, with his magic index-finger-magic-wand, 
-decided that the best convention for zooming that content would be `double-tap to zoom`.
+One guy decided that the best convention for zooming that content would be `double-tap to zoom`.
 Tap on an element on the screen twice, and the mobile browser will zoom in to fit that 
 element on its smaller screen. Double-tap again and zoom out.
 
-However, this new gesture wasn't fully thought through. 
+At first, and in demos, it looked great. However, this new gesture wasn't fully thought through. 
 The double-tap is just two taps in quick, but not immediate concession. 
 In fact, you can wait as long as 300ms after you have finished the first tap 
 before you start your second tap and still get it registered as a double-tap. 
-Furthermore. The concept of "double-tap to zoom" is applied to the whole screen. 
-The concept implies that the user can tap anywhere to zoom.
-And this convention gave a rise to a conflict. With another native gesture: `tap to click`.
+Furthermore. The gesture of `double-tap to zoom` is applied to the whole screen, 
+the user can tap anywhere to zoom.
+These rather wide boundaries gave a rise to a conflict with another native gesture: 
+`tap to click`.
 
-In short, the conflict is:
-1. You have a website designed for larger screens that the mobile browsers need to zoom by default.
-2. This websites have clickable elements.
-3. In a mobile browser you tap once with one finger on an element to click it.
-4. In a mobile browser you tap twice on an element with one finger to zoom into it.
-5. Now, after you have clicked once on an element, but before the 300ms has passed, 
-how can the browser tell if you intended that tap as a click, or as the first of two taps of a zoom?
+To summarize:
+1. You have many website designed for big screens.
+2. These websites also have clickable elements.
+3. Mobile browser decide on `tap to click` on elements.
+4. But mobile browsers have small screens and therefore need to zoom often.
+5. Mobile browser decide on `double-tap to zoom` to an element.
+6. The conflict: after you have tapped once on an element, but before 300ms has passed, 
+how can the browser know if you at this point intend the gesture as a `click` or have just started to zoom?
 
-### Strategic attempt 1a: Patience
+### Resolving the conflict, act 1: Patience
 
 To solve this conflict, browsers used a well known strategy for resolving conflict: patience.
-If you after the first tap wait for 300ms to see if the user taps on the same element again,
-then you can know if the first tap should be interpreted as a zoom or a click.
-The solution would then be to delay triggering any `click`-event until 300ms had passed.
-If, by that time, the user had not tapped that element again, a delayed `click`-event is dispatched;
-If, by that time, the user had tapped that element again, no `click`-event is dispatched and the zoom 
-function invoked.
+If you just wait 300ms after the first tap, 
+then you will know for sure if the user has tapped once or double-tapped.
+And so the mobile browsers did. 
+They added a 300ms delay *after* the tap ended and *before* the click event was dispatched.
 
-And, technically, in the browser, that works. However, the problem is that with this strategy,
-the browser is trying to implement patience in... us, the users. And that simply doesn't work.
-Sure, we users might be lazy. But we are not(!) patient. Nor slow. 
-Our subconscious is actually faster than 300ms. And so, we users didn't like it. We more or less 
-rejected it. And the browsers, who made and gave us the two conflicting native gestures were given 
-the task of resolving them.
+Technically, that works. 
+The problem is that the browser had a dependency for its `PatiencePattern`: us, its users. 
+And, we are both impatient and have a subconscious that works faster than 300ms. 
+We do not like waiting 300ms for a click. So, we reject it. 
+And so now, the browsers must start resolving the same conflict they just made.
 
-### Strategic attempt 1b: How to cut, card, and spin wool into yarn, and then best put it back on the sheep?
-
+### Resolving the conflict, act 2: Putting wool back on a sheep
+Ever since the ancient greeks, man has faced a conundrum:
+How best put wool back on a sheep after we have cut, carded and spun it?
 If you are thinking "weave it into a sheep sweater", you are definitively not a web developer. 
-The obvious answer is of course glue, ductape and tying it into knots. 
+The obvious answer here is of course superglue, duct tape and knots. 
 
-The glue is called `<meta name="viewport" width="device-width">`.
-This `<meta>`-tag is added to the `<head>` of the html document, and 
-it basically tells the browser that a) the website has a responsive designed that handles different device-widths 
-so that b) `double-tap to zoom` is no longer needed.
-Those who cannot see the beauty of such tags do definitively 
-not understand the wonderful magic of native web development.
+The superglue is called `<meta name="viewport" width="device-width">`.
+This viewport tag is added to the `<head>` of the html document.
+It basically tells the browser that 
+a) the website has a responsive design that handles different device-widths so that 
+b) the browser can safely ignore `double-tap to zoom` if any click has been picked up.
 
-The ductape is CSS and called `touch-action: none`. Or, `touch-action: manipulation`.
-Or, `touch-action: pan-y`. Actually `touch-action: whatever` as long as it is not
-`touch-action: auto`. The CSS `touch-action`-property basically tells the browser which of its
+The duct tape is CSS `touch-action: none`. 
+Or `touch-action: manipulation` or `touch-action: pan-y`. 
+Actually any `touch-action` except `touch-action: auto`. 
+The CSS `touch-action`-property basically tells the browser which of its
 native gestures are to be allowed, muting all others. And, being such a loved creation,
-`double-tap to zoom` is first in line of the native gesture to be muted.
+`double-tap to zoom` is always the first native gesture to be muted.
 
-The tying of knots is JS and known as `event.preventDefault()`.        
+The tying of knots is JS `event.preventDefault()`.        
 If you call `event.preventDefault()` on the `touchend`-events (todo verify that it is enough 
 to preventDefault() on `touchend`), 
-you alert the browser that no native `double-tap to zoom` gesture is needed nor wanted. 
-This frees the mobile browser from having to wait and see if such a zoom might be intended,
-enabling the mobile browser to skip the obligatory 300ms grace period and dispatch the click 
-immediately.                          
+you tell the browser that no native `double-tap to zoom` gesture is called for. 
+When so told, the mobile browser do not have to wait 300ms to see if a `double-tap to zoom` 
+is coming and can therefore dispatch the `click` right away.                          
 
-But, if you thought the complexities ended here, you would be.. an optimist. The web being web,
-nothing is as simple as just a list of alternative solutions. You have to moderate this list to
-take into account that no browser supports all the alternatives. In this case, Safari does not
-support CSS `touch-action`. And Chrome has started to execute some native event handlers such as
-scroll *before* the app's own event handlers, thus seriously disturbing the JS approach of 
-`e.preventDefault()`. 
+If you thought the complexities ended here, you would be.. an optimist. The web being web,
+nothing is as simple as just a list of alternative solutions. 
+You have to moderate this list to take into account that no browser supports all the alternatives. 
+In this case, Safari does not support CSS `touch-action`. 
+And Chrome has started to execute some native event handlers such as scroll *before* the 
+app's own event handlers, thus seriously disturbing the JS approach of `e.preventDefault()`. 
 
-Here, in the case of removing `double-tap to zoom`, the remaining solution seems obvious.
-Add `<meta name="viewport" width="device-width">` to you html header, thus removing the native 
-`double-tap to zoom` gesture, and glue the yarn back on the sheep. But, as the next example will 
-show us, when it comes to `drag to pan to scroll`, it is better to just throw as much glue, ductape 
-and knots as you possibly can so that no matter where your poor sheep web app happens to be opened,
-the yarn sticks.
-
-After reading this, you might ask yourself: what just happened? Did you just tell me that
-the conflict between two native gestures that happened when mobile browsers added 
-`double-tap to zoom` can be fixed by me only by removing said native gesture? 
-Yup, that is basically it. The browsers fixed the conflict of 
-content-defined-for-large-desktop-screens+small-smartphone-screens by requiring the users to
-be patient. And we fix the problem of impatient users by removing the same `double-tap to zoom` 
-gesture. You cut the wool of the sheep, but now the sheep is cold. 
-Solution: Use glue and ductape and tie the yarn back on the sheep.
-
+Here, in the case of removing `double-tap to zoom`, the remaining solution is workable:
+1. make a responsive design and 
+2. add `<meta name="viewport" width="device-width">` to the html header. 
+This makes the native `double-tap to zoom` gesture secondary to `tap to click`
+and is supported in all the mobile browsers. 
 
 ## Conflicts between native gestures and custom gestures
 
 The previous example was a conflict between two native gestures.
 You were totally blameless for that.
-This next conflict you need provoke yourself.
-This one will be all yours, and everyone will point their finger at you.
-It is time to look at conflicts between custom gestures and native gestures.
+Next we will look at conflicts between custom gestures and native gestures.
+These conflicts you need provoke yourself.
 
-By themselves, gestures and composed events are simple and straight forward to produce:
+By themselves, gestures and composed events are simple enough:
 1. You listen for a couple of primitive events. 
 2. You cache and/or calculate some data from these events.
 3. And finally you dispatch a new custom event with these data.
 
-It is not magic. And, if you wrap them up in an isolated functional mixin for HTMLElement,
-it's even encapsulated, easy to demonstrate and testable.
-By themselves, custom gestures are simple to compose. So, what's the problem?
+If you then wrap them up in an isolated functional mixin for HTMLElement,
+it's even encapsulated, easy to demo and testable.
+However, it is not the gesture itself that is the problem, it is how the gesture *interacts*
+with other gestures that is the problem.
 
 ## Example 2: Everybody wants a drag!
 You want to move a `div` on the page with a `drag'n'drop` gesture. The user should:
@@ -178,8 +153,8 @@ You want to move a `div` on the page with a `drag'n'drop` gesture. The user shou
 2. then move his finger in any direction to move it, and
 3. then raise his finger to leave it in the new position.
 
-But. Here we go waving our magic-index-finger-wand again. 
-This time to `drag'n'drop`. And we forgot that this magic wand is already programmed to: 
+The problem is that this `drag'n'drop` gesture relies on the magic-index-finger-wand. 
+And the magic-index-finger-wand has already been charged with: 
 * scroll up when we drag down,
 * scroll down when we drag up, 
 * go to previous page when we drag left, 
@@ -187,81 +162,111 @@ This time to `drag'n'drop`. And we forgot that this magic wand is already progra
 * sometimes even reload when drag down beyond the screen, and
 * select text, when there is text on the element.
 
-All these native drag gestures now conflict with our custom `drag'n'drop` gesture.
-But why didn't anybody warn us?! Why didn't somebody raise their index-finger and wave it at us?!
-Ahh, now I see.. They were of course already using that same index-finger to navigate their 
-mobile browser.. It was already busy.. Silly me..
+Our custom `drag'n'drop` gesture conflicts with all of these native drag gestures.
+We get no warnings from the browser about gesture conflicts. 
+And gestures are hard to automatically test.
+But they can be fixed, using duct tape and tying of knots.
+(Superglue or `<meta name="viewport">` does not apply to native drag gestures, 
+as I'm sure you would also intuitively guessed ;).)
 
-So, we got no warning. Conflicting events don't give warnings. Ok. Fine. 
-But at least tell me how do to fix it? Sure! I'll just run in the back real quick and 
-get the ductape and 'the sailor's guide to tying knots'. 
-Glue or `<meta name="viewport">` is, as I'm sure you would also intuitively understand,
-does not apply to native drag gestures.
-
-The CSS `touch-action` property (ie. the ductape) allows us to control both the 
+The CSS `touch-action` property (duct tape) allows us to control both the 
 native `double-tap to zoom` and the native `pan` gestures on any element.
 Add `touch-action: none` to your `drag'n'drop` element, and 
 your dragging gestures will not trigger any of the conflicts listed above.
 If you only need to drag the element horisontally, you could add
-`touch-action: pan-y` which would enable the browser to still listen for the horisontal pan events. 
+`touch-action: pan-y` which would enable the browser to still scroll smoothly on 
+vertical drag. 
 
 The JS `event.preventDefault()` method (ie. the tying of knots) allows us to 
-turn off the native events when we handle the primitive touch-events to ensure that no 
-native `pan`-based gestures will be dispatched by the browser. And, finally, 
-we must also listen for the `selectstart` event and call `e.preventDefault()` on it too
-to stop text selection interfering with our desired `drag'n'drop` behavior.
+turn off the native events when we handle the primitive touch-events. 
+Calling `event.preventDefault()` on a touchmove event should in principle ensure that no 
+native `pan`-based gestures will be dispatched by the browser. 
 
-But, as described above, the web being web, we cannot choose just one solution.
+And, finally, we must tie an extra knot around the `selectstart` event.
+`selectstart` controls ao. text selection and by calling `e.preventDefault()` 
+on this method it too, we stop this native behavior interfering with our custom `drag'n'drop`.
+And, just to be on the safe side, you can add the CSS property `user-selection: none` 
+on the element (a little extra glue never hurt, right?).
+
+### Jerky panning and laggy scroll and some more complexity? 
+But, as I mentioned before, we cannot just choose the solution we like on the web.
 Safari does not support the CSS `touch-action` property.
-And, in order to speed up native scroll behavior on the web, Chrome has muted 
-the effect of `event.preventDefault()`.
-Therefore, we must *both* add CSS `touch-action` *and* call `event.preventDefault()`. 
+And, in order to speed up native scroll behavior on the web, 
+Chrome has in general muted the effect of `event.preventDefault()`.
+Therefore, we must *both* add CSS `touch-action` *and* call `event.preventDefault()`.
+Now why is that? Why did the browsers choose different paths here? 
 
-### Jerky panning and laggy scroll and the reason for all the complexity? 
 In principle, things were actually pretty simple when it came to conflicting events.
-Call `event.preventDefault()` to stop the native events in your custom events.
+Call `event.preventDefault()` to stop any native event or functionality from your custom event.
 The problem was not in the ergonomics of event.preventDefault(): the problem was in 
 its negative impact on the performance of the native gestures.
 
 Let's use our example of `drag'n'drop` a `div`. 
-When the finger moves across the page, a new drag event can occur at 60fps.
-However, the browser is either so slow or has so much to do, that it does not manage to complete 
-all its tasks at 60fps, and sometimes need to drop a frame or two or three to catch up.
-During normal operations such as clicking, such dropped frames might not matter all that much.
-Only a few things are moving, and neither the delay nor the visual response of a clicking 
-button is big enough to disturb the users experience. However, if the entire screen is changing 
-as is the case with scrolling and panning, such dropped frames disturbs our users accustomed to
-similar, but smoother scrolling and panning from native apps.
+When the finger moves across the page, a new drag event is dispatched 60fps.
+However, in most instances, the browser is either so slow or has so much to do, 
+that it does not manage to complete all its tasks at 60fps.
+When the browser does not, it simply drops a frame or two or three to catch up.
+However, this only applies to the JS-controlled frames. 
+The CSS controlled frames such as animations and transitions are handled independently 
+so that it can produce a smooth experience independently.
+During normal operations such as clicking, such dropped frames does not matter all that much.
+Only small movement of a few things are disturbed.
+However, if the entire screen is changing as is the case with scrolling and panning, 
+such dropped frames cause great disruption to our subconscious and hence the user experience.
+That gives us laggy scrolling and jerky panning. Yuk!
 
-If there are no event listeners for touchevents, the mobile browser can easily see that it 
-can take a shortcut passed the normal JS event handling. This bypass enables the browser to 
-update the view when scrolling and panning, even when it did not have time to complete all its 
-JS operations and must skip a frame. *The browser can not skip the scroll operation for this 
-frame, even though it is still skipping the normal JS event handling for the same frame*. 
-But, if `event.preventDefault()` can be used to block the native scroll gesture, 
-and the application registers one (or even more) event listeners for `touchmove`, then 
-this bypass strategy is blocked and the browser must wait for the JS to complete in order for 
-it to process its scroll. The result is: If you add event listeners for `touchmove`, and to a lesser degree `touchstart`, 
-you will like get jerky and laggy scrolling behavior for your mobile web app.
+Ok, so, how to fix that then? 
+The first solution is to make the browser process scrolling and panning independently from the
+rest of the JS operations, similar to the handling of CSS animations and transitions. 
+If there are no registered event listeners for touch and scroll events, 
+this is straightforward.
+In such a case, the mobile browsers can easily:
+1. separate all the touch and scroll events, and
+2. update the view when scrolling and panning independently,
+3. even when the browser did not have time to complete all its JS operations and must skip JS frames. 
+ 
+But, what if there are event listeners registered for `touchmove` and `scroll` events? 
+And what if these event listeners are not intended to block the native gestures, 
+but rather let them pass unhindered?
+In such instances, the web standard says that the mobile browser must:
+1. Wait to see if `event.preventDefault()` is called to block the native gesture.
+2. This means waiting for all the JS process to complete or partially complete.
+3. And this means that if the JS process takes long to complete and misses a couple of frames,
+then the native scroll and pan will also miss a couple of frames.
+4. And this produces the jerky pan and laggy scroll.
 
-Ok, new problem, how to fix that one. 
-Well, the only browser to really venture into this territory is Chrome. 
-Chrome has unilaterally decided to run native event listeners for scrolling and panning 
-behavior *before* custom event listeners. This is counter to the standard, 
-where native event listeners for scrolling and panning behavior should run *after* 
-custom event listeners, and this is necessary for event.preventDefault() to actually mean 
-something so as to prevent conflict. In this instance, Chrome actually [broke the web]().
+The moral of the story? If you don't want jerky pan and laggy scroll,
+don't add event listener for `touchmove`, `scroll` and (to a lesser degree) `touchstart`.
 
-There are clear benefits of this approach. When you can use CSS `touch-action` properties
-to block native scrolling and panning, then e.preventDefault is no longer strictly needed.
-And then relying on this breaking change in Chrome, you get both the means to avoid conflict 
-and smooth scrolling and panning behavior.
-However, this only solves the issue of lagging scrolling when your web app is opened in Chrome,
-and so to fix lagging and scrolling behavior in your other important browsers as well, 
-you need to rely on another pattern: InvadeAndRetreat! And this we will discuss in the next 
-chapter.
+Now this story has a twist.
+Recently, Chrome has decided to unilaterally run native scrolling and panning events
+*before* custom event listeners. This runs counter to the web standard([broke the web]()), 
+and creates big problems for `event.preventDefault()`. 
+But. It makes scrolling and panning much smoother.
+And native gestures can still be turned off using CSS `touch-action`.
+
+But the real good news comes here. There is another way to fix this problem. 
+A way that is not only isolated to Chrome, but that can be applied to all mobile browsers.
+A method that simultaneously promises to fix laggy scroll and jerky pan, as well as can be hoped for 
+and with a solution adapted to all. It is time to InvadeAndRetreat! - our next design pattern 
+for web components.
+
+((
+todo I have some research that needs to be done in this chapter:
+* make demo of laggy scroll and jerky pan. Show how it can be turned off and on.
+))
 
 
+
+<!--
+**But don't get too comfortable with this one 
+solution simplicity. As the next example will show you, most often, both superglue, duct tape 
+and knots.**
+
+When it comes to `drag to pan to scroll`, it is better to just throw as much glue, ductape 
+and knots as you possibly can so that no matter where your poor sheep web app happens to be opened,
+the yarn sticks.
+-->
 
 <!--
 The browsers primary means to resolve conflicts between custom composed gestures defined by you 
@@ -293,23 +298,6 @@ Basically, to resolve such conflicts, in Chrome you must use CSS properties rest
 gesture functions. In Safari, you must rely on the old fashioned way of calling 
 `preventDefault()`. It is messy. Really messy.
 
-However. And here is some really good news for you my reader. With the approach for handling
-custom events in this book, this problem is really not that big. Actually, it is quite small.
-Firstly, event listeners for touchmove are only added *after* the first touchdown is triggered. 
-This means that the touchmove event listeners will not interfere with touchmove events outside of 
-the element and scrolling, because they then *do not exist*.
-Secondly, in the mixin it is simple to add custom behavior for both intercepting the original 
-events. For example: when the event is first triggered, listen for the touchmove on the whole window, 
-and not just the element itself or a specific parent. If the event listener was always attached,
-this would not be possible as it would be far too invasive. But since the listener is only active
-once a certain gesture has been initialized (by for example pressing on a particular element),
-the invasiveness becomes only a strength. This "when relevant, invade" pattern, can also be 
-applied to restricting other native gestures from starting, as well as capturering events for itself.
-
-And that makes it very simple to make smart gestures that both disable native gestures and 
-capture its own events without neither causing a lot of 
-
-## What the h*¤#% is CSS "touch-action: none" and "user-select: none"?
 
 -->
 

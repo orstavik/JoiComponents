@@ -1,4 +1,17 @@
 # Pattern: InvadeAndRetreat
+Here is some really good news for you my reader. With the approach for handling
+custom events in this book, this problem is really not that big. Actually, it is quite small.
+Firstly, event listeners for touchmove are only added *after* the first touchdown is triggered. 
+This means that the touchmove event listeners will not interfere with touchmove events outside of 
+the element and scrolling, because they then *do not exist*.
+Secondly, in the mixin it is simple to add custom behavior for both intercepting the original 
+events. For example: when the event is first triggered, listen for the touchmove on the whole window, 
+and not just the element itself or a specific parent. If the event listener was always attached,
+this would not be possible as it would be far too invasive. But since the listener is only active
+once a certain gesture has been initialized (by for example pressing on a particular element),
+the invasiveness becomes only a strength. This "when relevant, invade" pattern, can also be 
+applied to restricting other native gestures from starting, as well as capturering events for itself.
+
 The pattern InvadeAndRetreat handles [conflicting gestures](Discussion_conflicting_gestures.md).
 
 
