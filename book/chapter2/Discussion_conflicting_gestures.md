@@ -6,7 +6,6 @@ Should I confront it, and go into each and every detail until
 I find the highly intricate solution that solves everyone's problem? 
 Should I fight, and make sure that I get my needs met and leave the others to 
 struggle for theirs? 
-One conflict, so many choices.
 
 The key to resolving conflicts is to identify and set proper boundaries.
 What parties are involved in the conflict?
@@ -20,8 +19,9 @@ The clearer the boundaries around the conflict becomes,
 the easier it becomes to develop solutions that don't inflict bad side-effects on the parties or third parties.
 And setting good boundaries *around parties that might get into conflict*
 help avoid conflicts happening in the first place.
+Resolving conflict is clarifying boundaries.
 
-## Pointing fingers: who to blame for conflicting gestures?
+## Pointing fingers: assigning blame for conflicting gestures?
 One frequent source of conflicts on the mobile web is gestures.
 Mobile web browsers are limited. The have one touch-screen that must serve as both the input 
 and output between the user and the browser.
@@ -38,12 +38,13 @@ When we wave this wand, we expect the world to understand exactly what we want,
 instantly.
 
 But, to use one finger for everything creates conflict. 
-For example, the `double-tap to zoom` is made up of two taps, while `tap to click`.
+For example, the `double-tap to zoom` is made up of two taps, 
+while a `click` on mobile is made with a single tap.
 If you then tap twice on a jacket in a webshop, does that mean that you want:
 a) two jackets, b) to zoom in, or c) two jackets and zoom in? 
 Or, you zoom in to take a closer look at your potential soul-mate at the datingsite.
-And then you swipe right. Now was that swipe a pan to simply move the viewport?
-Or did you just say yes to something?
+And then you swipe right. Now was that swipe a pan to view her right side?
+Or did you just agree to go on a date?
 You have a conflict on your hands (or in your index-finger to be more precise).
 
 ## Example 1: Delay that click for 300ms
@@ -79,7 +80,7 @@ how can the browser know if you at this point intend the gesture as a `click` or
 
 ### Resolving the conflict, act 1: Patience
 
-To solve this conflict, browsers used a well known strategy for resolving conflict: patience.
+To resolve this conflict, browsers used a well known strategy: patience.
 If you just wait 300ms after the first tap, 
 then you will know for sure if the user has tapped once or double-tapped.
 And so the mobile browsers did. 
@@ -89,13 +90,14 @@ Technically, that works.
 The problem is that the browser had a dependency for its `PatiencePattern`: us, its users. 
 And, we are both impatient and have a subconscious that works faster than 300ms. 
 We do not like waiting 300ms for a click. So, we reject it. 
-And so now, the browsers must start resolving the same conflict they just made.
+And so now, the browsers must find a new way to resolve the conflict they just made.
 
 ### Resolving the conflict, act 2: Putting wool back on a sheep
-Ever since the ancient greeks, man has faced a conundrum:
-How best put wool back on a sheep after we have cut, carded and spun it?
-If you are thinking "weave it into a sheep sweater", you are definitively not a web developer. 
-The obvious answer here is of course superglue, duct tape and knots. 
+Ever since the Romans, man has faced a conundrum:
+How best to put wool back on a sheep after we have cut, carded and spun it?
+You might be thinking "weave it into a sheep sweater". 
+That is a clever answer, but not one that shows aptitude for web development. 
+In web development, the answer is of course superglue, duct tape and knots. 
 
 The superglue is called `<meta name="viewport" width="device-width">`.
 This viewport tag is added to the `<head>` of the html document.
@@ -111,20 +113,19 @@ native gestures are to be allowed, muting all others. And, being such a loved cr
 `double-tap to zoom` is always the first native gesture to be muted.
 
 The tying of knots is JS `event.preventDefault()`.        
-If you call `event.preventDefault()` on the `touchend`-events (todo verify that it is enough 
-to preventDefault() on `touchend`), 
+If you call `event.preventDefault()` on the `touchend`-events, 
 you tell the browser that no native `double-tap to zoom` gesture is called for. 
 When so told, the mobile browser do not have to wait 300ms to see if a `double-tap to zoom` 
 is coming and can therefore dispatch the `click` right away.                          
 
-If you thought the complexities ended here, you would be.. an optimist. The web being web,
-nothing is as simple as just a list of alternative solutions. 
-You have to moderate this list to take into account that no browser supports all the alternatives. 
+If you thought the complexities ended here, you would be.. an optimist. 
+The web being web, nothing is as simple as just a list of alternative solutions. 
+As no browser supports all the alternative standards, you the web developer must. 
 In this case, Safari does not support CSS `touch-action`. 
-And Chrome has started to execute some native event handlers such as scroll *before* the 
-app's own event handlers, thus seriously disturbing the JS approach of `e.preventDefault()`. 
+And in this case, you often have no need to listen for `touchend`-events and 
+therefore no obvious place to put your `event.preventDefault()` in your web app code.
 
-Here, in the case of removing `double-tap to zoom`, the remaining solution is workable:
+Thankfully, in the case of resolving the conflict around `double-tap to zoom`, the remaining solution is good:
 1. make a responsive design and 
 2. add `<meta name="viewport" width="device-width">` to the html header. 
 This makes the native `double-tap to zoom` gesture secondary to `tap to click`
@@ -262,6 +263,7 @@ todo I have some research that needs to be done in this chapter:
 * add the demos
 * make demo of laggy scroll and jerky pan. 
 Show how it can be turned off and on.
+(todo verify that it is enough to preventDefault() on `touchend` to prevent `double-tap to zoom`)
 ))
 
 
