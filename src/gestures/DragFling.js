@@ -122,6 +122,7 @@ export const DragFlingGesture = function (Base) {
       this.releasePointerCapture(e.pointerId);
       this.removeEventListener("pointermove", this[moveListener]);
       this.removeEventListener("pointerup", this[stopListener]);
+      this.removeEventListener("pointercancel", this[stopListener]);
       this[cachedEvents] = undefined;
 
       const detail = {pointerevent: e};

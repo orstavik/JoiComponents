@@ -1,6 +1,7 @@
 # Pattern: EventComposition
 
 EventComposition is a pattern for transforming a series of events into a series of other (custom) events.
+`Double-tap to zoom`, `drag to scroll`, and even good all `click` are native composed events or gestures.
 Examples of EventCompositions are:
 * **gestures**, such as swipe and pinch,  
 * **drag**, and 

@@ -1,47 +1,136 @@
 # Pattern: InvadeAndRetreat
-Here is some really good news for you my reader. With the approach for handling
-custom events in this book, this problem is really not that big. Actually, it is quite small.
-Firstly, event listeners for touchmove are only added *after* the first touchdown is triggered. 
-This means that the touchmove event listeners will not interfere with touchmove events outside of 
-the element and scrolling, because they then *do not exist*.
-Secondly, in the mixin it is simple to add custom behavior for both intercepting the original 
-events. For example: when the event is first triggered, listen for the touchmove on the whole window, 
-and not just the element itself or a specific parent. If the event listener was always attached,
-this would not be possible as it would be far too invasive. But since the listener is only active
-once a certain gesture has been initialized (by for example pressing on a particular element),
-the invasiveness becomes only a strength. This "when relevant, invade" pattern, can also be 
-applied to restricting other native gestures from starting, as well as capturering events for itself.
+
+InvadeAndRetreat! is a strategy to resolve conflict. It consists of the following steps:
+
+1. Find the **conflict trigger**. Find out *exactly* where and when the conflict first occurs.
+2. Clarify the **conflict border**. Find all instances of a) what you might need and b) 
+what the other parties might do that might conflict with your needs.
+3. **Listen** for the conflict trigger, like a spider in a web.
+4. **Invade**. WHAM! Once the trigger is set off, you strike fast and hard! 
+And you Invade *at once* and *fully* on two fronts:
+   1. **grab** all the access to only the properties that you need, and
+   2. **block** all the access to these properties for the other parties.
+5. **Do your thing**. With the access, complete your order of business.
+Try to avoid to rape, pillage and loot.
+6. **Retreat**. Immediately after you have done what you need, you do a full Retreat.
+   1. Unleash all the accesspoints you grabbed during the invasion. 
+   2. Unblock all the other parties access points. 
+   3. Go back to listening position. And try to act as normal as you can.
+
+Be warned! To put out only a small listener, and then once something touches it 
+completely explode, grab everything, and block everything, for then ten seconds later, 
+once *you* are content, go back to behaving completely normal, is not a good pattern in life. 
+Firstly, people might think you have PTSD or an antisocial personality disorder. 
+And try to get you committed or jailed.
+Secondly, it is likely going to put the other people around on edge. Especially children.
+And that's bad. So don't use this pattern to guide your social life.
+
+In web design on the other hand, this pattern is great! 
+Here is why.
+
+## Example: How to avoid that your drag event becomes a drag on scroll performance?
+
+In this example I will set up a web component that uses the InvadeAndRetreat pattern to dispatch 
+`dragging` events.
+.
+
+```javascript
+class DragElement extends HTMLElement {
+                                  
+  constructor() {
+    super();
+    this._startListener = e => this._start(e);                  //[cache for listen]
+    this._moveListener = e => this._move(e);                    //[cache for retreat]
+    this._endListener = e => this._end(e);                      //[cache for retreat]
+    this._cachedTouchAction = undefined;
+    this._cachedUserSelect = undefined;
+    this._cachedBody = undefined;                                                 
+  }
+  
+  connectedCallback() {
+    this.addEventListener("touchstart", this._startListener);   //[listen add]
+    this.style.userSelect = "none";                             //[block]
+    this.style.touchAction = "none";                            //[block]
+  }
+  
+  disconnectedCallback() {
+    this.removeEventListener("touchstart", this._startListener);//[listen remove]
+  }
+  
+  _start(e) {
+    e.preventDefault();                                         //[invade: block]
+    this.setPointerCapture(e.pointerId);                        //[invade: block] use if pointerevents
+    window.addEventListener("pointermove", this._moveListener); //[invade: grab on window]
+    window.addEventListener("pointerup", this._endListener);    //[invade: grab on window]
+    window.addEventListener("pointercancel", this._endListener);//[invade: grab on window]
+    const body = document.querySelector("body");      
+    this._cachedTouchAction = body.style.touchAction;           //[cache for retreat]
+    this._cachedUserSelect  = body.style.userSelect;            //[cache for retreat]
+    body.style.touchAction = "none";                            //[invade: block on body]
+    body.style.userSelect = "none";                             //[invade: block on body]
+  }
+  
+  _move(e) {
+    e.preventDefault();                                         //[invade: block]
+    const detail = {
+      x: e.x,
+      y: e.y,
+    };                                                          //[do your thing]
+    this.dispatchEvent(new CustomEvent("dragging", {bubbles: true, composed: true, detail}));
+  }
+  
+  _end(e) {
+    e.preventDefault();                                             //[invade: block]
+    //this.releasePointerCapture(e.pointerId);                        //[retreat] use if pointerevents
+    window.removeEventListener("pointermove", this._moveListener);  //[retreat]
+    window.removeEventListener("pointerup", this._endListener);     //[retreat]
+    window.removeEventListener("pointercancel", this._endListener); //[retreat]
+    const body = document.querySelector("body");      
+    body.style.touchAction = this._cachedTouchAction;               //[retreat]
+    body.style.userSelect = this._cachedUserSelect;                 //[retreat]
+    this._cachedTouchAction =  "none";
+    this._cachedUserSelect  = "none";
+  }
+}
+```
+1. **Conflict trigger**: It is *only* when this element `touchstart` is dispatched 
+on this element that a conflict might occur.
+2. **Conflict border**. When the conflict is triggered, this element needs to:
+   * listen for the `touchmove` and `touchend` event.
+   * make sure no other native drag-based gestures are activated, anywhere.
+3. **Listen**. This element only needs to listen for the touchstart event when 
+it is connected to the DOM.
+4. **Invade**. When the `touchstart` function is triggered:
+   * **grab** absolutely all `touchmove` and `touchend` events. 
+   This is done by attaching the event listeners on the window object, and
+   calling `this.setPointerCapture(e.pointerId);`
+   * **block** all the access to `touchmove` and `touchend` events for native gestures.
+   This is done by both adding two restrictive CSS properties 
+   `touch-action: none` and `user-selct: none` on the body.
+   //todo can i set these CSS properties directly on document element?
+5. **Do your thing**. Process the `touchmove` event and dispatch a custom `drag` event.
+6. **Retreat**. When your `drag` gesture ends with the `touchend` event, immediately:
+   1. release PointerCapture, 
+   2. remove event listeners for `touchmove`, `touchcancel`, and `touchend`, and 
+   3. restore the original CSS properties for `touch-action` and `user-select`.
+
+What are the benefits of this approach?
+* **Minimum interference when inactive**. 
+You only add a single listener for `touchstart` on the element.
+It is only when this trigger is hit, that you add the other listeners. 
+To not have `touchmove` event listeners registered when they are not needed is a big plus. 
+Even more, the `touchstart` listener is *removed* when the element is *not connected* to the DOM.
+
+* **Maximum control of the `touchmove` event**. 
+Since the `touchmove` events are only active when they will actually be used,
+it is no longer problematic to add them to the window element! This removes all 
+the headache of managing container elements (todo ref. zingtouch) in order to ensure that 
+drag movements that go outside of the element are still caugt. 
+This essentially resembles the setPointerCapture functionality of `pointerevents`.
+
+As this example shows, this pattern leaves a fairly big code footprint in a web component.
+But, this pattern easily combines with EventComposition and IsolatedFunctionalMixin.
+To create excellent GestureMixins, such as the ones in 
+[Chapter 5 Gesture mixins](../chapter5/Mixin1_DragFlingGesture.md).
 
 The pattern InvadeAndRetreat handles [conflicting gestures](Discussion_conflicting_gestures.md).
-
-
-The pattern:
-1) I have one start composed event that I listen for. The main events, the stiring, 
-is not activated.
-2) Only when the composed event starts do I add the event listener for the rest of the event.
-Now, and only now, is the full scope of the composed event relevant.
-3) When I know that my composed event has started, When relevant, I go full in, I invade. 
-I listen for subsequent events on the window, so I am 100% sure I capture all of them.
-At this time, I can also turn off other responses to these events, so that they cannot interfere 
-with my composed event.
-This maximum capturering of events and maximum block of events in subsequent event handling,
-can be considered a temporary invasion.
-4) Once the sequence of my composed event/gesture is complete, we do a full retreat.
-We put everything back into place and go out, like we were never there.
-
-## Native composed events and gestures                      
-
-Some composed events you know already.
-Click, drag to scroll on mobile, etc.
-All these are composed events.
-
-
-In our soup kitchen, "When Relevant, Invade!" would be equivalent to by default use the knife 
-to stir the soup. Then, in short episodes, 
-1. take the knife out, 
-2. concentrate and quickly chop up one vegetable completely, and 
-3. to back to stiring the soup with the knife.
-
-
-
-
