@@ -1,6 +1,6 @@
 # DragFlingGesture
 The purpose of `DragFlingGesture` is to add a dragging and fling events to an element.
-The `DragFlingGesture` is built using the [EventComposition](../chapter2/Pattern4_EventComposition.md) and 
+The `DragFlingGesture` is built using the [EventComposition](Pattern4_EventComposition.md) and 
 [FunctionalMixin](../chapter2/Pattern2_FunctionalMixin.md) patterns.
 The `DragFlingGesture` **depends on pointerevents**.
 

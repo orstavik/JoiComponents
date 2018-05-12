@@ -2,7 +2,7 @@
 `PinchGesture` adds support for pinch, expand and rotate gestures to a custom element.
 `PinchGesture` translates two-finger touch events into a series of pinch-events.
 
-The `PinchGesture` is built using the [EventComposition](../chapter2/Pattern4_EventComposition.md) and 
+The `PinchGesture` is built using the [EventComposition](Pattern4_EventComposition.md) and 
 [FunctionalMixin](../chapter2/Pattern2_FunctionalMixin.md) patterns. 
 It translates a sequence of `touchstart`, `touchmove` and `touchend` events into a series of 
 pinch events.

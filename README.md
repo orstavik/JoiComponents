@@ -37,9 +37,9 @@ explain that custom elements with content in the lightDom should be considered a
 ## Chapter 2: JS Patterns for generic web components
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
-3. [EventComposition](book/chapter2/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
-4. [Discussion: conflicting gestures](book/chapter2/Discussion_conflicting_gestures.md) (such as gestures, clicks, drag)
-5. [InvadeAndRetreat!](book/chapter2/Pattern5_InvadeAndRetreat.md)
+3. [EventComposition](book/chapter4/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
+4. [Discussion: conflicting gestures](book/chapter4/Discussion_conflicting_gestures.md) (such as gestures, clicks, drag)
+5. [InvadeAndRetreat!](book/chapter4/Pattern5_InvadeAndRetreat.md)
 6. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md) (such as gestures, clicks, drag)
 
 ## Chapter 3: Lifecycle mixins (generic custom element)
@@ -49,15 +49,15 @@ explain that custom elements with content in the lightDom should be considered a
 * [.enterViewCallback()](book/chapter3/Mixin5_EnterViewMixin.md)
 
 ## Chapter 4: Patterns for HTML Composition
-1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
-2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
-3. [HelicopterParents (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParent.md)
-4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
+1. [Introduction: HTML is list](book/chapter5/Intro_HTML-Lists.md)
+2. [OrphanElements (`<ul-li>`)](book/chapter5/Pattern1_OrphanElements.md)
+3. [HelicopterParents (`<ol>+<li>`)](book/chapter5/Pattern2_HelicopterParent.md)
+4. [CulDeSacElements (`<img>`)](book/chapter5/Pattern3_CulDeSacElements.md)
 
 ## Chapter 5: Composed events mixins (Gestures and other conventional events)
-* [DraggingEventMixin](book/chapter5/Mixin1_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
-* [SwipeEventMixin](book/chapter5/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-* [PinchEventMixin](book/chapter5/Mixin3_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
+* [DraggingEventMixin](book/chapter4/Mixin1_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
+* [SwipeEventMixin](book/chapter4/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
+* [PinchEventMixin](book/chapter4/Mixin3_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
 
 ## Chapter 6: Style                                   
 1. [`this.style` is best](book/chapter6/Pattern1_this_style_rocks.md) 
