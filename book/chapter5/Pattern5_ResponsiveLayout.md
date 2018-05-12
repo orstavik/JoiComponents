@@ -120,7 +120,7 @@ to be minimum 500px wide.
 
 The tag `<meta name="viewport" content="width=device-width">` is also used to [disable the 
 native double-tap to zoom gesture](https://developers.google.com/web/updates/2013/12/300ms-tap-delay-gone-away).
-For more on this see [Conflicting gestures](../chapter4/Discussion_conflicting_gestures.md).
+For more on this see [Conflicting gestures](../chapter3/Discussion_conflicting_gestures.md).
 
 <!--- 
 1. Make a v2 of the example that adds custom zoom behavior

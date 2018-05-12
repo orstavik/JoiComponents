@@ -5,7 +5,7 @@ Often, the task of finding out **when** the reactive method should be triggered 
 This fills the component with trivial code that obfuscates the rest of the element logic.
 * The task of listening for the external trigger event can be made more efficient if it is 
 coordinated for all the components of this type (such as in 
-[ChildrenChangedMixin](../chapter3/Mixin1_ChildrenChangedMixin.md) and [SizeChangedMixin](../chapter3/Mixin2_SizeChangedMixin.md)).
+[ChildrenChangedMixin](Mixin1_ChildrenChangedMixin.md) and [SizeChangedMixin](Mixin2_SizeChangedMixin.md)).
 
 If the "listen-to" functionality of a ReactiveMethod balloons, 
 then you likely want to split this functionality out as a separate functional mixin. 

@@ -1,13 +1,13 @@
 # Web component design patterns
 ## The native web components cookbook
-"The web component design patterns" (WC patterns) is a set of recipes for developing simple and reusable web components. 
-WC Patterns does not rely on any framework: all patterns are intended to run natively on any browser 
-that supports the whatwg HTML spec for web components and vanilla es6. However, although different 
-frameworks might require a different mode of implementation, most of the patterns described here should
-be relevant for developers using other frameworks.
+"The web component design patterns" is a set of recipes for developing simple and reusable web components. 
+This book does not rely on any framework: all patterns are intended to run natively on any browser 
+that supports the whatwg HTML spec for web components and vanilla es6. 
+However, although different frameworks might require a different mode of implementation, 
+most of the patterns described here should be relevant for developers using other frameworks.
 
 WC patterns consists of two types of recipes:
-* patterns that explain how to build web components
+* patterns that explain how to build web components and
 * isolated functional mixins that both explain and implement a few key, frequent use-cases.
 
 The isolated functional mixins presented do **not** make a framework. 
@@ -18,10 +18,6 @@ Hence, every mixin therefore has no other dependencies than itself and the (poly
 So, if you want to test the mixins directly, go right ahead (and use them via rawgit.com or unpkg.com). 
 If you want to copy them into your web component and/or adapt them to fit your need, do so freely.
 
-In this book, the web component design patterns will:
-1. first exemplify how to define custom elements in JS, and then 
-2. second exemplify how to use those definitions from HTML or JS.
-
 ## Chapter 1: How to build (and polyfill) an app using web components?
 1. [How to define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
 2. [Different strategies to create a shadowDom](book/chapter1/Pattern2_shadowDom.md)
@@ -30,42 +26,39 @@ In this book, the web component design patterns will:
 4. [Attribute reaction](book/chapter1/Pattern6_AttributeReaction.md)
 <!---
 5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
-
 explain that custom elements with content in the lightDom should be considered app-specific components.
 -->
 
-## Chapter 2: JS Patterns for generic web components
+## Chapter 2: JS Patterns for generic web components and HTMLElement lifecycle mixins
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
-3. [EventComposition](book/chapter4/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
-4. [Discussion: conflicting gestures](book/chapter4/Discussion_conflicting_gestures.md) (such as gestures, clicks, drag)
-5. [InvadeAndRetreat!](book/chapter4/Pattern5_InvadeAndRetreat.md)
-6. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md) (such as gestures, clicks, drag)
+3. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
+4. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md) (such as gestures, clicks, drag)
+5. [.childrenChangedCallback()](book/chapter2/Mixin1_ChildrenChangedMixin.md)
+6. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
+7. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
 
-## Chapter 3: Lifecycle mixins (generic custom element)
-* [.childrenChangedCallback()](book/chapter3/Mixin1_ChildrenChangedMixin.md)
-* [.sizeChangedCallback()](book/chapter3/Mixin2_SizeChangedMixin.md)
-* [.firstConnectedCallback()](book/chapter3/Mixin4_FirstConnectedMixin.md)
-* [.enterViewCallback()](book/chapter3/Mixin5_EnterViewMixin.md)
+## Chapter 3: ComposedEvents and Gestures in JS
+1. [EventComposition](book/chapter3/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
+2. [Discussion: conflicting gestures](book/chapter3/Discussion_conflicting_gestures.md) (such as gestures, clicks, drag)
+3. [InvadeAndRetreat!](book/chapter3/Pattern5_InvadeAndRetreat.md)
+4. [DraggingEventMixin](book/chapter3/Mixin1_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
+5. [SwipeEventMixin](book/chapter3/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
+6. [PinchEventMixin](book/chapter3/Mixin3_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
 
 ## Chapter 4: Patterns for HTML Composition
-1. [Introduction: HTML is list](book/chapter5/Intro_HTML-Lists.md)
-2. [OrphanElements (`<ul-li>`)](book/chapter5/Pattern1_OrphanElements.md)
-3. [HelicopterParents (`<ol>+<li>`)](book/chapter5/Pattern2_HelicopterParent.md)
-4. [CulDeSacElements (`<img>`)](book/chapter5/Pattern3_CulDeSacElements.md)
+1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
+2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
+3. [HelicopterParents (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParent.md)
+4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
 
-## Chapter 5: Composed events mixins (Gestures and other conventional events)
-* [DraggingEventMixin](book/chapter4/Mixin1_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
-* [SwipeEventMixin](book/chapter4/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-* [PinchEventMixin](book/chapter4/Mixin3_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
-
-## Chapter 6: Style                                   
-1. [`this.style` is best](book/chapter6/Pattern1_this_style_rocks.md) 
-2. [Style with `:host()`](book/chapter6/Pattern2_host_with_style.md) 
-3. [CSS variables](book/chapter6/Pattern3_css_variables.md) 
-4. [Compound elements, replace CSS pseudo elements](book/chapter6/Pattern4_css_pseudo_elements.md) 
-5. [ResponsiveLayout, extend CSS media queries](book/chapter6/Pattern5_ResponsiveLayout.md)
-6. [Discussion about CSS pseudo elements and CSS media queries](book/chapter6/Discussion_mediaqueries_pseudoelements.md) 
+## Chapter 5: Style                                   
+1. [`this.style` is best](book/chapter5/Pattern1_this_style_rocks.md) 
+2. [Style with `:host()`](book/chapter5/Pattern2_host_with_style.md) 
+3. [CSS variables](book/chapter5/Pattern3_css_variables.md) 
+4. [Compound elements, replace CSS pseudo elements](book/chapter5/Pattern4_css_pseudo_elements.md) 
+5. [ResponsiveLayout, extend CSS media queries](book/chapter5/Pattern5_ResponsiveLayout.md)
+6. [Discussion about CSS pseudo elements and CSS media queries](book/chapter5/Discussion_mediaqueries_pseudoelements.md) 
 <!---
 7. Discussion. Coherence and style
 * How to handle app-wide styling. Local coherence (cohesion), thematic coherence, global coherence.

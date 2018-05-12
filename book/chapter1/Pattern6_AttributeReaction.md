@@ -176,7 +176,7 @@ manner to set/unset the attribute as depicted (b).
 
 ### How to avoid overwriting user-defined attributes?
 Attributes on HTML elements can be set at many different times in an elements lifecycle:
-1. at creation-time (HTML template by the page author, *not* js `constructor()` [cf. mixin 4 firstConnectedCallback](../chapter3/Mixin4_FirstConnectedMixin.md)),
+1. at creation-time (HTML template by the page author, *not* js `constructor()` [cf. mixin 4 firstConnectedCallback](../chapter2/Mixin4_FirstConnectedMixin.md)),
 2. at connection-time (js `connectedCallback()`), or
 3. at run-time (js dynamically changed from inside or outside the element).
 
