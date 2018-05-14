@@ -33,10 +33,10 @@ explain that custom elements with content in the lightDom should be considered a
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
 3. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
-4. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md) (such as gestures, clicks, drag)
-5. [.childrenChangedCallback()](book/chapter2/Mixin1_ChildrenChangedMixin.md)
-6. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
-7. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
+4. [.childrenChangedCallback()](book/chapter2/Mixin1_ChildrenChangedMixin.md)
+5. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
+6. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
+7. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
 
 ## Chapter 3: ComposedEvents and Gestures in JS
 1. [EventComposition](book/chapter3/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
@@ -49,8 +49,33 @@ explain that custom elements with content in the lightDom should be considered a
 ## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
 2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
-3. [HelicopterParents (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParent.md)
+3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
 4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
+<!-- 
+5. DoubleDown or EvilTwin or MiniMe - how to mirror parts of a DOM branch? 
+DOM in attributes, or from the content of the children? Attributes.
+This pattern is based on top of the HelicopterParentChild.
+A. You need info about a group of elements in two separate branches of the DOM.
+Add a custom attribute or two to the element, pick them up and make a new DOM tree from it.
+This second tree is non-composeable, only ONE of the subtrees can be composed.
+
+-->
+
+
+<!--
+A. Polymer BaseElement with just mapping properties to attributes.
+B. LitElement and its ._render() method.
+
+Put A and B in the chapter 1?
+
+Y. Lazy-img 
+Dont know where to put this one. :Chapter on use-case examples??
+Element to wrap methods for lazy-loading image. 
+Sometimes, this needs to be inlined. But often not, only loaded first.
+Look at the lighthouse presentation Google/IO
+
+
+-->
 
 ## Chapter 5: Style                                   
 1. [`this.style` is best](book/chapter5/Pattern1_this_style_rocks.md) 
