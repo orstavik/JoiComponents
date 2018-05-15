@@ -28,6 +28,11 @@ If you want to copy them into your web component and/or adapt them to fit your n
 5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
 explain that custom elements with content in the lightDom should be considered app-specific components.
 -->
+## Chapter 6: How to polyfill web components?
+1. [Introduction: What's a polyfill?](book/chapter6/Intro_Polyfills.md)
+2. [FeatureDetection](book/chapter6/Pattern1_FeatureDetection.md)
+3. [Dynamically loading scripts](book/chapter6/Pattern2_LoadScript.md)
+4. [QueAndRecallFunctions](book/chapter6/Pattern3_QueAndRecallFunctions.md)
 
 ## Chapter 2: JS Patterns for generic web components and HTMLElement lifecycle mixins
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
@@ -48,18 +53,11 @@ explain that custom elements with content in the lightDom should be considered a
 
 ## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
-2. [OrphanElements (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
+2. [FosterParentChild (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
 3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
 4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
-<!-- 
-5. DoubleDown or EvilTwin or MiniMe - how to mirror parts of a DOM branch? 
-DOM in attributes, or from the content of the children? Attributes.
-This pattern is based on top of the HelicopterParentChild.
-A. You need info about a group of elements in two separate branches of the DOM.
-Add a custom attribute or two to the element, pick them up and make a new DOM tree from it.
-This second tree is non-composeable, only ONE of the subtrees can be composed.
-
--->
+<!--5. [MiniMe (`<book>`)](book/chapter4/Pattern4_MiniMe.md)-->
+<!--6. [KeepItLight (`<book>`)](book/chapter4/Pattern5_KeepItLight.md)-->
 
 
 <!--
