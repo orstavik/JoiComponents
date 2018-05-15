@@ -1,0 +1,12 @@
+<!-- load webcomponents bundle, which includes all the necessary polyfills -->
+<!--<script src="webcomponents-bundle.js"></script>-->
+<script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js"></script>
+
+<script type="module">
+  import {MyElement} from "./my-element.js";
+  customElements.define("my-element", MyElement);
+</script>
+
+<!-- use the element -->
+<my-element></my-element>
+
