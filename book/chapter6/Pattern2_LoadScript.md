@@ -1,6 +1,6 @@
-# Pattern 2: LoadScriptAsync and LoadScriptSync
+# Pattern 2: DynamicallyLoadScript
 
-## Pattern 2a: LoadScriptAsync
+## Pattern 2a: DynamicallyLoadScriptAsync
 In order to load a script **async**hronously you:
 1. create a new `<script>` element,
 2. add the link to the polyfill as this `<script>` elements `src`, and
@@ -19,7 +19,7 @@ function loadScriptAsync(url, onLoadFn) {
   document.head.appendChild(script);
 }
 ```
-## Pattern 2b: LoadScriptSync
+## Pattern 2b: DynamicallyLoadScriptSync
 To load a script **sync**hronously is very similar to loading a script asynchronously.
 First, you make a `<script>` with a `src` link as in the previous example.
 But then, instead of appending the `<script>` to the document `<head>`, 
@@ -102,9 +102,6 @@ not an underlying dependency is present, and
 so even apps that load polyfills sync can benefit from queing and re-calling functions that 
 depend on the polyfill regardless. 
 
-### Example 1: FeatureDetect and load a polyfill *async*
-### Example 2: FeatureDetect and load a polyfill *sync*
-Once the need for a polyfill is detected, you can download and install the polyfill.
 
 
 ### References

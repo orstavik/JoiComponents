@@ -1,4 +1,4 @@
-# Pattern 3: QueAndRecallFunctions
+# Pattern: QueAndRecallFunctions
 
 To que and recall function calls are done like this:
 1. A list for the function que is set up.
