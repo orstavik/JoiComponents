@@ -1,7 +1,5 @@
 # Pattern: FeatureDetection (for web components APIs) FeatureDetectAndPolyfill
 
-### PartialPattern 1: 
-
 **Feature detection** by itself is straightforward and simple.
 1. You identify which features you need. 
 In the case of web components, you need Custom Elements, Shadow DOM, and HTML Templates
