@@ -62,8 +62,8 @@
   document.write(newScript.outerHTML);
   document.addEventListener('DOMContentLoaded', function () {
     window.WebComponents3.bootstrapTemplatePolyfill();
-    window.WebComponents1.flushWaitingFunctions().then(
-      window.WebComponents2.restartCustomElementsPolyfill
-    );
+    window.WebComponents1.flushWaitingFunctions().then(function(){
+      window.WebComponents2.restartCustomElementsPolyfill();
+    });
   });
 })();
