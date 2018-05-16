@@ -25,6 +25,7 @@
     document.write(newScript.outerHTML);
   }
 
+  window.WebComponentsPolyMode = "sync";
   window.WebComponents = {
     waitFor: function (waitFn) {
       if (!waitFn)
@@ -104,16 +105,29 @@
   if (SD && CE /*&& ES6 && TE*/) {                //any browser that support SD and CE, also support ES6 and TE
     window.WebComponents.flushWaitingFunctions();
   } else if (!ES6 || !TE) {       // NOTE: any browser that does not have template or ES6 features must load the full suite of polyfills.
-    // loadScriptAsync(wcBase + "webcomponents-sd-ce.js", function(){window.WebComponents.bootstrapTemplatePolyfill();window.WebComponents.flushWaitingFunctions();});
-    loadScriptSync(wcBase + "webcomponents-sd-ce.js", "window.WebComponents.bootstrapTemplatePolyfill();window.WebComponents.flushWaitingFunctions();");
+    window.WebComponentsPolyMode === "async" ?
+      loadScriptAsync(wcBase + "webcomponents-sd-ce.js", function () {
+        window.WebComponents.bootstrapTemplatePolyfill();
+        window.WebComponents.flushWaitingFunctions();
+      }) :
+      loadScriptSync(wcBase + "webcomponents-sd-ce.js", "window.WebComponents.bootstrapTemplatePolyfill();window.WebComponents.flushWaitingFunctions();");
   } else if (!SD && !CE) {
-    // loadScriptAsync(wcBase + "webcomponents-sd-ce.js", function(){window.WebComponents.flushWaitingFunctions();});
-    loadScriptSync(wcBase + "webcomponents-sd-ce.js", "window.WebComponents.flushWaitingFunctions();");
+    window.WebComponentsPolyMode === "async" ?
+      loadScriptAsync(wcBase + "webcomponents-sd-ce.js", function () {
+        window.WebComponents.flushWaitingFunctions();
+      }) :
+      loadScriptSync(wcBase + "webcomponents-sd-ce.js", "window.WebComponents.flushWaitingFunctions();");
   } else if (!SD) {
-    // loadScriptAsync(wcBase + "webcomponents-sd.js", function(){window.WebComponents.flushWaitingFunctions();});
-    loadScriptSync(wcBase + "webcomponents-sd.js", "window.WebComponents.flushWaitingFunctions();");
+    window.WebComponentsPolyMode === "async" ?
+      loadScriptAsync(wcBase + "webcomponents-sd.js", function () {
+        window.WebComponents.flushWaitingFunctions();
+      }) :
+      loadScriptSync(wcBase + "webcomponents-sd.js", "window.WebComponents.flushWaitingFunctions();");
   } else if (!CE) {
-    // loadScriptAsync(wcBase + "webcomponents-ce.js", function(){window.WebComponents.flushWaitingFunctions();});
-    loadScriptSync(wcBase + "webcomponents-ce.js", "window.WebComponents.flushWaitingFunctions();");
+    window.WebComponentsPolyMode === "async" ?
+      loadScriptAsync(wcBase + "webcomponents-ce.js", function () {
+        window.WebComponents.flushWaitingFunctions();
+      }) :
+      loadScriptSync(wcBase + "webcomponents-ce.js", "window.WebComponents.flushWaitingFunctions();");
   }
 })();
