@@ -11,18 +11,15 @@
 (function () {
   'use strict';
 
-  function onAsyncLoad() {
-    window.WebComponents2.pauseCustomElementsPolyfill();
+  function onAsyncLoadWithTE() {
     window.WebComponents3.bootstrapTemplatePolyfill();
-    window.WebComponents1.flushWaitingFunctions().then(function () {
-      window.WebComponents2.restartCustomElementsPolyfill();
-    });
+    window.WebComponents1.flushWaitingFunctions();
   }
 
-  function extracted(url, onAsyncLoad) {
+  function loadScriptAsync(url, onAsyncLoad) {
     var newScript = document.createElement('script');
     newScript.src = url;
-    newScript.addEventListener('load', onAsyncLoad);
+    onAsyncLoad && newScript.addEventListener('load', onAsyncLoad);
     document.head.append(newScript);
   }
 
@@ -39,11 +36,15 @@
     },
     _waitingFunctions: [],
     flushWaitingFunctions: function () {
-      var tmp = window.WebComponents1._waitingFunctions;
-      window.WebComponents1._waitingFunctions = undefined;
-      return Promise.all(tmp.map(function (fn) {
+      window.WebComponents2.pauseCustomElementsPolyfill();
+      return Promise.all(window.WebComponents1._waitingFunctions.map(function (fn) {
         return fn instanceof Function ? fn() : fn;
-      }));
+      })).then(function () {
+        window.WebComponents1._waitingFunctions = undefined;
+        window.WebComponents2.restartCustomElementsPolyfill();
+      }).catch(function (err) {
+        console.error(err);
+      });
     }
   };
 
@@ -71,5 +72,5 @@
   };
 
   var url = "https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/webcomponents-sd-ce.js";
-  extracted(url, onAsyncLoad);
+  loadScriptAsync(url, window.WebComponents1.flushWaitingFunctions);
 })();
