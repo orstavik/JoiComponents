@@ -25,7 +25,6 @@
     document.write(newScript.outerHTML);
   }
 
-  window.WebComponentsPolyMode = "sync";
   window.WebComponents = {
     waitFor: function (waitFn) {
       if (!waitFn)
@@ -113,21 +112,15 @@
       loadScriptSync(wcBase + "webcomponents-sd-ce.js", "window.WebComponents.bootstrapTemplatePolyfill();window.WebComponents.flushWaitingFunctions();");
   } else if (!SD && !CE) {
     window.WebComponentsPolyMode === "async" ?
-      loadScriptAsync(wcBase + "webcomponents-sd-ce.js", function () {
-        window.WebComponents.flushWaitingFunctions();
-      }) :
+      loadScriptAsync(wcBase + "webcomponents-sd-ce.js", window.WebComponents.flushWaitingFunctions) :
       loadScriptSync(wcBase + "webcomponents-sd-ce.js", "window.WebComponents.flushWaitingFunctions();");
   } else if (!SD) {
     window.WebComponentsPolyMode === "async" ?
-      loadScriptAsync(wcBase + "webcomponents-sd.js", function () {
-        window.WebComponents.flushWaitingFunctions();
-      }) :
+      loadScriptAsync(wcBase + "webcomponents-sd.js", window.WebComponents.flushWaitingFunctions) :
       loadScriptSync(wcBase + "webcomponents-sd.js", "window.WebComponents.flushWaitingFunctions();");
   } else if (!CE) {
     window.WebComponentsPolyMode === "async" ?
-      loadScriptAsync(wcBase + "webcomponents-ce.js", function () {
-        window.WebComponents.flushWaitingFunctions();
-      }) :
+      loadScriptAsync(wcBase + "webcomponents-ce.js", window.WebComponents.flushWaitingFunctions) :
       loadScriptSync(wcBase + "webcomponents-ce.js", "window.WebComponents.flushWaitingFunctions();");
   }
 })();
