@@ -11,11 +11,6 @@
 (function () {
   'use strict';
 
-  function onAsyncLoadWithTE() {
-    window.WebComponents3.bootstrapTemplatePolyfill();
-    window.WebComponents1.flushWaitingFunctions();
-  }
-
   function loadScriptAsync(url, onAsyncLoad) {
     var newScript = document.createElement('script');
     newScript.src = url;
@@ -27,16 +22,15 @@
     var newScript = document.createElement('script');
     newScript.src = url;
     onAsyncLoadAsString && newScript.setAttribute("onload", onAsyncLoadAsString);
-    // newScript.addEventListener('load', onAsyncLoad);
     document.write(newScript.outerHTML);
   }
 
-  window.WebComponents1 = {
+  window.WebComponents = {
     waitFor: function (waitFn) {
       if (!waitFn)
         return;
-      if (window.WebComponents1._waitingFunctions) {
-        window.WebComponents1._waitingFunctions.push(waitFn);
+      if (window.WebComponents._waitingFunctions) {
+        window.WebComponents._waitingFunctions.push(waitFn);
       } else if (waitFn instanceof Function) {
         waitFn();
         customElements.upgrade(document);
@@ -44,19 +38,16 @@
     },
     _waitingFunctions: [],
     flushWaitingFunctions: function () {
-      window.WebComponents2.pauseCustomElementsPolyfill();
-      return Promise.all(window.WebComponents1._waitingFunctions.map(function (fn) {
+      window.WebComponents.pauseCustomElementsPolyfill();
+      return Promise.all(window.WebComponents._waitingFunctions.map(function (fn) {
         return fn instanceof Function ? fn() : fn;
       })).then(function () {
-        window.WebComponents1._waitingFunctions = undefined;
-        window.WebComponents2.restartCustomElementsPolyfill();
+        window.WebComponents._waitingFunctions = undefined;
+        window.WebComponents.restartCustomElementsPolyfill();
       }).catch(function (err) {
         console.error(err);
       });
-    }
-  };
-
-  window.WebComponents2 = {
+    },
     pauseCustomElementsPolyfill: function () {
       if (window.customElements && customElements.polyfillWrapFlushCallback)
         customElements.polyfillWrapFlushCallback(function () {
@@ -69,10 +60,7 @@
       customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
         originalFlushCallback();
       });
-    }
-  };
-
-  window.WebComponents3 = {
+    },
     bootstrapTemplatePolyfill: function () {
       if (window.HTMLTemplateElement && HTMLTemplateElement.bootstrap)
         HTMLTemplateElement.bootstrap(window.document);
@@ -80,6 +68,11 @@
   };
 
   var url = "https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/webcomponents-sd-ce.js";
-  loadScriptAsync(url, window.WebComponents1.flushWaitingFunctions);
-  // loadScriptSync(url, "window.WebComponents1.flushWaitingFunctions()");
+  // loadScriptAsync(url, function(){window.WebComponents.flushWaitingFunctions();});
+  loadScriptSync(url, "window.WebComponents.flushWaitingFunctions();");
+
+  // function onAsyncLoadWithTE() {
+  //   window.WebComponents.bootstrapTemplatePolyfill();
+  //   window.WebComponents.flushWaitingFunctions();
+  // }
 })();
