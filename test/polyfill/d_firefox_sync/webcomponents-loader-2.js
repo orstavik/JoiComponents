@@ -32,14 +32,14 @@
   window.WebComponents2 = {
     _pausedCustomElementsFlushFn: undefined,
     pauseCustomElementsPolyfill: function () {
-      if (!window.customElements || !customElements.polyfillWrapFlushCallback)
-        return;
-      customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
-        window.WebComponents2._pausedCustomElementsFlushFn = originalFlushCallback;
-      });
+      if (window.customElements && customElements.polyfillWrapFlushCallback) {
+        customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
+          window.WebComponents2._pausedCustomElementsFlushFn = originalFlushCallback;
+        });
+      }
     },
     restartCustomElementsPolyfill: function () {
-      if (!window.customElements || !customElements.polyfillWrapFlushCallback || !window.WebComponents2._pausedCustomElementsFlushFn)
+      if (!window.customElements || !customElements.polyfillWrapFlushCallback)
         return;
       window.WebComponents2._pausedCustomElementsFlushFn && window.WebComponents2._pausedCustomElementsFlushFn();
       window.WebComponents2._pausedCustomElementsFlushFn = undefined;
@@ -62,7 +62,7 @@
   document.write(newScript.outerHTML);
   document.addEventListener('DOMContentLoaded', function () {
     window.WebComponents3.bootstrapTemplatePolyfill();
-    window.WebComponents1.flushWaitingFunctions().then(function(){
+    window.WebComponents1.flushWaitingFunctions().then(function () {
       window.WebComponents2.restartCustomElementsPolyfill();
     });
   });

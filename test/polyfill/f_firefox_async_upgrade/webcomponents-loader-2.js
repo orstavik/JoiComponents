@@ -11,8 +11,9 @@
 (function () {
   'use strict';
 
-  function doYourThing(){
+  function doYourThing() {
     console.log("boo");
+
     class MyElement extends HTMLElement {
       connectedCallback() {
         this.style.display = "block";
@@ -22,11 +23,11 @@
         this.style.backgroundColor = "orange";
       }
     }
-    window.WebComponents1.waitFor(()=>
+
+    window.WebComponents1.waitFor(() =>
       customElements.define("my-element", MyElement)
     );
   }
-
 
 
   window.WebComponents1 = {
@@ -34,7 +35,7 @@
       if (!waitFn)
         return;
       if (!window.WebComponents1._waitingFunctions)
-        return waitFn instanceof Function ? waitFn() : waitFn;
+        return waitFn instanceof Function ? (waitFn(), customElements.upgrade(document)) : waitFn;
       window.WebComponents1._waitingFunctions.push(waitFn);
     },
     _waitingFunctions: [],
@@ -48,19 +49,15 @@
   };
 
   window.WebComponents2 = {
-    _pausedCustomElementsFlushFn: undefined,
+    // _pausedCustomElementsFlushFn: undefined,
     pauseCustomElementsPolyfill: function () {
-      if (!window.customElements || !customElements.polyfillWrapFlushCallback)
-        return;
-      customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
-        window.WebComponents2._pausedCustomElementsFlushFn = originalFlushCallback;
-      });
+      if (window.customElements && customElements.polyfillWrapFlushCallback)
+        customElements.polyfillWrapFlushCallback(function () {});
     },
     restartCustomElementsPolyfill: function () {
       if (!window.customElements || !customElements.polyfillWrapFlushCallback)
         return;
-      window.WebComponents2._pausedCustomElementsFlushFn && window.WebComponents2._pausedCustomElementsFlushFn();
-      // window.WebComponents2._pausedCustomElementsFlushFn = undefined;
+      customElements.upgrade(document);
       customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
         originalFlushCallback();
       });
@@ -80,14 +77,14 @@
   newScript.addEventListener('load', function () {
     // doYourThing();                 //OK
     window.WebComponents2.pauseCustomElementsPolyfill();
-    doYourThing();              //OK
+    // doYourThing();              //OK
     window.WebComponents3.bootstrapTemplatePolyfill();
-    window.WebComponents1.flushWaitingFunctions().then(function(){
+    window.WebComponents1.flushWaitingFunctions().then(function () {
       window.WebComponents2.restartCustomElementsPolyfill();
-      // doYourThing();             //BROKEN, no error msg no update of the view
+      // doYourThing();             //OK, after adding the customElements.upgrade(document);
     });
     // doYourThing();            //OK
-    // setTimeout(doYourThing, 1000);   //BROKEN, no error msg no update of the view
+    // setTimeout(doYourThing, 1000);  //OK, after adding the customElements.upgrade(document);
   });
   document.head.append(newScript);
   // doYourThing();        //BROKEN, Illegal constructor
