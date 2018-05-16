@@ -25,10 +25,7 @@
       this._waitingFunctions = undefined;
       return Promise.all(tmp.map(function (fn) {
         return fn instanceof Function ? fn() : fn;
-      })).then(function () {
-      }).catch(function (err) {
-        console.error(err);
-      });
+      }));
     }
   };
 
@@ -49,7 +46,10 @@
       customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
         originalFlushCallback();
       });
-    },
+    }
+  };
+
+  window.WebComponents3 = {
     bootstrapTemplatePolyfill: function () {
       if (window.HTMLTemplateElement && HTMLTemplateElement.bootstrap)
         HTMLTemplateElement.bootstrap(window.document);
@@ -61,8 +61,9 @@
   newScript.setAttribute('onload', 'window.WebComponents2.pauseCustomElementsPolyfill()');
   document.write(newScript.outerHTML);
   document.addEventListener('DOMContentLoaded', function () {
-    window.WebComponents2.bootstrapTemplatePolyfill();
-    window.WebComponents1.flushWaitingFunctions();
-    window.WebComponents2.restartCustomElementsPolyfill();
+    window.WebComponents3.bootstrapTemplatePolyfill();
+    window.WebComponents1.flushWaitingFunctions().then(
+      window.WebComponents2.restartCustomElementsPolyfill
+    );
   });
 })();
