@@ -17,13 +17,13 @@
     pauseCustomElementsPolyfill: function () {
       if (!window.customElements || !customElements.polyfillWrapFlushCallback)
         customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
-          this._pausedCustomElementsFlushFn = originalFlushCallback;
+          window.WebComponents._pausedCustomElementsFlushFn = originalFlushCallback;
         });
     },
     restartCustomElementsPolyfill: function() {
       if (!window.customElements || !customElements.polyfillWrapFlushCallback)
         return;
-      pausedFlushFn && pausedFlushFn();
+      window.WebComponents._pausedCustomElementsFlushFn && window.WebComponents._pausedCustomElementsFlushFn();
       customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
         originalFlushCallback();
       });

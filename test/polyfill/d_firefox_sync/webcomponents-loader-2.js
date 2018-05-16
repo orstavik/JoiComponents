@@ -15,14 +15,14 @@
     waitFor: function (waitFn) {
       if (!waitFn)
         return;
-      if (!this._waitingFunctions)
+      if (!window.WebComponents1._waitingFunctions)
         return waitFn instanceof Function ? waitFn() : waitFn;
-      this._waitingFunctions.push(waitFn);
+      window.WebComponents1._waitingFunctions.push(waitFn);
     },
     _waitingFunctions: [],
     flushWaitingFunctions: function () {
-      var tmp = this._waitingFunctions;
-      this._waitingFunctions = undefined;
+      var tmp = window.WebComponents1._waitingFunctions;
+      window.WebComponents1._waitingFunctions = undefined;
       return Promise.all(tmp.map(function (fn) {
         return fn instanceof Function ? fn() : fn;
       }));
@@ -35,14 +35,14 @@
       if (!window.customElements || !customElements.polyfillWrapFlushCallback)
         return;
       customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
-        this._pausedCustomElementsFlushFn = originalFlushCallback;
+        window.WebComponents2._pausedCustomElementsFlushFn = originalFlushCallback;
       });
     },
     restartCustomElementsPolyfill: function () {
-      if (!window.customElements || !customElements.polyfillWrapFlushCallback || !this._pausedCustomElementsFlushFn)
+      if (!window.customElements || !customElements.polyfillWrapFlushCallback || !window.WebComponents2._pausedCustomElementsFlushFn)
         return;
-      this._pausedCustomElementsFlushFn && this._pausedCustomElementsFlushFn();
-      this._pausedCustomElementsFlushFn = undefined;
+      window.WebComponents2._pausedCustomElementsFlushFn && window.WebComponents2._pausedCustomElementsFlushFn();
+      window.WebComponents2._pausedCustomElementsFlushFn = undefined;
       customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
         originalFlushCallback();
       });
