@@ -11,6 +11,24 @@
 (function () {
   'use strict';
 
+  function doYourThing(){
+    console.log("boo");
+    class MyElement extends HTMLElement {
+      connectedCallback() {
+        this.style.display = "block";
+        this.style.width = "200px";
+        this.style.height = "250px";
+        this.style.borderRadius = "50%";
+        this.style.backgroundColor = "orange";
+      }
+    }
+    window.WebComponents1.waitFor(()=>
+      customElements.define("my-element", MyElement)
+    );
+  }
+
+
+
   window.WebComponents1 = {
     waitFor: function (waitFn) {
       if (!waitFn)
@@ -24,6 +42,7 @@
       var tmp = window.WebComponents1._waitingFunctions;
       window.WebComponents1._waitingFunctions = undefined;
       return Promise.all(tmp.map(function (fn) {
+        console.log("running man");
         return fn instanceof Function ? fn() : fn;
       }));
     }
@@ -42,7 +61,7 @@
       if (!window.customElements || !customElements.polyfillWrapFlushCallback || !window.WebComponents2._pausedCustomElementsFlushFn)
         return;
       window.WebComponents2._pausedCustomElementsFlushFn && window.WebComponents2._pausedCustomElementsFlushFn();
-      window.WebComponents2._pausedCustomElementsFlushFn = undefined;
+      // window.WebComponents2._pausedCustomElementsFlushFn = undefined;
       customElements.polyfillWrapFlushCallback(function (originalFlushCallback) {
         originalFlushCallback();
       });
@@ -58,25 +77,19 @@
 
   var newScript = document.createElement('script');
   newScript.src = "https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/webcomponents-sd-ce.js";
+  // doYourThing();                  //BROKEN, Illegal constructor
   newScript.addEventListener('load', function () {
+    // doYourThing();                 //OK
     window.WebComponents2.pauseCustomElementsPolyfill();
-    class MyElement extends HTMLElement {
-      connectedCallback() {
-        this.style.display = "block";
-        this.style.width = "200px";
-        this.style.height = "250px";
-        this.style.borderRadius = "50%";
-        this.style.backgroundColor = "orange";
-      }
-    }
-    window.WebComponents1.waitFor(()=>
-      customElements.define("my-element", MyElement)
-    );
-
+    // doYourThing();              //OK
     window.WebComponents3.bootstrapTemplatePolyfill();
     window.WebComponents1.flushWaitingFunctions().then(function(){
       window.WebComponents2.restartCustomElementsPolyfill();
+      // doYourThing();             //BROKEN, no error msg
     });
+    // doYourThing();            //OK
+    // setTimeout(doYourThing, 1000);   //BROKEN, no error msg no update of the view
   });
   document.head.append(newScript);
+  // doYourThing();        //BROKEN, Illegal constructor
 })();
