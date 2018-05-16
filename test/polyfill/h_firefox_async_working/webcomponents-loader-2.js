@@ -11,12 +11,29 @@
 (function () {
   'use strict';
 
+  function onAsyncLoad() {
+    window.WebComponents2.pauseCustomElementsPolyfill();
+    window.WebComponents3.bootstrapTemplatePolyfill();
+    window.WebComponents1.flushWaitingFunctions().then(function () {
+      window.WebComponents2.restartCustomElementsPolyfill();
+    });
+  }
+
+  function extracted(url, onAsyncLoad) {
+    var newScript = document.createElement('script');
+    newScript.src = url;
+    newScript.addEventListener('load', onAsyncLoad);
+    document.head.append(newScript);
+  }
+
   window.WebComponents1 = {
     waitFor: function (waitFn) {
       if (!waitFn)
         return;
-      if (!window.WebComponents1._waitingFunctions)
-        return waitFn instanceof Function ? (waitFn(), customElements.upgrade(document)) : waitFn;
+      if (!window.WebComponents1._waitingFunctions && waitFn instanceof Function) {
+        waitFn();
+        customElements.upgrade(document);
+      }
       window.WebComponents1._waitingFunctions.push(waitFn);
     },
     _waitingFunctions: [],
@@ -32,7 +49,8 @@
   window.WebComponents2 = {
     pauseCustomElementsPolyfill: function () {
       if (window.customElements && customElements.polyfillWrapFlushCallback)
-        customElements.polyfillWrapFlushCallback(function () {});
+        customElements.polyfillWrapFlushCallback(function () {
+        });
     },
     restartCustomElementsPolyfill: function () {
       if (!window.customElements || !customElements.polyfillWrapFlushCallback)
@@ -51,14 +69,6 @@
     }
   };
 
-  var newScript = document.createElement('script');
-  newScript.src = "https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/webcomponents-sd-ce.js";
-  newScript.addEventListener('load', function () {
-    window.WebComponents2.pauseCustomElementsPolyfill();
-    window.WebComponents3.bootstrapTemplatePolyfill();
-    window.WebComponents1.flushWaitingFunctions().then(function () {
-      window.WebComponents2.restartCustomElementsPolyfill();
-    });
-  });
-  document.head.append(newScript);
+  var url = "https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/webcomponents-sd-ce.js";
+  extracted(url, onAsyncLoad);
 })();
