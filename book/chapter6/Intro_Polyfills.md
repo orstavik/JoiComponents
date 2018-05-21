@@ -1,5 +1,5 @@
 # Introduction: What's a polyfill?
-
+<!--
 This chapter is built upon all the good work of webcomponentsjs.org.
 Where webcomponentsjs.org and the polyfill community really shines is in their ethos:
 Polyfills are at the same time both inclusive and modest, both deeply powerful and widely spread.
@@ -15,7 +15,7 @@ they are a prime example of unique open-source excellence.
 Hence, in addition to providing clear recipes for adding polyfills to your web app,
 this chapter also aspires to explain the ideas behind webcompontents-loader.js.
 Again, many thanks for the great work and inspirational ethos of the polyfill community!
-
+-->
 ## What is a polyfill?
 A "polyfill" is a javascript file that patches an old 
 browser so that it can closely mimic the functionality of a new browser.                      
