@@ -1,5 +1,7 @@
 # Web component design patterns
+
 ## The native web components cookbook
+
 "The web component design patterns" is a set of recipes for developing simple and reusable web components. 
 This book does not rely on any framework: all patterns are intended to run natively on any browser 
 that supports the whatwg HTML spec for web components and vanilla es6. 
@@ -33,8 +35,9 @@ explain that custom elements with content in the lightDom should be considered a
 2. [FeatureDetection](book/chapter6/Pattern1_FeatureDetection.md)
 3. [Dynamically loading scripts](book/chapter6/Pattern2_LoadScript.md)
 4. [FeatureDetectAndPolyfill](book/chapter6/Pattern3_FeatureDetectAndPolyfill.md)
-5. [QueAndRecallFunctions](book/chapter6/Pattern4_QueAndRecallFunctions.md)
-6. [PolyfillLoader](book/chapter6/Pattern5_PolyfillLoader.md)
+5. [Batch calls to customElements polyfill](book/chapter6/Pattern4_BatchCustomElementPolyfill.md)
+5. [QueAndRecallFunctions](book/chapter6/Pattern5_QueAndRecallFunctions.md)
+6. [FeatureDetectAndPolyfillAsync](book/chapter6/Pattern6_FeatureDetectAndPolyfillAsync.md)
 
 ## Chapter 2: JS Patterns for generic web components and HTMLElement lifecycle mixins
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
