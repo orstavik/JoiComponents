@@ -1,4 +1,4 @@
-# Pattern: `this.style` is not really *my* style
+# Pattern: `this.style` is not *my* style
 
 The first thing a web component can do is to style itself.
 All HTML elements have their own default style.
@@ -8,8 +8,22 @@ All HTML elements have their own default style.
 These default style values are encapsulated in the HTML tag. 
 We want something that is `display: block` by default, that's a `<div>`.   
 We want something bold, let's wrap that in `<b>`.
+                 
+There are two ways to set the default style of a component: 
+1. using `this.style` and 
+2. adding a `<style>` tag to the shadowRoot of an element with `:host()` rules.
 
-### Example: Norwegian styled text
+The problem with the 1. approach, is that default style added under `this.style`
+will come into conflict with the style attribute of a the element in its context of use.
+That means that you either must check to make sure you are not overwriting any style rules
+set in that context by the element tag author, or be prepared to have your authors styles 
+be overwritten by the element's default style. 
+                                                                   
+Because of the possible confusion that can occur with different styles, 
+it is not recommended to use `this.style` as a mechanism to provide the default style of an element.
+Use `this.style` rather as a mechanism to provide 
+
+### Example: anti-pattern: Norwegian styled text: setting the default style using `this.style`
 ```html
 <script>  
 class NorwegianTextComponent1 extends HTMLElement {
@@ -20,10 +34,10 @@ class NorwegianTextComponent1 extends HTMLElement {
   }
   
   connectedCallback(){
-    this.style.textShadow = "-3px 0 white, 0 3px white, 3px 0 white, 0 -3px white";
-    this.style.fontWeight = "bold";
-    this.style.color = "blue";
-    this.style.background = "red";
+    this.style.textShadow = this.style.textShadow || "-3px 0 white, 0 3px white, 3px 0 white, 0 -3px white";
+    this.style.fontWeight = this.style.fontWeight || "bold";
+    this.style.color = this.style.color || "blue";
+    this.style.background = this.style.background || "red";
     
     this.shadowRoot.innerHTML = "<slot></slot>";
   }
@@ -40,11 +54,6 @@ customElements.define("norwegian-text-one", NorwegianTextComponent1);
 By associating default, custom styles to a specific type of HTML element, 
 we can encapsulate and hide the obvious properties that we associate with that element.
 `<norwegian-text-one>` is obviously blue, on white, on red. Like the flag.
-These colors can be overridden from the outside, 
-but if we split the declaration of the web component from its context of use, 
-we will have little reason to worry about the management of the text and background color.
-
-Funny point, me being defensive about the flag.
 
 ### Drawback of this.style in web components
 If you use this.style to set the style in web components, you will: 
