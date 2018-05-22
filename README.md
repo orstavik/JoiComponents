@@ -35,7 +35,7 @@ explain that custom elements with content in the lightDom should be considered a
 2. [FeatureDetection](book/chapter6/Pattern1_FeatureDetection.md)
 3. [Dynamically loading scripts](book/chapter6/Pattern2_LoadScript.md)
 4. [FeatureDetectAndPolyfill](book/chapter6/Pattern3_FeatureDetectAndPolyfill.md)
-5. [Batch calls to customElements polyfill](book/chapter6/Pattern4_BatchCustomElementPolyfill.md)
+5. [Batch calls to customElements polyfill](book/chapter6/Pattern4_BatchCustomElementUpgrades.md)
 5. [QueAndRecallFunctions](book/chapter6/Pattern5_QueAndRecallFunctions.md)
 6. [FeatureDetectAndPolyfillAsync](book/chapter6/Pattern6_FeatureDetectAndPolyfillAsync.md)
 
