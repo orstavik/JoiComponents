@@ -1,28 +1,12 @@
 # Introduction: What's a polyfill?
-<!--
-This chapter is built upon all the good work of webcomponentsjs.org.
-Where webcomponentsjs.org and the polyfill community really shines is in their ethos:
-Polyfills are at the same time both inclusive and modest, both deeply powerful and widely spread.
-Polyfills helps browsers unite into a common platform, thus 
-helping to protect the diversity of the browser community (by helping browsers either too old or 
-struggling in different areas) to catch up with the pack and stay alive.
-Polyfills also help developers by giving them a united and open standard against which to
-align their code, so as to both alleviate the suffering it can be to work against different 
-frameworks and across different development methodologies. 
-In short, polyfills make us all stronger by helping us work closer together,
-they are a prime example of unique open-source excellence.
-                                                                           
-Hence, in addition to providing clear recipes for adding polyfills to your web app,
-this chapter also aspires to explain the ideas behind webcompontents-loader.js.
-Again, many thanks for the great work and inspirational ethos of the polyfill community!
--->
+
 ## What is a polyfill?
 A "polyfill" is a javascript file that patches an old 
 browser so that it can closely mimic the functionality of a new browser.                      
 The idea is: add a couple of JS files to your web page, and 
 they will make any old browser behave as good as new.
 
-But, there are two main concerns when you need to polyfill your browsers: invasiveness and adaptation. 
+But, there are two main concerns when you need to polyfill your browsers: invasiveness and variation. 
 
 ## Polyfill problem 1: polyfills are invasive and need to be accomodated
 Most features of a browser are very tricky to polyfill.
@@ -38,7 +22,7 @@ the app that relies on polyfills must often accommodate minor differences both i
 * the use of the API, and especially 
 * the interface between the loading of the polyfill and use of the API.
 
-## Polyfill problem 2: browsers need different polyfills and so the polyfill need to adapt
+## Polyfill problem 2: browsers vary and need different polyfills
 Browsers are "old" and "new" in different areas. 
 For example, Safari 10.3+ supports customElements and shadowDom, but not JS pointerevents. 
 Edge 16 and Firefox 60 on another front supports pointerevents, but not customElements and shadowDom. 
@@ -53,6 +37,22 @@ Because different browsers need different polyfills, we are faced with a choice:
 This produces simple, short code, but causes many browsers to download many unwanted files often.
 2. **Feature detection**. Find out which polyfills you need and download only these. 
 This can greatly reduce the network traffic, but at the cost of more verbose, complex code.
+
+## How to polyfill web components?
+To use web components, you need three web component APIs: 
+CustomElements, shadowDom and HTMLTemplate. 
+Both Chrome and Safari support all three APIs (May 2018).
+Firefox supports the HTML Template API and 
+supports CustomElements and shadowDom behind a flag.
+This means that more than 2/3 of your users no longer need to polyfill web components, and
+soon this number will rise to 85%.
+
+Due to the widespread support of web components APIs, 
+most of your users no longer need any web component polyfills.
+In fact, if you choose to *polyfill always*, 
+your users will have to download at least **3x as many JS files** as if you use *feature detection*.
+This is cavalier.
+Therefore, use **feature detection** when you are polyfilling web components.
                                                                                 
 ### References
 * [webcomponentsjs](https://github.com/webcomponents/webcomponentsjs/).
@@ -73,4 +73,22 @@ this part of your web presentation would be halted while you download and proces
 The smart move, if you can, is to avoid having to rely on web components for your initial paint.
 That is likely to give you a visible front for your page much quicker, especially on a slow network.
 To do so, you must load your web component polyfills asynchronously.
+-->
+
+<!--
+This chapter is built upon all the good work of webcomponentsjs.org.
+Where webcomponentsjs.org and the polyfill community really shines is in their ethos:
+Polyfills are at the same time both inclusive and modest, both deeply powerful and widely spread.
+Polyfills helps browsers unite into a common platform, thus 
+helping to protect the diversity of the browser community (by helping browsers either too old or 
+struggling in different areas) to catch up with the pack and stay alive.
+Polyfills also help developers by giving them a united and open standard against which to
+align their code, so as to both alleviate the suffering it can be to work against different 
+frameworks and across different development methodologies. 
+In short, polyfills make us all stronger by helping us work closer together,
+they are a prime example of unique open-source excellence.
+                                                                           
+Hence, in addition to providing clear recipes for adding polyfills to your web app,
+this chapter also aspires to explain the ideas behind webcompontents-loader.js.
+Again, many thanks for the great work and inspirational ethos of the polyfill community!
 -->

@@ -40,11 +40,9 @@ MyFunctionQue.flushAndReady();    //a
 console.log("c");                 //c
 ```
 
-## Adding `Promise`s and `async` functions to the QueAndRecallFunctions
+## Adding a `Promise`/`async function` to the QueAndRecallFunctions
 The above que is simple, nice and functional. 
-But, it does not support for `async` functions.
-With the advent of `async function` and `Promise` in JS, 
-both functions and `Promise`s might be added to the function que.
+But, it does not support for `async function` nor `Promise`.
 To support this, we update the flushAndReady method to also accept and await 
 all promises before exiting.
 
@@ -73,7 +71,7 @@ window.MyFunctionQue = {
   }
 };
 ```
-Both synced and async functions can now be queued and recalled like this:
+Both sync and async functions can now be queued and recalled like this:
 
 ```javascript
 function sleep(ms) {

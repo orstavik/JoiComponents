@@ -1,4 +1,25 @@
 # Pattern: FeatureDetectAndPolyfill
+
+## Why polyfill web components sync?
+Using the pattern for feature detection, 
+we handle the variation in polyfilling for different browsers.
+Put simply, FeatureDetection solves the problem of browser variation.
+
+However, the web component polyfills are also invasive.
+When polyfilling customElements and shadowDom,
+the polyfills alter or affect many of the core DOM functions such as:
+* .innerHTML
+* todo list many of the centrally affected functions
+* .customElements.define
+
+If you run a function against the DOM, this function can produce 
+vastly different results depending on whether the polyfill has been loaded or not.
+And therefore, you most often need to ensure that your polyfill is loaded *before*
+some other function in your web app runs. 
+The simplest way to do ensure that your polyfill loads before another resource is run, is 
+to load the polyfill *sync*.
+                                                               
+## Example: FeatureDetectAndPolyfillSync web components
 Using the two patterns FeatureDetection and DynamicallyLoadScript we can compose a new pattern:
 FeatureDetectAndPolyfill. We load the polyfill script **sync**. 
 
@@ -61,7 +82,7 @@ FeatureDetectAndPolyfill. We load the polyfill script **sync**.
         connectedCallback(){
           this.style.background = "red";
           this.style.borderRadius = "50%";
-          this.style.width = "150px";
+          this.style.width = "150px";          
           this.style.height = "250px";
         }
       }
@@ -79,6 +100,25 @@ FeatureDetectAndPolyfill. We load the polyfill script **sync**.
 is run to process any `template` elements already added to the DOM before the polyfill was registered.
 If you *know* that no template elements has been added to the DOM prior to the polyfill being loaded,
 this call is not necessary.
+
+## Drawback of sync polyfills
+However, as stated earlier, the main drawback of loading a script sync, is that it will:
+* delay the rendering of later parts of the DOM, and
+* delay the running of later scripts.
+
+The most immediate cure for this ill, is to place the polyfill sync *after* the DOM template and scripts
+that you want to be handled before the polyfill.
+
+Another cure for this ill is to load the polyfill *async*.
+However, to load polyfills async is not simple. In fact, it is fairly complex. 
+It requires that all resources that depends on the async polyfill do some adaptations to que their 
+dependent code so that it is only triggered once the web components polyfill is ready, and is triggered in 
+the order likely assumed by the developer. This is tricky.
+
+However, first, we will look at the [BatchCustomElementUpgrades](Pattern4_BatchCustomElementUpgrades.md) pattern.
+This pattern makes the use of the customElements polyfill more efficient.
+Then we will look at the pattern [QueAndRecallFunctions](Pattern5_QueAndRecallFunctions.md).
+This pattern is needed to make our final pattern [FeatureDetectAndPolyfillAsync](Pattern6_FeatureDetectAndPolyfillAsync.md).
 
 ### References
 * [webcomponentsjs](https://github.com/webcomponents/webcomponentsjs/).

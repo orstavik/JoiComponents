@@ -1,13 +1,15 @@
 # Pattern 2: DynamicallyLoadScript
 
 ## Pattern 2a: DynamicallyLoadScriptAsync
-In order to load a script **async**hronously you:
-1. create a new `<script>` element,
-2. add the link to the polyfill as this `<script>` elements `src`, and
-3. append this script to the `<head>` element in the document. 
-(When you append a script to the `<head>` element, that script will be loaded **async**hronously.)
-4. add a custom callback function that will be called when the script has loaded,
-   and a generic callback function if the script fails to load.                                              
+A script can be loaded **async**hronously like this:
+1. Create a new `<script>` element.
+2. Add the link to the polyfill as this `<script>` elements `src`.
+3. Append this script to the `<head>` element in the document. 
+When you append a script to the `<head>` element, 
+that script will not run *after* the whole page has finished loading (async), 
+not as immediately as it is added (sync).
+4. Add a custom callback function that will be called when the script has loaded.
+5. Add a generic callback function if the script fails to load.                                              
 
 ```javascript
 function loadScriptAsync(url, onLoadFn) {
@@ -39,18 +41,6 @@ function loadScriptSync(url, onDOMContentLoaded, onLoadFnAsString) {
   document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
 }
 ```
-## Polyfilling web components: sync?
-Sometimes you need the polyfills for web components straight away. 
-Your web app contains code that cannot function without the polyfill in place, and
-you have no way good of queing or delaying that code.
-In such cases, you need to control *when* your polyfill is loaded, and 
-then you want to load your polyfill *sync*hronously.
-
-The benefit of loading your polyfill sync is that you will ensure that the features 
-you have polyfilled will be present for scripts that run at a later point.
-This means that you no longer have to que and re-call functions that rely on 
-the potentially polyfilled API features.
-
 
 ## Polyfilling web components: async?
 The benefit of loading scripts **async** is that the script you are adding will not block the rendering of your page, 
