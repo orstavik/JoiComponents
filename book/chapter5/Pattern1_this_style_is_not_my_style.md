@@ -1,4 +1,4 @@
-# Pattern: `this.style` will grow on you (the JS way)
+# Pattern: `this.style` is not really *my* style
 
 The first thing a web component can do is to style itself.
 All HTML elements have their own default style.
@@ -45,6 +45,13 @@ but if we split the declaration of the web component from its context of use,
 we will have little reason to worry about the management of the text and background color.
 
 Funny point, me being defensive about the flag.
+
+### Drawback of this.style in web components
+If you use this.style to set the style in web components, you will: 
+* overwrite the style of the user when you reconnect your element.
+Therefore, it is better to use a custom style tag inside the element.
+This makes the "default" style of the web component overwriteable by specific style tags 
+associated with the element in its context of use.
 
 ### Extending the example. 
 ### adding sound on :hover
