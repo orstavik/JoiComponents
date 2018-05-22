@@ -23,21 +23,10 @@ If you want to copy them into your web component and/or adapt them to fit your n
 ## Chapter 1: How to build (and polyfill) an app using web components?
 1. [How to define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
 2. [Different strategies to create a shadowDom](book/chapter1/Pattern2_shadowDom.md)
+<!--
 3. [Polyfill web components](book/chapter1/Pattern3_polyfill.md)
-<!--_3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
+_3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
 4. [Attribute reaction](book/chapter1/Pattern6_AttributeReaction.md)
-<!---
-5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
-explain that custom elements with content in the lightDom should be considered app-specific components.
--->
-## Chapter 6: How to polyfill web components?
-1. [Introduction: What's a polyfill?](book/chapter6/Intro_Polyfills.md)
-2. [FeatureDetection](book/chapter6/Pattern1_FeatureDetection.md)
-3. [Dynamically loading scripts](book/chapter6/Pattern2_LoadScript.md)
-4. [FeatureDetectAndPolyfill](book/chapter6/Pattern3_FeatureDetectAndPolyfill.md)
-5. [Batch calls to customElements polyfill](book/chapter6/Pattern4_BatchCustomElementUpgrades.md)
-5. [QueAndRecallFunctions](book/chapter6/Pattern5_QueAndRecallFunctions.md)
-6. [FeatureDetectAndPolyfillAsync](book/chapter6/Pattern6_FeatureDetectAndPolyfillAsync.md)
 
 ## Chapter 2: JS Patterns for generic web components and HTMLElement lifecycle mixins
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
@@ -103,7 +92,21 @@ Sometimes you have a tree structure in your DOM that reflects a tree structure i
 When you have such a mapping, and you have everything in the same lightDOM accessible to the same stylesheets,
 you can instead of changing each element, change the css paths that attribute styles to each element.
 This is not for beginners. This is not necessarily a good pattern. But it is a pattern.
+-->
+## Chapter 6: How to polyfill web components?
+1. [Introduction: What's a polyfill?](book/chapter6/Intro_Polyfills.md)
+2. [FeatureDetection](book/chapter6/Pattern1_FeatureDetection.md)
+3. [Dynamically loading scripts](book/chapter6/Pattern2_LoadScript.md)
+4. [FeatureDetectAndPolyfill](book/chapter6/Pattern3_FeatureDetectAndPolyfill.md)
+5. [Batch calls to customElements polyfill](book/chapter6/Pattern4_BatchCustomElementUpgrades.md)
+5. [QueAndRecallFunctions](book/chapter6/Pattern5_QueAndRecallFunctions.md)
+6. [FeatureDetectAndPolyfillAsync](book/chapter6/Pattern6_FeatureDetectAndPolyfillAsync.md)
+<!---
+5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
+explain that custom elements with content in the lightDom should be considered app-specific components.
+-->
 
+<!---
 ## Chapter 7: Composition of app-specific web components
 1. 
 2. props down, (custom) events up
