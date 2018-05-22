@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Web component design patterns</title>
+</head>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script> /** Polyfill code **/
+//Setup: declare the function for loading script sync
+function loadScriptSync(url, onAsyncLoadAsString) {
+  var newScript = document.createElement('script');
+  newScript.src = url;
+  onAsyncLoadAsString && newScript.setAttribute("onload", onAsyncLoadAsString);
+  document.write(newScript.outerHTML);
+}
+
+//Setup: add methods for pausing customElements polyfill
+window.WebComponents = window.WebComponents || {};
+window.WebComponents.stopCEPolyfill = function(){
+  if(window.customElements && customElements.polyfillWrapFlushCallback){
+    customElements.polyfillWrapFlushCallback(function(){});
+  }
+};
+window.WebComponents.startCEPolyfill = function(){
+  if(window.customElements && customElements.polyfillWrapFlushCallback){
+    customElements.polyfillWrapFlushCallback(function(flush){flush();});
+    customElements.upgrade(document);
+  }
+};
+
+//step 1: feature detection
+var CE = window.customElements;
+var SD = 'attachShadow' in Element.prototype && 'getRootNode' in Element.prototype;
+var ES6 = window.Promise && Array.from && window.URL && window.Symbol;
+var TE = !(function() {
+  // no real <template> because no `content` property (IE and older browsers)
+  var t = document.createElement('template');
+  if (!('content' in t)) {
+    return true;
+  }
+  // broken doc fragment (older Edge)
+  if (!(t.content.cloneNode() instanceof DocumentFragment)) {
+    return true;
+  }
+  // broken <template> cloning (Edge up to at least version 17)
+  var t2 = document.createElement('template');
+  t2.content.appendChild(document.createElement('div'));
+  t.content.appendChild(t2);
+  var clone = t.cloneNode(true);
+  return clone.content.childNodes.length === 0 ||
+    clone.content.firstChild.content.childNodes.length === 0;
+})();
+
+//step 2: load polyfill async based on feature detection
+const base = "https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/";
+if (CE && SD && TE && ES6) {                                                          //[1]
+} else if (!CE && SD && TE && ES6) {
+  loadScriptSync(base + "webcomponents-ce.js", "WebComponents.stopCEPolyfill();");
+} else if (!CE && !SD && TE && ES6) {
+  loadScriptSync(base + "webcomponents-sd-ce.js", "WebComponents.stopCEPolyfill();");
+} else { /*if (!CE && !SD && !TE && !ES6) {*/
+  loadScriptSync(base + "webcomponents-sd-ce-pf.js",
+    "HTMLTemplateElement.bootstrap(document); WebComponents.stopCEPolyfill();");
+}
+
+//step 3: restart the customElements polyfill on DOMContentLoaded
+window.addEventListener("DOMContentLoaded", function(){WebComponents.startCEPolyfill();});
+</script>
+<script type="module">
+
+  import {MarkDown} from "./mark-down.js";
+  import {WcBook, WcChapter} from "./wc-book-chapter.js";
+
+  customElements.define("mark-down", MarkDown);
+  customElements.define("wc-book", WcBook);
+  customElements.define("wc-chapter", WcChapter);
+</script>
+<body>
+<wc-book>
+  <h1>wc design patterns</h1>
+  <wc-chapter title="Web components basics">
+    <wc-chapter title="Pattern1: CreateElement">
+      <mark-down src="https://raw.githubusercontent.com/orstavik/JoiComponents/master/book/chapter1/Pattern1_CreateElement.md"></mark-down>
+    </wc-chapter>
+    <wc-chapter title="Pattern2_shadowDom">Pattern2_shadowDom</wc-chapter>
+    <wc-chapter title="Pattern6_AttributeReaction">Pattern6_AttributeReaction</wc-chapter>
+  </wc-chapter>
+  <wc-chapter title="Isolated Functional mixins and life cycle hooks">
+    <wc-chapter title="Discussion_IsolatedFunctionalMixin">
+      Discussion_IsolatedFunctionalMixin
+    </wc-chapter>
+    <wc-chapter title="Mixin1_ChildrenChangedMixin">
+      Mixin1_ChildrenChangedMixin
+    </wc-chapter>
+    <wc-chapter title="Mixin2_SizeChangedMixin">Mixin2_SizeChangedMixin</wc-chapter>
+    <wc-chapter title="Mixin4_FirstConnectedMixin">Mixin4_FirstConnectedMixin</wc-chapter>
+    <wc-chapter title="Mixin5_EnterViewMixin">Mixin5_EnterViewMixin</wc-chapter>
+    <wc-chapter title="Pattern1_ReactiveMethod">Pattern1_ReactiveMethod</wc-chapter>
+    <wc-chapter title="Pattern2_FunctionalMixin">Pattern2_FunctionalMixin</wc-chapter>
+  </wc-chapter>
+</wc-book>
+
+</body>
+</html>
