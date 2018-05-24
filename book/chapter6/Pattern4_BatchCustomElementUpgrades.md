@@ -1,50 +1,33 @@
 # Pattern: Batch process the CustomElement polyfill
 The CustomElement polyfill relies on some costly functionality.
-1. The CustomElement polyfill observes all mutations in the document while it is being 
-loaded in order to identify new custom tags in the html template.
-2. Whenever `customElements.define` (and `.innerHTML`) is called, the CustomElement 
-polyfill will traverse the entire document to try to find some DOM-nodes that fit the 
+1. The CustomElement polyfill observes all mutations in the DOM while it is being 
+loaded in order to identify new custom tags added during loading.
+2. Whenever `customElements.define` is called, the CustomElement 
+polyfill will traverse the entire document to try to find DOM-nodes that fit the 
 new custom element definition.
 
-By putting the CustomElement on pause, and then resume it later,
-you can avoid *both* observations running while the polyfill is being loaded
-*and* the polyfill traversing the DOM anew every time the `customElements.define`.
-This will batch process the customElement functionality which is much more efficient.
+Sometimes, you must pay this cost. And therefore, this behavior is there by default.
+But, often you know that several `customElements.define` calls and/or parsing bigger pieces 
+of the DOM can be grouped together *before* the customElements polyfill traverses 
+and updates the DOM.
+To achieve this the customElements polyfill need to be put on hold (paused) 
+while several customElements dependent functions are run, and then restarted when
+the process is complete.
+This *batch processes* customElements reactions.
 
-<!--
-However, que and re-call functions in one fell swoop also has some other advantages.
-For example: Lets say you have a web page with 10 different custom elements.
-Each of these elements greatly change their size and shape and appearance once they get 
-connected to the DOM. Now, if you update all these web components one by one, and 
-these operations happens to be spread out across time and different frames,
-then your web page might completely change its appearance every time one of the elements gets 
-updated, ie. 10 times or more. (todo make a test for this one)
-((**Sync** loading of polyfills also can benefit from making sure that 
-polyfill-dependent functions are batched and called as a group at a later time:
-Such calls can both be more efficient for the polyfill, and avoid actions being spread out over time 
-causing for example a flickering layout.))
-
-When using polyfills, the process of updating the page can be quite intensive, and 
-therefore batching all the updates of the web components can be smart.
-This makes queing and re-calling all functions of a certain type regardless of whether or 
-not an underlying dependency is present, and 
-so even apps that load polyfills sync can benefit from queing and re-calling functions that 
-depend on the polyfill regardless. 
--->
-
-## Implementation: How to stop and start the customElements polyfill?
-To stop (pause) the customElements polyfill from doing its job, you call:
+## Implementation: Adding a pause-button to the CustomElements polyfill?
+To stop the customElements polyfill from doing its job, you call:
 ```javascript
 if(window.customElements && customElements.polyfillWrapFlushCallback){
   customElements.polyfillWrapFlushCallback(function(flush){});
 }
 ```
-This method will:
-* stop the observation of the mutations in the document and
-* intercept the traversal of the DOM in response to `customElement.define` and 
+This method will both:
+* *stop observation* of the mutations in the document and
+* *intercept the DOM traversal* in response to `customElement.define` and 
 supply it with a method that does nothing.
 
-To start (restart) the customElements polyfill, you call:
+To restart the customElements polyfill, you call:
 ```javascript
 if(window.customElements && customElements.polyfillWrapFlushCallback){
   customElements.polyfillWrapFlushCallback(function(flush){flush();});
@@ -54,7 +37,8 @@ if(window.customElements && customElements.polyfillWrapFlushCallback){
 This method will:
 * reverse the interception of the traversal of the DOM in response to `customElement.define`,
 so that calls to `customElement.define` will trigger upgrades of the DOM,
-* but it will not(!) cause an upgrade by itself.
+* but `customElements.polyfillWrapFlushCallback` does not trigger an upgrade of the DOM
+by itself, and therefore you must call `customElements.upgrade(document)` to upgrade the DOM.
 
 To make these two methods easily accessible, we add them under the globally accessible 
 `window.WebComponents` object.
@@ -74,11 +58,15 @@ window.WebComponents.startCEPolyfill = function(){
 }
 ```
 
-## Recommendation: Pause immediately and restart on DOMContentLoaded 
-**Pause the customElements polyfill as soon as you have loaded it, and 
-restart it when the document has finished loading.**
-This will disable the costly observation of mutations in the DOM while loading, 
-and it will enable you to batch multiple calls to `customElements.define` that occur while loading.
+> **Recommendation:** Stop the customElements polyfill as soon as you have loaded it, and 
+> restart it when the document has finished loading (DOMContentLoaded). This:
+> * disables the costly observation of mutations in the DOM while loading, and 
+> * batch processes multiple calls to `customElements.define` at startup.
+
+## Example: FeatureDetectAndPolyfill with batched customElement reactions during loading
+Here is the FeatureDetectAndPolyfill example that 
+batches Custom Element reactions during the loading of document.
+If you intend to load web components polyfills **sync**hronously, this is all you need.
 
 ```html
 <html>
@@ -164,9 +152,6 @@ and it will enable you to batch multiple calls to `customElements.define` that o
   </body>
 </html>
 ```
-Above is the FeatureDetectAndPolyfill example updated with this functionality.
-If you intend to load web components polyfills **sync**hronously, as I recommend,
-this is all you need.
 The only major drawback of this approach is that it will block the rendering of the main page 
 until your web components polyfill has completed.
 There are mitigating circumstances for the sync approach:
@@ -189,3 +174,14 @@ before we again return and [FeatureDetectAndPolyfillAsync](Pattern6_FeatureDetec
 * [customElements polyfill](https://github.com/webcomponents/webcomponentsjs/customElements).
 * [webcomponents-loader.js](https://github.com/webcomponents/webcomponentsjs/).
 
+
+<!--
+TODO Exemplify "flickering layout" problems of slow customElements:
+1. Lets say you have a web page with 10 different custom elements.
+2. Each of these elements greatly change their size and shape and appearance once they get 
+connected to the DOM. 
+3. Now, if you update all these web components one by one, and 
+these operations happens to be spread out across time and different frames.
+4. Then your web page might completely change its appearance every time one 
+of the elements gets updated, ie. 10 times or more. 
+-->
