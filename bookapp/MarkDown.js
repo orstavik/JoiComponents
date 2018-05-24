@@ -11,7 +11,9 @@ export class MarkDown extends HTMLElement {
     let src = this.getAttribute("src");
     if (!src)
       this.shadowRoot.innerHTML = "no link in mark-down element";
-    let md = await (await fetch(src)).text();
-    this.shadowRoot.innerHTML = marked(md);
+    const conn = await fetch(src);
+    const md = await conn.text();
+    const html = marked(md);
+    this.shadowRoot.innerHTML = html;
   }
 }

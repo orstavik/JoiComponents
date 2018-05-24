@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>test of ResponsiveLayout</title>
+  <style>
+    header {
+      background-color: #12a334;
+      height: 20vh;
+    }
+    main {
+      background-color: #ffd01f;
+      height: 35vh;
+    }
+    aside {
+      background-color: #ff232f;
+      height: 35vh;
+    }
+    footer {
+      background-color: #2023ff;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+<script type="module">
+  import {SizeChangedMixin} from "../../src/SizeChangedMixin.js";
+
+  class ResponsiveLayout extends SizeChangedMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      this.shadowRoot.innerHTML = `
+<style>
+  :host(*){
+    display: block;
+    width: 100%;
+  }
+  div#grid{
+    display: grid;
+    width: 100%;
+  }
+  div#grid[size="small"]{
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "header"
+      "main"
+      "aside"
+      "footer";
+  }
+  div#grid[size="large"]{
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "header header"
+      "main aside"
+      "footer footer";
+  }
+  div#grid[size="medium"]{
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "header header header"
+      "footer main aside";
+  }
+</style>
+<div id="grid">
+  <div style="grid-area: header;">
+    <slot name="header"></slot>
+  </div>
+  <div style="grid-area: main;">
+    <slot name="main"></slot>
+  </div>
+  <div style="grid-area: aside;">
+    <slot name="aside"></slot>
+  </div>
+  <div style="grid-area: footer">
+    <slot name="footer"></slot>
+  </div>
+</div>
+`;
+      this.sizeChangedCallback({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    }
+
+    disconnectedCallback() {
+      super.disconnectedCallback();
+    }
+
+    sizeChangedCallback({width, height}) {
+      const w =
+        width > 1000 ? "large" :
+          width > 800 ? "medium" :
+            /*width <= 800*/ "small";
+      this.shadowRoot.children[1].setAttribute("size", w);
+    }
+  }
+
+  customElements.define("responsive-layout", ResponsiveLayout);
+</script>
+
+<responsive-layout id="site" size="normal">
+  <span slot="main">Change size of the window</span>
+  <header slot="header">HEADER</header>
+  <main slot="main">MAIN</main>
+  <aside slot="aside">ASIDE</aside>
+  <footer slot="footer">FOOTER</footer>
+</responsive-layout>
+</body>
+</html>

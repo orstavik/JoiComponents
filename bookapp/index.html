@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Web component design patterns</title>
-</head>
-
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script> /** Polyfill code **/
 //Setup: declare the function for loading script sync
@@ -17,14 +15,17 @@ function loadScriptSync(url, onAsyncLoadAsString) {
 
 //Setup: add methods for pausing customElements polyfill
 window.WebComponents = window.WebComponents || {};
-window.WebComponents.stopCEPolyfill = function(){
-  if(window.customElements && customElements.polyfillWrapFlushCallback){
-    customElements.polyfillWrapFlushCallback(function(){});
+window.WebComponents.stopCEPolyfill = function () {
+  if (window.customElements && customElements.polyfillWrapFlushCallback) {
+    customElements.polyfillWrapFlushCallback(function () {
+    });
   }
 };
-window.WebComponents.startCEPolyfill = function(){
-  if(window.customElements && customElements.polyfillWrapFlushCallback){
-    customElements.polyfillWrapFlushCallback(function(flush){flush();});
+window.WebComponents.startCEPolyfill = function () {
+  if (window.customElements && customElements.polyfillWrapFlushCallback) {
+    customElements.polyfillWrapFlushCallback(function (flush) {
+      flush();
+    });
     customElements.upgrade(document);
   }
 };
@@ -33,7 +34,7 @@ window.WebComponents.startCEPolyfill = function(){
 var CE = window.customElements;
 var SD = 'attachShadow' in Element.prototype && 'getRootNode' in Element.prototype;
 var ES6 = window.Promise && Array.from && window.URL && window.Symbol;
-var TE = !(function() {
+var TE = !(function () {
   // no real <template> because no `content` property (IE and older browsers)
   var t = document.createElement('template');
   if (!('content' in t)) {
@@ -59,29 +60,36 @@ if (CE && SD && TE && ES6) {                                                    
   loadScriptSync(base + "webcomponents-ce.js", "WebComponents.stopCEPolyfill();");
 } else if (!CE && !SD && TE && ES6) {
   loadScriptSync(base + "webcomponents-sd-ce.js", "WebComponents.stopCEPolyfill();");
-} else { /*if (!CE && !SD && !TE && !ES6) {*/
+} else { /*if (!CE && !SD && !TE && !ES6) {*/
   loadScriptSync(base + "webcomponents-sd-ce-pf.js",
     "HTMLTemplateElement.bootstrap(document); WebComponents.stopCEPolyfill();");
 }
 
 //step 3: restart the customElements polyfill on DOMContentLoaded
-window.addEventListener("DOMContentLoaded", function(){WebComponents.startCEPolyfill();});
+window.addEventListener("DOMContentLoaded", function () {
+  WebComponents.startCEPolyfill();
+});
 </script>
 <script type="module">
 
-  import {MarkDown} from "./mark-down.js";
-  import {WcBook, WcChapter} from "./wc-book-chapter.js";
+  import {MarkDown} from "./MarkDown.js";
+  import {WcBook, WcChapter} from "./WcBookChapter.js";
+  import {CodeExample} from "./CodeExample.js";
 
   customElements.define("mark-down", MarkDown);
   customElements.define("wc-book", WcBook);
   customElements.define("wc-chapter", WcChapter);
+  customElements.define("code-example", CodeExample);
 </script>
+</head>
 <body>
+<!--<div></div>-->
+
 <wc-book>
   <h1>wc design patterns</h1>
   <wc-chapter title="Web components basics">
     <wc-chapter title="Pattern1: CreateElement">
-      <mark-down src="https://raw.githubusercontent.com/orstavik/JoiComponents/master/book/chapter1/Pattern1_CreateElement.md"></mark-down>
+      <mark-down src="../book/chapter1/Pattern1_CreateElement.md"></mark-down>
     </wc-chapter>
     <wc-chapter title="Pattern2_shadowDom">Pattern2_shadowDom</wc-chapter>
     <wc-chapter title="Pattern6_AttributeReaction">Pattern6_AttributeReaction</wc-chapter>
