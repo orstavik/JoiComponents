@@ -98,7 +98,7 @@ is run to process any `template` elements already added to the DOM before the po
 If you *know* that no template elements has been added to the DOM prior to the polyfill being loaded,
 this call is not necessary.
 
-However, first, we will look at the [BatchCustomElementUpgrades](Pattern4_BatchCustomElementUpgrades.md) pattern.
+Next, we will look at the [BatchCustomElementUpgrades](Pattern4_BatchCustomElementUpgrades.md) pattern.
 This pattern makes the use of the customElements polyfill more efficient.
 Then we will look at the pattern [QueAndRecallFunctions](Pattern5_QueAndRecallFunctions.md).
 This pattern is needed to make our final pattern [FeatureDetectAndPolyfillAsync](Pattern6_FeatureDetectAndPolyfillAsync.md).

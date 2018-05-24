@@ -70,8 +70,8 @@ Look at the lighthouse presentation Google/IO
 -->
 
 ## Chapter 5: Style                                   
-1. [`this.style` is best](book/chapter5/Pattern1_this_style_rocks.md) 
-2. [Style with `:host()`](book/chapter5/Pattern2_host_with_style.md) 
+1. [`this.style` is not my style](book/chapter5/Pattern1_this_style_is_not_my_style.md) 
+2. [`:host()` with `<style>`](book/chapter5/Pattern2_host_with_style.md) 
 3. [CSS variables](book/chapter5/Pattern3_css_variables.md) 
 4. [Compound elements, replace CSS pseudo elements](book/chapter5/Pattern4_css_pseudo_elements.md) 
 5. [ResponsiveLayout, extend CSS media queries](book/chapter5/Pattern5_ResponsiveLayout.md)
@@ -101,6 +101,7 @@ This is not for beginners. This is not necessarily a good pattern. But it is a p
 5. [Batch calls to customElements polyfill](book/chapter6/Pattern4_BatchCustomElementUpgrades.md)
 5. [QueAndRecallFunctions](book/chapter6/Pattern5_QueAndRecallFunctions.md)
 6. [FeatureDetectAndPolyfillAsync](book/chapter6/Pattern6_FeatureDetectAndPolyfillAsync.md)
+7. [Sync vs async polyfills](book/chapter6/Discussion_sync_vs_async_polyfilling.md)
 <!---
 5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
 explain that custom elements with content in the lightDom should be considered app-specific components.

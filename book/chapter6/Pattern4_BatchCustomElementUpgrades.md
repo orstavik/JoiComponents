@@ -152,6 +152,7 @@ If you intend to load web components polyfills **sync**hronously, this is all yo
   </body>
 </html>
 ```
+## Sync or async?
 The only major drawback of this approach is that it will block the rendering of the main page 
 until your web components polyfill has completed.
 There are mitigating circumstances for the sync approach:
@@ -169,6 +170,9 @@ main document. In such instances, you need to load the polyfill **async**hronous
 To load the polyfills async, you need another pattern called [QueAndRecallFunctions](Pattern5_QueAndRecallFunctions.md).
 This pattern is fairly independent, and will therefore be described on its own terms, 
 before we again return and [FeatureDetectAndPolyfillAsync](Pattern6_FeatureDetectAndPolyfillAsync.md).
+
+Here is a more [in-depth discussion of async vs sync loading of polyfills](Discussion_sync_vs_async_polyfilling.md).
+
 
 ### References
 * [customElements polyfill](https://github.com/webcomponents/webcomponentsjs/customElements).
