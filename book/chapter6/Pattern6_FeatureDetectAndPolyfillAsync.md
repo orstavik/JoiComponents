@@ -1,45 +1,17 @@
 # Pattern: FeatureDetectAndPolyfillAsync
 
-## Polyfilling web components: async?
-The benefit of loading scripts **async** is that the script you are adding will not block the rendering of your page, 
-neither while you:
-1. download the script nor 
-2. execute the script. 
-This means that if you have a series of html elements coming after the loading of the script,
-the browser will not delay rendering these elements until                                          
-after you have finished both downloading and then executed the new script.
-However, the drawback of async loading is that the features in your script are not ready straight away.
-This is especially important for polyfills which you intend other parts of your code to rely on.
-This means that even though other scripts are added to the DOM later than your script,
-these scripts must make sure that any code that relies on the polyfill must:
-1. queued and then later
-2. re-called, when the polyfill has finished loading/is ready.
-This we will look at in the next chapter.
-
-<!--
-The benefit of loading scripts async is that neither 
-a) download the script nor b) the execution of the script will
-block the rendering of your page. 
-This means that if you have a series of html elements coming after the loading of the polyfill,
-the browser will not delay rendering these elements until                                          
-after you have finished both downloading and then executed the polyfill script.
-However, the drawback of async loading is that the features you polyfill will 
-only be ready at a later point in time. This means that you cannot rely on this feature being ready,
-even though other scripts are added to the DOM later than your script that feature-detects and 
-loads the polyfills.
-And in turn, this means that all functions you call that relies on your polyfill must first be:
-1. queued and then later
-2. re-called, when the polyfill has finished loading/is ready.
--->
-
 ## How to load a polyfill async?
-When you load your polyfill async, you loose control over when the polyfill 
-will become available.
-This means that you need to make sure that all functions in your web app that relies on
-the polyfilled APIs being available are queued and only run after the polyfill is ready.
-We use the QueAndRecallFunctions pattern from the previous chapter, and 
-to make it available to other scripts, we add it to our global WebComponents polyfill object: `window.WebComponents`.
-To top it off, we also dispatch a custom event `WebComponentsReady` after all the queued functions have run.
+When you load your polyfill async, you loose control over when the polyfill becomes available.
+This means that all functions in your web app that relies on
+the polyfilled APIs being available must be queued, you must find out when your polyfill is ready, 
+and then triggered *after* this point.
+
+To set this up, we use the QueAndRecallFunctions pattern from the previous chapter.
+To make this functions que available to other scripts, 
+we add it to our global WebComponents polyfill object: `window.WebComponents`.
+To top it off, we also dispatch a custom event `WebComponentsReady` after all the 
+queued functions have run. This event is not really necessary, but 
+it gives you a hook to see when the que is first emptied.
 
 ```javascript
 window.WebComponents = window.WebComponents || {};
@@ -69,13 +41,14 @@ window.WebComponents.flushAndReady =
   };
 ```
 
-Functions that require WebComponent support should be run via this que using 
+All functions that require WebComponent support should be run via this que using 
 the `WebComponents.waitFor()` method.
-When the polyfills are loaded (or native support has been verified) this que can then be flushed.
+When the polyfills are loaded (or native support has been verified),
+this que can and should be flushed.
 If you want, you can add additional timing criteria such as waiting for "DOMContentLoaded"
 to batch the web component processes.  
 Attention: It is not a problem to call the `window.WebComponents.flushAndReady()` more than once.
-But, make sure that you only call the method *after* all your timing criteria are met.
+But, make sure that you only call the method *after all your timing criteria are met*.
 
 ```javascript
 var runPolyfill = function(){
@@ -233,25 +206,5 @@ When you put it all together, it becomes:
 </html>
 ```
 
-
-
 ### References
 * [webcomponentsjs-loader.js](https://github.com/webcomponents/webcomponentsjs/blob/master/webcomponents-loader.js).
-
-<!--
-## window.WebComponents - QueAndRecallFunctions relying on web component features
-As described in the previous chapter, there are two reasons to QueAndRecallFunctions 
-when using web components.
-
-1. you might need to delay calls to functions that require web component APIs to be present,
-such as:
-   * `customElements.define`, calls that you need to register new html-tags
-   * `myCustomElement.shadowRoot`, queries or manipulation of DOM that require shadowDom API,
-   * `.innerHTML`, `.children` or `.querySelector()` calls that anticipates a structure of the DOM 
-      not yet set up.
-
-2. Polyfilling web components is heavily interfering with the DOM.
-Queries and manipulation of the DOM can therefore in some instances be affected 
-by the polyfill, and such functions should therefore also be queued and run *after*
-the polyfill has loaded.
--->

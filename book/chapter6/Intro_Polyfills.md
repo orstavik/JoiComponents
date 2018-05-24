@@ -125,3 +125,17 @@ Hence, in addition to providing clear recipes for adding polyfills to your web a
 this chapter also aspires to explain the ideas behind webcompontents-loader.js.
 Again, many thanks for the great work and inspirational ethos of the polyfill community!
 -->
+
+<!--
+1. you might need to delay calls to functions that require web component APIs to be present,
+such as:
+   * `customElements.define`, calls that you need to register new html-tags
+   * `myCustomElement.shadowRoot`, queries or manipulation of DOM that require shadowDom API,
+   * `.innerHTML`, `.children` or `.querySelector()` calls that anticipates a structure of the DOM 
+      not yet set up.
+
+2. Polyfilling web components is heavily interfering with the DOM.
+Queries and manipulation of the DOM can therefore in some instances be affected 
+by the polyfill, and such functions should therefore also be queued and run *after*
+the polyfill has loaded.
+-->
