@@ -123,6 +123,13 @@ native double-tap to zoom gesture](https://developers.google.com/web/updates/201
 For more on this see [Conflicting gestures](../chapter3/Discussion_conflicting_gestures.md).
 
 <!--- 
+todo 
+There is a question if we should use HelicopterParentChild instead of <slot name="xyz"> pattern.
+The problem is finding and moving the position of the children in the view, without moving them around in the lightDOM.
+One possibility is to assign slots to the children of certain types/names. That is doable. That might be good.
+That will also make it HTML composeable, useable when the thing that is to be put somewhere is a slot itself.
+But, then again. The slots can also just be put inside a div. and then placed. Maybe both works well.
+
 1. Make a v2 of the example that adds custom zoom behavior
 2. Make a v3 of the example that also alters the shadow dom (alternative to CSS psuedo elements)
 -->

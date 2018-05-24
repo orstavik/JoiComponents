@@ -39,7 +39,6 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
     cursor: default; 
   }
   article {
-    /*max-width: 100vw;*/
     grid-area: article;
     overflow-wrap: break-word;
     background: #fff1c2;
@@ -77,15 +76,37 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
     return chapters;
   }
 
+  renderChapters2(arrayPosition, chapters, result) {
+    for (let i = 0; i < chapters.length; i++) {
+      let chapter = chapters[i];
+      let arr = arrayPosition.concat([i]);
+      result.push([arr, chapter[0]]);
+      let subs = chapter[1];
+      if (subs)
+        this.renderChapters2(arr, subs, result);
+    }
+    return result;
+  }
+
+  appendAside(pos, title) {
+    let a = document.createElement("li");
+    a.innerText = JSON.stringify(pos) + " : " + title;
+    return a;
+  }
+
   renderChapters(chapters) {
-    return JSON.stringify(chapters, null, "  ");
+    debugger;
+    let rendered = this.renderChapters2([], chapters, []);
+    let lis = rendered.map(([pos, title]) => this.appendAside(pos, title));
+    return lis;
   }
 
   doRender() {
     if (this._renderChapters)
       return;
     this._renderChapters = requestAnimationFrame(() => {
-      this.shadowRoot.children[1].children[0].innerText = this.renderChapters(this.getChapters());
+      this.shadowRoot.children[1].children[0].innerHTML = "";
+      this.renderChapters(this.getChapters()).forEach(li => this.shadowRoot.children[1].children[0].appendChild(li));
       this._renderChapters = undefined;
     });
   }

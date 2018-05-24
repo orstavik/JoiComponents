@@ -21,7 +21,7 @@ be overwritten by the element's default style.
                                                                    
 Because of the possible confusion that can occur with different styles, 
 it is not recommended to use `this.style` as a mechanism to provide the default style of an element.
-Use `this.style` rather as a mechanism to provide 
+Use `this.style` rather as a mechanism to deliberately override external style set from the outside.
 
 ### Example: anti-pattern: Norwegian styled text: setting the default style using `this.style`
 ```html
