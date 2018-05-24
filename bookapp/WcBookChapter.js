@@ -103,8 +103,7 @@ export class WcChapter extends ChildrenChangedMixin(HTMLElement) {
   }
 
   getChapters(pos) {
-    let id = "chapter_" +pos.join(".");
-    this.id = id;
+    this.id = "chapter_" +pos.join(".");
     let result = [[pos, this.getAttribute("title")]];
     const childChapters = this.getVisibleChildren().filter(c => c instanceof WcChapter);
     for (let i = 0; i < childChapters.length; i++) {
