@@ -70,11 +70,13 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
   }
 
   getChapters() {
-    const chapters = [];
-    this.getVisibleChildren().filter((c) => c instanceof WcChapter).forEach((c) => {
-      chapters.push(c.getChapters());
-    });
-    return chapters;
+    let result = [];
+    let chapters = this.getVisibleChildren().filter((c) => c instanceof WcChapter);
+    for (let i = 0; i < chapters.length; i++) {
+      let c = chapters[i];
+      result = result.concat(c.getChapters([i+1]));
+    }
+    return result;
   }
 
   doRender() {
@@ -100,28 +102,33 @@ export class WcChapter extends ChildrenChangedMixin(HTMLElement) {
     );
   }
 
-  getChapters() {
+  getChapters(pos) {
+    let id = "chapter_" +pos.join(".");
+    this.id = id;
+    let result = [[pos, this.getAttribute("title")]];
     const childChapters = this.getVisibleChildren().filter(c => c instanceof WcChapter);
-    if (childChapters.length === 0)
-      return [this.getAttribute("title")];
-    return [this.getAttribute("title"), childChapters.map(c => c.getChapters())];
+    for (let i = 0; i < childChapters.length; i++) {
+      let child = childChapters[i];
+      result = result.concat(child.getChapters(pos.concat([i+1])));
+    }
+    return result;
   }
 }
 
 class WcIndex extends HTMLElement {
 
-  renderChapters2(arrayPosition, chapters, result) {
-    for (let i = 0; i < chapters.length; i++) {
-      let chapter = chapters[i];
-      let arr = arrayPosition.concat([i + 1]);
-      result.push([arr, chapter[0]]);
-      let subs = chapter[1];
-      if (subs)
-        this.renderChapters2(arr, subs, result);
-    }
-    return result;
-  }
-
+  // renderChapters2(arrayPosition, chapters, result) {
+  //   for (let i = 0; i < chapters.length; i++) {
+  //     let chapter = chapters[i];
+  //     let arr = arrayPosition.concat([i + 1]);
+  //     result.push([arr, chapter[0]]);
+  //     let subs = chapter[1];
+  //     if (subs)
+  //       this.renderChapters2(arr, subs, result);
+  //   }
+  //   return result;
+  // }
+  //
   makeLi(pos, title) {
     let a = document.createElement("a");
     a.innerText = pos.length === 1 ? "Chapter " + pos[0] + ": " + title: pos.join(".") + " "+ title;
@@ -130,9 +137,9 @@ class WcIndex extends HTMLElement {
     return a;
   }
 
-  appendChildren(chapters) {
+  appendChildren(flatChapters) {
     this.innerHTML = "";
-    const flatChapters = this.renderChapters2([], chapters, []);
+    // const flatChapters = this.renderChapters2([], chapters, []);
     const lis = flatChapters.map(([pos, title]) => this.makeLi(pos, title));
     lis.forEach(li => this.appendChild(li));
   }
