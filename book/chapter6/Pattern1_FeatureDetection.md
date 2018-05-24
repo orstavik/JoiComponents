@@ -11,34 +11,34 @@ a behavior such as `document.createDocumentFragment().cloneNode() instanceof Doc
 To use web components, you need three APIs: 
 CustomElements, shadowDom and HTMLTemplate. 
          
-Below is the code to feature detect the APIs needed to rnlyun web components.
+Below is the code to feature detect the APIs needed to run web components.
 
 ```javascript
 var ES6 = window.Promise && Array.from && window.URL && window.Symbol;
 var CE = !!window.customElements; 
 var SD = 'attachShadow' in Element.prototype && 'getRootNode' in Element.prototype;
-var TE = !(function() {
-  // no real <template> because no `content` property (IE and older browsers)
+var TE = (function() {
   var t = document.createElement('template');
   if (!('content' in t)) {
-    return true;
+    return false;
   }
-  // broken doc fragment (older Edge)
   if (!(t.content.cloneNode() instanceof DocumentFragment)) {
-    return true;
+    return false;
   }
-  // broken <template> cloning (Edge up to at least version 17)
   var t2 = document.createElement('template');
   t2.content.appendChild(document.createElement('div'));
   t.content.appendChild(t2);
   var clone = t.cloneNode(true);
-  return clone.content.childNodes.length === 0 || 
-         clone.content.firstChild.content.childNodes.length === 0
+  return clone.content.childNodes.length && 
+         clone.content.firstChild.content.childNodes.length;
 })();
 ```
 Polyfills for webcomponents are collected in a library called [webcomponentsjs](https://github.com/webcomponents/webcomponentsjs).
-Due to current and anticipated support in the browsers, these are only a few combinations of web component polyfills that you need. 
-The webcomponentsjs library therefore bundles the web component polyfills into the following files:
+Since it is three different APIs, there are seven potential combinations of the three.
+However, due to current and anticipated support in browsers, 
+there are only four combinations, or bundles,
+ of web component polyfills that you are likely going to need. 
+These bundles have been set up by webcomponentsjs:
 * [customElements](https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/webcomponents-ce.js)  	
 * [shadowDom](https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/webcomponents-sd.js)  	
 * [shadowDom, customElements](https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/webcomponents-sd-ce.js)  	
@@ -46,6 +46,7 @@ The webcomponentsjs library therefore bundles the web component polyfills into t
 
 ## Example 2: Other features detect and links to their polyfill
 ```javascript
+//some ES6 features
 var ES6 = window.Promise && Array.from && window.URL && window.Symbol;
 
 //web animations
