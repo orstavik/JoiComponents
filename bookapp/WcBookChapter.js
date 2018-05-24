@@ -11,6 +11,7 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
 
   connectedCallback() {
     super.connectedCallback();
+    customElements.define("wc-index", WcIndex);
     this.shadowRoot.innerHTML = `
 <style>
   :host{
@@ -33,7 +34,7 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
   :host([size="small"]) > div#grid {
     font-size: 4vw;
   }
-  aside {                                                                                 
+  wc-index {                                                                                 
     grid-area: aside;
     background: #c2ecf9;
     cursor: default; 
@@ -46,9 +47,9 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
   }
 </style>
 <div id="grid">
-  <aside id="doMe">
+  <wc-index id="doMe">
     here you make an ingress of all the chapters
-  </aside>
+  </wc-index>
   <article>
     <slot></slot>
   </article>
@@ -76,36 +77,11 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
     return chapters;
   }
 
-  renderChapters2(arrayPosition, chapters, result) {
-    for (let i = 0; i < chapters.length; i++) {
-      let chapter = chapters[i];
-      let arr = arrayPosition.concat([i+1]);
-      result.push([arr, chapter[0]]);
-      let subs = chapter[1];
-      if (subs)
-        this.renderChapters2(arr, subs, result);
-    }
-    return result;
-  }
-
-  appendAside(pos, title) {
-    let a = document.createElement("li");
-    a.innerText = JSON.stringify(pos) + " : " + title;
-    return a;
-  }
-
-  renderChapters(chapters) {
-    let rendered = this.renderChapters2([], chapters, []);
-    let lis = rendered.map(([pos, title]) => this.appendAside(pos, title));
-    return lis;
-  }
-
   doRender() {
     if (this._renderChapters)
       return;
     this._renderChapters = requestAnimationFrame(() => {
-      this.shadowRoot.children[1].children[0].innerHTML = "";
-      this.renderChapters(this.getChapters()).forEach(li => this.shadowRoot.children[1].children[0].appendChild(li));
+      this.shadowRoot.children[1].children[0].appendChildren(this.getChapters());
       this._renderChapters = undefined;
     });
   }
@@ -129,5 +105,35 @@ export class WcChapter extends ChildrenChangedMixin(HTMLElement) {
     if (childChapters.length === 0)
       return [this.getAttribute("title")];
     return [this.getAttribute("title"), childChapters.map(c => c.getChapters())];
+  }
+}
+
+class WcIndex extends HTMLElement {
+
+  renderChapters2(arrayPosition, chapters, result) {
+    for (let i = 0; i < chapters.length; i++) {
+      let chapter = chapters[i];
+      let arr = arrayPosition.concat([i + 1]);
+      result.push([arr, chapter[0]]);
+      let subs = chapter[1];
+      if (subs)
+        this.renderChapters2(arr, subs, result);
+    }
+    return result;
+  }
+
+  makeLi(pos, title) {
+    let a = document.createElement("a");
+    a.innerText = pos.length === 1 ? "Chapter " + pos[0] + ": " + title: pos.join(".") + " "+ title;
+    a.href = "#chapter_" +pos.join(".");
+    a.style ="display: block";
+    return a;
+  }
+
+  appendChildren(chapters) {
+    this.innerHTML = "";
+    const flatChapters = this.renderChapters2([], chapters, []);
+    const lis = flatChapters.map(([pos, title]) => this.makeLi(pos, title));
+    lis.forEach(li => this.appendChild(li));
   }
 }
