@@ -79,7 +79,7 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
   renderChapters2(arrayPosition, chapters, result) {
     for (let i = 0; i < chapters.length; i++) {
       let chapter = chapters[i];
-      let arr = arrayPosition.concat([i]);
+      let arr = arrayPosition.concat([i+1]);
       result.push([arr, chapter[0]]);
       let subs = chapter[1];
       if (subs)
@@ -95,7 +95,6 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
   }
 
   renderChapters(chapters) {
-    debugger;
     let rendered = this.renderChapters2([], chapters, []);
     let lis = rendered.map(([pos, title]) => this.appendAside(pos, title));
     return lis;
