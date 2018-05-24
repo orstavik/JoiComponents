@@ -48,7 +48,7 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
 </style>
 <div id="grid">
   <wc-index id="doMe">
-    here you make an ingress of all the chapters
+    Index
   </wc-index>
   <article>
     <slot></slot>
@@ -117,19 +117,7 @@ export class WcChapter extends ChildrenChangedMixin(HTMLElement) {
 
 class WcIndex extends HTMLElement {
 
-  // renderChapters2(arrayPosition, chapters, result) {
-  //   for (let i = 0; i < chapters.length; i++) {
-  //     let chapter = chapters[i];
-  //     let arr = arrayPosition.concat([i + 1]);
-  //     result.push([arr, chapter[0]]);
-  //     let subs = chapter[1];
-  //     if (subs)
-  //       this.renderChapters2(arr, subs, result);
-  //   }
-  //   return result;
-  // }
-  //
-  makeLi(pos, title) {
+  makeLink(pos, title) {
     let a = document.createElement("a");
     a.innerText = pos.length === 1 ? "Chapter " + pos[0] + ": " + title: pos.join(".") + " "+ title;
     a.href = "#chapter_" +pos.join(".");
@@ -139,8 +127,7 @@ class WcIndex extends HTMLElement {
 
   appendChildren(flatChapters) {
     this.innerHTML = "";
-    // const flatChapters = this.renderChapters2([], chapters, []);
-    const lis = flatChapters.map(([pos, title]) => this.makeLi(pos, title));
+    const lis = flatChapters.map(([pos, title]) => this.makeLink(pos, title));
     lis.forEach(li => this.appendChild(li));
   }
 }
