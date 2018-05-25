@@ -27,7 +27,6 @@
           window.WebComponents._waitingFunctions.push(waitFn);
         } else if (waitFn instanceof Function) {
           waitFn();
-          customElements.upgrade(document);
         }
       },
       _waitingFunctions: [],
