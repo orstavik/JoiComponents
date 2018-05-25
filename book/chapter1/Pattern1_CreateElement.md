@@ -18,11 +18,11 @@ A custom element is an HTML element. So, to create a custom HTML element, you ne
 3. override the `constructor()` and/or `connectedCallback()`.
 
 ### Example: MyFirstElement
+<!--<code-example></code-example>-->
 ```javascript
-class MyFirstElement extends HTMLElement {                          //[1]
-  
+ class MyFirstElement extends HTMLElement {                         //[1]
   connectedCallback(){                                              //[2]
-    this.innerText = "hello, you are looking at my first element";
+    this.innerText = "hello, I am a custom element";
   }
 }
 ```
@@ -104,6 +104,9 @@ Or via script-modules:
 
 <my-first-element></my-first-element>                       <!-- script type="module" does not break the flow of parsing, so this will also be 'updated' when the element is loaded -->
 ```
+
+## References
+* 
 <!--
 ### Problems using custom elements
 In principle it is as simple to use a custom element as a normal HTML element.
@@ -119,6 +122,5 @@ Secondly, most custom elements are not implementing *all* the relevant HTML stan
 Nor tested as diligently as the normal HTML elements.
 We look at this in the this chapter about testing and demoing web components todo. 
 
-### References
 * 
 -->
