@@ -9,7 +9,7 @@ However, the web component polyfills are also invasive.
 When polyfilling customElements and shadowDom,
 the polyfills alter many of the core DOM functions.
 Therefore, if you run a function against the DOM that you expect to be supported by the
-polyfill *before* the polyfill has finished loading, this can create real problems.
+polyfill *before* the polyfill has finished loading, this will likely create real problems.
 
 The simplest and least invasive strategy to ensure that a polyfill *always* loads 
 *before* other scripts that depend on it, is to load it **sync**.
@@ -96,7 +96,7 @@ FeatureDetectAndPolyfill.
 5. When using the polyfill for HTMLTemplate, the `HTMLTemplateElement.bootstrap(document)` method
 is run to process any `template` elements already added to the DOM before the polyfill was registered.
 If you *know* that no template elements has been added to the DOM prior to the polyfill being loaded,
-this call is not necessary.
+this call is not necessary. (todo verify this)
 
 Next, we will look at the [BatchCustomElementUpgrades](Pattern4_BatchCustomElementUpgrades.md) pattern.
 This pattern makes the use of the customElements polyfill more efficient.

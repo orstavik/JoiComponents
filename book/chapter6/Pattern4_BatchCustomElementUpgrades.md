@@ -1,18 +1,18 @@
 # Pattern: Batch process the CustomElement polyfill
 The CustomElement polyfill relies on some costly functionality.
-1. The CustomElement polyfill observes all mutations in the DOM while it is being 
-loaded in order to identify new custom tags added during loading.
+1. The CustomElement polyfill observes all mutations in the DOM while the DOM is being 
+loaded in order to identify new custom tags.
 2. Whenever `customElements.define` is called, the CustomElement 
 polyfill will traverse the entire document to try to find DOM-nodes that fit the 
 new custom element definition.
 
 Sometimes, you must pay this cost. And therefore, this behavior is there by default.
 But, often you know that several `customElements.define` calls and/or parsing bigger pieces 
-of the DOM can be grouped together *before* the customElements polyfill traverses 
+of the DOM can be completed together *before* the customElements polyfill traverses 
 and updates the DOM.
-To achieve this the customElements polyfill need to be put on hold (paused) 
-while several customElements dependent functions are run, and then restarted when
-the process is complete.
+To achieve this the customElements polyfill need to be paused 
+while several customElements dependent functions run, and then restarted when
+these functions finish.
 This *batch processes* customElements reactions.
 
 ## Implementation: Adding a pause-button to the CustomElements polyfill?
@@ -38,7 +38,7 @@ This method will:
 * reverse the interception of the traversal of the DOM in response to `customElement.define`,
 so that calls to `customElement.define` will trigger upgrades of the DOM,
 * but `customElements.polyfillWrapFlushCallback` does not trigger an upgrade of the DOM
-by itself, and therefore you must call `customElements.upgrade(document)` to upgrade the DOM.
+by itself, and therefore you must also call `customElements.upgrade(document)` to upgrade the DOM.
 
 To make these two methods easily accessible, we add them under the globally accessible 
 `window.WebComponents` object.
@@ -155,24 +155,22 @@ If you intend to load web components polyfills **sync**hronously, this is all yo
 ## Sync or async?
 The only major drawback of this approach is that it will block the rendering of the main page 
 until your web components polyfill has completed.
-There are mitigating circumstances for the sync approach:
-1. Fewer and fewer browsers need the webcomponents polyfills. 
-So even though a minority of your users get a slower experience,
-your users as a group might appreciate the loss of complexity in polyfilling 
-swapped with added complexity of business functionality.
-2. The problem of blocking the rendering of the main document can be alleviated 
+There are a couple of mitigating circumstances for the sync approach:
+1. The problem of blocking the rendering of the main document can be alleviated 
 by moving the script with the polyfills below other template code.
+2. Fewer and fewer browsers need the webcomponents polyfills. 
+So even though a minority of your users get a slower experience,
+your users as a group might appreciate the you the developer trade 
+the loss of complexity in polyfilling with added complexity in functionality.
+3. The web component polyfills are so invasive, that you are likely going to need to wait to 
+execute your other scripts anyway. Those scripts you cannot delay you might be able to load 
+asynchronously before your polyfill.
 
-However, sometimes you cannot change the loading position of the polyfill, and/or 
-you cannot wait for the polyfill to download and install before rendering the rest of the 
-main document. In such instances, you need to load the polyfill **async**hronously.
-
-To load the polyfills async, you need another pattern called [QueAndRecallFunctions](Pattern5_QueAndRecallFunctions.md).
-This pattern is fairly independent, and will therefore be described on its own terms, 
-before we again return and [FeatureDetectAndPolyfillAsync](Pattern6_FeatureDetectAndPolyfillAsync.md).
-
-Here is a more [in-depth discussion of async vs sync loading of polyfills](Discussion_sync_vs_async_polyfilling.md).
-
+If you still wants to load the polyfills **async**hronously, 
+you need another pattern called [QueAndRecallFunctions](Pattern5_QueAndRecallFunctions.md).
+This pattern is fairly independent, and will therefore be described on its own terms.
+Then we summarize the async loading of polyfills in [FeatureDetectAndPolyfillAsync](Pattern6_FeatureDetectAndPolyfillAsync.md).
+And finally, I provide a more [in-depth discussion of async vs sync loading of polyfills](Discussion_sync_vs_async_polyfilling.md).
 
 ### References
 * [customElements polyfill](https://github.com/webcomponents/webcomponentsjs/customElements).

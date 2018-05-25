@@ -52,7 +52,7 @@ But, make sure that you only call the method *after all your timing criteria are
 
 ```javascript
 var runPolyfill = function(){
-  if (document.readyState === "completed" && window.customElements){
+  if (document.readyState !== "loading" && window.customElements){
     window.WebComponents.flushAndReady();
   }
 }
@@ -130,7 +130,7 @@ When you put it all together, it becomes:
       //setup 4: add method for flushing webcomponents que when both the DOMContentLoaded and 
       //         the polyfill scripts have loaded
       var runPolyfill = function(){
-        if (document.readyState !== "completed" || !window.customElements)
+        if (document.readyState === "loading" || !window.customElements)
           return;
         window.WebComponents.flushAndReady();
         window.WebComponents.startCEPolyfill();
