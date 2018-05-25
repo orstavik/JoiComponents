@@ -75,5 +75,7 @@ ref:
 ```this.shadowRoot.addEventListener("slotchange", ()=> doYourThing())));```
  
 2) Requirement: Actions responding to ```slotchange``` events are queued in the event loop?
-Actions responding to ```MutationObserver( func ).observe({childList: true})``` are queued in the microtask que? 
-Should they not be queued in the same que?
+Actions responding to ```MutationObserver( func ).observe({childList: true})``` are queued 
+in the microtask que? Should they not be queued in the same que?
+
+## Acknowledgments

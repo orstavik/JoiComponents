@@ -1,3 +1,7 @@
+/**
+ * Acknowledgments
+ */
+
 const MO = Symbol("childListenerObserver");
 const slotIsActive = Symbol("slotChildren");
 const slotChangeListener = Symbol("slotChangedListener");
