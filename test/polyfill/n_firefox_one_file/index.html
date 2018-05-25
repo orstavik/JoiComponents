@@ -9,7 +9,7 @@
       var newScript = document.createElement('script');
       newScript.src = url;
       onAsyncLoad && newScript.addEventListener('load', onAsyncLoad);
-      document.head.append(newScript);
+      document.head.appendChild(newScript);
     }
 
     function loadScriptSync(url, onAsyncLoadAsString) {
@@ -145,6 +145,3 @@
   );
 </script>
 <my-element></my-element>
-
-
-
