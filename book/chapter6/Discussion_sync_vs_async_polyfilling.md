@@ -47,21 +47,26 @@ We would very much like to avoid adding frameworks to the platform.
 Frameworks changes your "other code". 
 Frameworks can make it hard to use framework-independent code.
 Frameworks need to be changed or replaced later.
-Frameworks are.. something you want to avoid if the bare bones platform offers a tolerable alternative.
+Frameworks are.. something you want to avoid if the naked platform offers a tolerable alternative.
 
-To delay load time of your app is bad. Fast load time is very, very important.
-But, to add a micro-framework-functions-que is also bad. Adding a "all-scripts" dependency is bad.
+To summarize. To delay load time of your app is also bad. Fast load time is very, very... good.
+And, to add a micro-framework-functions-que is also bad. A clean setup with no "extra" functions needed
+by other scripts is also very, very good. Its a conundrum.
 
 ## Recommendation: Sync.
 My general recommendation is therefore to load web components polyfill sync. 
-And to put do so *after* the most critical html template is rendered.
-The rational behind this advice is that web component polyfills are:
-1. highly invasive and will likely will need to que a lot of functions 
-in a lot of your other scripts (anyway), and
-2. that web components are so widely supported that the added complexity
-(and with it the risk of complexity-driven errors and functionality reduction due-to-complexity)
+And to do so *after* the most critical html template is rendered.
+The rational behind this advice is that:
+1. Web component polyfills are highly invasive. 
+They will likely need to que a lot of functions in a lot of your other scripts anyway.
+2. Do not underestimate the cost of complexity.
+   * The complexities of async loading greatly increases the chanses of errors *both* 
+   when the browser needs the polyfill *and* when it doesn't.
+   * Complexity is also the most scarce resource for any (team of) developers.
+   Adding complexity for loading polyfill fast will therefore come at the expense of other
+   functionality in your web app. 
+3. Web components are now so widely supported that the added complexity of using `defer`
 does not outweigh the cost of delayed load time for a minority of your users. 
-Do not underestimate the cost of complexity.
 
 Async loading is recommended when:
 1. Your app has a great many users so to warrant the extra time spent to reduce load time.
@@ -70,6 +75,10 @@ If you load web component polyfills async, I still recommend that you start
 developing using sync loaded polyfills and then later augment the app to support async 
 loaded polyfills near the end of development.
 
+## References:
+ * https://stackoverflow.com/questions/5250412/how-exactly-does-script-defer-defer-work#answer-10731231
+ * https://stackoverflow.com/questions/3952009/defer-attribute-chrome#answer-3982619
+ 
 <!--
 1. you might need to delay calls to functions that require web component APIs to be present,
 such as:

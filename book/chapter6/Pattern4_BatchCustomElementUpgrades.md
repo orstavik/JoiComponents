@@ -20,12 +20,15 @@ To stop the customElements polyfill from doing its job, you call:
 ```javascript
 if(window.customElements && customElements.polyfillWrapFlushCallback){
   customElements.polyfillWrapFlushCallback(function(flush){});
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", function(){customElements.upgrade(document);});
 }
 ```
 This method will both:
-* *stop observation* of the mutations in the document and
-* *intercept the DOM traversal* in response to `customElement.define` and 
+* *Intercept the DOM traversal* in response to `customElement.define` and 
 supply it with a method that does nothing.
+* *Stop observation* of the mutations while the document is loading and
+replace it with a single `customElements.upgrade(document)` call when the page has finished loading.
 
 To restart the customElements polyfill, you call:
 ```javascript
@@ -48,6 +51,8 @@ window.WebComponents = window.WebComponents || {};
 window.WebComponents.stopCEPolyfill = function(){
   if(window.customElements && customElements.polyfillWrapFlushCallback){
     customElements.polyfillWrapFlushCallback(function(){});
+    if (document.readyState === "loading")
+      document.addEventListener("DOMContentLoaded", function(){customElements.upgrade(document);});
   }
 }
 window.WebComponents.startCEPolyfill = function(){
@@ -85,6 +90,8 @@ If you intend to load web components polyfills **sync**hronously, this is all yo
       window.WebComponents.stopCEPolyfill = function(){
         if(window.customElements && customElements.polyfillWrapFlushCallback){
           customElements.polyfillWrapFlushCallback(function(){});
+          if (document.readyState === "loading")
+            document.addEventListener("DOMContentLoaded", function(){customElements.upgrade(document);});
         }
       }
       window.WebComponents.startCEPolyfill = function(){
