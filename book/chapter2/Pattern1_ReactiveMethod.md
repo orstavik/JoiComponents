@@ -1,9 +1,11 @@
 # Pattern: ReactiveMethod
 
-### Example: Webcomponent that can respond to online/offline changes
+### Example: How to react to online/offline changes
 This simple example component reacts every time the network status changes.
-All the functionality that listens for the event is isolated in the constructor, connectedCallback and disconnectCallback.
-All the functionality that reacts to the event is added in the reactive callback method onlineOfflineCallback.
+All the functionality that listens for the event is isolated in the 
+`constructor()`, `connectedCallback()` and `disconnectCallback()`.
+All the functionality that reacts to the event is added in the reactive 
+callback method onlineOfflineCallback.
 
 ```javascript
 class MyWebComponent extends HTMLElement {
@@ -42,26 +44,30 @@ customElements.define("my-web-component", MyWebComponent);
 Try it on [codepen.io](https://codepen.io/orstavik/pen/bvJjOd).
 
 ## The purpose of the pattern
-This pattern enables a custom element to **react** to an event or callback as **simply** and 
-**efficiently** as possible.
+This pattern enables a custom element to **react** to an event, observer or 
+callback as **simply** and **efficiently** as possible.
 
 **Simplicity** comes from:
-* separating the functionality that *listens for the event* from the functionality that *reacts to the event*, and
-* following the established pattern for callback methods on `HTMLElement`, which
+* Separating the task of *listening for the event* from *reacting to the event*.
+* Following the established pattern for callback methods on `HTMLElement`, which
 * uses a flat structure (and thus avoids callback-hell).
-**Efficiency** is preserved as the element only observe or listen for an event while it is connected
-to the DOM and caches the listening function used.
+
+**Efficiency** is preserved as the element only observes or listens for an event 
+while it is connected to the DOM and caches the listening function used.
                                                                
 ### Practical guide to defining your own ReactiveMethods
-1. The setup of a) listeners and b) the reactive callback method form a pair.
-It is the job of the listeners initialized and managed in the `constructor()`, `connectedCallback()` and `disconnectedCallback()` 
-to find out **when** the action needs to be triggered. These listeners then trigger the 
-reactive callback method and pass it a lightly parsed version of the event detail. 
-All the logic as to **how** the element should react is organized within this reactive method.
-2. This pattern works equally well for event-based, observer-based and function-based callbacks.
-3. Several ReactiveMethods can be set up in the same element at the same time. 
-However, if an element has more than two or three ReactiveMethods, 
-you should probably split them out as [Functional Mixins](Pattern2_FunctionalMixin.md).
+1. The setup of a) listener and b) the reactive callback method form a pair.
+2. The listener is initialized in the `constructor()`, activated in `connectedCallback()` and removed in `disconnectedCallback()`.
+   * This pattern works equally well for event-based, observer-based and function-based callbacks.
+3. The listener's job is to find out **when** a reaction is needed.
+   * However, when the reaction needs to be *delayed*,
+    debouncing or throttling the reaction are often best handled by the reactive method.
+4. Parsing and computation of original event data during listening should be light and sparse. 
+5. The listener calls the reactive callback method directly and pass it its own version of event data. 
+6. All the logic as to **how** the element should react is organized within this reactive method.
+7. Several ReactiveMethods can be set up in the same element at the same time. 
+   * However, if an element has more than two or three ReactiveMethods, 
+   you should probably split them out as [Functional Mixins](Pattern2_FunctionalMixin.md).
 
 #### References
 * https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements

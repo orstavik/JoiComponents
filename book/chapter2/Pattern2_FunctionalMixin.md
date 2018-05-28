@@ -1,16 +1,19 @@
-# Pattern: IsolatedFunctionalMixins for HTMLElement
-Often, the task of finding out **when** the reactive method should be triggered is not trivial:
-* Different browsers might implement different API that the element must harmonize/polyfill.
-* Information can be spread over several sources and require processing. 
-This fills the component with trivial code that obfuscates the rest of the element logic.
-* The task of listening for the external trigger event can be made more efficient if it is 
-coordinated for all the components of this type (such as in 
-[ChildrenChangedMixin](Mixin1_ChildrenChangedMixin.md) and [SizeChangedMixin](Mixin2_SizeChangedMixin.md)).
+# Pattern: FunctionalMixins
+Finding out **when** a reactive method should be triggered is often complex:
+* Different browsers might listen for/observe external events using different API that must all be added.
+* Different browsers might have slightly different timing or event data that must be harmonized.
+* Information about an event might be spread across over several different sources.
+* Information about an event might be raw and require parsing and/or computation.
+* Information about an event might require state information and thus might require caching data over time. 
+* Coordinating the listening of several components of the same type is more efficient
+(cf. [ChildrenChangedMixin](Mixin1_ChildrenChangedMixin.md) and [SizeChangedMixin](Mixin2_SizeChangedMixin.md)).
 
-If the "listen-to" functionality of a ReactiveMethod balloons, 
-then you likely want to split this functionality out as a separate functional mixin. 
-This will help you encapsulate and isolate this aspect of your code which will keep 
-your component simpler and facilitate unit-testing.
+Therefore, a good listener method often require a few lines of code, both simple and complex.
+If this code is put in the same scope as the code that reacts to the event, 
+the code quickly balloons and becomes unwieldy as the listener code and the reaction code obfuscate each other.
+When this happens, you want to split the listening functionality out as a separate functional mixin. 
+This establishes a separate scope for the listening code, isolates it from the reaction, thereby 
+making the code simpler and easier to unit test.
 
 ### Example 
 In this example, we will convert the [`.onlineOfflineCallback(isOnline)`](Pattern1_ReactiveMethod.md)
@@ -40,7 +43,6 @@ const OnlineOfflineMixin = function(Base) {                              //[0] 
       //  don't implement this in ReactiveMethod,                         //[2]
       //  but implement this for EventComposition                         //[2]
       //} 
-      
     }                                                                                     
 };
 
@@ -65,7 +67,7 @@ class MyWebComponent extends OnlineOfflineMixin(HTMLElement) {            //[0] 
 }                                                                                      
 customElements.define("my-web-component", MyWebComponent);
 ``` 
-0. When setting up an IsolatedFunctionalMixin, the code of the ReactiveMethod is split into two parts:
+0. When setting up a FunctionalMixin, the code of the ReactiveMethod is split into two parts:
 * a functional mixin responsible for listening for the external event, and
 * a web component applying this mixin to its HTMLElement superclass that 
 controls the reaction of the external event.
@@ -95,4 +97,4 @@ next chapter, you will of course implement an equivalent of this method in the m
 If you forget this, you will not get an Error, but the functional mixin will not be activated or deactivated.
 This closely resemble the compulsory call to `super()` in the `constructor()` of any class that extends another class. 
 
-Further description of [how the `Base` of the mixins in this book are constrained](Discussion_IsolatedFunctionalMixin.md).
+Further description of [why and how to constrain `Base` of a functional mixin](Discussion_IsolatedFunctionalMixin.md).
