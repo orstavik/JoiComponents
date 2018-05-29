@@ -64,8 +64,8 @@
     class MyElement extends HTMLElement {
       connectedCallback() {
         this.style.display = "block";
-        this.style.width = "200px";
-        this.style.height = "250px";
+        this.style.width = "20px";
+        this.style.height = "25px";
         this.style.borderRadius = "50%";
         this.style.backgroundColor = "orange";
       }
@@ -79,7 +79,7 @@
     () => {
       let me = document.createElement("my-element");
       document.body.appendChild(me);
-      me.style.border = "20px dotted red";
+      me.style.border = "2px dotted red";
     },
     1000
   );
