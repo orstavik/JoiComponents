@@ -53,9 +53,9 @@
 </script>
 
 
-<script src="polyfill-loader.js"></script>
+<!--<script src="polyfill-loader.js"></script>-->
 <!--<script src="polyfill-loader.js" defer></script>-->
-<!--<script src="https://rawgit.com/webcomponents/webcomponentsjs/15b1b3e2/webcomponents-bundle.js" onload="window.WebComponents.flushWaitingFunctions()"></script>-->
+<script src="https://rawgit.com/webcomponents/webcomponentsjs/15b1b3e2/webcomponents-bundle.js" onload="window.WebComponents.flushWaitingFunctions()"></script>
 <!-- This works, when a bugfix call to customElements.upgrade is added in waitFor. But that should not be necessary. Why? -->
 <!--<script defer src="https://rawgit.com/webcomponents/webcomponentsjs/15b1b3e2/webcomponents-bundle.js" onload="window.WebComponents.flushWaitingFunctions()"></script>-->
 
@@ -81,11 +81,11 @@
       document.body.appendChild(me);
       me.style.border = "20px dotted red";
     },
-    2000
+    1000
   );
   setTimeout(
     () => document.body.innerHTML += "<my-element></my-element>",
-    3000
+    2000
   );
 </script>
 <script>console.log("adding my-element"); </script>
