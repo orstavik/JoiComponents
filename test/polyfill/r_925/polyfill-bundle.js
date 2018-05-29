@@ -287,3 +287,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   "complete"!==document.readyState?(window.addEventListener("load",yh),window.addEventListener("DOMContentLoaded",function(){window.removeEventListener("load",yh);yh()})):yh();}).call(this);
 
 /*inserted*/
+// if (document.readyState !== "loading")
+//   window.WebComponents.flushWaitingFunctions();
+// else
+  window.addEventListener("DOMContentLoaded",function(){window.WebComponents.flushWaitingFunctions();});
