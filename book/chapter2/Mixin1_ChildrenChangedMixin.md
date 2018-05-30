@@ -44,7 +44,7 @@ todo end
 ## Example
 
 ```javascript
-import {ChildrenChangedMixin} from "https://unpkg.com/joicomponents/src/ChildrenChangedMixin.js";
+import {ChildrenChangedMixin} from SlotChangedMixin;
 
 class MyWebComponent extends ChildrenChangedMixin(HTMLElement) {
                                                

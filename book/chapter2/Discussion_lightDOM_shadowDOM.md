@@ -1,54 +1,7 @@
-# Pattern: visibleChildren
-
-We start this pattern by defining a new aspect of HTMLElements: `visibleChildren`.
-`visibleChildren` means all the ".children" elements that would be "visible" for an element.
-
-For elements in the main document *outside* any ShadowDOM, 
-the `visibleChildren` equals the `.children` of the element.
-But. For an element *used inside* a ShadowDOM, 
-the list of children displayed under the element is no longer simply its `.children`.
-*Used inside* a shadowDom, the `.children` list of an element *can contain* `<slot>` elements.
-`<slot>` elements are HTML variables, placeholders, or references. 
-`<slot>` elements are *not* normal elements.
-When a `<slot>` is instantiated in a shadowDOM document, 
-the `<slot>` placeholder element will be replaced by zero, one or several "actual" elements 
-retrieved from the `host` element's lightDOM when the view is resolved. 
-
-So, in the new ShadowDOM era, an elements `visibleChildren` is:
-* the element's `.children` for elements *in the main, top-level document*.
-* the element's `.children` where all `slot` elements are flattened (ie. replaced with their `.assignedNodes()`)
-for elements *inside a shadowDom document*.
-
-In the view, slotted or normal elements appear identical.
-In many run-time contexts, slotted and normal elements should therefore also be treated equally;
-If the browser lays out all visibleChildren equally, it is likely that we also need to treat such children equally
-in custom element code.
-Enter `visibleChildren`, which purpose is to equate normal and slotted elements, 
-by flattening the references of `<slot>` elements.
-
-## function `getVisibleChildren(el)`
-The `visibleChildren` pattern can be implemented as a small function.
-This function retrieves and flattens the list of `visibleChildren` for *all* elements.
-
-```javascript
-function getVisibleChildren(el) {
-  let res = [];
-  for (let i = 0; i < el.children.length; i++) {
-    let child = el.children[i];
-    if (child.constructor.name === "HTMLSlotElement") {
-      let assignedNodes = child.assignedNodes();
-      for (let j = 0; j < assignedNodes.length; j++)
-        res.push(assignedNodes[j]);
-    } else {
-      res.push(child);
-    }
-  }
-  return res;
-}
-```
+# lightDOM and shadowDOM
 
 ## Example 1: `BucketList`
-To illustrate the concept of `visibleChildren`, 
+To illustrate the concept of lightDOM and shadowDOM, 
 we start with a simple example with low ambitions: `BucketList`.
 The `BucketList` is a list of important things to do in life.
 It anticipates to be filled with a series of `<div>`s with text, which it will center-align.
@@ -79,11 +32,12 @@ Used in "another document" like so:
   <div id="two">slice cucumbers</div>
 </bucket-list>
 ```
-The `BucketList` uses a `<slot>` element as a placeholder in its shadowDOM document.
+The `BucketList` uses a `<slot>` element as a placeholder in its shadowDOM document 
+(ie. `this.shadowRoot`).
 When the `<bucket-list>` is instantiated in the DOM, 
 the `<slot>` refers to `div#one` and `div#two`.
-`getVisibleChildren(this)` would return `[div#one, div#two]`;
-`getVisibleChildren(this.shadowRoot)` would return `[style, div#one, div#two]`.
+`flattenedChildren(this)` would return `[div#one, div#two]`;
+`flattenedChildren(this.shadowRoot)` would return `[style, div#one, div#two]`.
 
 So far, there is a simple distinction between the shadowDOM and the lightDOM 
 from the point of view of the `BucketList` element:
@@ -133,7 +87,7 @@ The elements added in the list of things to do before the man dies now clearly o
 from different origins.
 The elements in our `BucketList` is *mixed* together from two different HTML documents, 
 from both the shadowDOM and the lightDOM of our `man-bucket-list#list`.
-We can see this clearly by calling `getVisibleChildren(this.shadowRoot)` which returns 
+We can see this clearly by calling `flattenedChildren(this.shadowRoot)` which returns 
 `[style, div#man, div#one, div#two]`.
 Let's see how this evolves.
 
@@ -182,7 +136,7 @@ In *another document*:
 This example illustrate the problem of using one custom element 
 inside the shadowDom of another custom element.
 (cf. Web components gold standard on content assignment).
-Here, `getVisibleChildren(this.shadowRoot)` returns a much longer list:
+Here, `flattenedChildren(this.shadowRoot)` returns a much longer list:
 `[style, div#man, div#love, div#romance, ..., div#one, div#two]`.
 The bucket list items of `ManBucketList` are still there, 
 the only difference being that they now also include
@@ -227,6 +181,10 @@ The scope of `<slot>` and `visibleChildren` *does* include all the documents nec
 So, sometimes an assignedNode of a slot can be found in the lightDOM's lightDOM.
 Or an element is transposed to a shadowDOM's shadowDOM. 
 
+# HTML composition / Interaction between lightDOM and shadowDOM
+
+HTML composition is to create new DOM structures by combining html elements.
+
 ## How to politely cross the borders of DOM documents? 
 
 The well-trodden pathways to cross document borders are:
@@ -267,24 +225,11 @@ So, be on your best behavior!
 Don't stare at or touch a MarriedMan's wife. 
 And don't directly query, manipulate or style another element's shadowDOM.
 
-## Opinion about HTML composition using `<slot>`
-HTML composition is to create new DOM structures by combining html elements.
-HTML composition using `<slot>`s is always complex, and especially when:
-* `<slot>` elements are chained like in the `MarriedManBucketList` example, and
-* when elements that are slotted or siblings of slotted elements are dynamically added and removed from the DOM.
-
-To reduce the complexity:
-* Avoid dynamically altering slotted elements inside shadowDOMs. 
-Try to keep such dynamic manipulation of the DOM from JS to the top-level, main document only.
-This will keep the template inside the shadowDOM more static and simpler to relate to.
-* When you make elements that you intend to use inside other elements,
-use the ChildrenChangedMixin if you need to react to the dynamic DOM.
-Also, try to follow the patterns described in chapter 4.
-These patterns align with existing, normal HTML elements' behavior, and 
-therefore should be simpler to intuitively grasp and keep in mind.
 * Do not underestimate the *cost of complexity* of HTML composition.
 Do not *reach* into other documents in order to for example avoid creating another custom element.
 It will cost you more in the long run.
 
+
 ## References
+ * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
  * [cf. HelicopterParentChild](../chapter4/Pattern2_HelicopterParentChild.md). 
