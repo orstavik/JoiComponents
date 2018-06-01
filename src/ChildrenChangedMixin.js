@@ -40,7 +40,7 @@ const slotchangeListener = Symbol("slotChangedListener");
 const hostChildrenChanged = Symbol("hostChildrenChanged");
 const addSlotListeners = Symbol("addSlotListeners");
 const removeSlotListeners = Symbol("removeSlotListeners");
-const slotChanged = Symbol("slotChanged");
+const testCallback = Symbol("testTriggerCallback");
 const hostChildrenSlots = Symbol("hostChildrenSlots");
 const hostFlattenedChildren = Symbol("hostChildrenSlots");
 
@@ -70,13 +70,13 @@ export const ChildrenChangedMixin = function (Base) {
      * @param newChildList
      * @param isSlotChange true if the children changed is due to a slotchange event
      */
-    // childrenChangedCallback(newChildList, oldChildList, isSlotChange) {
+    // childrenChangedCallback(oldChildList, newChildList, isSlotChange) {
     // }
 
     constructor() {
       super();
-      this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());         //=== function(changes){changes[0].target[childListChanged]();}
-      this[slotchangeListener] = () => this[slotChanged]();
+      this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());//=== function(changes){changes[0].target[hostChildrenChanged]();}
+      this[slotchangeListener] = () => this[testCallback](true);
       this[hostChildrenSlots] = undefined;
       this[hostFlattenedChildren] = [];
     }
@@ -84,7 +84,6 @@ export const ChildrenChangedMixin = function (Base) {
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this[hostChildrenObserver].observe(this, {childList: true});
-      // if (this.children && this.children.length !== 0)
       Promise.resolve().then(() => this[hostChildrenChanged]());
     }
 
@@ -110,25 +109,19 @@ export const ChildrenChangedMixin = function (Base) {
       this[hostChildrenSlots] = undefined;
     }
 
-    [slotChanged]() {
+    [testCallback](isSlotChange) {
       let newFlatChildren = flattenedChildren(this);
       if (arrayEquals(newFlatChildren, this[hostFlattenedChildren]))
         return;
       let old = this[hostFlattenedChildren];
       this[hostFlattenedChildren] = newFlatChildren;
-      this.childrenChangedCallback(old, newFlatChildren, true);
+      this.childrenChangedCallback(old, newFlatChildren, isSlotChange);
     }
 
     [hostChildrenChanged]() {
       this[removeSlotListeners]();
       this[addSlotListeners]();
-
-      let newFlatChildren = flattenedChildren(this);
-      if (arrayEquals(newFlatChildren, this[hostFlattenedChildren]))
-        return;
-      let old = this[hostFlattenedChildren];
-      this[hostFlattenedChildren] = newFlatChildren;
-      this.childrenChangedCallback(old, newFlatChildren, false);
+      this[testCallback](false);
     }
   }
 };
