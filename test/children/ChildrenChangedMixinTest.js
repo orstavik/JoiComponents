@@ -1,4 +1,4 @@
-import {ChildrenChangedMixin} from "../../src/ChildrenChangedMixin.js";
+import {ChildrenChangedMixin, flattenedChildren} from "../../src/ChildrenChangedMixin.js";
 
 describe('ChildrenChangedMixin', function () {
 
@@ -38,13 +38,13 @@ describe('ChildrenChangedMixin', function () {
     };
     customElements.define("visible-children-property", Subclass);
     const el = new Subclass();
-    assert(el.getVisibleChildren().length === 0);
+    assert(flattenedChildren(el).length === 0);
     let child = document.createElement("div");
     el.appendChild(child);
     el.appendChild(document.createElement("slot"));
-    assert(el.getVisibleChildren().length === 1);
+    assert(flattenedChildren(el).length === 1);
     el.removeChild(child);
-    assert(el.getVisibleChildren().length === 0);
+    assert(flattenedChildren(el).length === 0);
   });
 
   it("ChildrenChangedMixin add DIV imperative and trigger childrenChangedCallback", function (done) {
@@ -134,14 +134,14 @@ describe('ChildrenChangedMixin', function () {
     const inner = outer.shadowRoot.children[0];
     const innerSlot = inner.children[0];
 
-    assert(inner.getVisibleChildren().length === 0);
+    assert(flattenedChildren(inner).length === 0);
     let slotted = document.createElement("div");
     outer.appendChild(slotted);
-    assert(inner.getVisibleChildren().length === 1);
+    assert(flattenedChildren(inner).length === 1);
     inner.removeChild(innerSlot);
-    assert(inner.getVisibleChildren().length === 0);
+    assert(flattenedChildren(inner).length === 0);
     inner.appendChild(innerSlot);
-    assert(inner.getVisibleChildren().length === 1);
+    assert(flattenedChildren(inner).length === 1);
   });
 
   it("The super inner-outer-slot test 2", function (done) {

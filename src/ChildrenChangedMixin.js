@@ -1,6 +1,22 @@
 /**
  * Acknowledgments
+ *
+ * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
+import {flattenedChildren as flatten} from "./flattenedChildren.js";
+
+export const flattenedChildren = flatten;
+
+/**
+ * returns
+ * 1. an array with a single no-name slot if that is amongst the .children, or
+ * 2. an array of all the named slots [slotNameOne, slotNameTwo, ...] amongst the .children, or
+ * 3. empty Nodelist.
+ */
+function getSlotList(host){
+  const noName = host.querySelector('> slot:not([name])') || host.querySelector('> slot:not([name=""])');
+  return noName ? [noName] : host.querySelectorAll('> slot');
+}
 
 const MO = Symbol("childListenerObserver");
 const slotIsActive = Symbol("slotChildren");
@@ -12,34 +28,18 @@ const lastNotifiedVisibleChildren = Symbol("lastNotifiedVisibleChildren");
 
 /**
  * ChildrenChangedMixin adds a reactive lifecycle hook .childrenChangedCallback(...) to its subclasses.
- * .childrenChangedCallback(...) is triggered every time
- *   1) a child changes or
- *   2) a slot that is a child changes.
+ * .childrenChangedCallback(newFlattenedChildren, oldFlattenedChildren, isSlotChange) is triggered:
+ *  1) whenever the slotted content of an element changes and
+ *  2) every time the element is connected to the DOM.
  *
- * About 2) slotted children.
- * If a <slot> element is a direct child of the element, the .childrenChangedCallback is
- * triggered every time an element is either added or removed from the slot
- * (ie. whenever a "slotchange" event is triggered on a slotted child element).
+ * .childrenChangedCallback(...) is not triggered if there are no differences between the content of the
+ * newFlattenedChildren and the oldFlattenedChildren.
  *
- * ChildrenChangedMixin also adds a property .visibleChildren to its subclasses.
- * .visibleChildren is the flattened list of:
- *   a) all (first level) children, except slot,
- *   b) the slotted children of the excluded slots
- * The new and old visibleChildren are passed as the parameters of the
- * .childrenChangedCallback(newVisibleChildren, oldVisibleChildren) method.
+ * ChildrenChangedMixin exposes the `.flattenedChildren(el)` function.
  *
  * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
  * a) Detachment: ChildrenChangedMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
  * b) Content assignment: changes to assignedNodes of slotted children are notified as if the change happened to a normal child.
- *
- * .childrenChangedCallback(...) is very similar to .attributeChangedCallback(...) in that
- *   a) it triggers a reactive function whenever a certain type of mutation of the element's lightDOM changes, and
- *   b) gives a reactive API to a facility that is already provided on the platform through the MutationObserver API.
- *
- * .childrenChangedCallback(...) is triggered when a change occurs while the element is connected to the DOM.
- * .childrenChangedCallback(...) is also called:
- *  1) when the element is reconnected (disconnected and then reconnected to the DOM),
- *  2) when the element is updated (when the constructor is called when the element has already been connected to the DOM).
  *
  * @param Base class that extends HTMLElement
  * @returns {ChildrenChangedMixin} class that extends HTMLElement
@@ -48,32 +48,12 @@ export const ChildrenChangedMixin = function (Base) {
   return class ChildrenChangedMixin extends Base {
 
     /**
-     * Override this method to do actions when children changes.
-     * todo remove childrenChangedCallback?
-     * todo This will cause an error when the developer uses ChildrenChangedMixin and forgets
-     * todo to implement the childrenChangedCallback method.
-     *
      * @param oldChildList
      * @param newChildList
      * @param isSlotChange true if the children changed is due to a slotchange event
      */
-    childrenChangedCallback(oldChildList, newChildList, isSlotChange) {
-      if (super.childrenChangedCallback) super.childrenChangedCallback(oldChildList, newChildList, isSlotChange);
-    }
-
-    getVisibleChildren() {
-      let res = [];
-      for (let i = 0; i < this.children.length; i++) {
-        let child = this.children[i];
-        if (child.constructor.name === "HTMLSlotElement") {
-          let assignedNodes = child.assignedNodes();
-          for (let j = 0; j < assignedNodes.length; j++)
-            res.push(assignedNodes[j]);
-        } else
-          res.push(child);
-      }
-      return res;
-    }
+    // childrenChangedCallback(newChildList, oldChildList, isSlotChange) {
+    // }
 
     static hasSlotChildren(el) {
       if (!el.children)
@@ -87,7 +67,7 @@ export const ChildrenChangedMixin = function (Base) {
 
     constructor() {
       super();
-      this[MO] = new MutationObserver(() => this[childListChanged]());
+      this[MO] = new MutationObserver(() => this[childListChanged]());         //=== function(changes){changes[0].target[childListChanged]();}
       this[slotIsActive] = false;
       this[slotChangeListener] = () => this[checkVisibleChildrenChanged](true);
     }
@@ -111,7 +91,7 @@ export const ChildrenChangedMixin = function (Base) {
 
     [checkVisibleChildrenChanged](isSlotChange) {
       const oldChildList = this[lastNotifiedVisibleChildren];
-      const newChildList = this.getVisibleChildren();
+      const newChildList = flatten(this);
       if (!isSlotChange && ChildrenChangedMixin.arrayEquals(oldChildList, newChildList))
         return;
       this[lastNotifiedVisibleChildren] = newChildList;
