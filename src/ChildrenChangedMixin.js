@@ -20,7 +20,7 @@ function getSlotList(el) {
   const res = [];
   for (let i = 0; i < el.children.length; i++) {
     const child = el.children[i];
-    if (!child instanceof HTMLSlotElement)
+    if (!(child instanceof HTMLSlotElement))
       continue;
     const name = child.getAttribute("name");
     if (!name || name === "")
@@ -31,7 +31,7 @@ function getSlotList(el) {
 }
 
 function arrayEquals(a, b) {
-  return a && a.length === b.length && a.every((v, i) => v === b[i]);
+  return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
 
@@ -78,7 +78,7 @@ export const ChildrenChangedMixin = function (Base) {
       this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());//=== function(changes){changes[0].target[hostChildrenChanged]();}
       this[slotchangeListener] = () => this[testCallback](true);
       this[hostChildrenSlots] = undefined;
-      this[hostFlattenedChildren] = [];
+      this[hostFlattenedChildren] = undefined;
     }
 
     connectedCallback() {
@@ -119,6 +119,8 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [hostChildrenChanged]() {
+      if (!this.isConnected)            //if the element is first connected and then disconnected again before the JS stack empties.
+        return;
       this[removeSlotListeners]();
       this[addSlotListeners]();
       this[testCallback](false);
