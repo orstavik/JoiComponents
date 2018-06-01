@@ -11,20 +11,33 @@ export const flattenedChildren = flatten;
  * returns
  * 1. an array with a single no-name slot if that is amongst the .children, or
  * 2. an array of all the named slots [slotNameOne, slotNameTwo, ...] amongst the .children, or
- * 3. empty Nodelist.
+ * 3. null.
+ *
+ * would be similar to something like this css-ish
+ * el.querySelectorAll(":either(:only-first(:origin > :either(slot:not([name]), :origin > slot([name='']), :origin > slot");
  */
-function getSlotList(host){
-  const noName = host.querySelector('> slot:not([name])') || host.querySelector('> slot:not([name=""])');
-  return noName ? [noName] : host.querySelectorAll('> slot');
+function getSlotList(el) {
+  const res = [];
+  for (let i = 0; i < el.children.length; i++) {
+    const child = el.children[i];
+    if (!child instanceof HTMLSlotElement)
+      continue;
+    const name = child.getAttribute("name");
+    if (!name || name === "")
+      return [child];
+    res.push(child);
+  }
+  return res.length ? res : null;
 }
 
+function arrayEquals(a, b) {
+  return a && a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
+
 const MO = Symbol("childListenerObserver");
-const slotIsActive = Symbol("slotChildren");
 const slotChangeListener = Symbol("slotChangedListener");
 const childListChanged = Symbol("lightChildrenChanged");
-const checkVisibleChildrenChanged = Symbol("slotChildrenChanged");
-const listenForSlotChanges = Symbol("listenForSlotChanges");
-const lastNotifiedVisibleChildren = Symbol("lastNotifiedVisibleChildren");
 
 /**
  * ChildrenChangedMixin adds a reactive lifecycle hook .childrenChangedCallback(...) to its subclasses.
@@ -55,21 +68,12 @@ export const ChildrenChangedMixin = function (Base) {
     // childrenChangedCallback(newChildList, oldChildList, isSlotChange) {
     // }
 
-    static hasSlotChildren(el) {
-      if (!el.children)
-        return false;
-      for (let i = 0; i < el.children.length; i++) {
-        if (el.children[i].constructor.name === "HTMLSlotElement")
-          return true;
-      }
-      return false;
-    }
-
     constructor() {
       super();
       this[MO] = new MutationObserver(() => this[childListChanged]());         //=== function(changes){changes[0].target[childListChanged]();}
-      this[slotIsActive] = false;
-      this[slotChangeListener] = () => this[checkVisibleChildrenChanged](true);
+      this[slotChangeListener] = () => this._slotChanged();
+      this._slots = undefined;
+      this._hostFlattenedChildren = [];
     }
 
     connectedCallback() {
@@ -81,36 +85,44 @@ export const ChildrenChangedMixin = function (Base) {
 
     disconnectedCallback() {
       if (super.disconnectedCallback) super.disconnectedCallback();
+      this._removeSlotListeners();
       this[MO].disconnect();
     }
 
-    [childListChanged]() {
-      this[listenForSlotChanges]();
-      this[checkVisibleChildrenChanged](false);
-    }
-
-    [checkVisibleChildrenChanged](isSlotChange) {
-      const oldChildList = this[lastNotifiedVisibleChildren];
-      const newChildList = flatten(this);
-      if (!isSlotChange && ChildrenChangedMixin.arrayEquals(oldChildList, newChildList))
+    _addSlotListeners() {
+      this._slots = getSlotList(this);
+      if (!this._slots)
         return;
-      this[lastNotifiedVisibleChildren] = newChildList;
-      this.childrenChangedCallback(oldChildList, newChildList, isSlotChange);
+      for (let i = 0; i < this._slots.length; i++)
+        this._slots[i].addEventListener("slotchange", this[slotChangeListener]);
     }
 
-    [listenForSlotChanges]() {
-      const hasSlot = ChildrenChangedMixin.hasSlotChildren(this);
-      if (hasSlot && !this[slotIsActive]) {
-        this[slotIsActive] = true;
-        this.addEventListener("slotchange", this[slotChangeListener]);
-      } else if (!hasSlot && this[slotIsActive]) {
-        this[slotIsActive] = false;
-        this.removeEventListener("slotchange", this[slotChangeListener]);
-      }
+    _removeSlotListeners() {
+      if (!this._slots)
+        return;
+      for (let i = 0; i < this._slots.length; i++)
+        this._slots[i].removeEventListener("slotchange", this[slotChangeListener]);
+      this._slots = undefined;
     }
 
-    static arrayEquals(a, b) {
-      return a && a.length === b.length && a.every((v, i) => v === b[i]);
+    _slotChanged() {
+      let newFlatChildren = flattenedChildren(this);
+      if (arrayEquals(newFlatChildren, this._hostFlattenedChildren))
+        return;
+      let old = this._hostFlattenedChildren;
+      this._hostFlattenedChildren = newFlatChildren;
+      this.childrenChangedCallback(old, newFlatChildren, true);
+    }
+
+    [childListChanged]() {
+      this._removeSlotListeners();
+      this._addSlotListeners();
+      let newFlatChildren = flattenedChildren(this);
+      if (arrayEquals(newFlatChildren, this._hostFlattenedChildren))
+        return;
+      let old = this._hostFlattenedChildren;
+      this._hostFlattenedChildren = newFlatChildren;
+      this.childrenChangedCallback(old, newFlatChildren, false);
     }
   }
 };
