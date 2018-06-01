@@ -35,9 +35,14 @@ function arrayEquals(a, b) {
 }
 
 
-const MO = Symbol("childListenerObserver");
-const slotChangeListener = Symbol("slotChangedListener");
-const childListChanged = Symbol("lightChildrenChanged");
+const hostChildrenObserver = Symbol("hostChildrenObserver");
+const slotchangeListener = Symbol("slotChangedListener");
+const hostChildrenChanged = Symbol("hostChildrenChanged");
+const addSlotListeners = Symbol("addSlotListeners");
+const removeSlotListeners = Symbol("removeSlotListeners");
+const slotChanged = Symbol("slotChanged");
+const hostChildrenSlots = Symbol("hostChildrenSlots");
+const hostFlattenedChildren = Symbol("hostChildrenSlots");
 
 /**
  * ChildrenChangedMixin adds a reactive lifecycle hook .childrenChangedCallback(...) to its subclasses.
@@ -70,58 +75,59 @@ export const ChildrenChangedMixin = function (Base) {
 
     constructor() {
       super();
-      this[MO] = new MutationObserver(() => this[childListChanged]());         //=== function(changes){changes[0].target[childListChanged]();}
-      this[slotChangeListener] = () => this._slotChanged();
-      this._slots = undefined;
-      this._hostFlattenedChildren = [];
+      this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());         //=== function(changes){changes[0].target[childListChanged]();}
+      this[slotchangeListener] = () => this[slotChanged]();
+      this[hostChildrenSlots] = undefined;
+      this[hostFlattenedChildren] = [];
     }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
-      this[MO].observe(this, {childList: true});
+      this[hostChildrenObserver].observe(this, {childList: true});
       // if (this.children && this.children.length !== 0)
-      Promise.resolve().then(() => this[childListChanged]());
+      Promise.resolve().then(() => this[hostChildrenChanged]());
     }
 
     disconnectedCallback() {
       if (super.disconnectedCallback) super.disconnectedCallback();
-      this._removeSlotListeners();
-      this[MO].disconnect();
+      this[removeSlotListeners]();
+      this[hostChildrenObserver].disconnect();
     }
 
-    _addSlotListeners() {
-      this._slots = getSlotList(this);
-      if (!this._slots)
+    [addSlotListeners]() {
+      this[hostChildrenSlots] = getSlotList(this);
+      if (!this[hostChildrenSlots])
         return;
-      for (let i = 0; i < this._slots.length; i++)
-        this._slots[i].addEventListener("slotchange", this[slotChangeListener]);
+      for (let i = 0; i < this[hostChildrenSlots].length; i++)
+        this[hostChildrenSlots][i].addEventListener("slotchange", this[slotchangeListener]);
     }
 
-    _removeSlotListeners() {
-      if (!this._slots)
+    [removeSlotListeners]() {
+      if (!this[hostChildrenSlots])
         return;
-      for (let i = 0; i < this._slots.length; i++)
-        this._slots[i].removeEventListener("slotchange", this[slotChangeListener]);
-      this._slots = undefined;
+      for (let i = 0; i < this[hostChildrenSlots].length; i++)
+        this[hostChildrenSlots][i].removeEventListener("slotchange", this[slotchangeListener]);
+      this[hostChildrenSlots] = undefined;
     }
 
-    _slotChanged() {
+    [slotChanged]() {
       let newFlatChildren = flattenedChildren(this);
-      if (arrayEquals(newFlatChildren, this._hostFlattenedChildren))
+      if (arrayEquals(newFlatChildren, this[hostFlattenedChildren]))
         return;
-      let old = this._hostFlattenedChildren;
-      this._hostFlattenedChildren = newFlatChildren;
+      let old = this[hostFlattenedChildren];
+      this[hostFlattenedChildren] = newFlatChildren;
       this.childrenChangedCallback(old, newFlatChildren, true);
     }
 
-    [childListChanged]() {
-      this._removeSlotListeners();
-      this._addSlotListeners();
+    [hostChildrenChanged]() {
+      this[removeSlotListeners]();
+      this[addSlotListeners]();
+
       let newFlatChildren = flattenedChildren(this);
-      if (arrayEquals(newFlatChildren, this._hostFlattenedChildren))
+      if (arrayEquals(newFlatChildren, this[hostFlattenedChildren]))
         return;
-      let old = this._hostFlattenedChildren;
-      this._hostFlattenedChildren = newFlatChildren;
+      let old = this[hostFlattenedChildren];
+      this[hostFlattenedChildren] = newFlatChildren;
       this.childrenChangedCallback(old, newFlatChildren, false);
     }
   }
