@@ -23,19 +23,16 @@ If you want to copy them into your web component and/or adapt them to fit your n
 ## Chapter 1: How to build (and polyfill) an app using web components?
 1. [How to define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
 2. [Different strategies to create a shadowDom](book/chapter1/Pattern2_shadowDom.md)
-<!--
-3. [Polyfill web components](book/chapter1/Pattern3_polyfill.md)
-_3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
-4. [Attribute reaction](book/chapter1/Pattern6_AttributeReaction.md)
+<!--3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
+4. [Attribute reaction](book/chapter1/Pattern4_AttributeReaction.md)
 
 ## Chapter 2: JS Patterns for generic web components and HTMLElement lifecycle mixins
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
 3. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
-4. [.childrenChangedCallback()](book/chapter2/Mixin1_ChildrenChangedMixin.md)
-5. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
-6. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
-7. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
+4. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
+5. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
+6. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
 
 ## Chapter 3: ComposedEvents and Gestures in JS
 1. [EventComposition](book/chapter3/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
@@ -47,11 +44,13 @@ _3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconne
 
 ## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
-2. [FosterParentChild (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
-3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
-4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
-<!--5. [MiniMe (`<book>`)](book/chapter4/Pattern4_MiniMe.md)-->
-<!--6. [KeepItLight (`<book>`)](book/chapter4/Pattern5_KeepItLight.md)-->
+2. [LightDOM and shadowDOM](book/chapter4/Discussion_lightDOM_shadowDOM.md)
+3. [`<slot>`, `assignedNodes()` and Function: flattenedChildren](book/chapter4/Function1_slots_flattenedChildren.md)
+4. [.slotchangeCallback() and .childrenChangedCallback()](book/chapter2/Mixin1_ChildrenChangedMixin.md)
+5. [FosterParentChild (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
+6. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
+7. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
+8. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter4/Pattern4_MiniMe.md)
 
 
 <!--
@@ -108,7 +107,7 @@ explain that custom elements with content in the lightDom should be considered a
 -->
 
 <!---
-## Chapter 7: Composition of app-specific web components
+## Chapter 8: Composition of app-specific web components
 1. 
 2. props down, (custom) events up
 ((ATT!! In generic custom elements, it is more children and attributes down, events up)).
@@ -119,9 +118,10 @@ explain that custom elements with content in the lightDom should be considered a
 (https://stackoverflow.com/questions/42757051/web-components-design-pattern)
 ).
 
- 
+<!--6. [KeepItLight - benefits of adding dom to the lightDom in app specific components is ](book/chapter4/Pattern5_KeepItLight.md)--> 
 
-## Chapter 8: Single state management
+<!--
+## Chapter 9: Single state management
 1. Using an event bus. With a state mananger.
 2. dispatching directly on an element. 
 3. the concept of immutability. and the benefits of dirty checking.
@@ -161,6 +161,4 @@ Once familiar with the makeup of web components, it is my contention that you no
 Web components is enough. They provide a great means both to organize and stabilize your own work and 
 collaborate with others. It might not be perfect. And it needs to be polyfilled in old browsers. 
 But it will still provides you with the only, cleanest and simplest API for making native HTML+JS+CSS modules.
-
-
 -->
