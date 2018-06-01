@@ -35,7 +35,7 @@ b) process slotted items on par with normal items.
 
 ### Defining two custom element types
 ```javascript
-import { ChildrenChangedMixin } from "https://unpkg.com/joicompontents@1.1.0/src/ChildrenChangedMixin.js";
+import { ChildrenChangedMixin } from "./ChildrenChangedMixin.js";
 
 class OlWc extends ChildrenChangedMixin(HTMLElement) {
                                                                                 
