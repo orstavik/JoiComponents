@@ -34,7 +34,6 @@ function arrayEquals(a, b) {
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
-
 const hostChildrenObserver = Symbol("hostChildrenObserver");
 const slotchangeListener = Symbol("slotChangedListener");
 const hostChildrenChanged = Symbol("hostChildrenChanged");
