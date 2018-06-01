@@ -227,9 +227,10 @@ And don't directly query, manipulate or style another element's shadowDOM.
 
 * Do not underestimate the *cost of complexity* of HTML composition.
 Do not *reach* into other documents in order to for example avoid creating another custom element.
-It will cost you more in the long run.
+Do not reach over the table at dinner, ask your fellow politely to pass the food.
+Do not reach directly across document borders, ask the custom element politely to accomodate you.
 
 
 ## References
  * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
- * [cf. HelicopterParentChild](../chapter4/Pattern2_HelicopterParentChild.md). 
+ * [cf. HelicopterParentChild](Pattern2_HelicopterParentChild.md). 

@@ -1,4 +1,4 @@
-# Function: `.flattenedChildren(el)`
+# Function: `.flattenedChildren(el)` (and `<slot>`)
 
 ## What is an HTML `<slot>` and `.assignedNodes()`?
 A `<slot>` is an HTML variable.
@@ -8,8 +8,41 @@ There are two types of `<slot>` elements:
 
 All `<slot>` elements refer to children elements of the `host` element in the lightDOM.
 The no-name `<slot>` simply refers to all the children of the `host` element.
-"Named slots" refer the children (or descendants) of the `host` element that has an attribute called
-`slot` with the same value as the `name` attribute of the slot in the shadowDOM inside the custom element.
+"Named slots" refer to the children (or descendants) of the `host` element 
+that has an attribute called `slot` with the same value as the `name` attribute 
+of the slot in the shadowDOM inside the custom element.
+
+```html
+<script type="module">
+  class GreenFrame extends HTMLElement {
+    
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+    }
+    
+    connectedCallback(){
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            display: block;
+            border: 10px solid green;
+          }
+        </style>
+        <slot></slot>
+      `;
+    }
+  }
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame>
+  <img src="aNicePicutre.jpg" alt="a nice picture">
+</green-frame>
+<green-frame>
+  <div style="width: 100px; height: 166px;">This is a div with some text</div>
+</green-frame>
+```
  
 `<slot>` elements can only be used inside a shadowDOM. 
 When a `<slot>` element is instantiated in a shadowDOM document as a `<slot>` node, 
@@ -24,39 +57,51 @@ But in the post shadowDOM era, the actual DOM now has two representations:
 1. **the (normal) DOM** with `<slot>` nodes still in place, and
 2. **the flattened DOM** where all the `<slot>` nodes are replaced with their `.assignedNodes()`.
 
-## Difficulties using `<slot>`
+> todo here we need a diagram of the flattened DOM.
+With a picture describing the `assignedNodes()` of each slot
+And pointer's to what is the lightDOM and shadowDOM of each entity.
+
+## Problems with `<slot>`s
 
 One important problem with a `<slot>` is that you don't know in advance 
 if they will have *zero, one or several* assigned nodes to it in the resolved DOM.
 They are polygamous.
-You might think that this primarily leads to problems for the `<slot>` element itself.
-But that is not really the case.
-The `<slot>` itself is aware of its own behavior and takes that into account.
-The assigned nodes are also fairly unaffected as it makes little difference for them
-if they are assigned to a parent node or set of siblings directly or indirectly via a `<slot>`.
-
-Surprisingly, it is the parent node of the slot inside the shadowDOM that gets into trouble.
+This mostly affect the parent node of the `<slot>` inside the shadowDOM.
 The problem for a parent node of `<slot>` elements no longer knows: 
 * how many children it will have, if any, and 
 * what type of elements these children might be.
 
-Both of these variables can impact both *style* and *behavior*.
-To handle style, the parent node must find a style suitable not only 
-for a fixed set and type of children, but for none, one or many children of various different styles.
-Thankfully, these are the same problems that HTML and CSS developers already tackle when
-they anticipate JS dynamically adding, removing and altering elements in the DOM at run-time.
-But, there is one new and unresolved task a parent node of a `<slot>` node needs to do:
-what is the list of children in the flattened DOM?
+```html
+<green-frame>
+  <!--nothing to see here-->
+</green-frame>
+
+<green-frame>
+  <!--wooow, don't do that!-->
+  <img src="aNicePicutre.jpg" alt="a nice picture">
+  <div style="width: 100px; height: 166px;">This is a div with some text</div>
+</green-frame>
+```
+
+Thankfully, this is a familiar problem. 
+Normal elements can also have unknown quantity of children of unknown types.
+As HTML elements are used in many different documents and also moved around and altered dynamically by JS,
+it is normal that an HTML element does not know in advance neither how many nor what type of children it has.
+So, we already know this problem and how to handle it:
+We assume little about neither the *style* nor *behavior* of the children.
+And we make sure the elements style and behavior tackles both zero, one and multiple children equally well.
+
+But, there is one thing missing for parent with slots among their children. 
+Where can I find a complete list of the children viewable in the flattened DOM?
 
 ## Function: `.flattenedChildren()`
 For DOM nodes that do not have any `<slot>`s amongst its children, 
 the `.flattenedChildren` equals `.children`.
 As `<slot>`s are only used inside shadowDOMs, 
 this applies by default to all nodes in the main, top-level DOM.
-
-However. If an element is a) *inside* a ShadowDOM and b) has a `<slot>` child,
+However, if an element is a) *inside* a ShadowDOM and b) has a `<slot>` child,
 the `.flattenedChildren` needs to be resolved by replacing all `slot` nodes 
-with their `.assignedNodes()`. This is done using the following function:
+with their `.assignedNodes()`.
 
 ```javascript
 function flattenedChildren(el) {
@@ -74,27 +119,28 @@ function flattenedChildren(el) {
   return res;
 }
 ```
-This function will function for all elements, 
-regardless if they happen to have any `<slot>` children or not.
+This function will function for all elements whether or not they have `<slot>` children.
 
 ## Opinions
 
-HTML composition using `<slot>`s is complex and powerful.
+HTML composition using `<slot>` is complex and powerful.
 To get the most power you must minimize complexity.
-Here is my advice to achieve this:
+Here is my advice to minimize complexity:
 
-1. Try to avoid dynamically adding, removing or altering `<slot>` elements inside the shadowDOM. 
+1. Avoid dynamically adding, removing or altering `<slot>` elements inside the shadowDOM. 
 As far as you can, let `<slot>` elements be a static fixture of your custom element.
 While it is possible to dynamically alter `<slot>` elements, 
 it makes for super complex code for usually little gain.
 
-2. Be careful using siblings with slots.
-This will create multiple document sources for a parent node's children.
-While useful in certain situations, it will create tight bindings between more than two DOM documents.
-Be especially careful when dynamically adding, removing or altering siblings of slot nodes.
+2. Be careful with a slot's siblings.
+The node that is parent for both the slot and its siblings, 
+will have multiple document sources for its children.
  
-2. Try to attach `<slot>` elements directly to the shadowRoot.
-Or is this a good advice.. Todo check this later
+2. If you can, attach `<slot>` elements directly to the shadowRoot.
+Do not wrap the `<slot>` in a div if all you need to do is add `:host {display: block;}` 
+to the style of the customElement.
+Familiarize yourself with `this.shadowRoot` as the root node of the shadowDOM.
+Todo: Check if this is good advice.. 
 
 3. The `slot` attribute must be added to the children of the host element.
 Adding named slots to grandchildren of a host-element will create confusion as to which 
@@ -108,23 +154,16 @@ This often means that slotted and normal nodes also require equal treatment by t
 5. Anticipate chained `<slot>`s. `<slot>` elements can be chained (cf. `MarriedManBucketList`). 
 If your element is truly reusable, this will be needed and occur more frequently than you might think. 
 
-* When you make elements that you intend to use inside other elements,
-use the ChildrenChangedMixin if you need to react to the dynamic DOM.
-Also, try to follow the patterns described in chapter 4.
-These patterns align with existing, normal HTML elements' behavior, and 
-therefore should be simpler to intuitively grasp and keep in mind.
-
-## Opinion about HTML composition using `<slot>`
-
-
-To reduce the complexity:
-* Avoid dynamically altering slotted elements inside shadowDOMs. 
-Try to keep such dynamic manipulation of the DOM from JS to the top-level, main document only.
+6. If you have chained `<slot>`s, 
+try to keep such dynamic manipulation of the DOM from JS to the top-level, main document only.
 This will keep the template inside the shadowDOM more static and simpler to relate to.
+Do not attempt to add same-level slots as it grows (cf. `MarriedManBucketList`). 
 
+7. If your custom element needs to react to changes of its `.flattenedChildren`,
+use the SlotChangeMixin.
 
 ## References
- * slot
- * assignedNodes
+ * mdn on slot
+ * mdn on assignedNodes
  * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
- * [cf. HelicopterParentChild](../chapter4/Pattern2_HelicopterParentChild.md). 
+ * [cf. HelicopterParentChild](Pattern2_HelicopterParentChild.md). 
