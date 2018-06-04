@@ -3,10 +3,10 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
-const slotchangeListener = new Symbol("slotchangeListener");
-const triggerSlotchangeCallback = new Symbol("triggerSlotchangeCallback");
-const slots = new Symbol("slots");
-const hostFlattenedChildren = new Symbol("hostFlattenedChildren");
+const slotchangeListener = Symbol("slotchangeListener");
+const triggerSlotchangeCallback = Symbol("triggerSlotchangeCallback");
+const slots = Symbol("slots");
+const hostFlattenedChildren = Symbol("hostFlattenedChildren");
 
 /**
  * The `SlotChangedMixin(Base)` will trigger a `slotChangedCallback(event)`
