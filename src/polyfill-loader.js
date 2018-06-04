@@ -4,28 +4,26 @@
 (function () {
   'use strict';
   var que = [];
-  var flaggs = [];
+  var flags = [];
   window.polyfill = {
-    ready: function (waitFn) {                 //returns true when the function is run
-      if (!waitFn)
+    ready: function (fn) {                 //returns true when the function is run
+      if (!fn)
         return;
       if (que)
-        return que.push(waitFn);
-      if (!(waitFn instanceof Function))
-        return;
-      waitFn();
-      return true;
+        return que.push(fn);
+      if (fn instanceof Function)
+        fn();
     },
     runWhenReady: function (pf) {       //empties the que and returns a promise resolved when all is run
-      if (flaggs.length > 0) {
+      if (flags.length > 0) {
         if (!pf)
           return;
-        var index = flaggs.indexOf(pf);
+        var index = flags.indexOf(pf);
         if (index > -1)
-          flaggs.splice(index, 1);               //mutates flaggs
+          flags.splice(index, 1);               //mutates flaggs
         else
           console.error("Check your polyfills.");
-        if (flaggs.length > 0)
+        if (flags.length > 0)
           return;
       }
       var q = que;
@@ -39,7 +37,7 @@
       return p;
     },
     await: function (pf) {
-      flaggs.push(pf);
+      flags.push(pf);
     }
   }
 })();
