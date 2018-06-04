@@ -46,7 +46,7 @@ If you want to copy them into your web component and/or adapt them to fit your n
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
 2. [LightDOM and shadowDOM](book/chapter4/Discussion_lightDOM_shadowDOM.md)
 3. [`<slot>`, `assignedNodes()` and Function: flattenedChildren](book/chapter4/Function1_slots_flattenedChildren.md)
-4. [.slotchangeCallback() and .childrenChangedCallback()](book/chapter2/Mixin1_ChildrenChangedMixin.md)
+4. [.slotchangeCallback() and .childrenChangedCallback()](book/chapter4/Mixin1_ChildrenChangedMixin.md)
 5. [FosterParentChild (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
 6. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
 7. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
@@ -98,9 +98,11 @@ This is not for beginners. This is not necessarily a good pattern. But it is a p
 3. [Dynamically loading scripts](book/chapter6/Pattern2_LoadScript.md)
 4. [FeatureDetectAndPolyfill](book/chapter6/Pattern3_FeatureDetectAndPolyfill.md)
 5. [Batch calls to customElements polyfill](book/chapter6/Pattern4_BatchCustomElementUpgrades.md)
-5. [QueAndRecallFunctions](book/chapter6/Pattern5_QueAndRecallFunctions.md)
-6. [FeatureDetectAndPolyfillAsync](book/chapter6/Pattern6_FeatureDetectAndPolyfillAsync.md)
-7. [Sync vs async polyfills](book/chapter6/Discussion_sync_vs_async_polyfilling.md)
+6. [QueAndRecallFunctions](book/chapter6/Pattern5_QueAndRecallFunctions.md)
+7. [SuperFun](book/chapter6/Pattern6_SuperFun.md)
+8. [Polyfill loader](book/chapter6/Pattern7_PolyfillLoader.md)
+9. [Sync vs async polyfills](book/chapter6/Discussion_sync_vs_async_polyfilling.md)
+10. [Webcomponentsjs](book/chapter6/Pattern8_webcomponentsjs.md)
 <!---
 5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
 explain that custom elements with content in the lightDom should be considered app-specific components.
