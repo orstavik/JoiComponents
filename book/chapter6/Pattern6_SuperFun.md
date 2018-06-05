@@ -143,6 +143,14 @@ original function name, location and argument list.
 Therefore, SuperFun should not change the function signature (argument list), 
 and the argument list should be known and followed.
 
+## Opinion: SuperFun is not really fun nor super
+
+SuperFun is one way. 
+Once you have wrapped a function inside superFun, you cannot reset it back to the original.
+SuperFun is brittle. Especially when you need to use resolve Promises and await results. 
+It is easy to make a minor typo in the `Promise.resolve` chain that will not show an error, 
+only cause it.
+
 ## References
 * https://javascript.info/promise-chaining#returning-promises
 * Try to find some other discussion out there on monkeypatching functions like this.
