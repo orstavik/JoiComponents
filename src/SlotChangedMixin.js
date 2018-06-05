@@ -48,7 +48,7 @@ export function SlotChangeMixin(Base) {
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this.addSlotListeners();
-      this._triggerSlotchangeCallback(e);
+      this[triggerSlotchangeCallback]();
     }
 
     disconnectedCallback() {

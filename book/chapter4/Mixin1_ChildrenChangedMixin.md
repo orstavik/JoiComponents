@@ -22,9 +22,10 @@ The `MutationObserver` observes changes in the list of `.children` of individual
 You create a `MutationObserver` object with  a particular function, and 
 then you register a particular node and what type of mutation in the DOM you would like to observe.
 Then, when such a mutation happens to the DOM, the function is run.
-This function is given the list of all the changes for all the changes you asked for for that object.
+
+This function is given the list of all the changes for all the changes you asked for on that object.
 (But if you only specified `childList: true`, this list contains only one entry).
-And then you can add the reaction you need to the change in the DOM. 
+And then you can add the reaction you need to the change. 
 The MutationObserver does not work for recursive changes, 
 and so if you for example need to observe changes in the entire DOM, 
 you would need to add such `MutationObserver`s to all DOM nodes with children.
@@ -63,17 +64,17 @@ as opposed to one common `slotchange` event listener on `this.shadowRoot`.
 
 The second inconvenience is that `slotchange` is not fired the first time a slot 
 gets `assignedNodes` in Safari, while it is fired in Chrome and the polyfill. 
-This difference you need to take harmonize, which is likely to require adaptations.
+This difference must be harmonized.
 
 ## Example 1: listening for slotchanges directly in a custom element
-In this example we will look with a component that reacts to the changes of any of its slots.
+In this example we will look at a component that reacts to the changes of any of its slots.
 
 In order to tackle the problem of Safari not dispatching the initial `slotchange` event that
 Chrome and the polyfill does, we will:
 1. trigger the reaction of a `slotchange` manually at startup so that you ensure that 
 the initial trigger is executed in any browser (ie once in Safari and twice in Chrome),
 2. cache the result of the `flattenedChildren` on the host node for these reactions, and
-3. make sure that `slotchangeCallback()` is not called unless there element's `flattenedChildren` 
+3. make sure that `slotchangeCallback()` is not called unless the element's `flattenedChildren` 
 really has changed.
 
 ```javascript
@@ -155,13 +156,12 @@ class SlotchangeComponent extends HTMLElement {
   }
 }
 ```
-There is a lot of code here.                                            
-The first issue we solve is that `slotchange` does not bubble. 
+There is a lot of code here that we use to solve two issues:                                            
+1. `slotchange` does not bubble. 
 To tackle this issue, we must search for either a no-name slot or all the named slots
 inside the shadowDOM and add event listener for `slotchange` to all these nodes,
-and clean it up. Phu..its a mouthful.
-The second issue we "tackle with some code" is the disharmony surrounding 
-the `slotchange` event in Safari and Chrome.
+and clean it up. Phu.. its a mouthful.
+2. the disharmony between `slotchange` in Safari and Chrome.
 To fix this problem, we cache the value of the transposable nodes between each potential triggering
 `slotchange` event. This ensures that the `slotchangeCallback(...)` will only be called once
 every time there is a change, regardless of how many times it is attempted triggered.
@@ -200,7 +200,7 @@ export function SlotChangeMixin(Base) {
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this.addSlotListeners();
-      this._triggerSlotchangeCallback(e);
+      this[triggerSlotchangeCallback]();
     }
 
     disconnectedCallback() {
