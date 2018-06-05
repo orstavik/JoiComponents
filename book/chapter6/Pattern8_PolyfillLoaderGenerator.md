@@ -9,6 +9,9 @@ Also, I have different apps that need different polyfills.
 I don't want to neither hand-write nor maintain the polyfills.
 
 The solution is to use (for now: make) a PolyfillGenerator.
+The generator will create a custom micro-framework for you using polyfills.
+It creates a short snippet of JS code that you put into your code,
+kinda similar to the code added for the google analytics service.
 
 1. You select if you want the polyfills to be loaded async or sync.
 
@@ -25,6 +28,10 @@ in generated links.
    * as soon as all polyfills are loaded
    * as soon as all polyfills are loaded *and* DOMContentLoaded has happened.
    * specify your own time to run `polyfill.ready`.
+   
+5. Which browsers you would like to support.
+This will give you an overview of which features you (no longer) need to polyfill.
+This can also reduce the amount of time you need to 
 
 Based on these changes the polyfill loader will generate a minified piece of code 
 you can inline in your page. The code contains a minified version of:
@@ -35,3 +42,8 @@ you can inline in your page. The code contains a minified version of:
 
 You can use this codepen.io PolyfillLoaderGenerator if you like, 
 or ...
+
+The PolyfillLoaderGenerator can also calculate the ETA of the polyfill(s) for different browsers 
+and for all the browsers in total.
+This will give you an idea of how *much* adding a certain feature to your dev environment costs
+in production. 
