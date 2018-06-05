@@ -101,8 +101,9 @@ This is not for beginners. This is not necessarily a good pattern. But it is a p
 6. [QueAndRecallFunctions](book/chapter6/Pattern5_QueAndRecallFunctions.md)
 7. [SuperFun](book/chapter6/Pattern6_SuperFun.md)
 8. [Polyfill loader](book/chapter6/Pattern7_PolyfillLoader.md)
-9. [Sync vs async polyfills](book/chapter6/Discussion_sync_vs_async_polyfilling.md)
-10. [Webcomponentsjs](book/chapter6/Pattern8_webcomponentsjs.md)
+9. [Polyfill loader generator](book/chapter6/Pattern8_PolyfillLoaderGenerator.md)
+10. [Sync vs async polyfills](book/chapter6/Discussion_sync_vs_async_polyfilling.md)
+11. [Webcomponentsjs](book/chapter6/Pattern9_webcomponentsjsCousin.md)
 <!---
 5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
 explain that custom elements with content in the lightDom should be considered app-specific components.
