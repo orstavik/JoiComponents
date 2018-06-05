@@ -72,7 +72,7 @@
 
   var ES6 = window.Promise && Array.from && window.URL && window.Symbol;
 
-  var WA = !!window.Element.animate || false;
+  var WA = !!window.Element.animate;
 
   var PE = !!window.PointerEvent;
 
@@ -99,22 +99,13 @@
         customElements.upgrade(document);
       };
 
-      //SuperFun around polyfill.ready() to patch bug in customElements polyfill
-      var origReady = window.polyfill.ready;
-      window.polyfill.ready = function (fn) {
-        //bug in customElements polyfill?
-        //    if fn() customElements.define does not trigger a call to customElements.upgrade. why?
-        origReady(fn) && window.customElements && customElements.upgrade && customElements.upgrade(document);
-      };
-
       //SuperFun around polyfill.runWhenReady to pauseCustomElementsPolyfill when flushing the que of functions.
       var origFlushQue = window.polyfill.runWhenReady;
       window.polyfill.runWhenReady = function (flag) {
         window.polyfill.pauseCustomElementsPolyfill();
-        return new Promise(function(resolve, reject){
-          origFlushQue(flag);
-          resolve();
-        }).then(function () {
+        return Promise.resolve(
+          origFlushQue(flag)
+        ).then(function () {
           window.polyfill.restartCustomElementsPolyfill();
         }).catch(function (err) {
           console.error(err);
