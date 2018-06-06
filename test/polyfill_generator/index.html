@@ -1,0 +1,97 @@
+<html>
+<head>
+  <style>
+    body {
+      display: grid;
+      grid-template-areas: "a b c d";
+    }
+  </style>
+  <script src="app.js"></script>
+  <script>
+    function makeScript() {
+      let pfc = document.querySelector("#pf").value;
+      let inclPolyfill = document.querySelector("#ready").checked;
+      let flushQueType = document.querySelector("#flush").value;
+      let script = generatePolyfill(pfc, inclPolyfill, flushQueType);
+      document.querySelector("#code").innerText = script ;
+    }
+
+  </script>
+</head>
+<body>
+<div>
+  <pre>
+  Extensive list of polyfills:
+
+  WC Webcomponents
+     (=> CE, SD, TE, ES6)
+  WA Web animations
+  PE Pointerevents
+  CE CustomElements
+  SD ShadowDom
+  TE HTML TEmplate
+  ES6 core ES6 func
+      (=> PR, AF, SYM, URL)
+  PR Promises
+  AF Array From
+  SYM Symbol
+  URL URL
+  </pre>
+</div>
+<div>
+  <h2>Make choices:</h2>
+  <label for="pf">Which polyfill: </label>
+  <input id="pf" type="text" value="WC-WA-_pe"/><br>
+
+  <label for="pf">polyfill.ready micro framework: </label>
+  <input type="checkbox" id="ready"><br>
+
+  <label for="flush">when to flush polyfill.ready: </label>
+  <select id="flush">
+    <option value="asap">all polyfills loaded</option>
+    <option value="loaded">all polyfills loaded *and* DOMContentLoaded</option>
+  </select><br>
+  See how harmless it is to press this one:
+  <button onclick="makeScript()">Make code</button>
+  <br><br>
+
+  <details>
+    <summary>Tutorial:</summary>
+    <p>
+      You specify which polyfills you desire, such as "CE" or "WC-WA-_pe-PR". Polyfill short codes to make them usable
+      and recognizeable across links / code and server / client.
+    </p>
+    <ol>
+      <li>Dash: separate polyfill code</li>
+      <li>Lowercase: polyfill loaded ASYNC</li>
+      <li>Uppercase: polyfill loaded SYNC</li>
+      <li>Underscore infront: does not halt "polyfill.ready()". This only applies when "polyfill.ready" framework is
+        active.
+      </li>
+    </ol>
+
+    <p>
+      If you want to specify your own time to run `polyfill.ready`,
+      just add your own timer as described in chapter 8.
+    </p>
+  </details>
+</div>
+
+<pre id="code">
+  code
+</pre>
+<div>
+  <h3>Browser preview:</h3>
+  <pre>
+  combination   %use  files size   time   browsers
+  **********************************************************
+  no polyfills  58%   0      0kb    2ms   Chrome 55+, Safari 11.1+
+  WC            12%   1    120kb   82ms   Firefox 49+, Chrome 53-55
+  WA            10%   1    130kb   85ms   Safari 10.1-11.1
+  WC-WA         30%   2    250kb   95ms   Safari 9-, firefox 48-, Edge, IE
+  ================================================================
+  average           0.6     13kb   40ms
+</pre>
+</div>
+</body>
+</html>
