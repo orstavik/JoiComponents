@@ -165,5 +165,5 @@
   !WA && loadPolyfill(waLoc + "web-animations.min.js", "WA");
   !PE && loadPolyfill(peLoc + "pep.js"/*, "PE"*/);
     // or add no polyfill name if you don't want the flush to wait for this particular polyfill.
-  window.polyfill.runWhenReady(); //[x]
+  window.polyfill.runWhenReady();
 })();
