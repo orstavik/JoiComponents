@@ -1,12 +1,11 @@
-# lightDOM and shadowDOM
+# shadowDOM and lightDOM
 
-**ShadowDOM** is the name of the DOM or document that is attached 
-*inside* a custom element *under* the shadowRoot.
+**ShadowDOM** is the term used about the DOM or document that is attached 
+*inside* a custom element *in* the `.shadowRoot`.
 **LightDOM** is the name of the DOM or document where the `host` node of a 
 custom element is placed.
 The `host` node with its `.shadowRoot` is the brigde between the two different DOMs.
-This sounds ok, but we need to dig a bit deeper to understand the details. 
-Let's look at some examples.
+But to understand the what we mean by this, let us look at some examples:
 
 ## Example 1: `BucketList`
 To illustrate the concept of lightDOM and shadowDOM, 
