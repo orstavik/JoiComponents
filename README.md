@@ -35,22 +35,28 @@ If you want to copy them into your web component and/or adapt them to fit your n
 6. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
 
 ## Chapter 3: ComposedEvents and Gestures in JS
-1. [EventComposition](book/chapter3/Pattern4_EventComposition.md) (such as gestures, clicks, drag)
-2. [Discussion: conflicting gestures](book/chapter3/Discussion_conflicting_gestures.md) (such as gestures, clicks, drag)
+1. [EventComposition](book/chapter3/Pattern1_ComposedEvents.md) (such as gestures, clicks, drag)
+2. [Discussion: conflicting gestures](book/chapter3/Problem_conflicting_gestures.md) (such as gestures, clicks, drag)
 3. [InvadeAndRetreat!](book/chapter3/Pattern5_InvadeAndRetreat.md)
-4. [DraggingEventMixin](book/chapter3/Mixin1_DraggingEventMixin.md) (SingleFingerGesture, DragGesture)
-5. [SwipeEventMixin](book/chapter3/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-6. [PinchEventMixin](book/chapter3/Mixin3_PinchEventMixin.md) (TwoFingerGesture, PinchGesture)
+4. [DragFlingMixin](book/chapter3/Mixin1_DragFlingGesture.md) (SingleFingerGesture, DragGesture)
+5. [SwipeFlingMixin](book/chapter3/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
+6. [PinchGesture](book/chapter3/Mixin3_PinchGesture.md) (TwoFingerGesture, PinchGesture)
+
+## Chapter 9: ShadowDOM and <slot>
+1. [LightDOM and shadowDOM](book/chapter9/Discussion_lightDOM_shadowDOM.md)
+2. [`<slot>`, `assignedNodes()`](book/chapter9/slot_assignedNodes.md)
+2. [Function: flattenedChildren](book/chapter9/Function1_slots_flattenedChildren.md)
+3. [HTML composition](book/chapter9/HTML_composition.md)
+4. [MutationObserver and slotchange](book/chapter9/MutationObserver_slotchange.md)
+5. [.slotchangeCallback()](book/chapter9/Mixin1_SlotChangedMixin.md)
+6. [.childrenChangedCallback()](book/chapter9/Mixin2_ChildrenChangedMixin.md)
 
 ## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
-2. [LightDOM and shadowDOM](book/chapter4/Discussion_lightDOM_shadowDOM.md)
-3. [`<slot>`, `assignedNodes()` and Function: flattenedChildren](book/chapter4/Function1_slots_flattenedChildren.md)
-4. [.slotchangeCallback() and .childrenChangedCallback()](book/chapter4/Mixin1_ChildrenChangedMixin.md)
-5. [FosterParentChild (`<ul-li>`)](book/chapter4/Pattern1_OrphanElements.md)
-6. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
-7. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
-8. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter4/Pattern4_MiniMe.md)
+2. [FosterParentChild (`<ul-li>`)](book/chapter4/Pattern1_FosterParentChild.md)
+3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
+4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
+5. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter4/Pattern4_MiniMe.md)
 
 
 <!--
