@@ -170,6 +170,8 @@ This is starting to become complex, so we would like to isolate that in a functi
 
 ## Mixin 1: SlotChangeMixin
 ```javascript
+import {flattenedChildren} from "./flattenedChildren.js";
+
 function getNecessarySlots(el) {
   const slots = el.querySelectorAll("slot");
   const res = [];
@@ -227,7 +229,7 @@ export function SlotChangeMixin(Base) {
 
     [triggerSlotchangeCallback](e) {
       const old = this[hostFlattenedChildren];
-      const nevv = hostFlattenedChildren(this);
+      const nevv = flattenedChildren(this);
       if (arrayEquals(old, nevv))
         return;
       this[hostFlattenedChildren] = nevv;
