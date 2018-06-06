@@ -3,6 +3,9 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
+
+import {flattenedChildren} from "./flattenedChildren.js";
+
 const slotchangeListener = Symbol("slotchangeListener");
 const triggerSlotchangeCallback = Symbol("triggerSlotchangeCallback");
 const slots = Symbol("slots");
@@ -22,7 +25,7 @@ function getNecessarySlots(el) {
   const slots = el.querySelectorAll("slot");
   const res = [];
   for (let i = 0; i < slots.length; i++) {
-    let slot = el[i];
+    let slot = slots[i];
     let name = slot.getAttribute("name");
     if (!name || name === "")
       return [slot];
@@ -48,7 +51,6 @@ export function SlotChangeMixin(Base) {
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this.addSlotListeners();
-      this[triggerSlotchangeCallback]();
     }
 
     disconnectedCallback() {
@@ -64,18 +66,19 @@ export function SlotChangeMixin(Base) {
     addSlotListeners() {
       this[slots] = getNecessarySlots(this.shadowRoot);
       for (let slot of this[slots])
-        slot.addEventListener("slotchange", this._slotListener);
+        slot.addEventListener("slotchange", this[slotchangeListener]);
+      this[triggerSlotchangeCallback]();
     }
 
     removeSlotListeners() {
       for (let slot of this[slots])
-        slot.addEventListener("slotchange", this._slotListener);
+        slot.addEventListener("slotchange", this[slotchangeListener]);
       this[slots] = [];
     }
 
     [triggerSlotchangeCallback](e) {
       const old = this[hostFlattenedChildren];
-      const nevv = hostFlattenedChildren(this);
+      const nevv = flattenedChildren(this);
       if (arrayEquals(old, nevv))
         return;
       this[hostFlattenedChildren] = nevv;
