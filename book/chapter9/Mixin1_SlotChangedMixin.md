@@ -54,7 +54,7 @@ export function SlotChangeMixin(Base) {
 
     removeSlotListeners() {
       for (let slot of this[slots])
-        slot.addEventListener("slotchange", this[slotchangeListener]);
+        slot.removeEventListener("slotchange", this[slotchangeListener]);
       this[slots] = [];
     }
 
