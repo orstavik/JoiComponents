@@ -3,7 +3,7 @@
 /**
  * GENERIC RESOURCES
  */
-function loadScriptAsync(url, pfc) {
+function loadScriptAsyncReady(url, pfc) {
   pfc && window.polyfill.await(pfc);
   var newScript = document.createElement('script');
   newScript.src = url;
@@ -13,7 +13,16 @@ function loadScriptAsync(url, pfc) {
   document.head.appendChild(newScript);
 }
 
-function loadScriptSync(url, pfc) {
+function loadScriptAsyncNormal(url, pfc) {
+  var newScript = document.createElement('script');
+  newScript.src = url;
+  newScript.addEventListener('load', function () {
+    window.polyfill[pfc]();
+  });
+  document.head.appendChild(newScript);
+}
+
+function loadScriptSyncReady(url, pfc) {
   pfc && window.polyfill.await(pfc);
   var newScript = document.createElement('script');
   newScript.src = url;
@@ -21,7 +30,18 @@ function loadScriptSync(url, pfc) {
   document.write(newScript.outerHTML);
 }
 
-function polyfillFramework() {
+function loadScriptSyncNormal(url, pfc) {
+  var newScript = document.createElement('script');
+  newScript.src = url;
+  newScript.setAttribute("onload", "window.polyfill['" + pfc + "']();");
+  document.write(newScript.outerHTML);
+}
+
+function polyfillIsEmpty() {
+  window.polyfill = {}
+}
+
+function polyfillHasReady() {
   var que = [];
   var flaggs = [];
   window.polyfill = {
@@ -123,9 +143,8 @@ const links = {
 
 //step 3: Update polyfill framework to support CE and TE
 const pfPatch = {
-  CE:
+  CE:                             //methods to pause polyfill
     function expandCE() {
-      //adding methods to stop and restart polyfill
       window.polyfill.pauseCustomElementsPolyfill = function () {
         if (window.customElements && customElements.polyfillWrapFlushCallback) {
           customElements.polyfillWrapFlushCallback(function () {
@@ -147,7 +166,7 @@ const pfPatch = {
     }
 };
 
-const polyfillExpand = {
+const expandReady = {
   CE:
     function expandCE() {
       var origFlushQue = window.polyfill.runWhenReady;
@@ -173,9 +192,25 @@ const polyfillExpand = {
     }
 };
 
-const noPolyfill = {
-  CE: function TODO() {
-    return 1;
+const expandNormal = {
+  CE: function () {
+    window.polyfill.CE = function () {
+      if (document.readyState !== "loading")
+        return;
+      customElements.polyfillWrapFlushCallback(function () {
+      });
+      document.addEventListener("DOMContentLoaded", function () {
+        customElements.polyfillWrapFlushCallback(function (flush) {
+          flush();
+        });
+        customElements.upgrade(document);
+      });
+    };
+  },
+  TE: function () {
+    window.polyfill.CE = function () {
+      HTMLTemplateElement.bootstrap(window.document);
+    };
   }
 };
 
@@ -186,39 +221,45 @@ function printFD(PFS) {
   return res;
 }
 
-function printSync(PFS) {
-  return PFS.filter(PF => PF.sync).length ? loadScriptSync.toString() : "";
-}
-
-function printAsync(PFS) {
-  return PFS.filter(PF => !PF.sync).length ? loadScriptAsync.toString() : "";
-}
-
-function printLoadingFunctions(PFS) {
-  return printSync(PFS) + "\n" + printAsync(PFS) + "\n";
-}
-
-function printPFPatches(PFS, inclPolyfill) {
-  let res = inclPolyfill ? "" : "windows.polyfill = windows.polyfill || {};\n";
-  return res + PFS.filter(PF => pfPatch[PF.PF]).map(PF => "(" + pfPatch[PF.PF].toString() + ")();\n");
-}
-
-function printPolyfillExpansions(PFS, inclPolyfill) {
-  if (!inclPolyfill)
+function printSync(PFS, polyfillReady) {
+  if (!PFS.filter(PF => PF.sync).length)
     return "";
+  let fun = polyfillReady ? loadScriptSyncReady : loadScriptSyncNormal;
+  return fun.toString() + "\n";
+}
+
+function printAsync(PFS, polyfillReady) {
+  if (!PFS.filter(PF => !PF.sync).length)
+    return "";
+  let fun = polyfillReady ? loadScriptAsyncReady : loadScriptAsyncNormal;
+  return fun.toString() + "\n";
+}
+
+function printLoadingFunctions(PFS, polyfillReady) {
+  return printSync(PFS, polyfillReady) + printAsync(PFS, polyfillReady);
+}
+
+function printPFPatches(PFS) {
+  return PFS.filter(PF => pfPatch[PF.PF]).map(PF => "(" + pfPatch[PF.PF].toString() + ")();\n");
+}
+
+function printPolyfillExpansions(PFS, polyfillReady) {
+  const expansion = polyfillReady ? expandReady : expandNormal;
   let res = "";
   for (let PF of PFS) {
-    let expand = polyfillExpand[PF.PF];
+    let expand = expansion[PF.PF];
     if (expand)
       res += "(" + expand.toString() + ")();\n";
   }
   return res;
 }
 
-function triggerLoads(PFS) {
+function triggerLoadingFunctions(PFS, polyfillReady) {
   let res = "";
   for (let PF of PFS) {
-    const funName = PF.sync ? "loadScriptSync" : "loadScriptAsync";
+    let funcType = PF.sync ? "Sync" : "Async";
+    funcType += polyfillReady ? "Ready" : "Normal";
+    const funName = "loadScript" + funcType;
     const args = PF.isAnon ? [links[PF.PF]] : [links[PF.PF], PF.PF];
     const argsStr = args.map(a => '"' + a + '"').join(", ");
     res += `!${PF.PF} && ${funName}(${argsStr});\n`;
@@ -276,17 +317,20 @@ function parsePolyfillCodes(pfc) {
   return PFS;
 }
 
-function generatePolyfill(pfc, inclPolyfill, flushQueType) {
+function printPolyfillFramework(polyfillReady) {
+  const pfw = polyfillReady ? polyfillHasReady : polyfillIsEmpty;
+  return "(" + pfw.toString() + ")();\n";
+}
+
+function generatePolyfill(pfc, polyfillReady, flushQueType) {
   let PFS = parsePolyfillCodes(pfc.split("-"));
   let res = "";
-  if (inclPolyfill)
-    res = "(" + polyfillFramework.toString() + ")();\n";
+  res += printPolyfillFramework(polyfillReady);
   res += printLoadingFunctions(PFS);
   res += printFD(PFS);
-  res += printPFPatches(PFS, inclPolyfill);
-  if (inclPolyfill)
-    res += printPolyfillExpansions(PFS);
-  res += triggerLoads(PFS);
+  res += printPFPatches(PFS);
+  res += printPolyfillExpansions(PFS, polyfillReady);
+  res += triggerLoadingFunctions(PFS, polyfillReady);
   res += printFlushQue(flushQueType);
   return "(function(){" + res + "})();"
 }
