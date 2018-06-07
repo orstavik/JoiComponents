@@ -82,7 +82,7 @@ function polyfillHasReady() {
 /**
  * Polyfill resources
  */
-const names = {
+var names = {
   WC: "Web components",
   ES6: "es6 for WC",
   CE: "customElements",
@@ -92,7 +92,8 @@ const names = {
   AF: "Array.from",
   WA: "Web animations",
   SYM: "Symbol",
-  URL: "window.URL"
+  URL: "window.URL",
+  PE: "PointerEvents"
 };
 
 const bundles = {
@@ -279,6 +280,8 @@ function waitForDOMLoaded() {
 }
 
 function printFlushQue(flushQueType) {
+  if (!flushQueType)
+    return "";
   if (flushQueType === "loaded")
     return `(${waitForDOMLoaded.toString()})();\n`;
   // if (flushQueType === "asap")
@@ -322,15 +325,18 @@ function printPolyfillFramework(polyfillReady) {
   return "(" + pfw.toString() + ")();\n";
 }
 
-function generatePolyfill(pfc, polyfillReady, flushQueType) {
-  let PFS = parsePolyfillCodes(pfc.split("-"));
+function generatePolyfill(input) {
+  let params = new URLSearchParams(input);
+  let pf = params.get("pf");
+  let ready = params.get("ready");
+  let PFS = parsePolyfillCodes(pf.split("-"));
   let res = "";
-  res += printPolyfillFramework(polyfillReady);
-  res += printLoadingFunctions(PFS);
+  res += printPolyfillFramework(!!ready);
+  res += printLoadingFunctions(PFS, !!ready);
   res += printFD(PFS);
   res += printPFPatches(PFS);
-  res += printPolyfillExpansions(PFS, polyfillReady);
-  res += triggerLoadingFunctions(PFS, polyfillReady);
-  res += printFlushQue(flushQueType);
+  res += printPolyfillExpansions(PFS, !!ready);
+  res += triggerLoadingFunctions(PFS, !!ready);
+  res += printFlushQue(ready);
   return "(function(){" + res + "})();"
 }

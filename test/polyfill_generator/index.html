@@ -3,77 +3,108 @@
   <style>
     body {
       display: grid;
-      grid-template-areas: "a b c d";
+      grid-template-areas: "a b c";
+    }
+    #choosePF label {
+      display: inline-block;
+      width: 200px;
+    }
+    #one {
+      width: 375px;
+    }
+    #choosePF .lab {
+      transform-origin: top left;
+      transform: rotate(-45deg);
+      float: left;
     }
   </style>
-  <script src="app.js"></script>
-  <script>
-    function makeScript() {
-      let pfc = document.querySelector("#pf").value;
-      let inclPolyfill = document.querySelector("#ready").checked;
-      let flushQueType = document.querySelector("#flush").value;
-      let script = generatePolyfill(pfc, inclPolyfill, flushQueType);
-      document.querySelector("#code").innerText = script ;
-    }
-
-  </script>
+  <script src="polyfill-loader-generator.js"></script>
 </head>
 <body>
-<div>
-  <pre>
-  Extensive list of polyfills:
-
-  WC Webcomponents
-     (=> CE, SD, TE, ES6)
-  WA Web animations
-  PE Pointerevents
-  CE CustomElements
-  SD ShadowDom
-  TE HTML TEmplate
-  ES6 core ES6 func
-      (=> PR, AF, SYM, URL)
-  PR Promises
-  AF Array From
-  SYM Symbol
-  URL URL
-  </pre>
-</div>
-<div>
+<div id="one">
   <h2>Make choices:</h2>
-  <label for="pf">Which polyfill: </label>
-  <input id="pf" type="text" value="WC-WA-_pe"/><br>
+  <div id="choosePF">
+    <div>
+      <div style="width: 200px; float: left; height: 1em;"></div>
+      <div class="lab">select</div>
+      <div class="lab">sync</div>
+      <div class="lab" style="clear: right;">bypass ready</div>
+    </div>
+  </div>
+  <script>
+    function makeScript() {
+      let res = "pf=" + tableValues().join("-");
 
-  <label for="pf">polyfill.ready micro framework: </label>
-  <input type="checkbox" id="ready"><br>
+      let readyValue = document.querySelector("#flush").value;
+      let ready = readyValue === "none" ? "" : "&ready="+ readyValue;
 
-  <label for="flush">when to flush polyfill.ready: </label>
+      res += ready;
+      document.querySelector("#asurl").value = res;
+      let script = generatePolyfill(res);
+      document.querySelector("#code").innerText = script;
+    }
+
+    let sel = document.querySelector("#choosePF");
+    for (let pfc in names) {
+      let div = document.createElement("div");
+      let label = document.createElement("label");
+      label.innerText = pfc + ": " + names[pfc];
+      let use = document.createElement("input");
+      use.type = "checkbox";
+      let sync = use.cloneNode();
+      let excludeReady = use.cloneNode();
+      use.id = pfc;
+      div.appendChild(label);
+      div.appendChild(use);
+      div.appendChild(sync);
+      div.appendChild(excludeReady);
+      sel.appendChild(div);
+    }
+
+    function tableValues() {
+      let res = [];
+      let pfs = Array.from(document.querySelector("#choosePF").children);
+      for (let pf of pfs) {
+        let child = pf.children;
+        if (!child[1].checked)
+          continue;
+        let name = child[1].id;
+        if (!child[2].checked)
+          name = name.toLowerCase();
+        if (child[3].checked)
+          name = "_" + name;
+        res.push(name);
+      }
+      return res;
+    }
+
+    document.querySelector("#one").addEventListener("input", makeScript);
+  </script>
+  <br>
+  <br>
+  <label for="flush">polyfill.ready?</label>
   <select id="flush">
-    <option value="asap">all polyfills loaded</option>
+    <option value="none" default>no polyfill.ready</option>
+    <option value="asap">when all polyfills loaded</option>
     <option value="loaded">all polyfills loaded *and* DOMContentLoaded</option>
   </select><br>
-  See how harmless it is to press this one:
-  <button onclick="makeScript()">Make code</button>
+  <br>
+  <br>
+  <label>Slug format</label>
+  <input id="asurl" type="text" value=""/><br>
   <br><br>
 
   <details>
-    <summary>Tutorial:</summary>
-    <p>
-      You specify which polyfills you desire, such as "CE" or "WC-WA-_pe-PR". Polyfill short codes to make them usable
-      and recognizeable across links / code and server / client.
-    </p>
+    <summary>Help:</summary>
+    <h3>Polyfill short codes description:</h3>
     <ol>
-      <li>Dash: separate polyfill code</li>
-      <li>Lowercase: polyfill loaded ASYNC</li>
-      <li>Uppercase: polyfill loaded SYNC</li>
-      <li>Underscore infront: does not halt "polyfill.ready()". This only applies when "polyfill.ready" framework is
-        active.
+      <li>Dash (XX-YY): separate polyfill code</li>
+      <li>Lowercase (xx): polyfill loaded ASYNC</li>
+      <li>Uppercase (XX): polyfill loaded SYNC</li>
+      <li>Underscore (_XX): does not delay "polyfill.ready()".
+        This only applies when "polyfill.ready" framework is active.
       </li>
     </ol>
-
-    <p>
-      If you want to specify your own time to run `polyfill.ready`,
-      just add your own timer as described in chapter 8.
-    </p>
   </details>
 </div>
 
