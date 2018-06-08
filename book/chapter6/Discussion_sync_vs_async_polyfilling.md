@@ -47,7 +47,7 @@ no matter how small it is.
 
 We would very much like to avoid adding frameworks to the platform.
 Frameworks change your "other code". 
-Frameworks can make it hard to use framework-independent code.
+Frameworks often make it hard to use framework-independent code.
 Frameworks need to be changed or replaced later.
 Frameworks are.. something you want to avoid if the naked platform offers a tolerable alternative.
 
@@ -74,23 +74,19 @@ does not outweigh the cost of delayed load time for a minority of your users.
 
 Async loading is recommended when:
 1. Your app has a great many users so to warrant the extra time spent to reduce load time.
-2. If you load web component polyfills async, I still recommend that you start 
+2. Loading the polyfill **async** takes directly control of the timing between 
+the polyfill and your other scripts. To manage timing explicitly can get ahead of 
+timing issues that otherwise would require tight, implied control.
+3. Some browsers do not support `<script defer>`. Such browsers would make it hard to employ
+control the timing between your polyfill scripts and your other polyfill-dependent scripts.
+In such cases, the framework of your async loaded polyfill might be preferable.
+4. If you load web component polyfills async, I still recommend that you start 
 developing using sync loaded polyfills and then later augment the app to support async 
 loaded polyfills near the end of development.
 
 ## References:
  * https://stackoverflow.com/questions/5250412/how-exactly-does-script-defer-defer-work#answer-10731231
  * https://stackoverflow.com/questions/3952009/defer-attribute-chrome#answer-3982619
- 
- <!--
- But, done correctly, **async**hronously loading polyfill has its benefits.
- Loading the polyfill **async** takes directly control of the timing between 
- the polyfill and your other scripts. This can get ahead of timing issues that otherwise would 
- require tight control.
- Second, some browsers do not support `<script defer>` which you might otherwise employ to
- control the timing between your polyfill scripts and your other polyfill-dependent scripts.
- Here, you would need a controlled async loading profile.
- -->
  
 <!--
 1. you might need to delay calls to functions that require web component APIs to be present,
