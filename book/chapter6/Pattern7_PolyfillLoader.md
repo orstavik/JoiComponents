@@ -2,24 +2,25 @@
 
 ## How to load a polyfill async?
 When you load your polyfill async, you loose control over when the polyfill becomes available.
-This means that all functions in your web app that relies on
-the polyfilled APIs being available must be queued, you must find out when your polyfill is ready, 
-and then triggered *after* this point.
+This means that if another function in your web app relies on the polyfilled APIs,
+this other function must be:
+1. queued until 
+2. the polyfill has loaded, and only then 
+3. triggered.
 
 To set this up, we use the QueAndRecallFunctions pattern from the previous chapter.
-This functions que is added to global `window.polyfill` object/micro-framework,
-so that it is reachable from all other scripts.
-Some of the polyfills, such as HTMLTemplate and customElements polyfill, also needs 
-to attach their own custom functions to this framework.
-This is done using the SuperFun pattern.
+This functions que is added to global `window.polyfill` object/micro-framework.
+This framework **must be global** so that it can be reached from other scripts.
 
-All functions that require polyfill support should be run via this que using `polyfill.ready()`.
-This resembles the design of good old JQuery `$.ready()`.
-*After* the polyfills are loaded (or native support has been verified),
+Some of the polyfills (ie. HTMLTemplate and customElements), 
+also needs to attach their own custom functions to this framework.
+For this we use the SuperFun pattern.
+
+To place a function that depends on polyfill support being loaded in the que, 
+we wrap the function call inside a global function called `polyfill.ready()`.
+This function resembles the good old JQuery `$.ready()`.
+*After* the polyfills are loaded (and/or native support has been verified),
 the que behind `polyfill.ready` can be flushed.
-If you want, you can add additional timing criteria such as waiting for "DOMContentLoaded"
-to batch the web component processes.  
-Attention: It is not a problem to call `polyfill.runWhenReady()` more than once.
 
 ### Example: PolyfillLoader
 
@@ -214,7 +215,10 @@ Attention: It is not a problem to call `polyfill.runWhenReady()` more than once.
     loadPolyfill(peLoc + "pep.js"/*, "PE"*/);
     // or add no polyfill name if you don't want the flush to wait for this particular polyfill.
   }
-  window.polyfill.runWhenReady(); //[x]
+  
+  //step 6: trigger polyfill.ready() functions (default is asap)
+  //        this step is necessary to empty the que when no polyfills are needed nor loaded.
+  window.polyfill.runWhenReady();
 })();
     </script>
     
@@ -238,38 +242,48 @@ Attention: It is not a problem to call `polyfill.runWhenReady()` more than once.
 </html>
 ```
 
-x. an alternative timer can be set up to ensure that the que is not flushed until after the document has finished loading.
-Instead of simply trying to runWhenReady after featureDetection and loading, you instead add this piece of code:
+## Extra timing criteria before flushing `polyfill.ready()`
+`polyfill.ready()` cannot be flushed before all the polyfills that delay it are loaded.
+But, if you want, you can add additional timing criteria before you flush `polyfill.ready()`.
+
+One such alternative timer is to wait until the document has loaded its content (`DOMContentLoaded`).
+This will batch all the queued `polyfill.ready` functions until the end of main document loading.
+
 ```javascript
 // Or, wait until the entire page is loaded before you flush polyfill.ready() functions anyway
 (function waitForDOMLoaded(){
   if (document.readyState === "loading"){
-    window.polyfill.await("DOMContentLoaded");
+    window.polyfill.await("DOMContentLoaded");                //[1]
     window.addEventListener("DOMContentLoaded", function(){
-      window.polyfill.runWhenReady("DOMContentLoaded");
+      window.polyfill.runWhenReady("DOMContentLoaded");       //[2]
     });
   } else {
-    window.polyfill.runWhenReady();
+    window.polyfill.runWhenReady();                           //[3]
   }
 })();
 ```
+1. `polyfill.await(flag)` adds a flag that must be removed before `polyfill.ready()` will flush.
+2. `polyfill.runWhenReady(flag)` removes the flag, and will flush `polyfill.ready()` if all the flags are then removed.
+3. You can call `polyfill.runWhenReady(flag)` or `polyfill.runWhenReady()` as many times as you need.
+The `polyfill.ready()` will only flush once all flags are removed.
 
 ## Important times when loading polyfills
 When you are loading polyfills you have the following important times.
-1. PolyfillSetUp-time:
- * The initial stage of polyfill loading.
- * The `window.polyfill` object/micro-framework is set up.
- * FeatureDetection: The browser is checked for features.                            
- * *All* polyfill-scripts are added to the document, 
- either **async** as DOM nodes to `document.head` and/or **sync** using `document.write`.
+1. **PolyfillSetUp**. This is the initial stage of the polyfill loading.
+   * Set up `window.polyfill` object/micro-framework.
+   * FeatureDetection.                            
+   * Add *All* polyfill-scripts to the document.
+     * async scripts added as DOM nodes to `document.head`. 
+     * sync scripts added using `document.write`.
  
-2. polyfill.runWhenReady-time. 
- * each time a polyfill is loaded, and/or
- * at one or more times that the developer desires (such as when the PolyfillSetUp is completed and/or 
- when the DOMContentLoaded).
+2. **`polyfill.runWhenReady()`**. This method checks if the following criteria has been met,
+ and if so will flush the `polyfill.ready()` que.
+   * each time a polyfill is loaded, and/or
+   * one or more extra times that the developer desires.
+     * at the end of PolyfillSetUp and/or 
+     * at `DOMContentLoaded`.                          
  
-When polyfill.runWhenReady is triggered, the method tries to see if all the polyfills are ready.
-When all the polyfills are ready, this will trigger the flushing of the que.
+3. **Flush `polyfill.ready()`**. Runs all the functions in the que.
 
 ### References
 * [webcomponentsjs-loader.js](https://github.com/webcomponents/webcomponentsjs/blob/master/webcomponents-loader.js).
