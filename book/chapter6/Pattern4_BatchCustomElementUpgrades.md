@@ -167,16 +167,20 @@ There are a couple of mitigating circumstances for the sync approach:
 by moving the script with the polyfills below other template code.
 2. Fewer and fewer browsers need the webcomponents polyfills. 
 So even though a minority of your users get a slower experience,
-your users as a group might appreciate the you the developer trade 
+your users as a group might appreciate that you the developer trade 
 the loss of complexity in polyfilling with added complexity in functionality.
 3. The web component polyfills are so invasive, that you are likely going to need to wait to 
 execute your other scripts anyway. Those scripts you cannot delay you might be able to load 
 asynchronously before your polyfill.
 
-If you still wants to load the polyfills **async**hronously, 
-you need another pattern called [QueAndRecallFunctions](Pattern5_QueAndRecallFunctions.md).
-This pattern is fairly independent, and will therefore be described on its own terms.
-Then we summarize the async loading of polyfills in [FeatureDetectAndPolyfillAsync](Pattern6_FeatureDetectAndPolyfillAsync.md).
+If you still want to load the polyfills **async**hronously, 
+you need two other, fairly independent patterns:
+* [QueAndRecallFunctions](Pattern5_QueAndRecallFunctions.md).
+* [SuperFun](Pattern6_SuperFun.md).
+
+Then we summarize the async loading of polyfills in [PolyfillLoader](Pattern7_PolyfillLoader.md).
+I also provide a [PolyfillLoaderGenerator](Pattern8_PolyfillLoaderGenerator.md) 
+that create custom polyfill-loaders for different polyfills.
 And finally, I provide a more [in-depth discussion of async vs sync loading of polyfills](Discussion_sync_vs_async_polyfilling.md).
 
 ### References

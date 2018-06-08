@@ -35,9 +35,9 @@ and then recalled and flushed later using `MyFunctionQue.runWhenReady()`.
 window.MyFunctionQue.ready(function(){
   console.log("a");
 });
-console.log("b");                 //b
-MyFunctionQue.runWhenReady();    //a
-console.log("c");                 //c
+console.log("b");                 
+MyFunctionQue.runWhenReady();     
+console.log("c");                 //b, a, c
 ```
 
 ## Adding a `Promise`/`async function` to the QueAndRecallFunctions
@@ -83,22 +83,23 @@ window.MyFunctionQue.ready(async function(){
 window.MyFunctionQue.ready(function(){
   console.log("b");
 });
-console.log("c");                 //c
-MyFunctionQue.runWhenReady();     //a1, b, a2
-console.log("d");                 //c
+console.log("c");                 
+MyFunctionQue.runWhenReady();     
+console.log("d");                 //c, a1, b, d, a2
 ```
 
 ## Adding flaggs to complete
 Sometimes, you might need more than one criteria to be active before calling `runWhenReady`.
-To achieve this effect, we can add a set of flags that we can turn on or off.
-We add a flag using the `await(flag)` function, and flags are removed when they are passed in as
-parameters `runWhenReady(flag)`.
-When `runWhenReady(flag)` has removed all the flags, the method will flush the que.
+To achieve this effect, we use a set of flags:
+ * We add a flag using the `await(flag)` function.
+ * We remove flags when we pass them as arguments to `runWhenReady(flag)`.
+ * When `runWhenReady(flag)` has removed all the flags, it also flushes the `ready` que.
 
-Finally, we will also wrap the whole thing in a self invoking function (SIF).
-This technique is used to create a scope that is local to the `window.polyfill` object 
-(and cannot be viewed or altered from the outside), but still global for all the methods in the 
-`window.polyfill` object (and thereby can be viewed and altered from all the functions inside the SIF).
+Finally, we wrap everything in a self invoking function (SIF).
+The SIF creates a local scope in which locally defined variables cannot be accessed from the outside.
+Both `que` and `flags` can thereby be encapsulated from outside interference, 
+while still be accessed from both `window.polyfill.runWhenReady` and `window.polyfill.await`
+that are defined within the SIF.
 
 ```javascript
 (function () {
@@ -106,7 +107,7 @@ This technique is used to create a scope that is local to the `window.polyfill` 
   var que = [];
   var flags = [];
   window.MyFunctionQue = {
-    ready: function (fn) {                 //returns true when the function is run
+    ready: function (fn) {            
       if (!fn)
         return;
       if (que)
@@ -114,13 +115,13 @@ This technique is used to create a scope that is local to the `window.polyfill` 
       if (fn instanceof Function)
         fn();
     },
-    runWhenReady: function (pf) {       //empties the que and returns a promise resolved when all is run
+    runWhenReady: function (pf) {     
       if (flags.length > 0) {
         if (!pf)
           return;
         var index = flags.indexOf(pf);
         if (index > -1)
-          flags.splice(index, 1);               //mutates flaggs
+          flags.splice(index, 1);               //att! mutates flags
         else
           console.error("Check your polyfills.");
         if (flags.length > 0)
@@ -145,22 +146,23 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-window.MyFunctionQue.ready(async function(){
+window.MyFunctionQue.await("one");             //adding two flags "one" and "two" to the que
+window.MyFunctionQue.await("two");
+
+window.MyFunctionQue.ready(async function(){   //adding a function to the que
   console.log("a1");
   await sleep(2000);
   console.log("a2");
 });
 
-window.MyFunctionQue.await("one");
-window.MyFunctionQue.await("two");
-window.MyFunctionQue.ready(function(){
+window.MyFunctionQue.ready(function(){         //adding another function to the que
   console.log("b");
 });
 console.log("c");                 //c
 MyFunctionQue.runWhenReady();     //nothing happens, because flags "one" and "two" are set.
 console.log("d");                 //d
 MyFunctionQue.runWhenReady("two");//nothing happens, because flag "one" is set.
-MyFunctionQue.runWhenReady("one");//a1, b, a2
+MyFunctionQue.runWhenReady("one");//a1, b, a2     //all flags are removed, the que flushes
 ```
 
 ### References
