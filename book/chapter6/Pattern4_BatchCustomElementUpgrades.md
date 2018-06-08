@@ -1,7 +1,7 @@
 # Pattern: Batch process the CustomElement polyfill
 The CustomElement polyfill relies on some costly functionality.
 1. The CustomElement polyfill observes all mutations in the DOM while the DOM is being 
-loaded in order to identify new custom tags.
+loaded in order to identify new customElement tags.
 2. Whenever `customElements.define` is called, the CustomElement 
 polyfill will traverse the entire document to try to find DOM-nodes that fit the 
 new custom element definition.
@@ -18,10 +18,11 @@ This *batch processes* customElements reactions.
 ## Implementation: Adding a pause-button to the CustomElements polyfill?
 To stop the customElements polyfill from doing its job, you call:
 ```javascript
-if(window.customElements && customElements.polyfillWrapFlushCallback){
-  customElements.polyfillWrapFlushCallback(function(flush){});
-  if (document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", function(){customElements.upgrade(document);});
+customElements.polyfillWrapFlushCallback(function(flush){});
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function(){
+    customElements.upgrade(document);
+  });
 }
 ```
 This method will both:
@@ -32,16 +33,14 @@ replace it with a single `customElements.upgrade(document)` call when the page h
 
 To restart the customElements polyfill, you call:
 ```javascript
-if(window.customElements && customElements.polyfillWrapFlushCallback){
-  customElements.polyfillWrapFlushCallback(function(flush){flush();});
-  customElements.upgrade(document);                                     
-}
+customElements.polyfillWrapFlushCallback(function(flush){flush();});
+customElements.upgrade(document);                                     
 ```
 This method will:
 * reverse the interception of the traversal of the DOM in response to `customElement.define`,
 so that calls to `customElement.define` will trigger upgrades of the DOM,
-* but `customElements.polyfillWrapFlushCallback` does not trigger an upgrade of the DOM
-by itself, and therefore you must also call `customElements.upgrade(document)` to upgrade the DOM.
+* call `customElements.upgrade(document)` to upgrade the DOM with all the changes done while
+the polyfill was paused.
 
 To make these two methods easily accessible, we add them under the globally accessible 
 `window.WebComponents` object.
@@ -62,7 +61,6 @@ window.WebComponents.startCEPolyfill = function(){
   }
 }
 ```
-
 > **Recommendation:** Stop the customElements polyfill as soon as you have loaded it, and 
 > restart it when the document has finished loading (DOMContentLoaded). This:
 > * disables the costly observation of mutations in the DOM while loading, and 
@@ -161,27 +159,36 @@ If you intend to load web components polyfills **sync**hronously, this is all yo
 ```
 ## Sync or async?
 The only major drawback of this approach is that it will block the rendering of the main page 
-until your web components polyfill has completed.
+and other sync scripts until your web components polyfill has completed.
 There are a couple of mitigating circumstances for the sync approach:
-1. The problem of blocking the rendering of the main document can be alleviated 
-by moving the script with the polyfills below other template code.
-2. Fewer and fewer browsers need the webcomponents polyfills. 
-So even though a minority of your users get a slower experience,
-your users as a group might appreciate that you the developer trade 
-the loss of complexity in polyfilling with added complexity in functionality.
-3. The web component polyfills are so invasive, that you are likely going to need to wait to 
-execute your other scripts anyway. Those scripts you cannot delay you might be able to load 
-asynchronously before your polyfill.
 
-If you still want to load the polyfills **async**hronously, 
-you need two other, fairly independent patterns:
+1. The problem of blocking the rendering of the main document can be alleviated 
+   by moving the script with the polyfills below 
+   other template code and scripts you need to run first.
+
+2. The web component polyfills are so invasive, that you are likely going to need to que the
+   execution of your other scripts and functions anyway. 
+   Other scripts you can load asynchronously before your polyfill.
+
+3. Fewer and fewer browsers need the web components polyfills. 
+   So even though a minority of your users get a slower experience,
+   your users as a group might not be affected too badly.
+
+4. With less complexity loading the polyfill and less complexity of using web component APIs,
+   your app gets equivalently simpler. This makes room for other complicating functionality
+   that all your users might value more than a slow Time-To-Interactive.
+
+To read more about async vs. sync loading, see the more in-depth [discussion of async vs sync loading of polyfills](Discussion_sync_vs_async_polyfilling.md).
+
+In the next two chapters we will look at two patterns necessary to load 
+the web component polyfills async:
+
 * [QueAndRecallFunctions](Pattern5_QueAndRecallFunctions.md).
 * [SuperFun](Pattern6_SuperFun.md).
 
-Then we summarize the async loading of polyfills in [PolyfillLoader](Pattern7_PolyfillLoader.md).
-I also provide a [PolyfillLoaderGenerator](Pattern8_PolyfillLoaderGenerator.md) 
-that create custom polyfill-loaders for different polyfills.
-And finally, I provide a more [in-depth discussion of async vs sync loading of polyfills](Discussion_sync_vs_async_polyfilling.md).
+Then we combine this chapter with these two patterns to load web component polyfills async in [PolyfillLoader](Pattern7_PolyfillLoader.md).
+We then look at a [PolyfillLoaderGenerator](Pattern8_PolyfillLoaderGenerator.md) 
+that you can use to create custom polyfill-loaders for different polyfills.
 
 ### References
 * [customElements polyfill](https://github.com/webcomponents/webcomponentsjs/customElements).

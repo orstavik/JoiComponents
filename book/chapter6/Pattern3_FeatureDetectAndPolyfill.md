@@ -7,12 +7,13 @@ Put simply, FeatureDetection solves the problem of browser variation.
 
 However, the web component polyfills are also invasive.
 When polyfilling customElements and shadowDom,
-the polyfills alter many of the core DOM functions.
+the polyfills alter many of the core DOM functions.                            
 Therefore, if you run a function against the DOM that you expect to be supported by the
-polyfill *before* the polyfill has finished loading, this will likely create real problems.
+polyfill *before* the polyfill has finished loading, this will likely cause bugs.
 
-The simplest and least invasive strategy to ensure that a polyfill *always* loads 
-*before* other scripts that depend on it, is to load it **sync**.
+The simplest and least invasive strategy to ensure that a polyfill loads 
+*before* other scripts that depend on it, is to load it **sync** and place it *before* 
+the other scripts in the main document.
 When you load your script *sync*, any other script loaded by the browser will be delayed 
 until your *sync* script has finished loading.
                                                                
@@ -58,7 +59,7 @@ FeatureDetectAndPolyfill.
       //step 2: load polyfill async based on feature detection
       const base = "https://rawgit.com/webcomponents/webcomponentsjs/master/bundles/";
       if (CE && SD && TE && ES6) {                                          
-        loadMyElements();                                   //[1]
+                                                            //[1]
       } else if (!CE && SD && TE && ES6) {                                                   
         loadScriptSync(base + "webcomponents-ce.js");       //[2]
       } else if (!CE && !SD && TE && ES6) {                                                  
@@ -98,10 +99,8 @@ is run to process any `template` elements already added to the DOM before the po
 If you *know* that no template elements has been added to the DOM prior to the polyfill being loaded,
 this call is not necessary. (todo verify this)
 
-Next, we will look at the [BatchCustomElementUpgrades](Pattern4_BatchCustomElementUpgrades.md) pattern.
-This pattern makes the use of the customElements polyfill more efficient.
-Then we will look at the pattern [QueAndRecallFunctions](Pattern5_QueAndRecallFunctions.md).
-This pattern is needed to make our final pattern [FeatureDetectAndPolyfillAsync](Pattern6_FeatureDetectAndPolyfillAsync.md).
+Next, we will look at the [BatchCustomElementUpgrades pattern](Pattern4_BatchCustomElementUpgrades.md)
+for effficient use of the customElements polyfill.
 
 ### References
 * [webcomponentsjs](https://github.com/webcomponents/webcomponentsjs/).

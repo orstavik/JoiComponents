@@ -10,10 +10,9 @@ But, there are three concerns when you need to polyfill your browsers:
 invasiveness, approximation and variation. 
 
 ## Polyfill problem 1: invasiveness
-Often, the new feature or API that you want to use and therefore polyfill can require 
+Often, the new feature or API that you want to polyfill can require 
 subtle changes to other functions that are frequently used.
-The customElements polyfill for example adds Observers to the entire DOM 
-while the main document is being loaded and patches other seemingly unrelated functions 
+The customElements polyfill for example patches a seemingly unrelated function 
 such as `.innerHTML` in order for the new custom elements feature to function.
 Such fundamental and wide-reaching changes to core functionality of the DOM are *invasive*. 
 
@@ -21,8 +20,7 @@ Because a polyfill might deeply and widely interfere with the behavior of the pl
 both:
 * the loading of the polyfill, 
 * the use of the API, and especially 
-* the interface between the loading of the polyfill and use of the API.
-needs to be accomodated.
+* the interface between the loading of the polyfill and use of the API needs to be accommodated.
 
 ## Polyfill problem 2: approximation
 Many new features of a browser are very tricky to polyfill.
@@ -32,18 +30,18 @@ The shadowDOM polyfill is a good example of a new feature that is close to impos
 to polyfill *correctly*.
  
 The shadowDOM polyfill is also a good example of a new feature that is hard to polyfill *efficiently*.
-The changes required to turn an existing, old, no-shadow-DOM into a new, shadow-DOM are complex
-and take time both to set up and work against.
-This can make it necessary to "cut som corners" in the polyfill; to make the polyfill fast enough, 
-some edge-cases or too invasive aspects of the new feature are deliberately broken.
-In such instances the polyfill attempts to mimick efficiently, but not exactly, 
+The changes required to turn an existing, old, no-shadow-DOM into a new, shadow-compatible DOM 
+are complex and costly to run.
+This can make it necessary to "cut corners" in the polyfill; to make the polyfill fast enough, 
+some edge-cases or too invasive aspects of the new feature are deliberately left out.
+In such instances the polyfill attempts to mimic efficiently, but not exactly, 
 some aspects of the new feature.
 
-Such mimickery, or *approximations*, in the polyfill can lead the developer into trouble.
-Web developers are already accustomed to varying behavior between browsers, and 
-such variations are likely to be present when polyfilling as well.
-These variations must also be accomodated by the developer, 
-not only in relation to loading the polyfill, but also in using the polyfilled features. 
+Such mimicry, or *approximations*, in the polyfill can lead the developer into trouble.
+Thankfully, web developers are already accustomed to varying behavior between browsers. 
+The variations in the polyfill are no different, and 
+the polyfill can be considered as just another browser the developer must consider 
+when using the polyfilled features. 
 
 ## Polyfill problem 3: variation
 Browsers vary and are "old" and "new" in different areas. 
@@ -68,7 +66,7 @@ Both Chrome and Safari support all three APIs (May 2018).
 Firefox supports the HTML Template API and 
 supports CustomElements and shadowDom behind a flag.
 This means that more than 2/3 of your users no longer need to polyfill web components, and
-soon this number will rise to 85%.
+soon this number will rise to around 80%.
 
 Due to the widespread support of web components APIs, 
 most of your users no longer need any web component polyfills.
@@ -77,15 +75,15 @@ your users will have to download at least **3x as many JS files** as if you use 
 This is cavalier.
 Therefore, use **feature detection** when you are polyfilling web components.
 
-Polyfilling shadowDom and customElements also require some accomodations on the part of the developer.
+Polyfilling customElements in particular also require some accommodations on the part of the developer.
 This is especially evident when loading the polyfill. 
-When loading the polyfill the developer should especially make sure that no function that 
+When loading the polyfill the developer should make sure that no function that 
 requires the polyfills are run *before* the polyfill is ready.
 As the shadowDom and customElements basically invade the DOM, 
 this often, but not always, translates into any function that query or manipulate the DOM.
 
 In this chapter we will look at patterns for loading polyfills and 
-accomodating polyfills during loading.
+accommodating polyfills during loading.
                                                                                 
 ### References
 * [webcomponentsjs](https://github.com/webcomponents/webcomponentsjs/).

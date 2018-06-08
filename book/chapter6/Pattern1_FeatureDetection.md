@@ -3,7 +3,7 @@
 **Feature detection** by itself is straightforward and simple.
 1. You identify which features you need. 
 In the case of web components, you need Custom Elements, Shadow DOM, and HTML Templates.
-2. You query the browser to see if these features exists and works as expected. 
+2. You query the browser to see if these features exist and work as expected. 
 This is done by checking for a global property such as `window.customElements` and/or 
 a behavior such as `document.createDocumentFragment().cloneNode() instanceof DocumentFragment`.
 
@@ -33,7 +33,7 @@ var TE = (function() {
          clone.content.firstChild.content.childNodes.length;
 })();
 ```
-Polyfills for webcomponents are collected in a library called [webcomponentsjs](https://github.com/webcomponents/webcomponentsjs).
+Polyfills for web components are collected in a library called [webcomponentsjs](https://github.com/webcomponents/webcomponentsjs).
 Since it is three different APIs, there are seven potential combinations of the three.
 However, due to current and anticipated support in browsers, 
 there are only four combinations, or bundles,
