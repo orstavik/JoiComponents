@@ -1,23 +1,6 @@
 <html>
 <head>
-  <style>
-    body {
-      display: grid;
-      grid-template-areas: "a b c";
-    }
-    #choosePF label {
-      display: inline-block;
-      width: 200px;
-    }
-    #one {
-      width: 375px;
-    }
-    #choosePF .lab {
-      transform-origin: top left;
-      transform: rotate(-45deg);
-      float: left;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css"/>
   <script src="polyfill-loader-generator.js"></script>
 </head>
 <body>
@@ -92,37 +75,30 @@
   <br>
   <label>Slug format</label>
   <input id="asurl" type="text" value=""/><br>
-  <br><br>
-
-  <details>
-    <summary>Help:</summary>
-    <h3>Polyfill short codes description:</h3>
-    <ol>
-      <li>Dash (XX-YY): separate polyfill code</li>
-      <li>Lowercase (xx): polyfill loaded ASYNC</li>
-      <li>Uppercase (XX): polyfill loaded SYNC</li>
-      <li>Underscore (_XX): does not delay "polyfill.ready()".
-        This only applies when "polyfill.ready" framework is active.
-      </li>
-    </ol>
-  </details>
+  <h5>Polyfill short codes description:</h5>
+  <ol>
+    <li>Dash (XX-YY): separate polyfill code</li>
+    <li>Lowercase (xx): polyfill loaded ASYNC</li>
+    <li>Uppercase (XX): polyfill loaded SYNC</li>
+    <li>Underscore (_XX): does not delay "polyfill.ready()".
+      This only applies when "polyfill.ready" framework is active.
+    </li>
+  </ol>
+  <h3>Browser preview:</h3>
+<pre>
+combination   %use  files size   time   browsers
+**********************************************************
+no polyfills  58%   0      0kb    2ms   Chrome 55+, Safari 11.1+
+WC            12%   1    120kb   82ms   Firefox 49+, Chrome 53-55
+WA            10%   1    130kb   85ms   Safari 10.1-11.1
+WC-WA         20%   2    250kb   95ms   Safari 9-, firefox 48-, Edge, IE
+================================================================
+average           0.6     13kb   40ms
+</pre>
 </div>
 
 <pre id="code">
   code
 </pre>
-<div>
-  <h3>Browser preview:</h3>
-  <pre>
-  combination   %use  files size   time   browsers
-  **********************************************************
-  no polyfills  58%   0      0kb    2ms   Chrome 55+, Safari 11.1+
-  WC            12%   1    120kb   82ms   Firefox 49+, Chrome 53-55
-  WA            10%   1    130kb   85ms   Safari 10.1-11.1
-  WC-WA         30%   2    250kb   95ms   Safari 9-, firefox 48-, Edge, IE
-  ================================================================
-  average           0.6     13kb   40ms
-</pre>
-</div>
 </body>
 </html>

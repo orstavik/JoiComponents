@@ -1,0 +1,16 @@
+body {
+  display: grid;
+  grid-template-areas: "a b";
+}
+#choosePF label {
+  display: inline-block;
+  width: 200px;
+}
+#one {
+  width: 375px;
+}
+#choosePF .lab {
+  transform-origin: top left;
+  transform: rotate(-45deg);
+  float: left;
+}
