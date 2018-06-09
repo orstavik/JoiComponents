@@ -15,16 +15,16 @@ window.MyFunctionQue = {
   ready: function(fn){
     if (!fn) 
       return;
-    this._que? this._que.push(fn) : fn();
+    window.MyFunctionQue._que? window.MyFunctionQue._que.push(fn) : fn();
   },
   runWhenReady: function(){
-    if (this._que === undefined)
+    if (window.MyFunctionQue._que === undefined)
       return;
-    var que = this._que;
-    this._que = undefined;
-    for (var i = 0; i < que.length; i++) {
-      if (que[i] instanceof Function)
-        que[i]();                     
+    var q = window.MyFunctionQue._que;
+    window.MyFunctionQue._que = undefined;
+    for (var i = 0; i < q.length; i++) {
+      if (q[i] instanceof Function)
+        q[i]();                     
     }
   }
 };
@@ -40,6 +40,46 @@ MyFunctionQue.runWhenReady();
 console.log("c");                 //b, a, c
 ```
 
+## SelfInvokingFunction with local variables
+
+`window.MyFunctionQue._que` is ugly. 
+First of all, `window.MyFunctionQue._que` is a global variable, so it can be accessed and mutated from anywhere.
+Second,`window.MyFunctionQue._que` is long and distorts our view of the code. 
+We want the opposite. We want a variable that is only accessible from within our two functions
+`runWhenReady()` and `ready()`.
+And we want a short variable name that does not distort our view of the code.
+
+The old-school, ES5 way of creating a local scope for variables across several functions is a SIF.
+SIF stands for Self Invoking Function, and is basically just a simple anonymous function that 
+a) creates a local scope for variables and b) is run immediately.
+We take our previous example, wrap it in a SIF and move the que as a local variable in the SIF
+```javascript
+(function(){                              //[1]
+  var que = [];                           //[2]
+  window.MyFunctionQue = {
+    ready: function(fn){
+      if (!fn) 
+        return;
+      que? que.push(fn) : fn();
+    },
+    runWhenReady: function(){
+      if (que === undefined)
+        return;
+      var q = que;
+      que = undefined;
+      for (var i = 0; i < q.length; i++) {
+        if (q[i] instanceof Function)
+          q[i]();                     
+      }
+    }
+  };
+})();                                     //[1]
+```
+1. The SIF header. We wrap our code in a function: `function(){  /*our code here*/  }`.
+This function is again wrapped in an expression using parentheses: `(function(){  /*our code here*/  })`.
+This expression returns a function, which we then called immediately: `(function(){  /*our code here*/  })();`.
+2. `que` is moved out of `window.MyFunctionQue` and set up as a local variable in the SIF.
+
 ## Adding a `Promise`/`async function` to the QueAndRecallFunctions
 The above que is simple, nice and functional. 
 But, it does not support for `async function` nor `Promise`.
@@ -47,26 +87,28 @@ To support this, we update the runWhenReady method to also accept and await
 all promises before exiting.
 
 ```javascript
-window.MyFunctionQue = {
-  _que: [],
-  ready: function(fn) {                 //returns true when the function is run
-    if (!fn)
-      return;
-    if (que)
-      return que.push(fn);
-    if (fn instanceof Function)
-      fn();
-  },
-  runWhenReady: function(){
-    if (this._que === undefined)
-      return;
-    var que = this._que;
-    this._que = undefined;
-    return Promise.all(que.map(function(fn) {
-      return fn instanceof Function ? fn(): fn;
-    }));
-  }
-};
+(function(){                              //[1]
+  var que = [];                           //[2]
+  window.MyFunctionQue = {
+    ready: function(fn) {                 //returns true when the function is run
+      if (!fn)
+        return;
+      if (que)
+        return que.push(fn);
+      if (fn instanceof Function)
+        fn();
+    },
+    runWhenReady: function(){
+      if (que === undefined)
+        return;
+      var q = que;
+      que = undefined;
+      return Promise.all(q.map(function(fn) {
+        return fn instanceof Function ? fn(): fn;
+      }));
+    }
+  };
+})();                                     //[1]
 ```
 Both sync and async functions can now be queued and recalled like this:
 
@@ -94,12 +136,6 @@ To achieve this effect, we use a set of flags:
  * We add a flag using the `await(flag)` function.
  * We remove flags when we pass them as arguments to `runWhenReady(flag)`.
  * When `runWhenReady(flag)` has removed all the flags, it also flushes the `ready` que.
-
-Finally, we wrap everything in a self invoking function (SIF).
-The SIF creates a local scope in which locally defined variables cannot be accessed from the outside.
-Both `que` and `flags` can thereby be encapsulated from outside interference, 
-while still be accessed from both `window.polyfill.runWhenReady` and `window.polyfill.await`
-that are defined within the SIF.
 
 ```javascript
 (function () {
