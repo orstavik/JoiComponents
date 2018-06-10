@@ -43,7 +43,8 @@ console.log("c");                 //b, a, c
 ## SelfInvokingFunction with local variables
 
 `window.MyFunctionQue._que` is ugly. 
-First of all, `window.MyFunctionQue._que` is a global variable, so it can be accessed and mutated from anywhere.
+First of all, `window.MyFunctionQue._que` is a global variable, so it can be accessed 
+and mutated from anywhere.
 Second,`window.MyFunctionQue._que` is long and distorts our view of the code. 
 We want the opposite. We want a variable that is only accessible from within our two functions
 `runWhenReady()` and `ready()`.
@@ -54,8 +55,8 @@ SIF stands for Self Invoking Function, and is basically just a simple anonymous 
 a) creates a local scope for variables and b) is run immediately.
 We take our previous example, wrap it in a SIF and move the que as a local variable in the SIF
 ```javascript
-(function(){                              //[1]
-  var que = [];                           //[2]
+(function(){                              //[1, 2]
+  var que = [];                           //[4]
   window.MyFunctionQue = {
     ready: function(fn){
       if (!fn) 
@@ -73,12 +74,12 @@ We take our previous example, wrap it in a SIF and move the que as a local varia
       }
     }
   };
-})();                                     //[1]
+})();                                     //[3]
 ```
 1. The SIF header. We wrap our code in a function: `function(){  /*our code here*/  }`.
-This function is again wrapped in an expression using parentheses: `(function(){  /*our code here*/  })`.
-This expression returns a function, which we then called immediately: `(function(){  /*our code here*/  })();`.
-2. `que` is moved out of `window.MyFunctionQue` and set up as a local variable in the SIF.
+2. This function is again wrapped in an expression using parentheses: `(function(){  /*our code here*/  })`.
+3. This expression returns a function, which we then called immediately: `(function(){  /*our code here*/  })();`.
+4. `que` is moved out of `window.MyFunctionQue` and set up as a local variable in the SIF.
 
 ## Adding a `Promise`/`async function` to the QueAndRecallFunctions
 The above que is simple, nice and functional. 
@@ -87,10 +88,10 @@ To support this, we update the runWhenReady method to also accept and await
 all promises before exiting.
 
 ```javascript
-(function(){                              //[1]
-  var que = [];                           //[2]
+(function(){                              
+  var que = [];                           
   window.MyFunctionQue = {
-    ready: function(fn) {                 //returns true when the function is run
+    ready: function(fn) {                 
       if (!fn)
         return;
       if (que)
@@ -103,13 +104,16 @@ all promises before exiting.
         return;
       var q = que;
       que = undefined;
-      return Promise.all(q.map(function(fn) {
+      return Promise.all(q.map(function(fn) {        //[1]
         return fn instanceof Function ? fn(): fn;
       }));
     }
   };
-})();                                     //[1]
+})();                                     
 ```
+1. When we are supporting async functions, the QueAndRecallFunctions rely on `Promise`s.
+   If the `Promise` API is not present, it must be polyfilled.
+   
 Both sync and async functions can now be queued and recalled like this:
 
 ```javascript
