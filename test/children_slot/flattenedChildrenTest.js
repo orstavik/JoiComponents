@@ -1,5 +1,9 @@
 import {flattenedChildren} from "../../src/flattenedChildren.js";
 
+function childrenDesc(els){
+  return els.map(n => n.type + "#" + n.id);
+}
+
 describe('flattenedChildrenTest basics', function () {
 
   it("flattenedChildren() on single element", function () {
@@ -55,6 +59,37 @@ describe('flattenedChildrenTest basics', function () {
     inner.appendChild(innerSlot);
     assert(flattenedChildren(inner).length === 1);
     assert(innerSlot.assignedNodes().length === 1);
+  });
+
+  it("BucketList test", function () {
+    class BucketList extends HTMLElement {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `<style id="sty">text-align: center;</style><slot></slot>`;
+      }
+    }
+
+    customElements.define("bucket-list", BucketList);
+
+    const topDocument = document.createElement("div");
+    topDocument.innerHTML = `
+      <bucket-list id="list"><div id="one">fix bike</div><div id="two">slice cucumbers</div></bucket-list>
+    `;
+
+    const list = topDocument.querySelector("#list");
+    const listShadow = list.shadowRoot;
+    const listShadowSlot = listShadow.children[1];
+
+    expect(flattenedChildren(list).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#one", "DIV#two"]);
+    expect(flattenedChildren(listShadow).map(n => n.tagName + "#" + n.id)).to.deep.equal(["STYLE#sty", "DIV#one", "DIV#two"]);
+    expect(listShadowSlot.assignedNodes().map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#one", "DIV#two"]);
+    const one = topDocument.querySelector("#one");
+    list.removeChild(one);
+    expect(flattenedChildren(list).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#two"]);
+    expect(flattenedChildren(listShadow).map(n => n.tagName + "#" + n.id)).to.deep.equal(["STYLE#sty", "DIV#two"]);
+    expect(listShadowSlot.assignedNodes().map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#two"]);
   });
 });
 
