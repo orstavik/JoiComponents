@@ -253,12 +253,12 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
-        if (counter === 0){
+        if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(1);
           expect(newFlattenedChildren[0].nodeName).to.be.equal("DIV");
           counter++;
-        } else if(counter === 1){
+        } else if (counter === 1) {
           expect(newFlattenedChildren.length).to.be.equal(3);
           expect(newFlattenedChildren[0].nodeName).to.be.equal("DIV");
           expect(newFlattenedChildren[1].nodeName).to.be.equal("DIV");
@@ -319,5 +319,38 @@ describe('SlotChangeMixin basics', function () {
       document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on re-connect
       Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
     }, 50);
+  });
+
+  it("slotchangeCallback is not triggered when grandchildren of host changes.", function (done) {
+
+    let counter = 0;
+
+    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `<slot></slot>`;
+      };
+
+      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+        if (counter === 0) {
+          expect(oldFlattenedChildren).to.be.equal(undefined);
+          expect(newFlattenedChildren.length).to.be.equal(1);
+          expect(newFlattenedChildren[0].id).to.be.equal("one");
+          counter++;
+        } else if (counter === 1) {
+          expect(oldFlattenedChildren.length).to.be.equal(1);
+          expect(newFlattenedChildren.length).to.be.equal(2);
+          done();
+        }
+      }
+    };
+    customElements.define("grandchildren-not-slotchange", Subclass);
+    const el = new Subclass();
+    el.innerHTML = "<div id='one'></div>";
+    document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on connect
+    el.querySelector("#one").appendChild(document.createElement("p")); //should not trigger slotchange as it is a grandchild of host
+    el.appendChild(document.createElement("span")); //should trigger slotchange as it is a child of host
   });
 });
