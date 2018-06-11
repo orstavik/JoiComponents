@@ -33,20 +33,6 @@ describe('ChildrenChangedMixin', function () {
     expect(el.test()).to.be.equal("abc");
   });
 
-  it(".visibleChildren property", function () {
-    const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
-    };
-    customElements.define("visible-children-property", Subclass);
-    const el = new Subclass();
-    assert(flattenedChildren(el).length === 0);
-    let child = document.createElement("div");
-    el.appendChild(child);
-    el.appendChild(document.createElement("slot"));
-    assert(flattenedChildren(el).length === 1);
-    el.removeChild(child);
-    assert(flattenedChildren(el).length === 0);
-  });
-
   it("ChildrenChangedMixin add DIV imperative and trigger childrenChangedCallback", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
       childrenChangedCallback(oldChildren, newChildren) {
@@ -112,38 +98,6 @@ describe('ChildrenChangedMixin', function () {
     el.appendChild(document.createElement("slot"));
     document.querySelector("body").appendChild(el);
     Promise.resolve().then(() => document.querySelector("body").removeChild(el));
-  });
-
-  it("The super inner-outer-slot test 1", function () {
-
-    const InnerElementThatObserveChildren = class extends ChildrenChangedMixin(HTMLElement) {
-    };
-    customElements.define("inner-component-1", InnerElementThatObserveChildren);
-
-    const OuterElementThatSlotsStuff = class extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
-          <inner-component-1>
-            <slot></slot>
-          </inner-component-1>`;
-      }
-    };
-    customElements.define("outer-component-1", OuterElementThatSlotsStuff);
-
-    const outer = new OuterElementThatSlotsStuff();
-    const inner = outer.shadowRoot.children[0];
-    const innerSlot = inner.children[0];
-
-    assert(flattenedChildren(inner).length === 0);
-    let slotted = document.createElement("div");
-    outer.appendChild(slotted);
-    assert(flattenedChildren(inner).length === 1);
-    inner.removeChild(innerSlot);
-    assert(flattenedChildren(inner).length === 0);
-    inner.appendChild(innerSlot);
-    assert(flattenedChildren(inner).length === 1);
   });
 
   it("The super inner-outer-slot test 2", function (done) {
