@@ -171,7 +171,6 @@ describe('flattenedChildrenTest basics', function () {
 
     function test(el, ar) {
       let map = flattenedChildren(el).filter(n => n.tagName).map(n => n.tagName + "#" + n.id);
-      console.log(map);
       expect(map).to.deep.equal(ar);
     }
 
