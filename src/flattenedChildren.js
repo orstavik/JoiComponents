@@ -4,16 +4,16 @@
  *          where slots are replaced by their assignedNodes.
  */
 export function flattenedChildren(element) {
-  let res = [];
-  for (let i = 0; i < element.children.length; i++) {
-    let child = element.children[i];
-    if (child.constructor.name === "HTMLSlotElement") {
-      let assignedNodes = child.assignedNodes();
-      for (let j = 0; j < assignedNodes.length; j++)
-        res.push(assignedNodes[j]);
-    } else {
-      res.push(child);
-    }
+  return pushAllAssigned(element.children, []);
+}
+
+function pushAllAssigned(nodes, result){
+  for (let i = 0; i < nodes.length; i++) {
+    let node = nodes[i];
+    if (node instanceof HTMLSlotElement)
+      pushAllAssigned(node.assignedNodes(), result);
+    else 
+      result.push(node);
   }
-  return res;
+  return result;
 }
