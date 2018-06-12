@@ -1,12 +1,12 @@
 # Pattern: FunctionalMixins
 Finding out **when** a reactive method should be triggered is often complex:
 * Different browsers might listen for/observe external events using different API that must all be added.
-* Different browsers might have slightly different timing or event data that must be harmonized.
-* Information about an event might be spread across over several different sources.
-* Information about an event might be raw and require parsing and/or computation.
-* Information about an event might require state information and thus might require caching data over time. 
-* Coordinating the listening of several components of the same type is more efficient
-(cf. [ChildrenChangedMixin](Mixin1_ChildrenChangedMixin.md) and [SizeChangedMixin](Mixin2_SizeChangedMixin.md)).
+* Different browsers might have slightly different timing and/or environment state that must be harmonized.
+* Information concerning the browser state might be spread across over several different sources.
+* Information concerning the browser state might be raw and require parsing and/or computation.
+* Information concerning the browser state might require caching data over time. 
+* Observing for multiple components of the same type as one can be more efficient than observing multiple components one by one.
+(cf. [ChildrenChangedMixin](../chapter9/Mixin1_ChildrenChangedMixin.md) and [SizeChangedMixin](Mixin2_SizeChangedMixin.md)).
 
 Therefore, a good listener method often require a few lines of code, both simple and complex.
 If this code is put in the same scope as the code that reacts to the event, 
