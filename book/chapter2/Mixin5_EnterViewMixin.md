@@ -29,8 +29,10 @@ customElements.define("lazy-img", LazyLoadImage);
 See it in action on [codepen.io](https://codepen.io/orstavik/pen/JLgwMM)
 
 ### Implementation details
-* `enterViewCallback()` runs only once. The `EnterViewMixin` disconnects itself `unobserve`s itself
-so that the IntersectionObserver stops running. If you need to register an `IntersectionObserver` that 
+* `enterViewCallback()` runs only once. The `EnterViewMixin` removes its 
+`IntersectionObserver` or equivalent after the initial trigger
+so that the IntersectionObserver stops running. 
+If you need to register an `IntersectionObserver` that 
 registers more than once, use `IntersectionObserver` directly.
                               
 #### References

@@ -1,23 +1,25 @@
 # Mixin: ChildrenChanged
 
-So, if we start with the basic example above,                              
-an alternative approach to observing `slotchange` events is to observe changes in the list of children of the host element.
-But, if one of those children happen to be a slot, 
-we also need to observe the `slotchange` event of either:
-1. the first no-name slot child, or
-2. all named slot children.
+The problem with SlotchangeMixin is:
+1. it requires the existence of a slot inside the element, and
+2. the listener for this slot needs to be updated every time the shadowRoot changes content 
+because the slotchange event does not bubble.
+
+To bypass the problems of the slotchange event, 
+we can instead directly observe when the potentially assignable nodes of a custom element changes.
+To do so, we observe changes in the list of children of the host element.
+And, if one of those children happen to be a slot, 
+we also add a `slotchange` listener to those nodes.
 
 This approach gives us a `slotchange` callback that relies on `MutationObserver` for 
-its initial response. And this has one surprising, but important benefits:
-the custom element no longer needs an instantiated and populated shadowRoot. 
-And this in turn means that the custom element that uses ChildrenChangedMixin can 
+its initial response. With the added benefit that 
+updates of the shadowDOM no longer might require the Mixin to update its slotchange listener.
+This means that users of ChildrenChangedMixin can 
 *alter* its shadowDOM *after* the mixin has added its observer, 
 *without* having to worry about such changes muting the mixin.
-Or, put simply, this mixin does not require its inheriting custom elements to call 
-`updateSlotListeners()` when the shadowDOM changes.
+No need to `updateSlotListeners()` when the shadowDOM changes.
 
 [link to the source of ChildrenChangedMixin](../../src/ChildrenChangedMixin.js)
-
 
 ## How to react to dynamic changes of the DOM inside a custom element?
 
