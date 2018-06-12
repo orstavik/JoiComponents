@@ -7,29 +7,6 @@ import {flattenedChildren as flatten} from "./flattenedChildren.js";
 
 export const flattenedChildren = flatten;
 
-/**
- * returns
- * 1. an array with a single no-name slot if that is amongst the .children, or
- * 2. an array of all the named slots [slotNameOne, slotNameTwo, ...] amongst the .children, or
- * 3. null.
- *
- * would be similar to something like this css-ish
- * el.querySelectorAll(":either(:only-first(:origin > :either(slot:not([name]), :origin > slot([name='']), :origin > slot");
- */
-function getSlotList(el) {
-  const res = [];
-  for (let i = 0; i < el.children.length; i++) {
-    const child = el.children[i];
-    if (!(child instanceof HTMLSlotElement))
-      continue;
-    const name = child.getAttribute("name");
-    if (!name || name === "")
-      return [child];
-    res.push(child);
-  }
-  return res.length ? res : null;
-}
-
 function arrayEquals(a, b) {
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
 }
@@ -45,6 +22,10 @@ const hostFlattenedChildren = Symbol("hostChildrenSlots");
 
 /**
  * ChildrenChangedMixin adds a reactive lifecycle hook .childrenChangedCallback(...) to its subclasses.
+ * This lifecycle hook is triggered every time a potentially assignable node for the element changes,
+ * ie. whenever the content of `<slot>.assignedNodes()` would change, regardless of whether or not the
+ * element has a shadowRoot or a generic slot in that shadowRoot.
+ *
  * .childrenChangedCallback(newFlattenedChildren, oldFlattenedChildren, isSlotChange) is triggered:
  *  1) whenever the slotted content of an element changes and
  *  2) every time the element is connected to the DOM.
@@ -52,7 +33,7 @@ const hostFlattenedChildren = Symbol("hostChildrenSlots");
  * .childrenChangedCallback(...) is not triggered if there are no differences between the content of the
  * newFlattenedChildren and the oldFlattenedChildren.
  *
- * ChildrenChangedMixin exposes the `.flattenedChildren(el)` function.
+ * ChildrenChangedMixin.js also exposes the `.flattenedChildren(el)` function.
  *
  * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
  * a) Detachment: ChildrenChangedMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
@@ -76,7 +57,7 @@ export const ChildrenChangedMixin = function (Base) {
       super();
       this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());//=== function(changes){changes[0].target[hostChildrenChanged]();}
       this[slotchangeListener] = () => this[testCallback](true);
-      this[hostChildrenSlots] = undefined;
+      this[hostChildrenSlots] = [];
       this[hostFlattenedChildren] = undefined;
     }
 
@@ -93,19 +74,15 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [addSlotListeners]() {
-      this[hostChildrenSlots] = getSlotList(this);
-      if (!this[hostChildrenSlots])
-        return;
+      this[hostChildrenSlots] = [].filter.call(this.children, function (c) {return c instanceof HTMLSlotElement;});
       for (let i = 0; i < this[hostChildrenSlots].length; i++)
         this[hostChildrenSlots][i].addEventListener("slotchange", this[slotchangeListener]);
     }
 
     [removeSlotListeners]() {
-      if (!this[hostChildrenSlots])
-        return;
       for (let i = 0; i < this[hostChildrenSlots].length; i++)
         this[hostChildrenSlots][i].removeEventListener("slotchange", this[slotchangeListener]);
-      this[hostChildrenSlots] = undefined;
+      this[hostChildrenSlots] = [];
     }
 
     [testCallback](isSlotChange) {
