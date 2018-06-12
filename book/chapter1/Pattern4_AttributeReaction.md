@@ -191,3 +191,28 @@ if(!this.hasAttribute("someSetting"))                 //ie. set by page-author
                               
 #### References
 * [Do not to override page author](https://developers.google.com/web/fundamentals/web-components/best-practices#dont-override)
+
+## custom element upgrade
+
+The `HTMLElement.constructor()` is a little tricky. 
+When the browser parses an HTML document, it can encounter custom element tags that it does not yet know.
+These custom elements might be defined later when the browser has loaded a particular script,
+or not defined at all because the developer has forgotten to include a definition of it.
+In any case, the browser will when it encounters an HTML tag for a custom element it does not yet know,
+create a HTMLUnkownElement object for that tag that it will handle later.
+
+However, even though the browser cannot do much with the HTMLUnkownElement object,
+it can and will populate it with any attributes it finds in the tag.
+And the browser will also display it using the CSS rules it has for that tag.
+Then, when the browser has loaded the definition for that tag via `customElements.define`,
+it will then so-called `upgrade` the custom element.
+The `upgrade` of custom elements is a special process in browsers for just this situation,
+where the browser has instantiated and added a custom element to the DOM *before* it has its definition.
+In the `upgrade` process the browser takes the existing object and then calls its now discovered 
+`constructor()` and its `connectedCallback()` *after* the browser has already instantiated 
+the element *and* added that element to the DOM.
+
+The developer rarely notices this upgrade process; 
+most often it is as if the element was constructed and connected to the DOM normally.
+But, when it comes to attributes and attribute values, 
+the developer should take care not over-write attributes already defined and added to the `host` node. 

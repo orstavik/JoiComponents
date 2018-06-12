@@ -20,11 +20,24 @@ Hence, every mixin therefore has no other dependencies than itself and the (poly
 So, if you want to test the mixins directly, go right ahead (and use them via rawgit.com or unpkg.com). 
 If you want to copy them into your web component and/or adapt them to fit your need, do so freely.
 
-## Chapter 1: How to build (and polyfill) an app using web components?
+## Chapter 1: How to make a web component?
 1. [How to define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
-2. [Different strategies to create a shadowDom](book/chapter1/Pattern2_shadowDom.md)
+1. [How to use the shadowDOM?](book/chapter1/HowTo_shadowDOM.md)
+1. [How to use a `<slot>`?](book/chapter1/HowTo_slot.md)
+1. [How to name `<slot>`s?](book/chapter1/HowTo_namedSlots.md)
+1. [How to chain `<slot>`s?](book/chapter1/HowTo_chainSlots.md)
+1. [Function: `flattenedChildren`?](book/chapter1/Function_flattenedChildren.md)
+2. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
 <!--3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
 4. [Attribute reaction](book/chapter1/Pattern4_AttributeReaction.md)
+
+## Chapter 9: ShadowDOM and <slot>
+2. [`<slot>`, `assignedNodes()`](book/chapter9/slot_assignedNodes.md)
+2. [Function: flattenedChildren](book/chapter9/Function1_slots_flattenedChildren.md)
+3. [HTML composition](book/chapter9/HTML_composition.md)
+4. [MutationObserver and slotchange](book/chapter9/MutationObserver_slotchange.md)
+5. [.slotchangeCallback()](book/chapter9/Mixin1_SlotChangedMixin.md)
+6. [.childrenChangedCallback()](book/chapter9/Mixin2_ChildrenChangedMixin.md)
 
 ## Chapter 2: JS Patterns for generic web components and HTMLElement lifecycle mixins
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
@@ -41,15 +54,6 @@ If you want to copy them into your web component and/or adapt them to fit your n
 4. [DragFlingMixin](book/chapter3/Mixin1_DragFlingGesture.md) (SingleFingerGesture, DragGesture)
 5. [SwipeFlingMixin](book/chapter3/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
 6. [PinchGesture](book/chapter3/Mixin3_PinchGesture.md) (TwoFingerGesture, PinchGesture)
-
-## Chapter 9: ShadowDOM and <slot>
-1. [LightDOM and shadowDOM](book/chapter9/Discussion_lightDOM_shadowDOM.md)
-2. [`<slot>`, `assignedNodes()`](book/chapter9/slot_assignedNodes.md)
-2. [Function: flattenedChildren](book/chapter9/Function1_slots_flattenedChildren.md)
-3. [HTML composition](book/chapter9/HTML_composition.md)
-4. [MutationObserver and slotchange](book/chapter9/MutationObserver_slotchange.md)
-5. [.slotchangeCallback()](book/chapter9/Mixin1_SlotChangedMixin.md)
-6. [.childrenChangedCallback()](book/chapter9/Mixin2_ChildrenChangedMixin.md)
 
 ## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)

@@ -60,37 +60,6 @@ But in the post shadowDOM era, the actual DOM now has two representations:
 With a picture describing the `assignedNodes()` of each slot
 And pointer's to what is the lightDOM and shadowDOM of each entity.
 
-## Problems with `<slot>`s
-
-One important problem with a `<slot>` is that you don't know in advance 
-if they will have *zero, one or several* assigned nodes to it in the resolved DOM.
-They are polygamous.
-This mostly affect the parent node of the `<slot>` inside the shadowDOM.
-The problem for a parent node of `<slot>` elements no longer knows: 
-* how many children it will have, if any, and 
-* what type of elements these children might be.
-
-```html
-<green-frame>
-  <!--nothing to see here-->
-</green-frame>
-
-<green-frame>
-  <!--wooow, don't do that!-->
-  <img src="aNicePicutre.jpg" alt="a nice picture">
-  <div style="width: 100px; height: 166px;">This is a div with some text</div>
-</green-frame>
-```
-Thankfully, this is a familiar problem. 
-Normal elements can also have unknown quantity of children of unknown types.
-As HTML elements are used in many different documents and also moved around and altered dynamically by JS,
-it is normal that an HTML element does not know in advance neither how many nor what type of children it has.
-So, we already know this problem and how to handle it:
-We assume little about neither the *style* nor *behavior* of the children.
-And we make sure the elements style and behavior tackles both zero, one and multiple children equally well.
-
-But, there is one thing missing for parent with slots among their children. 
-Where can I find a complete list of the children viewable in the flattened DOM?
 
 ## References
  * mdn on slot

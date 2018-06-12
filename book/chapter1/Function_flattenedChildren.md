@@ -6,9 +6,10 @@ this applies by default to all nodes in the main, top-level DOM.
 
 For DOM nodes that a) are *inside* a ShadowDOM and b) has a `<slot>` child,
 the `.flattenedChildren` needs to be resolved by replacing all `slot` nodes 
-with their `.assignedNodes()` recursively.
+with their `.assignedNodes()`, recursively.
 
-The `flattenedChildren(n)` function below returns the flattened list of childNodes for any DOM node.
+The `flattenedChildren(n)` function below returns the flattened list of childNodes
+for any DOM node.
 
 ```javascript
 function flattenedChildren(n) {
@@ -27,7 +28,7 @@ function pushAllAssigned(nodes, result){
 }
 ```
 
-## Opinionated advice
+## Opinionated advice for working with shadowDOM
 1. Avoid "wrap-to-chain-named-slots". Use empty-name slot if you can. 
 
 2. Avoid "multi-sourced-slots". 

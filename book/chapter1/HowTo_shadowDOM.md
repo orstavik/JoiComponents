@@ -72,7 +72,7 @@ The custom element called GreenFrame will add a green border 10px wide around it
 </script>
 
 <green-frame>                                                <!--3-->
-  <img src="aNicePicutre.jpg" alt="a nice picture">          <!--4-->
+  <img src="aNicePicture.jpg" alt="a nice picture">          <!--4-->
 </green-frame>
 ```
 1. A `.shadowRoot` is added to the custom element.
@@ -96,7 +96,7 @@ We can imagine the flattened DOM looking something like this:
       border: 10px solid green;
     }
   </style>
-  <img src="aNicePicutre.jpg" alt="a nice picture">          <!--4-->
+  <img src="aNicePicture.jpg" alt="a nice picture">          <!--4-->
 </green-frame>
 ```
 1. The `<green-frame>` host node still exists
