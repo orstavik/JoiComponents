@@ -15,37 +15,32 @@ WC patterns consists of two types of recipes:
 The isolated functional mixins presented do **not** make a framework. 
 In fact, it is the ambition with this book that you no longer need a framework to build
 scalable, manageable, simple, yet powerful web apps. Modern browsers now has all the power you desire.
-Hence, every mixin therefore has no other dependencies than itself and the (polyfilled) platform. 
+Hence, every mixin strives for no other dependencies than itself and the (polyfilled) platform. 
 
 So, if you want to test the mixins directly, go right ahead (and use them via rawgit.com or unpkg.com). 
 If you want to copy them into your web component and/or adapt them to fit your need, do so freely.
 
 ## Chapter 1: How to make a web component?
-1. [How to define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
-1. [How to use the shadowDOM?](book/chapter1/HowTo_shadowDOM.md)
-1. [How to use a `<slot>`?](book/chapter1/HowTo_slot.md)
-1. [How to name `<slot>`s?](book/chapter1/HowTo_namedSlots.md)
-1. [How to chain `<slot>`s?](book/chapter1/HowTo_chainSlots.md)
-1. [Function: `flattenedChildren`?](book/chapter1/Function_flattenedChildren.md)
+1. [Define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
+1. [Hwo to shadowDOM](book/chapter1/HowTo_shadowDOM.md)
+1. [How to `<slot>`](book/chapter1/HowTo_slot.md)
+1. [How to name `<slot>`s](book/chapter1/HowTo_namedSlots.md)
+1. [How to chain `<slot>`s](book/chapter1/HowTo_chainSlots.md)
+1. [`.flattenedChildren(el)`](book/chapter1/Function_flattenedChildren.md)
 2. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
-<!--3. HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
 4. [Attribute reaction](book/chapter1/Pattern4_AttributeReaction.md)
+5. [MutationObserver and slotchange](book/chapter1/4_MutationObserver_slotchange.md)
 
-## Chapter 9: ShadowDOM and <slot>
-2. [`<slot>`, `assignedNodes()`](book/chapter9/slot_assignedNodes.md)
-2. [Function: flattenedChildren](book/chapter9/Function1_slots_flattenedChildren.md)
-3. [HTML composition](book/chapter9/HTML_composition.md)
-4. [MutationObserver and slotchange](book/chapter9/MutationObserver_slotchange.md)
-5. [.slotchangeCallback()](book/chapter2/Mixin1_SlotChangedMixin.md)
-6. [.childrenChangedCallback()](book/chapter2/Mixin2_ChildrenChangedMixin.md)
-
-## Chapter 2: JS Patterns for generic web components and HTMLElement lifecycle mixins
+## Chapter 2: Lifecycle callbacks
+<!--0. Introduction. what is a lifecycle callback? HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
+5. [.slotchangeCallback()](book/chapter2/Mixin1_SlotChangedMixin.md)
+6. [.childrenChangedCallback()](book/chapter2/Mixin2_ChildrenChangedMixin.md)
 3. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
 4. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
 5. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
-6. [Discussion: how to isolate FunctionalMixins for web components](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
+6. [Discussion: isolate FunctionalMixins](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
 
 ## Chapter 3: ComposedEvents and Gestures in JS
 1. [EventComposition](book/chapter3/Pattern1_ComposedEvents.md) (such as gestures, clicks, drag)
@@ -61,6 +56,7 @@ If you want to copy them into your web component and/or adapt them to fit your n
 3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
 4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
 5. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter4/Pattern4_MiniMe.md)
+6. [Discussion: HTML composition](book/chapter5/HTML_composition.md)
 
 
 <!--

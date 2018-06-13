@@ -120,6 +120,12 @@ describe('flattenedChildrenTest basics', function () {
    *
    * Therefore, on weekdays, the `ManBucketList` automatically adds an element "Buy Ferrari" to its list.
    * On weekends, the `ManBucketList` instead adds "Invent atmosphere decarbonizer".
+   *
+   * This time, things get a little more complex.
+   * The elements added in the list of things to do before the man
+   * dies now clearly originates from different origins.
+   * The elements in our `BucketList` is *mixed* together from two different HTML documents:
+   * both the shadowDOM and the lightDOM of our `<man-bucket-list>`.
    */
   it("ManBucketList test", function () {
 
@@ -158,8 +164,62 @@ describe('flattenedChildrenTest basics', function () {
     testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["DIV#two"]);
   });
 
+  /**
+   * Example 3: `MarriedManBucketList`
+   * In this last example we will see how this list can evolve when
+   * we add yet another document source for bucket list items: marriage.
+   *
+   * When men get married, their original ambitions and goals in life gets wrapped up in their marriage.
+   * A good way to illustrate this is to keep the original `ManBucketList` and place that in the
+   * shadowDOM of a new custom element: `MarriedManBucketList`.
+   *
+   * This example illustrate the problem of using one custom element
+   * inside the shadowDom of another custom element.
+   * (cf. Web components gold standard on content assignment).
+   * Here, `flattenedChildren(this.shadowRoot)` returns a much longer list:
+   * `[style, div#man, div#love, div#romance, ..., div#one, div#two]`.
+   * The bucket list items of `ManBucketList` are still there,
+   * the only difference being that they now also include
+   * a long list of goals intrinsic to `MarriedManBucketList`.
+   *
+   * What exactly is shadowDOM and lightDOM?
+   * From the point-of-view of `ManBucketList`, the shadowDOM is still only `[style, div#man, slot]`.
+   * But, what is `MarriedManBucketList`'s shadowDOM?
+   * In the DOM, `ManBucketList`'s shadowDOM is organized *under* `MarriedManBucketList`'s shadowDOM.
+   * It is a sub-document. So, are such sub-documents part of a shadowDOM?
+   *
+   * The answer is "no".
+   * The sub-document's elements are not directly part of the `MarriedManBucketList` document.
+   * Sub-documents cannot be directly styled or querySelected from the scope of a parent document in the DOM.
+   * And, although possible, elements in sub-documents should not be directly queried nor manipulated from the scope of the parent document.
+   * So even though the document of `ManBucketList` is wrapped in and subsumed under the shadowDOM of
+   * `MarriedManBucketList`, the shadowDOM scope of `MarriedManBucketList` does not *reach into* that of `ManBucketList`.
+   * If it does, then that is a hack and breach of contract.
+   *
+   * The lightDOM scopes are the reverse of the shadowDOM scopes.
+   * From the point-of-view of `MarriedManBucketList` the lightDOM is simply *another document*.
+   * For custom elements added to the main document, the lightDOM is always the main document.
+   * But, the two `<slot>` elements in `MarriedManBucketList` and `ManBucketList` form a chained reference.
+   * This chain transposes elements from *another document*, via `MarriedManBucketList` shadowDOM, and
+   * down into `ManBucketList`.
+   * Does that mean that the lightDOM of `ManBucketList` spans both
+   * *another document* and the shadowDOM of `MarriedManBucketList`?
+   *
+   * Again, the answer is "no".
+   * Even though actual elements can be transposed across three or more documents using `<slot>`s,
+   * the term lightDOM is still only used about the document in which the `host`
+   * of the custom element is instantiated.
+   * In this instance, the lightDOM of `ManBucketList` is the shadowDOM of `MarriedManBucketList`.
+   * This also illustrate that for custom elements used inside another custom elements,
+   * the lightDOM is always the other shadowDom document and *never* the main document.
+   *
+   * However, references in `<slot>` elements *can* span across several documents.
+   * And this means that the resolution of `assignedNodes()` and thus `visibleChildren` also span several documents.
+   * The scope of `<slot>` and `visibleChildren` *does* include all the documents necessary.
+   * So, sometimes an assignedNode of a slot can be found in the lightDOM's lightDOM.
+   * Or an element is transposed to a shadowDOM's shadowDOM.
+   */
   it("MarriedManBucketList test", function () {
-
     class ManBucketList extends HTMLElement {
       constructor() {
         super();

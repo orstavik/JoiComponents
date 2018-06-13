@@ -7,9 +7,17 @@ const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => 
 
 describe('SlotChangeMixin basics', function () {
 
+  var slotDIV;
+
+  before(function(){
+    slotDIV = document.createElement("div");
+    slotDIV.id = "slot";
+    document.querySelector("body").appendChild(slotDIV);
+  });
+
   it("instanceof HTMLElement + constructor() working + can be inputed to customElements.define()", function () {
     const SizeChangedElement = SlotChangeMixin(HTMLElement);
-    customElements.define("must-use-custom-elements-define-to-enable-constructor-size", SizeChangedElement);
+    customElements.define("must-use-custom-elements-define-to-enable-constructor-slot", SizeChangedElement);
     const el = new SizeChangedElement();
     expect(el.constructor.name).to.be.equal("SlotChangeMixin");
     assert(el instanceof HTMLElement);
@@ -21,7 +29,7 @@ describe('SlotChangeMixin basics', function () {
         return "abc";
       }
     };
-    customElements.define("subclass-size-changed", SubclassSizeChangedElement);
+    customElements.define("subclass-slot-changed", SubclassSizeChangedElement);
     const el = new SubclassSizeChangedElement();
     expect(el.constructor.name).to.be.equal("SubclassSizeChanged");
     assert(el instanceof HTMLElement);
@@ -34,7 +42,7 @@ describe('SlotChangeMixin basics', function () {
   //   };
   //   customElements.define("slotchange-fails", SubclassSizeChangedElement);
   //   const el = new SubclassSizeChangedElement();
-  //   const b = document.querySelector("body");
+  //   const b = slotDIV;
   //   expect(()=> b.appendChild(el)).to.throw("wtf");
   // });
 
@@ -44,7 +52,7 @@ describe('SlotChangeMixin basics', function () {
         return "abc";
       }
     };
-    customElements.define("subclass-size-changed-element", SubclassSizeChangedElement);
+    customElements.define("subclass-slot-changed-element", SubclassSizeChangedElement);
     const el = new SubclassSizeChangedElement();
     expect(el.constructor.name).to.be.equal("SubclassSizeChangedElement");
     assert(el instanceof HTMLElement);
@@ -72,9 +80,9 @@ describe('SlotChangeMixin basics', function () {
     customElements.define("children-slot-div-added", Subclass);
     const el = new Subclass();
     el.appendChild(document.createElement("div"));
-    document.querySelector("body").appendChild(el);
+    slotDIV.appendChild(el);
     //todo test if this breaks when we are testing and using polyfills
-    // Promise.resolve().then(() => document.querySelector("body").removeChild(el));
+    // Promise.resolve().then(() => slotDIV.removeChild(el));
   });
 
   it("imperatively trigger SlotChangeMixin, check that slots with no assigned value are considered empty", function (done) {
@@ -100,9 +108,9 @@ describe('SlotChangeMixin basics', function () {
     const el = new Subclass();
     el.appendChild(document.createElement("div"));
     el.appendChild(document.createElement("slot"));
-    document.querySelector("body").appendChild(el);
+    slotDIV.appendChild(el);
     //todo test if this breaks when we are testing and using polyfills
-    // Promise.resolve().then(() => document.querySelector("body").removeChild(el));
+    // Promise.resolve().then(() => slotDIV.removeChild(el));
   });
 
   it("The super inner-outer-slot test", function (done) {
@@ -141,9 +149,9 @@ describe('SlotChangeMixin basics', function () {
     const el = document.createElement("outer-component-slot");
     //things are not slotted until something is added to the DOM
     el.innerHTML = `<div id="a">a</div><div id="b">b</div>`;
-    document.querySelector("body").appendChild(el);
+    slotDIV.appendChild(el);
     el.appendChild(document.createElement("div"));
-    // Promise.resolve().then(() => document.querySelector("body").removeChild(el));
+    // Promise.resolve().then(() => slotDIV.removeChild(el));
   });
 
   it("not listening for slotChange on slots that are not a direct child", function (done) {
@@ -180,11 +188,11 @@ describe('SlotChangeMixin basics', function () {
     customElements.define("outer-with-grandchild-slot-2", OuterElementThatSlotsStuff);
 
     const el = new OuterElementThatSlotsStuff();
-    document.querySelector("body").appendChild(el);
+    slotDIV.appendChild(el);
     //slotchangeCallback should be triggered here, because it is triggered at connectedCallback..
     el.appendChild(document.createElement("p"));
     //but slotchangeCallback should not be triggered here, since "p" is not a slotable node for inner-listener-slot
-    // Promise.resolve().then(() => document.querySelector("body").removeChild(el));
+    // Promise.resolve().then(() => slotDIV.removeChild(el));
   });
 
   it("Event slotchange", function (done) {
@@ -231,12 +239,12 @@ describe('SlotChangeMixin basics', function () {
     customElements.define("outer-slot", OuterElementIsSlot);
 
     const el = new OuterElementIsSlot();
-    document.querySelector("body").appendChild(el);
+    slotDIV.appendChild(el);
     Promise.resolve().then(() => {
       el.appendChild(document.createElement("p"));
-      Promise.resolve().then(() => {
-        document.querySelector("body").removeChild(el);
-      });
+      // Promise.resolve().then(() => {
+      //   slotDIV.removeChild(el);
+      // });
     });
   });
 
@@ -271,12 +279,12 @@ describe('SlotChangeMixin basics', function () {
     customElements.define("connected-disconnected-connected-slot", Subclass);
     const el = new Subclass();
     el.appendChild(document.createElement("div"));    //is not triggered.
-    document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on connect
-    document.querySelector("body").removeChild(el);   //disconnect
+    slotDIV.appendChild(el);   //slotchangeCallback triggered on connect
+    slotDIV.removeChild(el);   //disconnect
     el.appendChild(document.createElement("div"));    //is not triggered.
     el.appendChild(document.createElement("div"));    //is not triggered.
-    document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
-    Promise.resolve().then(() => document.querySelector("body").removeChild(el));
+    slotDIV.appendChild(el);   //childrenChangedCallback triggered on connect
+    Promise.resolve().then(() => slotDIV.removeChild(el));
   });
 
   it("slotchangeCallback triggered on connect and re-connect with wait.", function (done) {
@@ -311,13 +319,13 @@ describe('SlotChangeMixin basics', function () {
     customElements.define("connected-settimeout-disconnected-connected-slot", Subclass);
     const el = new Subclass();
     el.appendChild(document.createElement("div"));    //is not triggered.
-    document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on connect
-    Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
+    slotDIV.appendChild(el);   //slotchangeCallback triggered on connect
+    Promise.resolve().then(() => slotDIV.removeChild(el));   //disconnect
     setTimeout(() => {
       el.appendChild(document.createElement("div"));    //is not triggered.
       el.appendChild(document.createElement("div"));    //is not triggered.
-      document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on re-connect
-      Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
+      slotDIV.appendChild(el);   //slotchangeCallback triggered on re-connect
+      Promise.resolve().then(() => slotDIV.removeChild(el));   //disconnect
     }, 50);
   });
 
@@ -349,8 +357,73 @@ describe('SlotChangeMixin basics', function () {
     customElements.define("grandchildren-not-slotchange", Subclass);
     const el = new Subclass();
     el.innerHTML = "<div id='one'></div>";
-    document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on connect
+    slotDIV.appendChild(el);   //slotchangeCallback triggered on connect
     el.querySelector("#one").appendChild(document.createElement("p")); //should not trigger slotchange as it is a grandchild of host
     el.appendChild(document.createElement("span")); //should trigger slotchange as it is a child of host
+  });
+
+  it("slotchangeCallback is not triggered when grandchildren with relevant slot='name' of host changes.", function (done) {
+
+    let counter = 0;
+
+    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `<slot name="abc"></slot>`;
+      };
+
+      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+        if (counter === 0) {
+          expect(oldFlattenedChildren).to.be.equal(undefined);
+          expect(newFlattenedChildren.length).to.be.equal(1);
+          expect(newFlattenedChildren[0].id).to.be.equal("one");
+          counter++;
+        } else if (counter === 1) {
+          expect(oldFlattenedChildren.length).to.be.equal(1);
+          expect(newFlattenedChildren.length).to.be.equal(2);
+          done();
+        }
+      }
+    };
+    customElements.define("grandchildren-named-not-slotchange", Subclass);
+    const el = new Subclass();
+    el.innerHTML = "<div id='one'></div>";
+    slotDIV.appendChild(el);   //slotchangeCallback triggered on connect
+    let newChild = document.createElement("p");
+    newChild.setAttribute("slot", "abc");
+    el.querySelector("#one").appendChild(newChild); //should not trigger slotchange as it is a grandchild of host
+    el.querySelector("#one").removeChild(newChild);
+    el.appendChild(newChild);                       //should trigger slotchange as it is a child of host
+  });
+
+  it("no name slot does not slot a named host's child element", function (done) {
+
+    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `<slot></slot>`;
+      };
+
+      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+          expect(oldFlattenedChildren).to.be.equal(undefined);
+          expect(newFlattenedChildren.length).to.be.equal(1);
+          expect(newFlattenedChildren[0].id).to.be.equal("aaa");
+          done();
+      }
+    };
+    customElements.define("named-slot-not-into-no-named-slot", Subclass);
+    const el = new Subclass();
+    el.innerHTML = "<div id='aaa'></div>";
+    slotDIV.appendChild(el);   //slotchangeCallback triggered on connect
+    let newChild = document.createElement("p");
+    newChild.setAttribute("slot", "abc");
+    el.querySelector("#aaa").appendChild(newChild); //should not trigger slotchange as it is a grandchild of host
+    el.querySelector("#aaa").removeChild(newChild);
+    el.appendChild(newChild);                       //should not trigger slotchange as name and slot differs
+    el.removeChild(newChild);
   });
 });

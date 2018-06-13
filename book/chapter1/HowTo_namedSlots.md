@@ -91,3 +91,11 @@ That would be reaching into the lightDOM, and we wan't to avoid that.
 So, when you need to mark lightDOM elements using the `slot`-attribute, 
 be aware that it is likely that you will need to also make changes in or around the slotted element, 
 and that if that is the case, you want to use the HelicopterParentChild pattern, and not the slot pattern.
+
+<!--
+All `<slot>` elements refer to children elements of the `host` element in the lightDOM.
+The no-name `<slot>` simply refers to all the children of the `host` element.
+"Named slots" refer to the children (or descendants) of the `host` element 
+that has an attribute called `slot` with the same value as the `name` attribute 
+of the slot in the shadowDOM inside the custom element. 
+-->
