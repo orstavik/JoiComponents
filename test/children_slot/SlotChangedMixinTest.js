@@ -1,6 +1,3 @@
-//todo make a big supertest that tests all the tests
-
-import {flattenedChildren} from "../../src/ChildrenChangedMixin.js";
 import {SlotChangeMixin} from "../../src/SlotChangedMixin.js";
 
 const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));

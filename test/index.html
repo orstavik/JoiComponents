@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Of Reactive Mixins for HTMLElement</title>
+  <script src="https://unpkg.com/chai@4.1.2/chai.js"></script>
+  <script src="https://unpkg.com/mocha@4.0.1/mocha.js"></script>
+  <link href="https://unpkg.com/mocha@4.0.1/mocha.css" rel="stylesheet" />
+</head>
+<body>
+
+
+<div id="mocha">Mocha</div>
+
+<script>
+  mocha.setup('bdd');
+  var assert = chai.assert;
+  var expect = chai.expect;
+  var should = chai.should();
+</script>
+
+<script type="module" src="children_slot/flattenedChildrenTest.js"></script>
+<script type="module" src="children_slot/SlotChangedMixinTest.js"></script>
+<script type="module" src="children_slot/ChildrenChangedMixinTest.js"></script>
+<script type="module" src="fling/FlingEventMixinTest.js"></script>
+<script type="module" src="size/SizeChangedMixinTest.js"></script>
+
+<script type="module">
+  //  mocha.checkLeaks();
+  mocha.run();
+</script>
+
+<iframe src="children_slot/ChildrenChangedMixinTestInHTML.html" height="440px" frameborder="0">here comes a test relying on html being loaded</iframe>
+<iframe src="fling/Fling1.html" height="440px" frameborder="0">here comes a test relying on html being loaded</iframe>
+<iframe src="fling/Fling2.html" height="440px" frameborder="0">here comes a test relying on html being loaded</iframe>
+<iframe src="pinch/Pinch1.html" height="440px" frameborder="0">here comes a test relying on html being loaded</iframe>
+
+</body>
+</html>
