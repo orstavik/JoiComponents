@@ -36,8 +36,8 @@ If you want to copy them into your web component and/or adapt them to fit your n
 2. [Function: flattenedChildren](book/chapter9/Function1_slots_flattenedChildren.md)
 3. [HTML composition](book/chapter9/HTML_composition.md)
 4. [MutationObserver and slotchange](book/chapter9/MutationObserver_slotchange.md)
-5. [.slotchangeCallback()](book/chapter9/Mixin1_SlotChangedMixin.md)
-6. [.childrenChangedCallback()](book/chapter9/Mixin2_ChildrenChangedMixin.md)
+5. [.slotchangeCallback()](book/chapter2/Mixin1_SlotChangedMixin.md)
+6. [.childrenChangedCallback()](book/chapter2/Mixin2_ChildrenChangedMixin.md)
 
 ## Chapter 2: JS Patterns for generic web components and HTMLElement lifecycle mixins
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
