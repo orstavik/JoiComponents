@@ -1,5 +1,10 @@
 import {flattenedChildren} from "../../src/flattenedChildren.js";
 
+function testElementNodeListTagAndID(el, ar) {
+  let tagIds = el.filter(n => n.tagName).map(n => n.tagName + "#" + n.id);
+  expect(tagIds).to.deep.equal(ar);
+}
+
 describe('flattenedChildrenTest basics', function () {
 
   it("flattenedChildren() on single element", function () {
@@ -57,6 +62,19 @@ describe('flattenedChildrenTest basics', function () {
     assert(innerSlot.assignedNodes().length === 1);
   });
 
+  /**
+   * Example 1: `BucketList`
+   * To illustrate the concept of lightDOM and shadowDOM,
+   * we start with a simple example with low ambitions: `BucketList`.
+   * The `BucketList` is a list of important things to do in life.
+   * It anticipates to be filled with a series of `<div>`s with text, which it will center-align.
+   *
+   * So far, there is a simple distinction between the shadowDOM and the lightDOM
+   * from the point of view of the `BucketList` element:
+   * The shadowDOM is the DOM under the attached shadowRoot, ie. `style` and `slot`;
+   * The lightDOM is the topDocument with its elements `bucket-list#list, div#one, div#two`.
+   * We say that the `<slot>` transposes a set of actual elements from the lightDOM into the shadowDOM.
+   */
   it("BucketList test", function () {
     class BucketList extends HTMLElement {
 
@@ -71,30 +89,51 @@ describe('flattenedChildrenTest basics', function () {
 
     const topDocument = document.createElement("div");
     topDocument.innerHTML = `
-      <bucket-list id="list"><div id="one">fix bike</div><div id="two">slice cucumbers</div></bucket-list>
+      <bucket-list id="list">
+        <div id="one">fix bike</div>
+        <div id="two">slice cucumbers</div>
+      </bucket-list>
     `;
 
     const list = topDocument.querySelector("#list");
     const listShadow = list.shadowRoot;
     const listShadowSlot = listShadow.children[1];
 
-    expect(flattenedChildren(list).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#one", "DIV#two"]);
-    expect(flattenedChildren(listShadow).map(n => n.tagName + "#" + n.id)).to.deep.equal(["STYLE#sty", "DIV#one", "DIV#two"]);
-    expect(listShadowSlot.assignedNodes().map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(list), ["DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(listShadow), ["STYLE#sty", "DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["DIV#one", "DIV#two"]);
     const one = topDocument.querySelector("#one");
     list.removeChild(one);
-    expect(flattenedChildren(list).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#two"]);
-    expect(flattenedChildren(listShadow).map(n => n.tagName + "#" + n.id)).to.deep.equal(["STYLE#sty", "DIV#two"]);
-    expect(listShadowSlot.assignedNodes().map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(list), ["DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(listShadow), ["STYLE#sty", "DIV#two"]);
+    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["DIV#two"]);
   });
 
+  /**
+   * Example 2: ManBucketList
+   * Let's up our ambitions a bit and make a bucket list for men: `ManBucketList`.
+   * Being human, men's ambitions are driven by what they see around them every day.
+   * By this logic, men's bucket lists should therefore also look different during weekdays and weekends.
+   * During weekdays, men are stuck in long ques driving to work and fantasize about owning a red Ferrari.
+   * During weekends, men stay at home, fiddle around the house and worry about their lawns, then drought
+   * and then global warming.
+   *
+   * Therefore, on weekdays, the `ManBucketList` automatically adds an element "Buy Ferrari" to its list.
+   * On weekends, the `ManBucketList` instead adds "Invent atmosphere decarbonizer".
+   */
   it("ManBucketList test", function () {
 
     class ManBucketList extends HTMLElement {
       constructor() {
         super();
+        const day = 1; //new Date().getDay();
+        const task = day < 5 ? "Buy Ferrari" : "Invent atmosphere decarbonizer";
         this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `<style id="sty">text-align: center;</style><div id="man">Ferrari</div><slot></slot>`;
+        this.shadowRoot.innerHTML = `
+          <style id="sty">text-align: center;</style>
+          <div id="man">${task}</div>
+          <slot></slot>
+        `;
       }
     }
 
@@ -109,14 +148,14 @@ describe('flattenedChildrenTest basics', function () {
     const listShadow = list.shadowRoot;
     const listShadowSlot = listShadow.children[2];
 
-    expect(flattenedChildren(list).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#one", "DIV#two"]);
-    expect(flattenedChildren(listShadow).map(n => n.tagName + "#" + n.id)).to.deep.equal(["STYLE#sty", "DIV#man", "DIV#one", "DIV#two"]);
-    expect(listShadowSlot.assignedNodes().map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(list), ["DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(listShadow), ["STYLE#sty", "DIV#man", "DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["DIV#one", "DIV#two"]);
     const one = topDocument.querySelector("#one");
     list.removeChild(one);
-    expect(flattenedChildren(list).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#two"]);
-    expect(flattenedChildren(listShadow).map(n => n.tagName + "#" + n.id)).to.deep.equal(["STYLE#sty", "DIV#man", "DIV#two"]);
-    expect(listShadowSlot.assignedNodes().map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(list), ["DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(listShadow), ["STYLE#sty", "DIV#man", "DIV#two"]);
+    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["DIV#two"]);
   });
 
   it("MarriedManBucketList test", function () {
@@ -125,7 +164,11 @@ describe('flattenedChildrenTest basics', function () {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `<style id="sty">text-align: center;</style><div id="man">Ferrari</div><slot></slot>`;
+        this.shadowRoot.innerHTML = `
+          <style id="sty">text-align: center;</style>
+          <div id="man">Ferrari</div>
+          <slot></slot>
+        `;
       }
     }
 
@@ -165,29 +208,24 @@ describe('flattenedChildrenTest basics', function () {
     const marriedlist = topDocument.querySelector("#marriedlist");
     const marriedlistShadow = marriedlist.shadowRoot;
     const manlist = marriedlistShadow.children[0];
-    const marriedlistShadowSlot = manlist.children[manlist.children.length-1];
+    const marriedlistShadowSlot = manlist.children[manlist.children.length - 1];
     const manlistShadow = manlist.shadowRoot;
     const manlistShadowSlot = manlistShadow.children[2];
 
-    function test(el, ar) {
-      let map = flattenedChildren(el).filter(n => n.tagName).map(n => n.tagName + "#" + n.id);
-      expect(map).to.deep.equal(ar);
-    }
-
-    test(marriedlist, ["DIV#one", "DIV#two"]);
-    test(manlist, ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#one", "DIV#two"]);
-    test(manlistShadow, ["STYLE#sty", "DIV#man", "DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#one", "DIV#two"]);
-    expect(manlistShadowSlot.assignedNodes().filter(n => n.tagName).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "SLOT#"]);
-    expect(marriedlistShadowSlot.assignedNodes().filter(n => n.tagName).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(marriedlist), ["DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(manlist), ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(manlistShadow), ["STYLE#sty", "DIV#man", "DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(manlistShadowSlot.assignedNodes(), ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "SLOT#"]);
+    testElementNodeListTagAndID(marriedlistShadowSlot.assignedNodes(), ["DIV#one", "DIV#two"]);
 
     const one = topDocument.querySelector("#one");
     marriedlist.removeChild(one);
 
-    test(marriedlist, ["DIV#two"]);
-    test(manlist, ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#two"]);
-    test(manlistShadow, ["STYLE#sty", "DIV#man", "DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#two"]);
-    expect(manlistShadowSlot.assignedNodes().filter(n => n.tagName).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "SLOT#"]);
-    expect(marriedlistShadowSlot.assignedNodes().filter(n => n.tagName).map(n => n.tagName + "#" + n.id)).to.deep.equal(["DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(marriedlist), ["DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(manlist), ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#two"]);
+    testElementNodeListTagAndID(flattenedChildren(manlistShadow), ["STYLE#sty", "DIV#man", "DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#two"]);
+    testElementNodeListTagAndID(manlistShadowSlot.assignedNodes(), ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "SLOT#"]);
+    testElementNodeListTagAndID(marriedlistShadowSlot.assignedNodes(), ["DIV#two"]);
   });
 });
 
