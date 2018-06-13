@@ -1,0 +1,25 @@
+<script type="module">
+
+  import {HashChangedMixin} from "../../src/HashChangedMixin.js";
+
+  class HashComp extends HashChangedMixin(HTMLElement) {
+
+    connectedCallback(){
+      super.connectedCallback();
+      this.style.display = "block";
+      this.style.width = "100px";
+      this.style.height = "100px";
+      this.style.background = "black";
+    }
+
+    hashChangedCallback(newHash){
+      this.style.background = newHash;
+    }
+  }
+  customElements.define("hash-comp", HashComp);
+</script>
+
+<a href="#red">Red</a>
+<a href="#green">Green</a>
+<a href="#blue">Blue</a>
+<hash-comp></hash-comp>
