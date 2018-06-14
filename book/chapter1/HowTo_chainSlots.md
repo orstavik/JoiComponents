@@ -1,7 +1,8 @@
 # Advanced: Chaining `<slot>`
 
 Custom elements *can* use each other in their shadowDOM.
-When used in this way, things get a bit more complicated and require some further explanations.
+When used in this way, things get a bit more complicated and 
+require some further explanations.
 We start by looking at a new example.
 
 ## Example: BlueFrame with PassePartout
@@ -143,3 +144,6 @@ is added in the shadowDOM of `<blue-frame>`.
 This means that the `.assignedNodes()` of the innermost `<slot>` in `<passe-partout>` originate 
 from two different lightDOMs. This technique I call "multi-sourced-slots".
  
+<!--
+use the term transpose 
+-->

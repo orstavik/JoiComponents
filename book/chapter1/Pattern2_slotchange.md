@@ -71,7 +71,7 @@ it also displays the number of objects inside its frame in the top left corner.
       div.innerText = this.cachedCount;      
     }
   }
-  customElements.define("green-frame", GreenFrame);
+  customElements.define("red-frame", RedFrame);
 </script>
 
 <red-frame>                                      <!--[9]-->
@@ -124,3 +124,8 @@ There are two ways to do so, and you can read more about them in
 ## References
  * [MDN: `slotchange`](https://developer.mozilla.org/en-US/docs/Web/Events/slotchange)
  * [Elix project `SlotchangeMixin`](https://test.elix.org/elix/SlotContentMixin)
+ * [Spesification: whatwg on slotchange](https://dom.spec.whatwg.org/#mutation-observers)
+ 
+## TODOS
+1. Check that I interpret the standard correctly
+2. check that Safari also slotchange event {bubble: false}

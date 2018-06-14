@@ -1,193 +1,97 @@
 # Mixin: SlotChanged
 
-```javascript
-import {flattenedChildren} from "./flattenedChildren.js";
+The `SlotChangedMixin` adds a reactive method `.slotchangedCallback()` to the custom element.
+The `.slotchangedCallback()` method is triggered every time:
+* the element connects to the DOM, 
+* the `.assignedNodes()` of one of the slot elements in the shadowDOM of the element changes.
 
-function arrayEquals(a, b) {
-  return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
-}
+The `.slotchangedCallback()` method is NEVER triggered twice for the same assigned nodes.
+This harmonizes the behavior between Chrome and Safari.
+The mixin ignores any redundant slot within the element (as they will not be assigned any nodes neither). 
 
-export function SlotChangeMixin(Base) {
-  return class SlotChangeMixin extends Base {
+The signature of the callback is `.slotchangedCallback(slot, newAssignedNodes, oldAssignedNodes)`.
+* `slot` is the particular slot element whose assigned nodes is initialized or has changed.
+* `newAssignedNodes` are the newly assigned nodes. 
+* `oldAssignedNodes` are the previously assigned nodes, undefined when first initialized.
 
-    constructor() {
+> ATT!! `newAssignedNodes` and `oldAssignedNodes` are both the complete set of DOM nodes.
+This means that HTML comments and text nodes, not just element nodes, are included in the lists.
+
+### `this.updateSlotListeners()`
+The problem with the SlotchangedMixin is that:
+* if the content of the shadowDOM of the custom element (`this.shadowRoot`) is altered 
+* *while* the custom element is connected to the DOM
+* in such a way that a `<slot>` element under `this.shadowRoot` is either added or removed 
+(or replaced by an identical element)                    
+* *then* a custom method **`this.updateSlotListeners()`** must be called on 
+the custom element with `this.shadowRoot`
+* so that the `SlotchangedMixin` can attach new event listeners for `slotchange` events,
+* and remove unnecessary event listeners.
+* This will trigger a `slotchangedCallback()` for any new `<slot>` elements attached,
+* and this is necessary for the custom element to be able to continue to 
+listen for all `slotchange` events from within its shadowDOM.
+
+> ATT!! if you alter the shadowDOM and forget to call `updateSlotListeners()`, 
+the mixin fails without warning.
+
+If only.. the `slotchange` event bubbled like the specification says.
+If so, `this.updateSlotListeners()` would not be needed.
+Instead, the `slotchange` event listener could be attached to the `this.shadowRoot` 
+which would remain unchanged.
+But, the reality is that `slotchange` does not bubble in neither Chrome and Safari. 
+So we must continue to listen for `<slot>` node directly.
+
+## Example: `<red-frame>` using `SlotchangeMixin`
+
+In this example we remake the `<red-frame>` `SlotchangeMixin`.
+
+```html
+<script type="module">
+
+  import {SlotchangeMixin} from "./SlotchangeMixin.js";
+
+  class RedFrame extends SlotchangeMixin(HTMLElement) {       
+    
+    constructor(){
       super();
-      this[slotchangeListener] = (e) => this[triggerSlotchangeCallback](e);
-      this[slots] = [];
-      this[hostFlattenedChildren] = undefined;
+      this.attachShadow({mode: "open"});     
+      this.shadowRoot.innerHTML =                   
+        `<style>
+          :host {
+            display: inline-block;
+            border: 10px solid red;
+          }                                                                              
+        </style>
+        <div id="count"></div>               
+        <slot></slot>`;                     
     }
-
-    connectedCallback() {
-      if (super.connectedCallback) super.connectedCallback();
-      this.addSlotListeners();
-    }
-
-    disconnectedCallback() {
-      if (super.disconnectedCallback) super.disconnectedCallback();
-      this.removeSlotListeners();
-    }
-
-    updateSlotListeners() {                                         //[2]
-      this.removeSlotListeners();
-      this.addSlotListeners();
-    }
-
-    addSlotListeners() {
-      this[slots] = this.shadowRoot.querySelectorAll("slot");
-      for (let slot of this[slots])
-        slot.addEventListener("slotchange", this[slotchangeListener]);
-      this[triggerSlotchangeCallback]();
-    }
-
-    removeSlotListeners() {
-      for (let slot of this[slots])
-        slot.removeEventListener("slotchange", this[slotchangeListener]);
-      this[slots] = [];
-    }
-
-    [triggerSlotchangeCallback](e) {
-      const old = this[hostFlattenedChildren];
-      const nevv = flattenedChildren(this);
-      if (arrayEquals(old, nevv))
-        return;
-      this[hostFlattenedChildren] = nevv;
-      this.slotchangeCallback(nevv, old, e);
+    
+    slotchangedCallback(slot, newAssignedNodes) {            //[1]
+      const div = this.shadowRoot.getElementById("count");
+      div.innerText = newAssignedNodes.length;
     }
   }
-};
-```
-This mixin works well, *when* the following conditions are met:
-1. The component has a shadowDOM, ie. `this.attachShadow({mode: "open"})` is called in the constructor,
-which I recommend.
-2. This shadowDOM is populated *before* the Mixin `connectedCallback()` is triggered, *or*
-3. `updateSlotListeners()` is called *after* every update of the shadowDOM that 
-affects its `<slot>` elements.
+  customElements.define("red-frame", GreenFrame);
+</script>
 
-Now, if the `slotchange` event did bubble, like the specification says, 
-conditions 2. and 3. would be bypassed by listening for `slotchange` events on `this.shadowRoot` 
-instead of on the actual `<slot>` node directly (cf. https://dom.spec.whatwg.org/#mutation-observers).
-But in neither Chrome and Safari, `slotchange` does not bubble. 
-I think I heard someone mention "performance reasons". If only it had..
-(todo let me know if this is wrong, either in interpreting the standard or that Safari make the event bubble!!)
+<red-frame>                                      
+  <img src="tomato.jpg" alt="tomato">
+  <img src="strawberry.jpg" alt="strawberry">
+</red-frame>
 
-This approach works well *if* a) the shadowDOM is static and preferably 
-b) the shadowDOM is populated *before* the mixin callback is made.
-But, this approach does is brittle for dynamic changes of the shadowDOM 
-that might affect `slot` nodes. 
-If you alter the shadowDOM and forget to call `updateSlotListeners()`, the mixin fails without warning.
-
-However, there is an alternative approach to achieve the same effect with fewer preconditions.
-But before we can start with this alternative approach, 
-we need to take a step back and look again at what `slot`s and `assignedNodes()` are.
-
-## Example: Green Frame and assignedNodes()
-
-The nodes that are assigned the default, no-name `slot` in a shadowDOM
-are in basic principle the `.children` nodes of the `host` node.
-In basic scenarios, this means that inside a custom element
-`this.children` equal `this.shadowRoot.querySelector("slot:not([name])").assignedNodes()`.
-And this in turn means that a callback from a childList MutationObserver on the `host` element
-should resemble `slotchange` event dispatched from the default slot.
-
-We can exemplify such a scenario with GreenFrame, a custom element that 
-displays two pictures in a green frame.
-
-```javascript
-class GreenFrame extends HTMLElement {
-  constructor(){
-    super();
-    this.attachShadow({mode: "open"});
-  }
-  
-  connectedCallback(){
-    this.shadowRoot.innerHTML = `
-      <div style="border: 10px solid green">
-        <slot></slot>                                                      
-      </div>`;
-  }
-  getSlotContent(){
-    return this.shadowRoot.querySelector("slot").assignedNodes();
-  }
-}
-customElements.define("green-frame", GreenFrame);
-```
-
-Used like this in the main document.
-
-```html
-<green-frame>                                               
-  <img id="girl" src="green_eyed_girl.jpg" height="100px" alt="green eyed girl" />   <!-- X1 -->
-  <img id="car" src="green_car.jpg" height="100px" alt="green eyed girl" />         <!-- X2 -->
-</green-frame>
 <script>
-  const gf = document.querySelector("green-frame");
-  const children = gf.children;            // = [img#girl, img#car]
-  const assigned = gf.getSlotContent();    // = [img#girl, img#car]  (the two arrays that reference the nodes are different though).
+  setTimeout(function(){
+    const cherry = document.createElement("img");
+    cherry.src = "cherry.jpg";
+    cherry.alt = "cherry";
+    document.querySelector("red-frame").appendChild(cherry); 
+  }, 2000);
 </script>
 ```
- 
-Ok, this works in a basic example. But, what if `green-frame` is used inside another custom element,
-and that custom element placed a `<slot>` as a child of `green-frame`?
-Let's try. We make a second custom element: `OuterGreenFrame`.
-
-```javascript
-class OuterGreenFrame extends HTMLElement {
-  constructor(){
-    super();                                                      
-    this.attachShadow({mode: "open"});
-  }
-  
-  connectedCallback(){
-    this.shadowRoot.innerHTML = `
-      <div style="border: 3px solid darkgreen">
-        <green-frame>                                               
-          <slot></slot>
-        </green-frame>
-      </div>`;
-  }
-  getSlotContent(){
-    return this.shadowRoot.querySelector("slot:not([name])").assignedNodes();
-  }
-}
-customElements.define("outer-green-frame", OuterGreenFrame);
-```
-
-and we use it similarly in main document:
-
-```html
-<outer-green-frame>                                               
-  <img id="girl" src="green_eyed_girl.jpg" height="100px" alt="green eyed girl" />   <!-- X1 -->
-  <img id="car" src="green_car.jpg" height="100px" alt="green eyed girl" />         <!-- X2 -->
-</outer-green-frame>
-<script>
-  const ogf = document.querySelector("outer-green-frame");
-  const outerChildren = ogf.children;                      // = [img#girl, img#car]
-  const outerAssigned = ogf.getSlotContent();              // = [img#girl, img#car]
-  const gf = ogf.shadowRoot.querySelector("green-frame");  //Do not reach directly for the shadowRoot on other elements in your code. This is only done for example purposes.
-  const innerChildren = gf.children;                       // = [slot]               !!the chained slot!!
-  const innerAssigned = gf.getSlotContent();               // = [img#girl, img#car] 
-</script>
-```
-We can call such a scenario like this "chained slots".
-Chained slots occur when custom elements add their slot element as the child of another custom element.
-Nested slots. A slot inside a slot. And what happens then?
-
-First, we see that `outerAssigned` and `innerAssigned` have the same two image elements.
-This is because:
-1. The two `img` nodes from the main document are transposed 
-to the `assignedNodes` of `outer-green-frame`.
-2. The `assignedNodes` of the slot in `outer-green-frame` (ie. the two img nodes) are
-then transposed further into the slot of the inner `green-frame`.
-Since the the `green-frame` host element does not have any other `.children` than the `<slot>`,
-the `outerAssigned` and `innerAssigned` contain the same elements.
-
-Second, as was the situation for the host element in our previous, basic example, 
-the list of `assignedNodes` also equals the `.children` of the `outer-green-frame` host element.
-
-But third, we also see that `innerChildren` differes from the rest.
-It only contains the slot node, not the assignedNodes of that slot.
-That is because the .children property of an element does not reflect the flattened DOM, 
-but the normal DOM.
+1. All the functionality of efficiently and harmonically listening for `slotchange` events
+are encapsulated in `SlotchangeMixin`.
+If there are more than one `<slot>` element that one needs to distinguish between, 
+the first argument `slot` of the callback method can be used.
 
 ## References
 * https://github.com/webcomponents/gold-standard/wiki/Content-Changes
