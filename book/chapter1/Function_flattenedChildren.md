@@ -19,7 +19,7 @@ function flattenedChildren(n) {
 function pushAllAssigned(nodes, result){
   for (let i = 0; i < nodes.length; i++) {
     let node = nodes[i];
-    if (node instanceof HTMLSlotElement)
+    if (node.tagName === "SLOT")               //[1]
       pushAllAssigned(node.assignedNodes(), result);
     else 
       result.push(node);
@@ -27,6 +27,9 @@ function pushAllAssigned(nodes, result){
   return result;
 }
 ```
+1. When you polyfill, `<slot>` nodes still remain type `HTMLUnknownElement`.
+Therefore, `if(node instanceof HTMLSlotElement)` does not work, and 
+instead we check the `.tagName === "SLOT"`.
 
 ## Opinionated advice for working with shadowDOM
 1. Avoid "wrap-to-chain-named-slots". Use empty-name slot if you can. 
