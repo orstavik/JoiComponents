@@ -71,7 +71,7 @@ export function SlotChangeMixin(Base) {
         if (arrayEquals(oldAssigned, newAssigned))
           continue;
         this[assigneds][slotName] = newAssigned;
-        this.slotchangeCallback(newAssigned, oldAssigned, slot);
+        this.slotchangeCallback(slot, newAssigned, oldAssigned);
       }
     }
   }

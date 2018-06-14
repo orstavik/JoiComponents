@@ -68,7 +68,8 @@ describe('SlotChangeMixin basics', function () {
         `;
       }
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         expect(newFlattenedChildren[0].nodeName).to.be.equal("DIV");
         expect(oldFlattenedChildren).to.be.equal(undefined);
         done();
@@ -94,7 +95,8 @@ describe('SlotChangeMixin basics', function () {
         `;
       }
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         expect(oldFlattenedChildren).to.be.equal(undefined);
         expect(newFlattenedChildren.length).to.be.equal(1);
         expect(newFlattenedChildren[0].nodeName).to.be.equal("DIV");
@@ -125,7 +127,8 @@ describe('SlotChangeMixin basics', function () {
         `;
       };
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         console.log("inner", checks);
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
@@ -154,7 +157,8 @@ describe('SlotChangeMixin basics', function () {
         `;
       }
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         console.log("outer", checks);
         if (counter2 === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
@@ -195,7 +199,8 @@ describe('SlotChangeMixin basics', function () {
         this.shadowRoot.innerHTML = `<slot></slot>`;
       };
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         expect(oldFlattenedChildren).to.be.equal(undefined);
         expect(newFlattenedChildren.length).to.be.equal(3);
         expect(newFlattenedChildren[0].nodeType).to.be.equal(3);
@@ -240,11 +245,11 @@ describe('SlotChangeMixin basics', function () {
         this.shadowRoot.innerHTML = `<slot></slot>`;
       };
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(0);
-          // expect(event).to.be.equal(undefined);
           counter++;
           return;
         }
@@ -252,7 +257,6 @@ describe('SlotChangeMixin basics', function () {
           expect(oldFlattenedChildren).to.deep.equal([]);
           expect(newFlattenedChildren.length).to.be.equal(1);
           expect(newFlattenedChildren[0].nodeName).to.be.equal("P");
-          // expect(event.type).to.be.equal("slotchange");
           done();
         }
       }
@@ -292,7 +296,8 @@ describe('SlotChangeMixin basics', function () {
         this.shadowRoot.innerHTML = `<slot></slot>`;
       };
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(1);
@@ -330,7 +335,8 @@ describe('SlotChangeMixin basics', function () {
         this.shadowRoot.innerHTML = `<slot></slot>`;
       };
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(1);
@@ -373,7 +379,8 @@ describe('SlotChangeMixin basics', function () {
         this.shadowRoot.innerHTML = `<slot></slot>`;
       };
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(1);
@@ -406,7 +413,8 @@ describe('SlotChangeMixin basics', function () {
         this.shadowRoot.innerHTML = `<slot name="abc"></slot>`;
       };
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(0);
@@ -441,7 +449,8 @@ describe('SlotChangeMixin basics', function () {
         this.shadowRoot.innerHTML = `<slot></slot>`;
       };
 
-      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         expect(oldFlattenedChildren).to.be.equal(undefined);
         expect(newFlattenedChildren.length).to.be.equal(1);
         expect(newFlattenedChildren[0].id).to.be.equal("aaa");
