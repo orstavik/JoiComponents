@@ -1,0 +1,43 @@
+<green-frame>
+  <img id="cherry" src="http://pngimg.com/uploads/cherry/cherry_PNG635.png" height="100px"/>
+  <img id="apple" src="https://cdn0.iconfinder.com/data/icons/fruits/512/Apple.png" height="100px"/>
+</green-frame>
+<script type="module">
+  import {SlotChangeMixin} from "../../src/SlotChangedMixin.js";
+
+  class GreenFrame extends SlotChangeMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <div style="display: inline-block; border: 5px solid red">
+          <slot></slot>
+          <div id="result"></div>
+        </div>
+      `;
+    }
+
+    slotchangeCallback(newFlattenedChildren, oldFlattenedChildren) {
+      let elementById = this.shadowRoot.getElementById("result");
+      elementById.innerText = newFlattenedChildren.map(c => c.id).join(".");
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+  let a = document.querySelector("green-frame");
+  setTimeout(function () {
+    let b = document.createElement("img");
+    b.id = "peach";
+    b.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNW1Olb1Dww-A7wwMfBj6wCZtdaYGyHyaZJC_iEVwcS_i5kc5T";
+    b.style.height = "100px";
+    a.appendChild(b);
+  }, 2000);
+  setTimeout(function () {
+    let c = document.createElement("img");
+    c.id = "strawberry";
+    c.src = "http://klubnika-online.ru/wp-content/uploads/2017/03/cropped-strawberry_PNG2595-512x400.png";
+    c.style.height = "100px";
+    a.appendChild(c);
+  }, 4000);
+
+</script>

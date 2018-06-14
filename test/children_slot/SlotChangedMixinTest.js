@@ -6,7 +6,7 @@ describe('SlotChangeMixin basics', function () {
 
   var slotDIV;
 
-  before(function(){
+  before(function () {
     slotDIV = document.createElement("div");
     slotDIV.id = "slot";
     document.querySelector("body").appendChild(slotDIV);
@@ -112,42 +112,77 @@ describe('SlotChangeMixin basics', function () {
 
   it("The super inner-outer-slot test", function (done) {
 
+    var counter = 0;
+    var counter2 = 0;
+    var checks = 0;
     const InnerElementThatObserveChildren = class extends SlotChangeMixin(HTMLElement) {
 
       constructor() {
         super();
         this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `
+          <div><slot></slot></div>
+        `;
       };
 
       slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
-        expect(oldFlattenedChildren).to.be.equal(undefined);
-        expect(newFlattenedChildren.length).to.be.equal(2);
-        expect(newFlattenedChildren[1].nodeName).to.be.equal("DIV");
-        expect(newFlattenedChildren[0].id).to.be.equal("a");
-        expect(newFlattenedChildren[1].id).to.be.equal("b");
-        done();
+        console.log("inner", checks);
+        if (counter === 0) {
+          expect(oldFlattenedChildren).to.be.equal(undefined);
+          expect(newFlattenedChildren.length).to.be.equal(2);
+          expect(newFlattenedChildren[0].id).to.be.equal("a");
+          expect(newFlattenedChildren[1].id).to.be.equal("b");
+          counter++;
+        } else if (counter === 1) {
+          expect(oldFlattenedChildren.length).to.be.equal(2);
+          expect(newFlattenedChildren.length).to.be.equal(3);
+          expect(newFlattenedChildren[0].id).to.be.equal("a");
+          expect(newFlattenedChildren[1].id).to.be.equal("b");
+          expect(newFlattenedChildren[2].id).to.be.equal("c");
+        }
+        if (++checks === 4)
+          done();
       }
     };
 
-    const OuterElementThatSlotsStuff = class extends HTMLElement {
+    const OuterElementThatSlotsStuff = class extends SlotChangeMixin(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
         this.shadowRoot.innerHTML = `
-          <inner-component-slot>
-            <slot></slot>
-          </inner-component-slot>
+          <inner-component-slot><slot></slot></inner-component-slot>
         `;
+      }
+
+      slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
+        console.log("outer", checks);
+        if (counter2 === 0) {
+          expect(oldFlattenedChildren).to.be.equal(undefined);
+          expect(newFlattenedChildren.length).to.be.equal(2);
+          expect(newFlattenedChildren[0].id).to.be.equal("a");
+          expect(newFlattenedChildren[1].id).to.be.equal("b");
+          counter2++;
+        } else if (counter2 === 1) {
+          expect(oldFlattenedChildren.length).to.be.equal(2);
+          expect(newFlattenedChildren.length).to.be.equal(3);
+          expect(newFlattenedChildren[0].id).to.be.equal("a");
+          expect(newFlattenedChildren[1].id).to.be.equal("b");
+          expect(newFlattenedChildren[2].id).to.be.equal("c");
+        }
+        if (++checks === 4)
+          done();
       }
     };
 
     customElements.define("inner-component-slot", InnerElementThatObserveChildren);
     customElements.define("outer-component-slot", OuterElementThatSlotsStuff);
     const el = document.createElement("outer-component-slot");
-    //things are not slotted until something is added to the DOM
+    //no slotchange event until el is connected to the DOM
     el.innerHTML = `<div id="a">a</div><div id="b">b</div>`;
     slotDIV.appendChild(el);
-    el.appendChild(document.createElement("div"));
+    let c = document.createElement("div");
+    c.id = "c";
+    el.appendChild(c);
     // Promise.resolve().then(() => slotDIV.removeChild(el));
   });
 
@@ -162,8 +197,10 @@ describe('SlotChangeMixin basics', function () {
 
       slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
         expect(oldFlattenedChildren).to.be.equal(undefined);
-        expect(newFlattenedChildren.length).to.be.equal(1);
-        expect(newFlattenedChildren[0].nodeName).to.be.equal("DIV");
+        expect(newFlattenedChildren.length).to.be.equal(3);
+        expect(newFlattenedChildren[0].nodeType).to.be.equal(3);
+        expect(newFlattenedChildren[1].nodeName).to.be.equal("DIV");
+        expect(newFlattenedChildren[2].nodeType).to.be.equal(3);
         done();
       }
     };
@@ -207,7 +244,7 @@ describe('SlotChangeMixin basics', function () {
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(0);
-          expect(event).to.be.equal(undefined);
+          // expect(event).to.be.equal(undefined);
           counter++;
           return;
         }
@@ -215,7 +252,7 @@ describe('SlotChangeMixin basics', function () {
           expect(oldFlattenedChildren).to.deep.equal([]);
           expect(newFlattenedChildren.length).to.be.equal(1);
           expect(newFlattenedChildren[0].nodeName).to.be.equal("P");
-          expect(event.type).to.be.equal("slotchange");
+          // expect(event.type).to.be.equal("slotchange");
           done();
         }
       }
@@ -226,9 +263,7 @@ describe('SlotChangeMixin basics', function () {
         super();
         this.attachShadow({mode: "open"});
         this.shadowRoot.innerHTML = `
-          <inner-slot>
-            <slot></slot>
-          </inner-slot>`;
+          <inner-slot><slot></slot></inner-slot>`;
       }
     };
 
@@ -245,7 +280,7 @@ describe('SlotChangeMixin basics', function () {
     });
   });
 
-  it("slotchangeCallback triggered on connect and re-connect, but NO when the node is NOT connected to the DOM", function (done) {
+  it("slotchangeCallback triggered on connect and re-connect, but NOT when the node is NOT connected to the DOM", function (done) {
     let counter = 0;
 
     const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
@@ -254,7 +289,7 @@ describe('SlotChangeMixin basics', function () {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
-        this.innerHTML = `<slot></slot>`;
+        this.shadowRoot.innerHTML = `<slot></slot>`;
       };
 
       slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
@@ -292,7 +327,7 @@ describe('SlotChangeMixin basics', function () {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
-        this.innerHTML = `<slot></slot>`;
+        this.shadowRoot.innerHTML = `<slot></slot>`;
       };
 
       slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
@@ -374,12 +409,13 @@ describe('SlotChangeMixin basics', function () {
       slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
-          expect(newFlattenedChildren.length).to.be.equal(1);
-          expect(newFlattenedChildren[0].id).to.be.equal("one");
+          expect(newFlattenedChildren.length).to.be.equal(0);
+          // expect(newFlattenedChildren[0].id).to.be.equal("one");
           counter++;
         } else if (counter === 1) {
-          expect(oldFlattenedChildren.length).to.be.equal(1);
-          expect(newFlattenedChildren.length).to.be.equal(2);
+          expect(oldFlattenedChildren.length).to.be.equal(0);
+          expect(newFlattenedChildren.length).to.be.equal(1);
+          expect(newFlattenedChildren[0].nodeName).to.be.equal("P");
           done();
         }
       }
@@ -406,10 +442,10 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event) {
-          expect(oldFlattenedChildren).to.be.equal(undefined);
-          expect(newFlattenedChildren.length).to.be.equal(1);
-          expect(newFlattenedChildren[0].id).to.be.equal("aaa");
-          done();
+        expect(oldFlattenedChildren).to.be.equal(undefined);
+        expect(newFlattenedChildren.length).to.be.equal(1);
+        expect(newFlattenedChildren[0].id).to.be.equal("aaa");
+        done();
       }
     };
     customElements.define("named-slot-not-into-no-named-slot", Subclass);

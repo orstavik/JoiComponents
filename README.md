@@ -22,14 +22,15 @@ If you want to copy them into your web component and/or adapt them to fit your n
 
 ## Chapter 1: How to make a web component?
 1. [Define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
-1. [Hwo to shadowDOM](book/chapter1/HowTo_shadowDOM.md)
-1. [How to `<slot>`](book/chapter1/HowTo_slot.md)
-1. [How to name `<slot>`s](book/chapter1/HowTo_namedSlots.md)
-1. [How to chain `<slot>`s](book/chapter1/HowTo_chainSlots.md)
-1. [`.flattenedChildren(el)`](book/chapter1/Function_flattenedChildren.md)
-2. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
-4. [Attribute reaction](book/chapter1/Pattern4_AttributeReaction.md)
-5. [MutationObserver and slotchange](book/chapter1/4_MutationObserver_slotchange.md)
+2. [Hwo to shadowDOM](book/chapter1/HowTo_shadowDOM.md)
+3. [How to `<slot>`](book/chapter1/HowTo_slot.md)
+4. [How to name `<slot>`s](book/chapter1/HowTo_namedSlots.md)
+5. [How to chain `<slot>`s](book/chapter1/HowTo_chainSlots.md)
+6. [`.flattenedChildren(el)`](book/chapter1/Function_flattenedChildren.md)
+7. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
+8. [Pattern: `slotchange`](book/chapter1/Pattern2_slotchange.md)
+9. [Attribute reaction](book/chapter1/Pattern4_AttributeReaction.md)
+10. [MutationObserver and slotchange](book/chapter1/4_MutationObserver_slotchange.md)
 
 ## Chapter 2: Lifecycle callbacks
 <!--0. Introduction. what is a lifecycle callback? HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
