@@ -45,9 +45,20 @@ export function SlotChangeMixin(Base) {
       this.removeSlotListeners();
     }
 
+    //todo new updateSlotListeners is untested
     updateSlotListeners() {
-      this.removeSlotListeners();
-      this.addSlotListeners();
+      const newSlots = slotMap(this.shadowRoot.querySelectorAll("slot"));
+      const oldSlots = this[slots];
+      for (let newSlot of newSlots) {
+        if (!oldSlots.indexOf(newSlot))
+          newSlot.addEventListener("slotchange", this[slotchangeListener]);
+      }
+      for (let oldSlot of oldSlots) {
+        if (!newSlots.indexOf(oldSlot))
+          oldSlot.removeEventListener("slotchange", this[slotchangeListener]);
+      }
+      this[slots] = newSlots;
+      [triggerAllSlotchangeCB]();
     }
 
     addSlotListeners() {
