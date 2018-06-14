@@ -10,7 +10,7 @@ export function flattenedChildren(element) {
 function pushAllAssigned(nodes, result){
   for (let i = 0; i < nodes.length; i++) {
     let node = nodes[i];
-    if (node instanceof HTMLSlotElement)
+    if (node.tagName === "SLOT")
       pushAllAssigned(node.assignedNodes(), result);
     else 
       result.push(node);

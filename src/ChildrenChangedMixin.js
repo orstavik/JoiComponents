@@ -74,7 +74,7 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [addSlotListeners]() {
-      this[hostChildrenSlots] = [].filter.call(this.children, function (c) {return c instanceof HTMLSlotElement;});
+      this[hostChildrenSlots] = [].filter.call(this.children, function (c) {return c.tagName === "SLOT";});
       for (let i = 0; i < this[hostChildrenSlots].length; i++)
         this[hostChildrenSlots][i].addEventListener("slotchange", this[slotchangeListener]);
     }

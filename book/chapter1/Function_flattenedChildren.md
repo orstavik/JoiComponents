@@ -28,8 +28,8 @@ function pushAllAssigned(nodes, result){
 }
 ```
 1. When you polyfill, `<slot>` nodes still remain type `HTMLUnknownElement`.
-Therefore, `if(node instanceof HTMLSlotElement)` does not work, and 
-instead we check the `.tagName === "SLOT"`.
+Therefore, `node instanceof HTMLSlotElement` does not work, and 
+instead we check the `node.tagName === "SLOT"`.
 
 ## Opinionated advice for working with shadowDOM
 1. Avoid "wrap-to-chain-named-slots". Use empty-name slot if you can. 

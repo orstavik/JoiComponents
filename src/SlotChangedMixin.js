@@ -11,29 +11,6 @@ const triggerSlotchangeCallback = Symbol("triggerSlotchangeCallback");
 const slots = Symbol("slots");
 const hostFlattenedChildren = Symbol("hostFlattenedChildren");
 
-/**
- * The `SlotChangedMixin(Base)` will trigger a `slotChangedCallback(event)`
- * every time a `slotchange` event is fired inside the shadowDOM.
- * As `slotchange` events are {composed: true},
- * this will also catch chained `<slots>` events.
- * The event passed as arguments is the triggering slotchange event.
- *
- * @param Base class that extends HTMLElement
- * @returns {SlotChangedMixin} class that extends HTMLElement
- */
-function getNecessarySlots(el) {
-  const slots = el.querySelectorAll("slot");
-  const res = [];
-  for (let i = 0; i < slots.length; i++) {
-    let slot = slots[i];
-    let name = slot.getAttribute("name");
-    if (!name || name === "")
-      return [slot];
-    res.push(slot);
-  }
-  return res;
-}
-
 function arrayEquals(a, b) {
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
 }
@@ -64,7 +41,7 @@ export function SlotChangeMixin(Base) {
     }
 
     addSlotListeners() {
-      this[slots] = getNecessarySlots(this.shadowRoot);
+      this[slots] = this.shadowRoot.querySelectorAll("slot");
       for (let slot of this[slots])
         slot.addEventListener("slotchange", this[slotchangeListener]);
       this[triggerSlotchangeCallback]();
