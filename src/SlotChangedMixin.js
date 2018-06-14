@@ -12,8 +12,6 @@ const slots = Symbol("slots");
 const assigneds = Symbol("assigneds");
 
 function arrayEquals(a, b) {
-  // if (a === b && a === undefined)
-  //   return true;
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
@@ -21,10 +19,9 @@ function slotMap(slotList) {
   const dict = {};
   for (let i = slotList.length - 1; i >= 0; i--) {
     let slot = slotList[i];
-    if (!dict[slot.name])
-      dict[slot.name] = slot;
+    dict[slot.name] = slot;
   }
-  return dict;
+  return Object.values(dict);
 }
 
 export function SlotChangeMixin(Base) {
@@ -33,7 +30,7 @@ export function SlotChangeMixin(Base) {
     constructor() {
       super();
       this[slotchangeListener] = (e) => this.triggerSlotchangeCB(e.currentTarget);
-      this[slots] = {};
+      this[slots] = [];
       this[assigneds] = {};
     }
 
@@ -54,19 +51,19 @@ export function SlotChangeMixin(Base) {
 
     addSlotListeners() {
       this[slots] = slotMap(this.shadowRoot.querySelectorAll("slot"));
-      for (let slot of Object.values(this[slots]))
+      for (let slot of this[slots])
         slot.addEventListener("slotchange", this[slotchangeListener]);
       this[triggerAllSlotchangeCB]();
     }
 
     removeSlotListeners() {
-      for (let slot of Object.values(this[slots]))
+      for (let slot of this[slots])
         slot.removeEventListener("slotchange", this[slotchangeListener]);
-      this[slots] = {};
+      this[slots] = [];
     }
 
     [triggerAllSlotchangeCB]() {
-      for (let slot of Object.values(this[slots]))
+      for (let slot of this[slots])
         this.triggerSlotchangeCB(slot);
     }
 

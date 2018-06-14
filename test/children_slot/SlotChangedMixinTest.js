@@ -468,4 +468,41 @@ describe('SlotChangeMixin basics', function () {
     el.appendChild(newChild);                       //should not trigger slotchange as name and slot differs
     el.removeChild(newChild);
   });
+
+  it("filter slot on id", function (done) {
+
+    var phase = 0;
+
+    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `<slot id="one"></slot><slot name="abc"></slot>`;
+      };
+
+      slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+        if (phase === 0){
+          if (slot.id === "one"){
+            expect(newFlattenedChildren[0].id).to.be.equal("aaa");
+          } else {
+            expect(slot.getAttribute("name")).to.be.equal("abc");
+            expect(newFlattenedChildren.length).to.be.equal(0);
+          }
+        }
+        else if (phase === 1){
+          expect(slot.getAttribute("name")).to.be.equal("abc");
+          done();
+        }
+      }
+    };
+    customElements.define("fliter-slot-id", Subclass);
+    const el = new Subclass();
+    el.innerHTML = "<div id='aaa'></div>";
+    slotDIV.appendChild(el);                        //2x slotchangeCallback triggered on connect
+    phase = 1;
+    let newChild = document.createElement("p");
+    newChild.setAttribute("slot", "abc");
+    el.appendChild(newChild);                       //only 1x slotchange is triggered
+  });
 });
