@@ -18,7 +18,7 @@ The signature of the callback is `.slotchangedCallback(slot, newAssignedNodes, o
 This means that HTML comments and text nodes, not just element nodes, are included in the lists.
 
 ### `this.updateSlotListeners()`
-The problem with the SlotchangedMixin is that:
+The problem with the `SlotchangedMixin` is that:
 * if the content of the shadowDOM of the custom element (`this.shadowRoot`) is altered 
 * *while* the custom element is connected to the DOM
 * in such a way that a `<slot>` element under `this.shadowRoot` is either added or removed 
@@ -38,8 +38,8 @@ If only.. the `slotchange` event bubbled like the specification says.
 If so, `this.updateSlotListeners()` would not be needed.
 Instead, the `slotchange` event listener could be attached to the `this.shadowRoot` 
 which would remain unchanged.
-But, the reality is that `slotchange` does not bubble in neither Chrome and Safari. 
-So we must continue to listen for `<slot>` node directly.
+But, the reality is that `slotchange` does not bubble in neither Chrome nor Safari. 
+So we must continue to listen for `<slot>` node directly and `updateSlotListeners()`.
 
 ## Example: `<red-frame>` using `SlotchangeMixin`
 
