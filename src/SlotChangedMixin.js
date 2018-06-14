@@ -7,11 +7,13 @@
 import {flattenNodes} from "./flattenedChildren.js";
 
 const slotchangeListener = Symbol("slotchangeListener");
-const triggerSlotchangeCallback = Symbol("triggerSlotchangeCallback");
+const triggerAllSlotchangeCB = Symbol("triggerSlotchangeCallback");
 const slots = Symbol("slots");
 const assigneds = Symbol("assigneds");
 
 function arrayEquals(a, b) {
+  // if (a === b && a === undefined)
+  //   return true;
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
@@ -30,7 +32,7 @@ export function SlotChangeMixin(Base) {
 
     constructor() {
       super();
-      this[slotchangeListener] = (e) => this[triggerSlotchangeCallback](e);
+      this[slotchangeListener] = (e) => this.triggerSlotchangeCB(e.currentTarget);
       this[slots] = {};
       this[assigneds] = {};
     }
@@ -54,7 +56,7 @@ export function SlotChangeMixin(Base) {
       this[slots] = slotMap(this.shadowRoot.querySelectorAll("slot"));
       for (let slot of Object.values(this[slots]))
         slot.addEventListener("slotchange", this[slotchangeListener]);
-      this[triggerSlotchangeCallback](null);
+      this[triggerAllSlotchangeCB]();
     }
 
     removeSlotListeners() {
@@ -63,13 +65,16 @@ export function SlotChangeMixin(Base) {
       this[slots] = {};
     }
 
-    [triggerSlotchangeCallback](e) {
-      for (let slotName of Object.keys(this[slots])) {
-        let slot = this[slots][slotName];
-        let newAssigned = flattenNodes(slot.assignedNodes());
-        let oldAssigned = this[assigneds][slotName];
-        if (arrayEquals(oldAssigned, newAssigned))
-          continue;
+    [triggerAllSlotchangeCB]() {
+      for (let slot of Object.values(this[slots]))
+        this.triggerSlotchangeCB(slot);
+    }
+
+    triggerSlotchangeCB(slot) {
+      let slotName = slot.getAttribute("name");
+      let newAssigned = flattenNodes(slot.assignedNodes());
+      let oldAssigned = this[assigneds][slotName];
+      if (!arrayEquals(oldAssigned, newAssigned)) {
         this[assigneds][slotName] = newAssigned;
         this.slotchangeCallback(slot, newAssigned, oldAssigned);
       }
