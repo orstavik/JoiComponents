@@ -3,22 +3,7 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
-import {flattenNodes} from "./flattenedChildren.js";
-
-function flatMap(element, includeOnlySlotNamed) {
-  const res = {"": []};
-  for (var i = 0; i < element.childNodes.length; i++) {
-    var child = element.childNodes[i];
-    var slotName = child.getAttribute ? (child.getAttribute("slot") || "") : "";
-    if (includeOnlySlotNamed && slotName !== includeOnlySlotNamed)
-      continue;
-    if (child.tagName === "SLOT")
-      res[slotName] = (res[slotName] || []).concat(flattenNodes(child.assignedNodes()));
-    else
-      (res[slotName] || (res[slotName] = [])).push(child);
-  }
-  return res;
-}
+import {flattenNodesMap} from "./flattenedChildren.js";
 
 function arrayEquals(a, b) {
   return b && a && a.length === b.length && a.every((v, i) => v === b[i]);
@@ -49,10 +34,6 @@ const map = Symbol("map");
  *
  * .slotchangedCallback(slotname, newAssignedNodes, oldAssignedNodes) is never triggered
  * when the content of newAssignedNodes and oldAssignedNodes are equal.
- *
- * `.slotchangedCallback(...)` will distinguish `<slot>`-elements with a `slot`-attribute (`<slot name="xyz" slot="abc">`).
- * But this will only occur on the first level, as the rest of the chain relies on .assignedNodes().
- * TODO should this feature be disabled?
  *
  * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
  * a) Detachment: ChildrenChangedMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
@@ -101,14 +82,14 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [triggerAllSlotchangedCallbacks]() {
-      let assignedMap = flatMap(this);
+      let assignedMap = flattenNodesMap(this.childNodes);
       for (let slotName in assignedMap)
         this[triggerCallback](slotName, assignedMap[slotName], this[map][slotName]);
       this[map] = assignedMap;
     }
 
     [triggerSingleSlotchangedCallback](slotName) {
-      let assignedMap = flatMap(this, slotName);
+      let assignedMap = flattenNodesMap(this.childNodes, slotName);
       this[triggerCallback](slotName, assignedMap[slotName], this[map][slotName]);
       this[map][slotName] = assignedMap[slotName];
     }
