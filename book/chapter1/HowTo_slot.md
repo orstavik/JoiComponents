@@ -69,6 +69,97 @@ Several elements are added.
 4. The `assignedNodes()` of the `<slot>` inside `<green-frame#four>` is `[]`.
 When no DOM nodes are assigned, the `<slot>` is empty and essentially just removed in the flattened DOM.
 
+## Function: `.flattenNodes(nodes)`
+
+For DOM nodes that do not have a `<slot>` child, 
+the list of child nodes in the flattened DOM is the same as the list of child nodes in the lightDOM: `.childNodes`.
+But, DOM nodes that a) are *inside* a ShadowDOM and b) has a `<slot>` child,
+the list of child nodes displayed in the view (in the flattened DOM) is not `.childNodes`:
+when the DOM is flattened, `<slot>` element are replaced by their `.assignedNodes()`, recursively.
+
+The `.flattenNodes(nodes)` function replaces all `slot` nodes in a node list
+with their `.assignedNodes()`, recursively, and returns a completely flattened version 
+of the node list.
+`flattenNodes(nodes)` function works everywhere, regardless of DOM and if the node list argument
+contains any `<slot>` elements or not.
+
+```javascript
+function flattenNodes(nodes) {
+  return pushAllAssigned(nodes, []);
+}
+
+function pushAllAssigned(nodes, result) {
+  for (let i = 0; i < nodes.length; i++) {
+    let n = nodes[i];
+    if (n.tagName === "SLOT")  //[1]
+      pushAllAssigned(n.assignedNodes(), result);
+    else
+      result.push(n);
+  }
+  return result;
+}
+```
+1. In the shadowDOM polyfill, `<slot>` nodes still remain type `HTMLUnknownElement`.
+Therefore, `node instanceof HTMLSlotElement` does not work, and 
+instead we check the `node.tagName === "SLOT"`.
+
+## Example: `GreenFrame` and `.flattenNodes(nodes)`
+
+If we apply the 
+
+```html
+<script>
+
+  function flattenNodes(nodes) {
+    return pushAllAssigned(nodes, []);
+  }
+  
+  function pushAllAssigned(nodes, result) {
+    for (let i = 0; i < nodes.length; i++) {
+      let n = nodes[i];
+      if (n.tagName === "SLOT")  //[1]
+        pushAllAssigned(n.assignedNodes(), result);
+      else
+        result.push(n);
+    }
+    return result;
+  }
+
+  class GreenFrame extends HTMLElement {       
+    
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =             
+        `<style>
+          :host {
+            display: block;                                  
+            border: 10px solid green;
+          }
+        </style>
+        <slot></slot>`;                      //[2]  //[5]
+    }
+  }
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<!--3-->
+<green-frame id="three">                                                
+  <img src="picture1.jpg" alt="a picture" />          
+  <img src="picture2.jpg" alt="another picture" />          
+  <div style="width: 100px; height: 166px;">And some text</div>
+</green-frame>
+
+<script>
+  const greenFrameShadow = document.querySelector("green-frame#three").shadowRoot;
+  const childNodes = greenFrameShadow.childNodes;    //[1]  [style, text, slot]
+  const flattenedNodes = flattenNodes(childNodes);   //[2]  [style, text, text, img, text, img, text, div, text]
+</script>
+```
+1. The childNodes of the shadowRoot in the GreenFrame element are not resolved and includes the slot.
+2. By calling `flattenNodes(childNodes)` the slots are resolved, and 
+we see the list of shadowRoot's childNodes as it will be presented in the flattened DOM.
+
 ## References
  * mdn on slot
  * mdn on assignedNodes
