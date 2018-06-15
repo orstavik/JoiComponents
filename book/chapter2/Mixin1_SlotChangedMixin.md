@@ -21,8 +21,7 @@ This means that HTML comments and text nodes, not just element nodes, are includ
 The problem with the `SlotchangedMixin` is that:
 * if the content of the shadowDOM of the custom element (`this.shadowRoot`) is altered 
 * *while* the custom element is connected to the DOM
-* in such a way that a `<slot>` element under `this.shadowRoot` is either added or removed 
-(or replaced by an identical element)                    
+* in such a way that a `<slot>` element under `this.shadowRoot` is either added or removed                    
 * *then* a custom method **`this.updateSlotListeners()`** must be called on 
 the custom element with `this.shadowRoot`
 * so that the `SlotchangedMixin` can attach new event listeners for `slotchange` events,
@@ -32,12 +31,11 @@ the custom element with `this.shadowRoot`
 listen for all `slotchange` events from within its shadowDOM.
 
 > ATT!! if you alter the shadowDOM and forget to call `updateSlotListeners()`, 
-the mixin fails without warning.
+SlotchangeMixin might fail without warning.
 
 If only.. the `slotchange` event bubbled like the specification says.
-If so, `this.updateSlotListeners()` would not be needed.
-Instead, the `slotchange` event listener could be attached to the `this.shadowRoot` 
-which would remain unchanged.
+If so, the `slotchange` event listener could be attached to the `this.shadowRoot`,
+which would remain constant, and `this.updateSlotListeners()` would not be needed.
 But, the reality is that `slotchange` does not bubble in neither Chrome nor Safari. 
 So we must continue to listen for `<slot>` node directly and `updateSlotListeners()`.
 
