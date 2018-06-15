@@ -57,7 +57,7 @@ of another custom element.
 inside the shadowDOM, this might disturb event listeners you have attacted to the slot element 
 for slotchange events (since these events are do not bubble in Chrome nor Safari). 
 If you listen for slotchange events, you will likely encounter problems when you update or alter the shadowDOM.
-If you want to update the shadowDOM, you should employ the ChildrenChangedMixin.
+If you want to update the shadowDOM, you should employ the SlotchangeMixin.
 
 3. Remember that only direct children of the `host` element are directly assigned.
 Deeper descendants of the `host` element will be slotted via the child.
@@ -69,7 +69,7 @@ use the HelicopterParentChild pattern.
 the more likely their slots will be chained with others.
 
 6. Use the `flattenedChildren(el)` function to access the "actual" list of an element.
-Use SlotchangeMixin or ChildrenChangedMixin to observe changes of assignable nodes and slots.
+Use StaticSlotchangeMixin or SlotchangeMixin to observe changes of assignable nodes and slots.
 
 7. When you have chained `<slot>`s, try to manipulate the DOM at the top most level.
 
