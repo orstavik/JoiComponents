@@ -36,14 +36,14 @@ const map = Symbol("map");
  * when the content of newAssignedNodes and oldAssignedNodes are equal.
  *
  * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
- * a) Detachment: ChildrenChangedMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
+ * a) Detachment: SlotchangeMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
  * b) Content assignment: changes to assignedNodes of slotted children are notified as if the change happened to a normal child.
  *
  * @param Base class that extends HTMLElement
- * @returns {ChildrenChangedMixin} class that extends HTMLElement
+ * @returns {SlotchangeMixin} class that extends HTMLElement
  */
-export const ChildrenChangedMixin = function (Base) {
-  return class ChildrenChangedMixin extends Base {
+export const SlotchangeMixin = function (Base) {
+  return class SlotchangeMixin extends Base {
 
     // slotchangedCallback(slotName, newNodeList, oldNodeList) {}
 

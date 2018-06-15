@@ -1,4 +1,4 @@
-import {ChildrenChangedMixin} from "../../src/ChildrenChangedMixin.js";
+import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
 
 function testElementNodeListTagAndID(nodes, ar) {
   let tagIds = nodes.map(n => {
@@ -10,17 +10,17 @@ function testElementNodeListTagAndID(nodes, ar) {
   expect(tagIds).to.deep.equal(ar);
 }
 
-describe('ChildrenChangedMixin', function () {
+describe('SlotchangeMixin', function () {
 
   it("extend HTMLElement class and make an element", function () {
-    const ChildrenChangedElement = ChildrenChangedMixin(HTMLElement);
+    const ChildrenChangedElement = SlotchangeMixin(HTMLElement);
     customElements.define("must-use-custom-elements-define-to-enable-constructor", ChildrenChangedElement);
     const el = new ChildrenChangedElement();
-    expect(el.constructor.name).to.be.equal("ChildrenChangedMixin");
+    expect(el.constructor.name).to.be.equal("SlotchangeMixin");
   });
 
-  it("subclass ChildrenChangedMixin", function () {
-    const SubclassChildrenChangedElement = class SubclassChildrenChanged extends ChildrenChangedMixin(HTMLElement) {
+  it("subclass SlotchangeMixin", function () {
+    const SubclassChildrenChangedElement = class SubclassChildrenChanged extends SlotchangeMixin(HTMLElement) {
       test() {
         return "abc";
       }
@@ -31,8 +31,8 @@ describe('ChildrenChangedMixin', function () {
     expect(el.test()).to.be.equal("abc");
   });
 
-  it("subclass ChildrenChangedMixin anonymous", function () {
-    const SubclassChildrenChangedElement = class extends ChildrenChangedMixin(HTMLElement) {
+  it("subclass SlotchangeMixin anonymous", function () {
+    const SubclassChildrenChangedElement = class extends SlotchangeMixin(HTMLElement) {
       test() {
         return "abc";
       }
@@ -43,8 +43,8 @@ describe('ChildrenChangedMixin', function () {
     expect(el.test()).to.be.equal("abc");
   });
 
-  it("ChildrenChangedMixin add DIV imperative and trigger childrenChangedCallback", function (done) {
-    const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+  it("SlotchangeMixin add DIV imperative and trigger childrenChangedCallback", function (done) {
+    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
       slotchangedCallback(slotName, newChildren, oldChildren) {
         expect(slotName).to.be.equal("");
         expect(newChildren.length).to.be.equal(1);
@@ -61,8 +61,8 @@ describe('ChildrenChangedMixin', function () {
   });
 
   // WRONG TEST.. 
-  // it("ChildrenChangedMixin add SLOT imperative and trigger childrenChangedCallback", function (done) {
-  //   const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+  // it("SlotchangeMixin add SLOT imperative and trigger childrenChangedCallback", function (done) {
+  //   const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
   //     childrenChangedCallback(oldChildren, newChildren) {
   //       expect(oldChildren).to.deep.equal([]);
   //       // expect(oldChildren).to.be.equal(undefined);
@@ -77,8 +77,8 @@ describe('ChildrenChangedMixin', function () {
   //   Promise.resolve().then(()=> document.querySelector("body").removeChild(el));
   // });
 
-  it("ChildrenChangedMixin added DIV and then SLOT imperative and trigger childrenChangedCallback", function (done) {
-    const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+  it("SlotchangeMixin added DIV and then SLOT imperative and trigger childrenChangedCallback", function (done) {
+    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
       slotchangedCallback(slotName, newChildren, oldChildren) {
         expect(slotName).to.be.equal("");
         expect(oldChildren).to.be.equal(undefined);
@@ -95,8 +95,8 @@ describe('ChildrenChangedMixin', function () {
     Promise.resolve().then(() => document.querySelector("body").removeChild(el));
   });
 
-  it("ChildrenChangedMixin added DIV and then SLOT imperative and trigger childrenChangedCallback, mutation observer called between each invocation.", function (done) {
-    const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+  it("SlotchangeMixin added DIV and then SLOT imperative and trigger childrenChangedCallback, mutation observer called between each invocation.", function (done) {
+    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
       slotchangedCallback(slotName, newChildren, oldChildren) {
         expect(slotName).to.be.equal("");
         expect(oldChildren).to.be.equal(undefined);
@@ -115,7 +115,7 @@ describe('ChildrenChangedMixin', function () {
 
   it("The super inner-outer-slot test 2", function (done) {
 
-    const InnerElementThatObserveChildren = class extends ChildrenChangedMixin(HTMLElement) {
+    const InnerElementThatObserveChildren = class extends SlotchangeMixin(HTMLElement) {
 
       slotchangedCallback(slotName, newChildren, oldChildren) {
         expect(oldChildren).to.be.equal(undefined);
@@ -147,7 +147,7 @@ describe('ChildrenChangedMixin', function () {
 
   it("not listening for slotChange on slots that are not a direct child", function (done) {
 
-    const InnerElementThatObserveChildren = class extends ChildrenChangedMixin(HTMLElement) {
+    const InnerElementThatObserveChildren = class extends SlotchangeMixin(HTMLElement) {
 
       slotchangedCallback(slotName, newChildren, oldChildren) {
         expect(oldChildren).to.be.equal(undefined);
@@ -182,7 +182,7 @@ describe('ChildrenChangedMixin', function () {
 
     let counter = 0;
 
-    const InnerElementIsSlot = class extends ChildrenChangedMixin(HTMLElement) {
+    const InnerElementIsSlot = class extends SlotchangeMixin(HTMLElement) {
 
       slotchangedCallback(slotName, newChildren, oldChildren) {
         if (counter === 0) {
@@ -226,7 +226,7 @@ describe('ChildrenChangedMixin', function () {
   });
 
   it("connected-disconnected-connected. childrenChangedCallback only triggered when connected + MutationObserver only called once when micro task queued.", function (done) {
-    const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
 
       slotchangedCallback(slotName, newChildren, oldChildren) {
         expect(oldChildren).to.be.equal(undefined);
@@ -251,7 +251,7 @@ describe('ChildrenChangedMixin', function () {
   it("connected-wait-disconnected-connected. childrenChangedCallback only triggered when connected.", function (done) {
     let counter = 0;
 
-    const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
 
       slotchangedCallback(slotName, newChildren, oldChildren) {
         if (counter === 0) {
@@ -288,7 +288,7 @@ describe('ChildrenChangedMixin', function () {
 
     var counter = 0;
 
-    class BlueFrame extends ChildrenChangedMixin(HTMLElement) {
+    class BlueFrame extends SlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();
@@ -337,7 +337,7 @@ describe('ChildrenChangedMixin', function () {
       }
     }
 
-    class PassePartout extends ChildrenChangedMixin(HTMLElement) {
+    class PassePartout extends SlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();
