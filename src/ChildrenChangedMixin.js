@@ -106,10 +106,7 @@ export const ChildrenChangedMixin = function (Base) {
     _triggerAllSlotchangedCallbacks() {
       let assignedMap = flatMap(this);
       for (var slotName in assignedMap) {
-        var newAssignedNodes = assignedMap[slotName];
-        var oldAssignedNodes = this._assignedMap[slotName];
-        if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
-          this.slotchangedCallback(slotName, newAssignedNodes, oldAssignedNodes);
+        this._triggerCallback(slotName, assignedMap[slotName], this._assignedMap[slotName]);
       }
       this._assignedMap = assignedMap;
     }
@@ -117,11 +114,13 @@ export const ChildrenChangedMixin = function (Base) {
     //we only need to slotchangedCallback the current slot name.
     _triggerSingleSlotchangedCallback(slotName) {
       let assignedMap = flatMap(this, slotName);
-      var newAssignedNodes = assignedMap[slotName];
-      var oldAssignedNodes = this._assignedMap[slotName];
+      this._triggerCallback(slotName, assignedMap[slotName], this._assignedMap[slotName]);
+      this._assignedMap[slotName] = assignedMap[slotName];
+    }
+
+    _triggerCallback(slotName, newAssignedNodes, oldAssignedNodes) {
       if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
         this.slotchangedCallback(slotName, newAssignedNodes, oldAssignedNodes);
-      this._assignedMap[slotName] = assignedMap[slotName];
     }
 
     [hostChildrenChanged]() {
