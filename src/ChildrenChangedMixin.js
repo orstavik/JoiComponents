@@ -12,6 +12,7 @@ import {flattenNodes} from "./flattenedChildren.js";
 //todo test this
 //todo what doooooesss the browser do here really.. does this fit in Safari too??
 //todo it looks like the slot actually manages to do this.. cf. dev. tools. Does this work in the polyfill?
+//todo I should add blue-frame to the UpdateableSlotchangedMixin, this should give me an answer to this question.
 
 function flatMap(element, includeOnlySlotNamed) {
   const res = {"": []};

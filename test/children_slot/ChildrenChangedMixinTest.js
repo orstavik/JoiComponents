@@ -382,7 +382,7 @@ describe('ChildrenChangedMixin', function () {
 
     /*
     <blue-frame sold>
-      <img src="theSea.jpg">
+      <img>
       <span slot="label">Picture of the ocean</span>
     </blue-frame>
     */
@@ -393,13 +393,6 @@ describe('ChildrenChangedMixin', function () {
     span.innerText = "Picture of the ocean";
     el.appendChild(span);                             //is not triggered.
     document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
-    // Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
-    // setTimeout(() => {
-    //   el.appendChild(document.createElement("div"));    //is not triggered.
-    //   el.appendChild(document.createElement("div"));    //is not triggered.
-    //   document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
-    // Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
-    // }, 50);
   });
 
   //todo verify that eventListeners are removed when disconnected.

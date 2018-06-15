@@ -1,6 +1,16 @@
 import {SlotChangeMixin} from "../../src/SlotChangedMixin.js";
 
-const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
+// const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
+
+function testElementNodeListTagAndID(nodes, ar) {
+  let tagIds = nodes.map(n => {
+    if (n.tagName)
+      return n.tagName.toLowerCase() + (n.id ? "#" + n.id : "");
+    else
+      return "text";
+  });
+  expect(tagIds).to.deep.equal(ar);
+}
 
 describe('SlotChangeMixin basics', function () {
 
@@ -69,7 +79,8 @@ describe('SlotChangeMixin basics', function () {
       }
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         expect(newFlattenedChildren[0].nodeName).to.be.equal("DIV");
         expect(oldFlattenedChildren).to.be.equal(undefined);
         done();
@@ -96,7 +107,8 @@ describe('SlotChangeMixin basics', function () {
       }
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         expect(oldFlattenedChildren).to.be.equal(undefined);
         expect(newFlattenedChildren.length).to.be.equal(1);
         expect(newFlattenedChildren[0].nodeName).to.be.equal("DIV");
@@ -128,7 +140,8 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         console.log("inner", checks);
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
@@ -158,7 +171,8 @@ describe('SlotChangeMixin basics', function () {
       }
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
         console.log("outer", checks);
         if (counter2 === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
@@ -200,7 +214,8 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         expect(oldFlattenedChildren).to.be.equal(undefined);
         expect(newFlattenedChildren.length).to.be.equal(3);
         expect(newFlattenedChildren[0].nodeType).to.be.equal(3);
@@ -246,7 +261,8 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(0);
@@ -297,7 +313,8 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(1);
@@ -336,7 +353,8 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(1);
@@ -380,7 +398,8 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(1);
@@ -414,7 +433,8 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("abc");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         if (counter === 0) {
           expect(oldFlattenedChildren).to.be.equal(undefined);
           expect(newFlattenedChildren.length).to.be.equal(0);
@@ -450,7 +470,8 @@ describe('SlotChangeMixin basics', function () {
       };
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
-        expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
+        expect(slot).to.be.equal("");
+        // expect(slot).to.be.equal(this.shadowRoot.querySelector("slot"));
         expect(oldFlattenedChildren).to.be.equal(undefined);
         expect(newFlattenedChildren.length).to.be.equal(1);
         expect(newFlattenedChildren[0].id).to.be.equal("aaa");
@@ -483,15 +504,18 @@ describe('SlotChangeMixin basics', function () {
 
       slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
         if (phase === 0){
-          if (slot.id === "one"){
+          if (slot === ""){
+          // if (slot.id === "one"){
             expect(newFlattenedChildren[0].id).to.be.equal("aaa");
           } else {
-            expect(slot.getAttribute("name")).to.be.equal("abc");
+            expect(slot).to.be.equal("abc");
+            // expect(slot.getAttribute("name")).to.be.equal("abc");
             expect(newFlattenedChildren.length).to.be.equal(0);
           }
         }
         else if (phase === 1){
-          expect(slot.getAttribute("name")).to.be.equal("abc");
+          expect(slot).to.be.equal("abc");
+          // expect(slot.getAttribute("name")).to.be.equal("abc");
           done();
         }
       }
@@ -504,5 +528,118 @@ describe('SlotChangeMixin basics', function () {
     let newChild = document.createElement("p");
     newChild.setAttribute("slot", "abc");
     el.appendChild(newChild);                       //only 1x slotchange is triggered
+  });
+
+  it("blue-frame.", function (done) {
+
+    var counter = 0;
+
+    class BlueFrame extends SlotChangeMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML =
+          `<style>
+          :host {
+            display: inline-block;                                  
+            border: 10px solid blue;
+          }
+          #sold {
+            display: none;
+            background: red;
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+          }
+          :host([sold]) #sold {
+            display: block;
+          }
+        </style>
+        <passe-partout-2>
+          <slot name="label" slot="label"></slot>  
+          <slot></slot>
+          <div id="sold"></div>
+        </passe-partout-2>
+        `;
+      }
+
+      slotchangeCallback(slot, newNodes, oldNodes) {
+        counter++;
+        // slot = slot.name;
+        if (slot === "") {
+          expect(oldNodes).to.be.equal(undefined);
+          testElementNodeListTagAndID(newNodes, ["img"]);
+        } else if (slot === "label") {
+          expect(oldNodes).to.be.equal(undefined);
+          testElementNodeListTagAndID(newNodes, ["span"]);
+        } else {
+          assert(false);
+        }
+        if (counter === 4)
+          done();
+      }
+    }
+
+    class PassePartout extends SlotChangeMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML =
+          `<style>
+          :host {
+            display: inline-block;
+            position: relative;                                  
+            background: white;
+            padding: 12px;
+          }
+          div {
+            text-align: center;
+          }
+        </style>
+        <slot></slot>
+        <div id="label">
+          <slot name="label"></slot>
+        </div>
+        `;
+      }
+
+      slotchangeCallback(slot, newNodes, oldNodes) {
+        counter++;
+        // slot = slot.name;
+        if (slot === "") {
+          expect(oldNodes).to.be.equal(undefined);
+          testElementNodeListTagAndID(newNodes, ["text", "text", "img", "text", "div#sold", "text"]);
+        } else if (slot === "label") {
+          expect(oldNodes).to.be.equal(undefined);
+          testElementNodeListTagAndID(newNodes, ["span"]);
+        } else {
+          assert(false);
+        }
+        if (counter === 4)
+          done();
+      }
+    }
+
+    customElements.define("passe-partout-2", PassePartout);
+    customElements.define("blue-frame-2", BlueFrame);
+
+    /*
+    <blue-frame sold>
+      <img>
+      <span slot="label">Picture of the ocean</span>
+    </blue-frame>
+    */
+    const el = new BlueFrame();
+    el.appendChild(document.createElement("img"));    //is not triggered.
+    let span = document.createElement("span");
+    span.setAttribute("slot", "label");
+    span.innerText = "Picture of the ocean";
+    el.appendChild(span);                             //is not triggered.
+    document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
   });
 });

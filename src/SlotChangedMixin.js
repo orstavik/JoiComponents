@@ -90,7 +90,7 @@ export function SlotChangeMixin(Base) {
       this[assigneds][slotName] = newAssigned;
       //todo change the signature to use slotname, and not slot element as the first argument
       //todo think about this question
-      this.slotchangeCallback(slot, newAssigned, oldAssigned);
+      this.slotchangeCallback(slot.name, newAssigned, oldAssigned);
     }
   }
 };
