@@ -48,6 +48,31 @@ Do not reach over the table at dinner, ask your fellow politely to pass the food
 Do not reach directly across document borders, ask the custom element politely to accomodate you.
 
 
+## Opinionated advice for working with shadowDOM
+1. Avoid "multi-sourced-slots". 
+This means that you should try to avoid giving a slot siblings if it placed as a child
+of another custom element. 
+
+2. Be aware that when you dynamically add or remove `<slot>` elements 
+inside the shadowDOM, this might disturb event listeners you have attacted to the slot element 
+for slotchange events (since these events are do not bubble in Chrome nor Safari). 
+If you listen for slotchange events, you will likely encounter problems when you update or alter the shadowDOM.
+If you want to update the shadowDOM, you should employ the ChildrenChangedMixin.
+
+3. Remember that only direct children of the `host` element are directly assigned.
+Deeper descendants of the `host` element will be slotted via the child.
+
+4. Avoid altering the assignedNodes directly. If you need to alter the assignedNodes, 
+use the HelicopterParentChild pattern.
+
+5. Anticipate chained `<slot>`s. The more reusable your elements are, 
+the more likely their slots will be chained with others.
+
+6. Use the `flattenedChildren(el)` function to access the "actual" list of an element.
+Use SlotchangeMixin or ChildrenChangedMixin to observe changes of assignable nodes and slots.
+
+7. When you have chained `<slot>`s, try to manipulate the DOM at the top most level.
+
 ## References
  * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
  * [cf. HelicopterParentChild](../chapter4/Pattern2_HelicopterParentChild.md). 
