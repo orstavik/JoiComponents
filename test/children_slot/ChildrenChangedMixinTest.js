@@ -1,5 +1,15 @@
 import {ChildrenChangedMixin} from "../../src/ChildrenChangedMixin.js";
 
+function testElementNodeListTagAndID(nodes, ar) {
+  let tagIds = nodes.map(n => {
+    if (n.tagName)
+      return n.tagName.toLowerCase() + (n.id ? "#" + n.id : "");
+    else
+      return "text";
+  });
+  expect(tagIds).to.deep.equal(ar);
+}
+
 describe('ChildrenChangedMixin', function () {
 
   it("extend HTMLElement class and make an element", function () {
@@ -272,6 +282,124 @@ describe('ChildrenChangedMixin', function () {
       document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
       Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
     }, 50);
+  });
+
+  it("blue-frame.", function (done) {
+
+    var counter = 0;
+
+    class BlueFrame extends ChildrenChangedMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML =
+          `<style>
+          :host {
+            display: inline-block;                                  
+            border: 10px solid blue;
+          }
+          #sold {
+            display: none;
+            background: red;
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+          }
+          :host([sold]) #sold {
+            display: block;
+          }
+        </style>
+        <passe-partout>
+          <slot name="label" slot="label"></slot>  
+          <slot></slot>
+          <div id="sold"></div>
+        </passe-partout>
+        `;
+      }
+
+      slotchangedCallback(slot, newNodes, oldNodes) {
+        counter++;
+        if (slot === "") {
+          expect(oldNodes).to.be.equal(undefined);
+          testElementNodeListTagAndID(newNodes, ["img"]);
+        } else if (slot === "label") {
+          expect(oldNodes).to.be.equal(undefined);
+          testElementNodeListTagAndID(newNodes, ["span"]);
+        } else {
+          assert(false);
+        }
+        if (counter === 4)
+          done();
+      }
+    }
+
+    class PassePartout extends ChildrenChangedMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML =
+          `<style>
+          :host {
+            display: inline-block;
+            position: relative;                                  
+            background: white;
+            padding: 12px;
+          }
+          div {
+            text-align: center;
+          }
+        </style>
+        <slot></slot>
+        <div id="label">
+          <slot name="label"></slot>
+        </div>
+        `;
+      }
+
+      slotchangedCallback(slot, newNodes, oldNodes) {
+        counter++;
+        if (slot === "") {
+          expect(oldNodes).to.be.equal(undefined);
+          testElementNodeListTagAndID(newNodes, ["text", "text", "img", "text", "div#sold", "text"]);
+        } else if (slot === "label") {
+          expect(oldNodes).to.be.equal(undefined);
+          testElementNodeListTagAndID(newNodes, ["span"]);
+        } else {
+          assert(false);
+        }
+        if (counter === 4)
+          done();
+      }
+    }
+
+    customElements.define("passe-partout", PassePartout);
+    customElements.define("blue-frame", BlueFrame);
+
+    /*
+    <blue-frame sold>
+      <img src="theSea.jpg">
+      <span slot="label">Picture of the ocean</span>
+    </blue-frame>
+    */
+    const el = new BlueFrame();
+    el.appendChild(document.createElement("img"));    //is not triggered.
+    let span = document.createElement("span");
+    span.setAttribute("slot", "label");
+    span.innerText = "Picture of the ocean";
+    el.appendChild(span);                             //is not triggered.
+    document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
+    // Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
+    // setTimeout(() => {
+    //   el.appendChild(document.createElement("div"));    //is not triggered.
+    //   el.appendChild(document.createElement("div"));    //is not triggered.
+    //   document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
+    // Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
+    // }, 50);
   });
 
   //todo verify that eventListeners are removed when disconnected.

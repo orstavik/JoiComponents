@@ -10,6 +10,9 @@ import {flattenNodes} from "./flattenedChildren.js";
 //todo or should we push it to the unnamed slot (no, because I don't think the browsers do that), 
 //todo or should we drop it (maybe yes, because I think the browsers maybe do that)?
 //todo test this
+//todo what doooooesss the browser do here really.. does this fit in Safari too??
+//todo it looks like the slot actually manages to do this.. cf. dev. tools. Does this work in the polyfill?
+
 function flatMap(element, includeOnlySlotNamed) {
   const res = {"": []};
   for (var i = 0; i < element.childNodes.length; i++) {
@@ -23,7 +26,7 @@ function flatMap(element, includeOnlySlotNamed) {
     if (includeOnlySlotNamed && slotName !== includeOnlySlotNamed)
       continue;
     if (child.tagName === "SLOT")
-      //if(child.getAttribute("slot")) continue; //todo this will simply drop any slot node with a slot attribute
+      //if(slotName !== "")) continue; //todo this will simply drop any slot node with a slot attribute
       res[slotName] = (res[slotName] || []).concat(flattenNodes(child.assignedNodes()));
     else
       (res[slotName] || (res[slotName] = [])).push(child);
