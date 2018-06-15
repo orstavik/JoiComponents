@@ -42,13 +42,10 @@ appear in the bottom right corner of the `PassePartout`.
             display: block;
           }
         </style>
-        <passe-partout>                          <!-- [1] /-->
-          <span slot="label">                    <!-- [3b] /-->
-            <slot name="label"></slot>           <!-- [3a] /-->
-          </span>                                
-          <!--<slot slot="label" name="label"></slot> [3d]  -->
-          <slot></slot>                          <!-- [2] /-->
-          <div id="sold"></div>                  <!-- [4] /-->
+        <passe-partout>                            <!-- [1] /-->
+          <slot></slot>                            <!-- [2] /-->
+          <slot name="label" slot="label"></slot>  <!-- [3] /-->
+          <div id="sold"></div>                    <!-- [4] /-->
         </passe-partout>
         `;                      
     }
@@ -72,7 +69,7 @@ appear in the bottom right corner of the `PassePartout`.
         </style>
         <slot></slot>
         <div id="label">
-          <slot name="label"></slot>             <!-- [3c] /-->
+          <slot name="label"></slot>               <!-- [3b] /-->
         </div>
         `;                      
     }
@@ -100,9 +97,7 @@ We imagine the flattened DOM of these two elements:
     <img src="theSea.jpg">
     <div id="sold"></div>                  
     <div id="label">
-      <span slot="label">
-        <span slot="label">Picture of the ocean</span>
-      </span>
+      <span slot="label">Picture of the ocean</span>
     </div>
   </passe-partout>
 </blue-frame>
@@ -129,21 +124,17 @@ while the `host` node of `<blue-frame>` is placed as an HTML tag directly in our
 2. The empty-name `<slot>` of `<blue-frame>` is put as a direct child of the `host` node of `<passe-partout>`.
 This means that all nodes assigned to the empty-name `<slot>` of `<blue-frame>` will also be 
 assigned to the empty-name `<slot>` of `<passe-partout>`.
-We can say that the two `<slot>` elements of `<blue-frame>` and `<passe-partout>` are chained.
+We say that the two `<slot>` elements of `<blue-frame>` and `<passe-partout>` are chained,
+and that the `<img>` is *transposed* from the top-level document, 
+via the `<slot>` in `<blue-frame>` shadowDOM, and into the shadowDOM of `<passe-partout>`.
 
-3. A similar chaining of named `<slot>`s are achieved when in `<blue-frame>` the 
-`<slot name="label">` (3a) is wrapped inside `<span slot="label">` (3b).
-The `<span slot="label">` (3b) is assignable to the `<slot name="label">` inside `<passe-partout>` (3c).
-While the assigned nodes of empty-name slots can be "forwarded" directly as in (2),
-named slots cannot be directly chained something like this `<slot slot="label" name="label"></slot>`(3d).
-The technique employed here I call "wrap-to-chain-named-slots".
+3. A similar chaining of named `<slot>`s can also be performed.
+The `<span slot="label">` in top level document (3b) is transposed
+*via* the `<slot name="label" slot="label">` in `<blue-frame>` *into*
+`<slot name="label">` in the shadowDOM of `<passe-partout>`.
 
 4. When chaining `<slot>`s, it is possible to also add nodes along the way.
 The little red dot that signals if the picture in the frame has been sold, 
 is added in the shadowDOM of `<blue-frame>`. 
 This means that the `.assignedNodes()` of the innermost `<slot>` in `<passe-partout>` originate 
 from two different lightDOMs. This technique I call "multi-sourced-slots".
- 
-<!--
-use the term transpose 
--->
