@@ -1,4 +1,4 @@
-import {SlotChangeMixin} from "../../src/SlotChangedMixin.js";
+import {StaticSlotchangeMixin} from "../../src/StaticSlotchangeMixin.js";
 
 // const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
 
@@ -12,7 +12,7 @@ function testElementNodeListTagAndID(nodes, ar) {
   expect(tagIds).to.deep.equal(ar);
 }
 
-describe('SlotChangeMixin basics', function () {
+describe('StaticSlotchangeMixin basics', function () {
 
   var slotDIV;
 
@@ -23,15 +23,15 @@ describe('SlotChangeMixin basics', function () {
   });
 
   it("instanceof HTMLElement + constructor() working + can be inputed to customElements.define()", function () {
-    const SizeChangedElement = SlotChangeMixin(HTMLElement);
+    const SizeChangedElement = StaticSlotchangeMixin(HTMLElement);
     customElements.define("must-use-custom-elements-define-to-enable-constructor-slot", SizeChangedElement);
     const el = new SizeChangedElement();
-    expect(el.constructor.name).to.be.equal("SlotChangeMixin");
+    expect(el.constructor.name).to.be.equal("StaticSlotchangeMixin");
     assert(el instanceof HTMLElement);
   });
 
-  it("class extends SlotChangeMixin(HTMLElement) + has method", function () {
-    const SubclassSizeChangedElement = class SubclassSizeChanged extends SlotChangeMixin(HTMLElement) {
+  it("class extends StaticSlotchangeMixin(HTMLElement) + has method", function () {
+    const SubclassSizeChangedElement = class SubclassSizeChanged extends StaticSlotchangeMixin(HTMLElement) {
       test() {
         return "abc";
       }
@@ -44,8 +44,8 @@ describe('SlotChangeMixin basics', function () {
   });
 
   //todo make mocha test for TypeError!! stupid mocha..
-  // it("class extends SlotChangeMixin(HTMLElement) fails if it does not have shadowDOM when connected", function () {
-  //   const SubclassSizeChangedElement = class SubclassSizeChanged extends SlotChangeMixin(HTMLElement) {
+  // it("class extends StaticSlotchangeMixin(HTMLElement) fails if it does not have shadowDOM when connected", function () {
+  //   const SubclassSizeChangedElement = class SubclassSizeChanged extends StaticSlotchangeMixin(HTMLElement) {
   //   };
   //   customElements.define("slotchange-fails", SubclassSizeChangedElement);
   //   const el = new SubclassSizeChangedElement();
@@ -53,8 +53,8 @@ describe('SlotChangeMixin basics', function () {
   //   expect(()=> b.appendChild(el)).to.throw("wtf");
   // });
 
-  it("subclass SlotChangeMixin anonymous", function () {
-    const SubclassSizeChangedElement = class extends SlotChangeMixin(HTMLElement) {
+  it("subclass StaticSlotchangeMixin anonymous", function () {
+    const SubclassSizeChangedElement = class extends StaticSlotchangeMixin(HTMLElement) {
       test() {
         return "abc";
       }
@@ -66,8 +66,8 @@ describe('SlotChangeMixin basics', function () {
     expect(el.test()).to.be.equal("abc");
   });
 
-  it("imperatively trigger SlotChangeMixin", function (done) {
-    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+  it("imperatively trigger StaticSlotchangeMixin", function (done) {
+    const Subclass = class Subclass extends StaticSlotchangeMixin(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
@@ -94,8 +94,8 @@ describe('SlotChangeMixin basics', function () {
     // Promise.resolve().then(() => slotDIV.removeChild(el));
   });
 
-  it("imperatively trigger SlotChangeMixin, check that slots with no assigned value are considered empty", function (done) {
-    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+  it("imperatively trigger StaticSlotchangeMixin, check that slots with no assigned value are considered empty", function (done) {
+    const Subclass = class Subclass extends StaticSlotchangeMixin(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
@@ -129,7 +129,7 @@ describe('SlotChangeMixin basics', function () {
     var counter = 0;
     var counter2 = 0;
     var checks = 0;
-    const InnerElementThatObserveChildren = class extends SlotChangeMixin(HTMLElement) {
+    const InnerElementThatObserveChildren = class extends StaticSlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();
@@ -161,7 +161,7 @@ describe('SlotChangeMixin basics', function () {
       }
     };
 
-    const OuterElementThatSlotsStuff = class extends SlotChangeMixin(HTMLElement) {
+    const OuterElementThatSlotsStuff = class extends StaticSlotchangeMixin(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
@@ -206,7 +206,7 @@ describe('SlotChangeMixin basics', function () {
 
   it("not listening for slotChange on slots that are not a direct child", function (done) {
 
-    const InnerElementThatObserveChildren = class extends SlotChangeMixin(HTMLElement) {
+    const InnerElementThatObserveChildren = class extends StaticSlotchangeMixin(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
@@ -253,7 +253,7 @@ describe('SlotChangeMixin basics', function () {
 
     let counter = 0;
 
-    const InnerElementIsSlot = class extends SlotChangeMixin(HTMLElement) {
+    const InnerElementIsSlot = class extends StaticSlotchangeMixin(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
@@ -303,7 +303,7 @@ describe('SlotChangeMixin basics', function () {
   it("slotchangeCallback triggered on connect and re-connect, but NOT when the node is NOT connected to the DOM", function (done) {
     let counter = 0;
 
-    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+    const Subclass = class Subclass extends StaticSlotchangeMixin(HTMLElement) {
 
 
       constructor() {
@@ -344,7 +344,7 @@ describe('SlotChangeMixin basics', function () {
   it("slotchangeCallback triggered on connect and re-connect with wait.", function (done) {
     let counter = 0;
 
-    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+    const Subclass = class Subclass extends StaticSlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();
@@ -389,7 +389,7 @@ describe('SlotChangeMixin basics', function () {
 
     let counter = 0;
 
-    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+    const Subclass = class Subclass extends StaticSlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();
@@ -424,7 +424,7 @@ describe('SlotChangeMixin basics', function () {
 
     let counter = 0;
 
-    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+    const Subclass = class Subclass extends StaticSlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();
@@ -461,7 +461,7 @@ describe('SlotChangeMixin basics', function () {
 
   it("no name slot does not slot a named host's child element", function (done) {
 
-    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+    const Subclass = class Subclass extends StaticSlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();
@@ -494,7 +494,7 @@ describe('SlotChangeMixin basics', function () {
 
     var phase = 0;
 
-    const Subclass = class Subclass extends SlotChangeMixin(HTMLElement) {
+    const Subclass = class Subclass extends StaticSlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();
@@ -535,7 +535,7 @@ describe('SlotChangeMixin basics', function () {
 
     var counter = 0;
 
-    class BlueFrame extends SlotChangeMixin(HTMLElement) {
+    class BlueFrame extends StaticSlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();
@@ -585,7 +585,7 @@ describe('SlotChangeMixin basics', function () {
       }
     }
 
-    class PassePartout extends SlotChangeMixin(HTMLElement) {
+    class PassePartout extends StaticSlotchangeMixin(HTMLElement) {
 
       constructor() {
         super();

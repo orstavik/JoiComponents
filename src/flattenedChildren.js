@@ -17,18 +17,19 @@ function pushAllAssigned(nodes, result) {
   return result;
 }
 
-export function flattenNodesMap(nodes, includeOnlySlotNamed) {
-  const res = {"": []};
+export function flattenNodesMap(nodes, selectedSlotName) {
+  const res = {};
   for (var i = 0; i < nodes.length; i++) {
-    var child = nodes[i];
-    var slotName = child.getAttribute ? (child.getAttribute("slot") || "") : "";
-    if (includeOnlySlotNamed && slotName !== includeOnlySlotNamed)
+    var n = nodes[i];
+    var slotName = n.getAttribute ? (n.getAttribute("slot") || "") : "";
+    if (selectedSlotName && slotName !== selectedSlotName)
       continue;
-    if (child.tagName === "SLOT")
-      res[slotName] = (res[slotName] || []).concat(flattenNodes(child.assignedNodes()));
+    if (!res[slotName])
+      res[slotName] = [];
+    if (n.tagName === "SLOT")
+      pushAllAssigned(n.assignedNodes(), res[slotName]);
     else
-      (res[slotName] || (res[slotName] = [])).push(child);
+      res[slotName].push(n);
   }
   return res;
 }
-

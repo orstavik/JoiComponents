@@ -25,8 +25,8 @@ function slotMap(slotList) {
   return Object.values(dict);
 }
 
-export function SlotChangeMixin(Base) {
-  return class SlotChangeMixin extends Base {
+export function StaticSlotchangeMixin(Base) {
+  return class StaticSlotchangeMixin extends Base {
 
     constructor() {
       super();

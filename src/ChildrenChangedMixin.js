@@ -82,6 +82,7 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [triggerAllSlotchangedCallbacks]() {
+      //todo 2a. here I would then just flatten each entry in the map.
       let assignedMap = flattenNodesMap(this.childNodes);
       for (let slotName in assignedMap)
         this[triggerCallback](slotName, assignedMap[slotName], this[map][slotName]);
@@ -89,6 +90,7 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [triggerSingleSlotchangedCallback](slotName) {
+      //todo 2b. here I would then just flatten the selected entry in the map.
       let assignedMap = flattenNodesMap(this.childNodes, slotName);
       this[triggerCallback](slotName, assignedMap[slotName], this[map][slotName]);
       this[map][slotName] = assignedMap[slotName];
@@ -104,6 +106,8 @@ export const ChildrenChangedMixin = function (Base) {
         return;
       this[removeSlotListeners]();
       this[addSlotListeners]();
+      //todo 1. here I can make a nonFlattenedList of the children. This sorts the host children on their `slot`attribute
+      //todo this is slightly faster.
       Promise.resolve().then(() => this[triggerAllSlotchangedCallbacks]());
       //Above is the extra trigger needed to fix the missing initial-`slotchange`-event in Safari.
       //We can await this in the microtask que, so that normal slotchange events in Chrome is triggered normally.

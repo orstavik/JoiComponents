@@ -3,9 +3,9 @@
   <img id="apple" src="https://cdn0.iconfinder.com/data/icons/fruits/512/Apple.png" height="100px"/>
 </green-frame>
 <script type="module">
-  import {SlotChangeMixin} from "../../src/SlotChangedMixin.js";
+  import {StaticSlotchangeMixin} from "../../src/StaticSlotchangeMixin.js";
 
-  class GreenFrame extends SlotChangeMixin(HTMLElement) {
+  class GreenFrame extends StaticSlotchangeMixin(HTMLElement) {
     constructor() {
       super();
       this.attachShadow({mode: "open"});
