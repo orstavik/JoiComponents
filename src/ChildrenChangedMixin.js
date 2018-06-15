@@ -12,27 +12,12 @@ export const flattenedChildren = flatten;
 //todo or should we push it to the unnamed slot (no, because I don't think the browsers do that), 
 //todo or should we drop it (maybe yes, because I think the browsers maybe do that)?
 //todo test this
-function flatMap(element) {
+function flatMap(element, name) {
   const res = {"": []};
   for (var i = 0; i < element.childNodes.length; i++) {
     var child = element.childNodes[i];
     var slotName = child.getAttribute ? (child.getAttribute("slot") || "") : "";
-    var slotNameList = res[slotName] || (res[slotName] = []);
-    if (child.tagName === "SLOT") //todo check if this works for text nodes etc.
-    //todo, check if pushAllAssigned should try to fix this `<slot name="xyz" slot="abc">` too..
-      pushAllAssigned(child.assignedNodes(), slotNameList);
-    else
-      slotNameList.push(child);
-  }
-  return res;
-}
-
-function flatMapOnly(element, name) {
-  const res = {"": []};
-  for (var i = 0; i < element.childNodes.length; i++) {
-    var child = element.childNodes[i];
-    var slotName = child.getAttribute ? (child.getAttribute("slot") || "") : "";
-    if (slotName !== name)
+    if (name && slotName !== name)
       continue;
     var slotNameList = res[slotName] || (res[slotName] = []);
     if (child.tagName === "SLOT")
@@ -87,7 +72,7 @@ export const ChildrenChangedMixin = function (Base) {
     constructor() {
       super();
       this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());
-      this[slotchangeListener] = (e) => this._triggerSlotchangedCallbackFromSlotchangeEvent(e);
+      this[slotchangeListener] = (e) => this._triggerSingleSlotchangedCallback(e.currentTarget.name);
       this._assignedMap = {};
       this[hostChildrenSlots] = [];
     }
@@ -118,7 +103,7 @@ export const ChildrenChangedMixin = function (Base) {
       this[hostChildrenSlots] = [];
     }
 
-    _triggerSlotchangedCallbackFromChildrenChanged() {
+    _triggerAllSlotchangedCallbacks() {
       let assignedMap = flatMap(this);
       for (var slotName in assignedMap) {
         var newAssignedNodes = assignedMap[slotName];
@@ -130,9 +115,8 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     //we only need to slotchangedCallback the current slot name.
-    _triggerSlotchangedCallbackFromSlotchangeEvent(slotchangeEvent) {
-      var slotName = slotchangeEvent.currentTarget.name;
-      let assignedMap = flatMapOnly(this, slotName);
+    _triggerSingleSlotchangedCallback(slotName) {
+      let assignedMap = flatMap(this, slotName);
       var newAssignedNodes = assignedMap[slotName];
       var oldAssignedNodes = this._assignedMap[slotName];
       if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
@@ -145,7 +129,7 @@ export const ChildrenChangedMixin = function (Base) {
         return;
       this[removeSlotListeners]();
       this[addSlotListeners]();
-      Promise.resolve().then(() => this._triggerSlotchangedCallbackFromChildrenChanged());
+      Promise.resolve().then(() => this._triggerAllSlotchangedCallbacks());
       //Above is the extra trigger needed to fix the missing initial-`slotchange`-event in Safari.
       //We can await this in the microtask que, so that normal slotchange events in Chrome is triggered normally.
       //However, if we don't do this, the calls could be batched, making the Mixin slightly more efficient.
