@@ -23,6 +23,7 @@ function flatMap(element, includeOnlySlotNamed) {
     if (includeOnlySlotNamed && slotName !== includeOnlySlotNamed)
       continue;
     if (child.tagName === "SLOT")
+      //if(child.getAttribute("slot")) continue; //todo this will simply drop any slot node with a slot attribute
       res[slotName] = (res[slotName] || []).concat(flattenNodes(child.assignedNodes()));
     else
       (res[slotName] || (res[slotName] = [])).push(child);
@@ -40,19 +41,29 @@ const hostChildrenChanged = Symbol("hostChildrenChanged");
 const addSlotListeners = Symbol("addSlotListeners");
 const removeSlotListeners = Symbol("removeSlotListeners");
 const hostChildrenSlots = Symbol("hostChildrenSlots");
+const triggerSingleSlotchangedCallback = Symbol("triggerSingleSlotchangedCallback");
+const triggerAllSlotchangedCallbacks = Symbol("triggerAllSlotchangedCallbacks");
+const triggerCallback = Symbol("triggerCallback");
+const map = Symbol("map");
 
 /**
- * ChildrenChangedMixin adds a reactive lifecycle hook .childrenChangedCallback(...) to its subclasses.
- * This lifecycle hook is triggered every time a potentially assignable node for the element changes,
- * ie. whenever the content of `<slot>.assignedNodes()` would change, regardless of whether or not the
- * element has a shadowRoot or a generic slot in that shadowRoot.
+ * SlotchangedMixin adds a reactive lifecycle hook .slotchangedCallback(...) to its subclasses.
+ * This lifecycle hook is triggered every time a potentially assignable node for the element changes.
+ * .slotchangedCallback(...) triggers manually every time the element is attached to the DOM and
+ * whenever the a slotchange event would occur inside it.
+ * The callback does not require neither a `<slot>` nor a shadowRoot to be present on the custom element,
+ * it will trigger regardless.
  *
- * .childrenChangedCallback(newFlattenedChildren, oldFlattenedChildren, isSlotChange) is triggered:
- *  1) whenever the slotted content of an element changes and
- *  2) every time the element is connected to the DOM.
+ * .slotchangedCallback(slotname, newAssignedNodes, oldAssignedNodes) is triggered every time:
+ *  1) the element is connected to the DOM and
+ *  2) whenever the slotted content of an element changes.
  *
- * .childrenChangedCallback(...) is not triggered if there are no differences between the content of the
- * newFlattenedChildren and the oldFlattenedChildren.
+ * .slotchangedCallback(slotname, newAssignedNodes, oldAssignedNodes) is never triggered
+ * when the content of newAssignedNodes and oldAssignedNodes are equal.
+ *
+ * `.slotchangedCallback(...)` will distinguish `<slot>`-elements with a `slot`-attribute (`<slot name="xyz" slot="abc">`).
+ * But this will only occur on the first level, as the rest of the chain relies on .assignedNodes().
+ * TODO should this feature be disabled?
  *
  * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
  * a) Detachment: ChildrenChangedMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
@@ -69,8 +80,8 @@ export const ChildrenChangedMixin = function (Base) {
     constructor() {
       super();
       this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());
-      this[slotchangeListener] = (e) => this._triggerSingleSlotchangedCallback(e.currentTarget.name);
-      this._assignedMap = {};
+      this[slotchangeListener] = (e) => this[triggerSingleSlotchangedCallback](e.currentTarget.name);
+      this[map] = {};
       this[hostChildrenSlots] = [];
     }
 
@@ -100,20 +111,20 @@ export const ChildrenChangedMixin = function (Base) {
       this[hostChildrenSlots] = [];
     }
 
-    _triggerAllSlotchangedCallbacks() {
+    [triggerAllSlotchangedCallbacks]() {
       let assignedMap = flatMap(this);
       for (let slotName in assignedMap)
-        this._triggerCallback(slotName, assignedMap[slotName], this._assignedMap[slotName]);
-      this._assignedMap = assignedMap;
+        this[triggerCallback](slotName, assignedMap[slotName], this[map][slotName]);
+      this[map] = assignedMap;
     }
 
-    _triggerSingleSlotchangedCallback(slotName) {
+    [triggerSingleSlotchangedCallback](slotName) {
       let assignedMap = flatMap(this, slotName);
-      this._triggerCallback(slotName, assignedMap[slotName], this._assignedMap[slotName]);
-      this._assignedMap[slotName] = assignedMap[slotName];
+      this[triggerCallback](slotName, assignedMap[slotName], this[map][slotName]);
+      this[map][slotName] = assignedMap[slotName];
     }
 
-    _triggerCallback(slotName, newAssignedNodes, oldAssignedNodes) {
+    [triggerCallback](slotName, newAssignedNodes, oldAssignedNodes) {
       if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
         this.slotchangedCallback(slotName, newAssignedNodes, oldAssignedNodes);
     }
@@ -123,7 +134,7 @@ export const ChildrenChangedMixin = function (Base) {
         return;
       this[removeSlotListeners]();
       this[addSlotListeners]();
-      Promise.resolve().then(() => this._triggerAllSlotchangedCallbacks());
+      Promise.resolve().then(() => this[triggerAllSlotchangedCallbacks]());
       //Above is the extra trigger needed to fix the missing initial-`slotchange`-event in Safari.
       //We can await this in the microtask que, so that normal slotchange events in Chrome is triggered normally.
       //However, if we don't do this, the calls could be batched, making the Mixin slightly more efficient.
