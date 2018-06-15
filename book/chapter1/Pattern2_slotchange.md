@@ -160,6 +160,8 @@ class IfOnly__RedFrame extends HTMLElement {
 customElements.define("red-frame", IfOnly__RedFrame);
 ```
 
+This example is **BROKEN** and **DOES NOT WORK!**.
+It only serves as an example of how simple life **would have been** if the standard was working everywhere.
 In this example, there is no need to cache the previously assigned nodes nor 
 to discover nor update the `<slot>` elements inside `this.shadowRoot`.
 This *greatly* reduces the complexity of listening for `slotchange` events and 

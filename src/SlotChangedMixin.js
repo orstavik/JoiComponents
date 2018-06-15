@@ -66,6 +66,8 @@ export function SlotChangeMixin(Base) {
       for (let slot of this[slots])
         slot.addEventListener("slotchange", this[slotchangeListener]);
       this[triggerAllSlotchangeCB]();
+      //todo Should I wait for other microtasks before triggering the slotchangeUpdate??
+      // Promise.resolve().then(() => this[triggerAllSlotchangeCB]());
     }
 
     removeSlotListeners() {
@@ -86,6 +88,8 @@ export function SlotChangeMixin(Base) {
       if (arrayEquals(oldAssigned, newAssigned))
         return;
       this[assigneds][slotName] = newAssigned;
+      //todo change the signature to use slotname, and not slot element as the first argument
+      //todo think about this question
       this.slotchangeCallback(slot, newAssigned, oldAssigned);
     }
   }

@@ -16,15 +16,32 @@ function flatMap(element) {
   const res = {"": []};
   for (var i = 0; i < element.childNodes.length; i++) {
     var child = element.childNodes[i];
-    debugger;
-    var slotName = child.getAttribute("slot") || "";//todo check if this works for text nodes etc.
+    var slotName = child.getAttribute ? (child.getAttribute("slot") || "") : "";
     var slotNameList = res[slotName] || (res[slotName] = []);
     if (child.tagName === "SLOT") //todo check if this works for text nodes etc.
     //todo, check if pushAllAssigned should try to fix this `<slot name="xyz" slot="abc">` too..
-      pushAllAssigned(child, slotNameList);
+      pushAllAssigned(child.assignedNodes(), slotNameList);
     else
       slotNameList.push(child);
   }
+  return res;
+}
+
+function flatMapOnly(element, name) {
+  const res = {"": []};
+  for (var i = 0; i < element.childNodes.length; i++) {
+    var child = element.childNodes[i];
+    var slotName = child.getAttribute ? (child.getAttribute("slot") || "") : "";
+    if (slotName !== name)
+      continue;
+    var slotNameList = res[slotName] || (res[slotName] = []);
+    if (child.tagName === "SLOT")
+    //todo, check if pushAllAssigned should try to fix this `<slot name="xyz" slot="abc">` too..
+      pushAllAssigned(child.assignedNodes(), slotNameList);
+    else
+      slotNameList.push(child);
+  }
+  return res;
 }
 
 function arrayEquals(a, b) {
@@ -71,16 +88,17 @@ export const ChildrenChangedMixin = function (Base) {
     constructor() {
       super();
       this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());//=== function(changes){changes[0].target[hostChildrenChanged]();}
-      this[slotchangeListener] = () => this[testCallback](true);
-      //todo this[slotchangeListener] = (e) => this._triggerSlotchangedCallbackFromSlotchangeEvent(e);
+      // this[slotchangeListener] = () => this[testCallback](true);
+      this[slotchangeListener] = (e) => this._triggerSlotchangedCallbackFromSlotchangeEvent(e); //todo
+      this._assignedMap = {};                                                                   //todo
       this[hostChildrenSlots] = [];
-      this[hostFlattenedChildren] = undefined;
+      // this[hostFlattenedChildren] = undefined;
     }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
       this[hostChildrenObserver].observe(this, {childList: true});
-      Promise.resolve().then(() => this[hostChildrenChanged]());
+      this[hostChildrenChanged]();
     }
 
     disconnectedCallback() {
@@ -90,7 +108,9 @@ export const ChildrenChangedMixin = function (Base) {
     }
 
     [addSlotListeners]() {
-      this[hostChildrenSlots] = [].filter.call(this.children, function (c) {return c.tagName === "SLOT";});
+      this[hostChildrenSlots] = [].filter.call(this.children, function (c) {
+        return c.tagName === "SLOT";
+      });
       for (let i = 0; i < this[hostChildrenSlots].length; i++)
         this[hostChildrenSlots][i].addEventListener("slotchange", this[slotchangeListener]);
     }
@@ -112,35 +132,57 @@ export const ChildrenChangedMixin = function (Base) {
       this._assignedMap = assignedMap;
     }
 
+    //we only need to slotchangedCallback the current slot name.
     _triggerSlotchangedCallbackFromSlotchangeEvent(slotchangeEvent) {
-      for (var i = 0; i < this[hostChildrenSlots].length; i++) {
-        var childNode = this[hostChildrenSlots][i];
-        if (childNode === slotchangeEvent.currentTarget) {
-          var newAssignedNodes = childNode.assignedNodes();
-          var oldAssignedNodes = this._assignedMap[slotName];
-          if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
-            this.slotchangedCallback(slotName, (this._assignedMap[slotName] = newAssignedNodes), oldAssignedNodes);
-          return;
-        }
-      }
+      var slotName = slotchangeEvent.currentTarget.name;
+      let assignedMap = flatMap(this);
+      // let assignedMap2 = flatMapOnly(this, slotName);//todo, search only for the current slotName
+      var newAssignedNodes = assignedMap[slotName];
+      var oldAssignedNodes = this._assignedMap[slotName];
+      if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
+        this.slotchangedCallback(slotName, newAssignedNodes, oldAssignedNodes);
+      this._assignedMap[slotName] = assignedMap[slotName];
+
+
+      //todo the emtpyName slot is problematic,
+      //todo because it needs also to have the other children around it.
+      //todo I need to keep the list of children nodes separate, and then the value of the emptyname slot separate
+      //todo and then I need the position of the empty name slot
+      //todo and then I need to merge the emptyname slot into the separate children list at this position when I test the emptyname slot
+      //todo, I could as a fix, redo the entire map if the emptyName slot is happening.
+      //todo yes, this is the simple first solution at least.
+      //todo but, can I do a simpler version for the named slot...
+      //todo wait, the named slot will never be able to trigger such a slotchange event due to the impossibility of <slot name="xyz" slot="abc">
+      //todo so, triggerSlotchangedCallbackFromSlotchangeEvent, that rarely will give a performance increase if the
+      //todo slotchange is anything
+      //todo so.. this should never be optimized??
+      // let childNode = slotchangeEvent.currentTarget;
+      // let slotName = childNode.name;     //childNode.getAttribute("name") || "";   //todo ATT!! check if .name works in all HTMLSlotElements!!
+      //todo this should work for the nonempty names.. or should it not..
+      // var newAssignedNodes = childNode.assignedNodes();
+      // var oldAssignedNodes = this._assignedMap[slotName];
+      // if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
+      //   this.slotchangedCallback(slotName, (this._assignedMap[slotName] = newAssignedNodes), oldAssignedNodes);
     }
 
-    [testCallback](isSlotChange) {
-      let newFlatChildren = flattenedChildren(this);
-      if (arrayEquals(newFlatChildren, this[hostFlattenedChildren]))
-        return;
-      let old = this[hostFlattenedChildren];
-      this[hostFlattenedChildren] = newFlatChildren;
-      this.childrenChangedCallback(old, newFlatChildren, isSlotChange);
-    }
+    // [testCallback](isSlotChange) {
+    //   let newFlatChildren = flattenedChildren(this);
+    //   if (arrayEquals(newFlatChildren, this[hostFlattenedChildren]))
+    //     return;
+    //   let old = this[hostFlattenedChildren];
+    //   this[hostFlattenedChildren] = newFlatChildren;
+    //   this.childrenChangedCallback(old, newFlatChildren, isSlotChange);
+    // }
 
     [hostChildrenChanged]() {
       if (!this.isConnected)            //if the element is first connected and then disconnected again before the JS stack empties.
         return;
       this[removeSlotListeners]();
       this[addSlotListeners]();
-      this[testCallback](false);
-      //todo this._triggerSlotchangedCallbackFromChildrenChanged();
+      // this[testCallback](false);
+      //todo if this thing awaits the microtask que, then the normal slotchange event will probably trigger before.
+      //todo so this means that this delay only affects the Safari browsers
+      Promise.resolve().then(() => this._triggerSlotchangedCallbackFromChildrenChanged()); //todo
     }
   }
 };
