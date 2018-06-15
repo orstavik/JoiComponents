@@ -3,9 +3,29 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
-import {flattenedChildren as flatten} from "./flattenedChildren.js";
+import {flattenedChildren as flatten, pushAllAssigned} from "./flattenedChildren.js";
 
 export const flattenedChildren = flatten;
+
+//todo this also "fixes" the feature that you can have `<slot name="xyz" slot="abc">` described in named-slots chapter..
+//todo should we do that, or should we throw an error (no, because the browsers don't do that),
+//todo or should we push it to the unnamed slot (no, because I don't think the browsers do that), 
+//todo or should we drop it (maybe yes, because I think the browsers maybe do that)?
+//todo test this
+function flatMap(element) {
+  const res = {"": []};
+  for (var i = 0; i < element.childNodes.length; i++) {
+    var child = element.childNodes[i];
+    debugger;
+    var slotName = child.getAttribute("slot") || "";//todo check if this works for text nodes etc.
+    var slotNameList = res[slotName] || (res[slotName] = []);
+    if (child.tagName === "SLOT") //todo check if this works for text nodes etc.
+    //todo, check if pushAllAssigned should try to fix this `<slot name="xyz" slot="abc">` too..
+      pushAllAssigned(child, slotNameList);
+    else
+      slotNameList.push(child);
+  }
+}
 
 function arrayEquals(a, b) {
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
@@ -45,18 +65,14 @@ const hostFlattenedChildren = Symbol("hostChildrenSlots");
 export const ChildrenChangedMixin = function (Base) {
   return class ChildrenChangedMixin extends Base {
 
-    /**
-     * @param oldChildList
-     * @param newChildList
-     * @param isSlotChange true if the children changed is due to a slotchange event
-     */
-    // childrenChangedCallback(oldChildList, newChildList, isSlotChange) {
-    // }
+    //todo update all the slotchangedCallback signatures in all the tests
+    // slotchangedCallback(slotName, newNodeList, oldNodeList) {}
 
     constructor() {
       super();
       this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());//=== function(changes){changes[0].target[hostChildrenChanged]();}
       this[slotchangeListener] = () => this[testCallback](true);
+      //todo this[slotchangeListener] = (e) => this._triggerSlotchangedCallbackFromSlotchangeEvent(e);
       this[hostChildrenSlots] = [];
       this[hostFlattenedChildren] = undefined;
     }
@@ -85,6 +101,30 @@ export const ChildrenChangedMixin = function (Base) {
       this[hostChildrenSlots] = [];
     }
 
+    _triggerSlotchangedCallbackFromChildrenChanged() {
+      let assignedMap = flatMap(this);
+      for (var slotName in assignedMap) {
+        var newAssignedNodes = assignedMap[slotName];
+        var oldAssignedNodes = this._assignedMap[slotName];
+        if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
+          this.slotchangedCallback(slotName, newAssignedNodes, oldAssignedNodes);
+      }
+      this._assignedMap = assignedMap;
+    }
+
+    _triggerSlotchangedCallbackFromSlotchangeEvent(slotchangeEvent) {
+      for (var i = 0; i < this[hostChildrenSlots].length; i++) {
+        var childNode = this[hostChildrenSlots][i];
+        if (childNode === slotchangeEvent.currentTarget) {
+          var newAssignedNodes = childNode.assignedNodes();
+          var oldAssignedNodes = this._assignedMap[slotName];
+          if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
+            this.slotchangedCallback(slotName, (this._assignedMap[slotName] = newAssignedNodes), oldAssignedNodes);
+          return;
+        }
+      }
+    }
+
     [testCallback](isSlotChange) {
       let newFlatChildren = flattenedChildren(this);
       if (arrayEquals(newFlatChildren, this[hostFlattenedChildren]))
@@ -100,6 +140,7 @@ export const ChildrenChangedMixin = function (Base) {
       this[removeSlotListeners]();
       this[addSlotListeners]();
       this[testCallback](false);
+      //todo this._triggerSlotchangedCallbackFromChildrenChanged();
     }
   }
 };

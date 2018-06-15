@@ -35,6 +35,8 @@ describe('ChildrenChangedMixin', function () {
 
   it("ChildrenChangedMixin add DIV imperative and trigger childrenChangedCallback", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+      // todo .children -> .childNodes: OK
+      // slotchangedCallback(slotName, newChildren, oldChildren) {
       childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
@@ -68,6 +70,8 @@ describe('ChildrenChangedMixin', function () {
 
   it("ChildrenChangedMixin added DIV and then SLOT imperative and trigger childrenChangedCallback", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+      // todo .children -> .childNodes: OK
+      // slotchangedCallback(slotName, newChildren, oldChildren) {
       childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
@@ -85,6 +89,8 @@ describe('ChildrenChangedMixin', function () {
 
   it("ChildrenChangedMixin added DIV and then SLOT imperative and trigger childrenChangedCallback, mutation observer called between each invocation.", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+      // todo .children -> .childNodes: OK
+      // slotchangedCallback(slotName, newChildren, oldChildren) {
       childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
@@ -104,6 +110,13 @@ describe('ChildrenChangedMixin', function () {
 
     const InnerElementThatObserveChildren = class extends ChildrenChangedMixin(HTMLElement) {
 
+      // todo .children -> .childNodes: FIX
+      // slotchangedCallback(slotName, newChildren, oldChildren) {
+      //expect(oldChildren).to.be.equal(undefined);
+      //expect(newChildren.length).to.be.equal(3);
+      //expect(newChildren[1].nodeName).to.be.equal("DIV");
+      //done();
+      //}
       childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
@@ -136,6 +149,13 @@ describe('ChildrenChangedMixin', function () {
 
     const InnerElementThatObserveChildren = class extends ChildrenChangedMixin(HTMLElement) {
 
+      // todo .children -> .childNodes: FIX
+      // slotchangedCallback(slotName, newChildren, oldChildren) {
+      //expect(oldChildren).to.be.equal(undefined);
+      //expect(newChildren.length).to.be.equal(3);
+      //expect(newChildren[1].nodeName).to.be.equal("DIV");
+      //done();
+      //}
       childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(1);
@@ -165,12 +185,32 @@ describe('ChildrenChangedMixin', function () {
     Promise.resolve().then(() => document.querySelector("body").removeChild(el));
   });
 
+  //todo it("slotName === ''", function (done) {
   it("isSlotChange", function (done) {
 
     let counter = 0;
 
     const InnerElementIsSlot = class extends ChildrenChangedMixin(HTMLElement) {
 
+      // todo .children -> .childNodes: FIX
+      /*
+      slotchangedCallback(slotName, newChildren, oldChildren) {
+        if (counter === 0) {
+          expect(oldChildren).to.be.equal(undefined);
+          expect(newChildren.length).to.be.equal(2);
+          expect(slotName).to.be.equal("");
+          counter++;
+          return;
+        }
+        if (counter === 1) {
+          expect(oldChildren.length).to.be.equal(2);
+          expect(newChildren.length).to.be.equal(3);
+          expect(newChildren[1].nodeName).to.be.equal("P");
+          expect(slotName).to.be.equal("");
+          done();
+        }
+      }
+      */
       childrenChangedCallback(oldChildren, newChildren, isSlotchange) {
         if (counter === 0) {
           expect(oldChildren).to.be.equal(undefined);
@@ -214,6 +254,9 @@ describe('ChildrenChangedMixin', function () {
 
   it("connected-disconnected-connected. childrenChangedCallback only triggered when connected + MutationObserver only called once when micro task queued.", function (done) {
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+
+      // todo .children -> .childNodes: OK
+      //slotchangedCallback(slotName, newChildren, oldChildren) {
       childrenChangedCallback(oldChildren, newChildren) {
         expect(oldChildren).to.be.equal(undefined);
         expect(newChildren.length).to.be.equal(3);
@@ -238,6 +281,9 @@ describe('ChildrenChangedMixin', function () {
     let counter = 0;
 
     const Subclass = class Subclass extends ChildrenChangedMixin(HTMLElement) {
+
+      // todo .children -> .childNodes: OK
+      //slotchangedCallback(slotName, newChildren, oldChildren) {
       childrenChangedCallback(oldChildren, newChildren) {
         if (counter === 0) {
           expect(oldChildren).to.be.equal(undefined);
