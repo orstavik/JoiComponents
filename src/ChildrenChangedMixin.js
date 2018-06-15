@@ -5,29 +5,14 @@
  */
 import {flattenNodes} from "./flattenedChildren.js";
 
-//todo this also "fixes" the feature that you can have `<slot name="xyz" slot="abc">` described in named-slots chapter..
-//todo should we do that, or should we throw an error (no, because the browsers don't do that),
-//todo or should we push it to the unnamed slot (no, because I don't think the browsers do that), 
-//todo or should we drop it (maybe yes, because I think the browsers maybe do that)?
-//todo test this
-//todo what doooooesss the browser do here really.. does this fit in Safari too??
-//todo it looks like the slot actually manages to do this.. cf. dev. tools. Does this work in the polyfill?
-//todo I should add blue-frame to the UpdateableSlotchangedMixin, this should give me an answer to this question.
-
 function flatMap(element, includeOnlySlotNamed) {
   const res = {"": []};
   for (var i = 0; i < element.childNodes.length; i++) {
     var child = element.childNodes[i];
-
-    //todo `<slot name="xyz" slot="abc">`
-    //todo, here I will get the "slot" attribute also for slot elements!!
-    //todo so, if the parser includes this thing, then this thing should work..
     var slotName = child.getAttribute ? (child.getAttribute("slot") || "") : "";
-
     if (includeOnlySlotNamed && slotName !== includeOnlySlotNamed)
       continue;
     if (child.tagName === "SLOT")
-      //if(slotName !== "")) continue; //todo this will simply drop any slot node with a slot attribute
       res[slotName] = (res[slotName] || []).concat(flattenNodes(child.assignedNodes()));
     else
       (res[slotName] || (res[slotName] = [])).push(child);

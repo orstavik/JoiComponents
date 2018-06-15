@@ -530,6 +530,7 @@ describe('SlotChangeMixin basics', function () {
     el.appendChild(newChild);                       //only 1x slotchange is triggered
   });
 
+  //todo does `<slot name="xyz" slot="abc">` work in Safari and the polyfill?
   it("blue-frame.", function (done) {
 
     var counter = 0;

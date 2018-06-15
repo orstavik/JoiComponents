@@ -1,7 +1,12 @@
-import {flattenedChildren} from "../../src/flattenedChildren.js";
+import {flattenNodes} from "../../src/flattenedChildren.js";
 
-function testElementNodeListTagAndID(el, ar) {
-  let tagIds = el.filter(n => n.tagName).map(n => n.tagName + "#" + n.id);
+function testElementNodeListTagAndID(nodes, ar) {
+  let tagIds = Array.from(nodes).map(n => {
+    if (n.tagName)
+      return n.tagName.toLowerCase() + (n.id ? "#" + n.id : "");
+    else
+      return "text";
+  });
   expect(tagIds).to.deep.equal(ar);
 }
 
@@ -12,13 +17,13 @@ describe('flattenedChildrenTest basics', function () {
     };
     customElements.define("flattened-children-1", Subclass);
     const el = new Subclass();
-    assert(flattenedChildren(el).length === 0);
+    assert(flattenNodes(el.childNodes).length === 0);
     let child = document.createElement("div");
     el.appendChild(child);
     el.appendChild(document.createElement("slot"));
-    assert(flattenedChildren(el).length === 1);
+    assert(flattenNodes(el.childNodes).length === 1);
     el.removeChild(child);
-    assert(flattenedChildren(el).length === 0);
+    assert(flattenNodes(el.childNodes).length === 0);
   });
 
   it("The super inner-outer-slot test 1", function () {
@@ -46,20 +51,20 @@ describe('flattenedChildrenTest basics', function () {
     const innerSlot = inner.children[0];
 
     //no div added as child, all slots are empty
-    assert(flattenedChildren(inner).length === 0);
-    assert(innerSlot.assignedNodes().length === 0);
+    testElementNodeListTagAndID(flattenNodes(inner.childNodes), ["text", "text"]);
+    testElementNodeListTagAndID(innerSlot.assignedNodes(), []);
 
     //add a div to outer
     let slotted = document.createElement("div");
     outer.appendChild(slotted);
-    assert(flattenedChildren(inner).length === 1);
-    assert(innerSlot.assignedNodes().length === 1);
+    testElementNodeListTagAndID(flattenNodes(inner.childNodes), ["text", "div", "text"]);
+    testElementNodeListTagAndID(innerSlot.assignedNodes(), ["div"]);
     inner.removeChild(innerSlot);
-    assert(flattenedChildren(inner).length === 0);
-    assert(innerSlot.assignedNodes().length === 0);
+    testElementNodeListTagAndID(flattenNodes(inner.childNodes), ["text", "text"]);
+    testElementNodeListTagAndID(innerSlot.assignedNodes(), []);
     inner.appendChild(innerSlot);
-    assert(flattenedChildren(inner).length === 1);
-    assert(innerSlot.assignedNodes().length === 1);
+    testElementNodeListTagAndID(flattenNodes(inner.childNodes), ["text", "text", "div"]);
+    testElementNodeListTagAndID(innerSlot.assignedNodes(), ["div"]);
   });
 
   /**
@@ -98,15 +103,14 @@ describe('flattenedChildrenTest basics', function () {
     const list = topDocument.querySelector("#list");
     const listShadow = list.shadowRoot;
     const listShadowSlot = listShadow.children[1];
-
-    testElementNodeListTagAndID(flattenedChildren(list), ["DIV#one", "DIV#two"]);
-    testElementNodeListTagAndID(flattenedChildren(listShadow), ["STYLE#sty", "DIV#one", "DIV#two"]);
-    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(flattenNodes(list.childNodes), ["text", "div#one", "text", "div#two", "text"]);
+    testElementNodeListTagAndID(flattenNodes(listShadow.childNodes), ["style#sty", "text", "div#one", "text", "div#two", "text"]);
+    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["text", "div#one", "text", "div#two", "text"]);
     const one = topDocument.querySelector("#one");
     list.removeChild(one);
-    testElementNodeListTagAndID(flattenedChildren(list), ["DIV#two"]);
-    testElementNodeListTagAndID(flattenedChildren(listShadow), ["STYLE#sty", "DIV#two"]);
-    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["DIV#two"]);
+    testElementNodeListTagAndID(flattenNodes(list.childNodes), ["text", "text", "div#two", "text"]);
+    testElementNodeListTagAndID(flattenNodes(listShadow.childNodes), ["style#sty", "text", "text", "div#two", "text"]);
+    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["text", "text", "div#two", "text"]);
   });
 
   /**
@@ -135,11 +139,10 @@ describe('flattenedChildrenTest basics', function () {
         const day = 1; //new Date().getDay();
         const task = day < 5 ? "Buy Ferrari" : "Invent atmosphere decarbonizer";
         this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
-          <style id="sty">text-align: center;</style>
+        this.shadowRoot.innerHTML =
+          `<style id="sty">text-align: center;</style>
           <div id="man">${task}</div>
-          <slot></slot>
-        `;
+          <slot></slot>`;
       }
     }
 
@@ -147,21 +150,24 @@ describe('flattenedChildrenTest basics', function () {
 
     const topDocument = document.createElement("div");
     topDocument.innerHTML = `
-      <man-bucket-list id="manlist"><div id="one">fix bike</div><div id="two">slice cucumbers</div></man-bucket-list>
+      <man-bucket-list id="manlist">
+        <div id="one">fix bike</div>
+        <div id="two">slice cucumbers</div>
+      </man-bucket-list>
     `;
 
     const list = topDocument.querySelector("#manlist");
     const listShadow = list.shadowRoot;
     const listShadowSlot = listShadow.children[2];
 
-    testElementNodeListTagAndID(flattenedChildren(list), ["DIV#one", "DIV#two"]);
-    testElementNodeListTagAndID(flattenedChildren(listShadow), ["STYLE#sty", "DIV#man", "DIV#one", "DIV#two"]);
-    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["DIV#one", "DIV#two"]);
+    testElementNodeListTagAndID(flattenNodes(list.childNodes), ["text", "div#one", "text", "div#two", "text"]);
+    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["text", "div#one", "text", "div#two", "text"]);
+    testElementNodeListTagAndID(flattenNodes(listShadow.childNodes), ["style#sty", "text", "div#man", "text", "text", "div#one", "text", "div#two", "text"]);
     const one = topDocument.querySelector("#one");
     list.removeChild(one);
-    testElementNodeListTagAndID(flattenedChildren(list), ["DIV#two"]);
-    testElementNodeListTagAndID(flattenedChildren(listShadow), ["STYLE#sty", "DIV#man", "DIV#two"]);
-    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["DIV#two"]);
+    testElementNodeListTagAndID(flattenNodes(list.childNodes), ["text", "text", "div#two", "text"]);
+    testElementNodeListTagAndID(listShadowSlot.assignedNodes(), ["text", "text", "div#two", "text"]);
+    testElementNodeListTagAndID(flattenNodes(listShadow.childNodes), ["style#sty", "text", "div#man", "text", "text", "text", "div#two", "text"]);
   });
 
   /**
@@ -219,24 +225,24 @@ describe('flattenedChildrenTest basics', function () {
    * So, sometimes an assignedNode of a slot can be found in the lightDOM's lightDOM.
    * Or an element is transposed to a shadowDOM's shadowDOM.
    */
-  it("MarriedManBucketList test", function () {
-    class ManBucketList extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
+  it("MarriedManBucketList test", function (done) {
+      class ManBucketList extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({mode: "open"});
+          this.shadowRoot.innerHTML = `
           <style id="sty">text-align: center;</style>
           <div id="man">Ferrari</div>
           <slot></slot>
         `;
+        }
       }
-    }
 
-    class MarriedManBucketList extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
+      class MarriedManBucketList extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({mode: "open"});
+          this.shadowRoot.innerHTML = `
           <man-bucket-list-2 id="original">
             <div id="a">love your wife</div>
             <div id="b">surprise her with a gift</div>
@@ -251,41 +257,98 @@ describe('flattenedChildrenTest basics', function () {
             <slot></slot>
           </man-bucket-list-2>
         `;
+        }
       }
-    }
 
-    customElements.define("married-man-bucket-list", MarriedManBucketList);
-    customElements.define("man-bucket-list-2", ManBucketList);
+      customElements.define("man-bucket-list-2", ManBucketList);
+      Promise.resolve().then(() => {                                                    //there is a problem in the polyfill that the inner custom elements must be defined before the outer ones.
+        customElements.define("married-man-bucket-list", MarriedManBucketList);
 
-    const topDocument = document.createElement("div");
-    topDocument.innerHTML = `
+        const topDocument = document.createElement("div");
+        topDocument.innerHTML = `
       <married-man-bucket-list id="marriedlist">
         <div id="one">fix bike</div>
         <div id="two">slice cucumbers</div>
       </married-man-bucket-list>
     `;
 
-    const marriedlist = topDocument.querySelector("#marriedlist");
-    const marriedlistShadow = marriedlist.shadowRoot;
-    const manlist = marriedlistShadow.children[0];
-    const marriedlistShadowSlot = manlist.children[manlist.children.length - 1];
-    const manlistShadow = manlist.shadowRoot;
-    const manlistShadowSlot = manlistShadow.children[2];
+        const marriedlist = topDocument.querySelector("#marriedlist");
+        const manlist = marriedlist.shadowRoot.children[0];
 
-    testElementNodeListTagAndID(flattenedChildren(marriedlist), ["DIV#one", "DIV#two"]);
-    testElementNodeListTagAndID(flattenedChildren(manlist), ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#one", "DIV#two"]);
-    testElementNodeListTagAndID(flattenedChildren(manlistShadow), ["STYLE#sty", "DIV#man", "DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#one", "DIV#two"]);
-    testElementNodeListTagAndID(manlistShadowSlot.assignedNodes(), ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "SLOT#"]);
-    testElementNodeListTagAndID(marriedlistShadowSlot.assignedNodes(), ["DIV#one", "DIV#two"]);
+        const marriedlistSlot = manlist.children[manlist.children.length - 1];
+        const manlistSlot = manlist.shadowRoot.children[2];
 
-    const one = topDocument.querySelector("#one");
-    marriedlist.removeChild(one);
-
-    testElementNodeListTagAndID(flattenedChildren(marriedlist), ["DIV#two"]);
-    testElementNodeListTagAndID(flattenedChildren(manlist), ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#two"]);
-    testElementNodeListTagAndID(flattenedChildren(manlistShadow), ["STYLE#sty", "DIV#man", "DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "DIV#two"]);
-    testElementNodeListTagAndID(manlistShadowSlot.assignedNodes(), ["DIV#a", "DIV#b", "DIV#c", "DIV#d", "DIV#e", "DIV#f", "DIV#g", "DIV#h", "DIV#i", "DIV#j", "SLOT#"]);
-    testElementNodeListTagAndID(marriedlistShadowSlot.assignedNodes(), ["DIV#two"]);
-  });
+        testElementNodeListTagAndID(flattenNodes(marriedlist.childNodes), ["text", "div#one", "text", "div#two", "text"]);
+        testElementNodeListTagAndID(marriedlistSlot.assignedNodes(), ["text", "div#one", "text", "div#two", "text"]);
+        testElementNodeListTagAndID(flattenNodes(manlist.childNodes), [
+          "text", "div#a",
+          "text", "div#b",
+          "text", "div#c",
+          "text", "div#d",
+          "text", "div#e",
+          "text", "div#f",
+          "text", "div#g",
+          "text", "div#h",
+          "text", "div#i",
+          "text", "div#j",
+          "text",
+          "text", "div#one",
+          "text", "div#two",
+          "text",
+          "text"
+        ]);
+        testElementNodeListTagAndID(manlistSlot.assignedNodes(), [
+          "text", "div#a",
+          "text", "div#b",
+          "text", "div#c",
+          "text", "div#d",
+          "text", "div#e",
+          "text", "div#f",
+          "text", "div#g",
+          "text", "div#h",
+          "text", "div#i",
+          "text", "div#j",
+          "text", "slot",
+          "text"
+        ]);
+        const one = topDocument.querySelector("#one");
+        marriedlist.removeChild(one);
+        testElementNodeListTagAndID(flattenNodes(marriedlist.childNodes), ["text", "text", "div#two", "text"]);
+        testElementNodeListTagAndID(marriedlistSlot.assignedNodes(), ["text", "text", "div#two", "text"]);
+        testElementNodeListTagAndID(flattenNodes(manlist.childNodes), [
+          "text", "div#a",
+          "text", "div#b",
+          "text", "div#c",
+          "text", "div#d",
+          "text", "div#e",
+          "text", "div#f",
+          "text", "div#g",
+          "text", "div#h",
+          "text", "div#i",
+          "text", "div#j",
+          "text",
+          "text",
+          "text", "div#two",
+          "text",
+          "text"
+        ]);
+        testElementNodeListTagAndID(manlistSlot.assignedNodes(), [
+          "text", "div#a",
+          "text", "div#b",
+          "text", "div#c",
+          "text", "div#d",
+          "text", "div#e",
+          "text", "div#f",
+          "text", "div#g",
+          "text", "div#h",
+          "text", "div#i",
+          "text", "div#j",
+          "text", "slot",
+          "text"
+        ]);
+        done();
+      });
+    }
+  );
 });
 

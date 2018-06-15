@@ -58,7 +58,7 @@ export function SlotChangeMixin(Base) {
           oldSlot.removeEventListener("slotchange", this[slotchangeListener]);
       }
       this[slots] = newSlots;
-      [triggerAllSlotchangeCB]();
+      this[triggerAllSlotchangeCB]();
     }
 
     addSlotListeners() {

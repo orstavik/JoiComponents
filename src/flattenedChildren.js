@@ -1,12 +1,7 @@
 /**
- * @param element
- * @returns {Array} list of the element's children
- *          where slots are replaced by their assignedNodes.
+ * @param nodes
+ * @returns {Array} a flattened array of nodes where all slot elements are replaced by their .assignedNodes() list.
  */
-export function flattenedChildren(element) {
-  return pushAllAssigned(element.children, []);
-}
-
 export function flattenNodes(nodes) {
   return pushAllAssigned(nodes, []);
 }
