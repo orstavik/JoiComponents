@@ -3,34 +3,35 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
-import {flattenedChildren as flatten, pushAllAssigned} from "./flattenedChildren.js";
-
-export const flattenedChildren = flatten;
+import {flattenNodes} from "./flattenedChildren.js";
 
 //todo this also "fixes" the feature that you can have `<slot name="xyz" slot="abc">` described in named-slots chapter..
 //todo should we do that, or should we throw an error (no, because the browsers don't do that),
 //todo or should we push it to the unnamed slot (no, because I don't think the browsers do that), 
 //todo or should we drop it (maybe yes, because I think the browsers maybe do that)?
 //todo test this
-function flatMap(element, name) {
+function flatMap(element, includeOnlySlotNamed) {
   const res = {"": []};
   for (var i = 0; i < element.childNodes.length; i++) {
     var child = element.childNodes[i];
+
+    //todo `<slot name="xyz" slot="abc">`
+    //todo, here I will get the "slot" attribute also for slot elements!!
+    //todo so, if the parser includes this thing, then this thing should work..
     var slotName = child.getAttribute ? (child.getAttribute("slot") || "") : "";
-    if (name && slotName !== name)
+
+    if (includeOnlySlotNamed && slotName !== includeOnlySlotNamed)
       continue;
-    var slotNameList = res[slotName] || (res[slotName] = []);
     if (child.tagName === "SLOT")
-    //todo, check if pushAllAssigned should try to fix this `<slot name="xyz" slot="abc">` too..
-      pushAllAssigned(child.assignedNodes(), slotNameList);
+      res[slotName] = (res[slotName] || []).concat(flattenNodes(child.assignedNodes()));
     else
-      slotNameList.push(child);
+      (res[slotName] || (res[slotName] = [])).push(child);
   }
   return res;
 }
 
 function arrayEquals(a, b) {
-  return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
+  return b && a && a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
 const hostChildrenObserver = Symbol("hostChildrenObserver");
@@ -38,9 +39,7 @@ const slotchangeListener = Symbol("slotChangedListener");
 const hostChildrenChanged = Symbol("hostChildrenChanged");
 const addSlotListeners = Symbol("addSlotListeners");
 const removeSlotListeners = Symbol("removeSlotListeners");
-const testCallback = Symbol("testTriggerCallback");
 const hostChildrenSlots = Symbol("hostChildrenSlots");
-const hostFlattenedChildren = Symbol("hostChildrenSlots");
 
 /**
  * ChildrenChangedMixin adds a reactive lifecycle hook .childrenChangedCallback(...) to its subclasses.
@@ -54,8 +53,6 @@ const hostFlattenedChildren = Symbol("hostChildrenSlots");
  *
  * .childrenChangedCallback(...) is not triggered if there are no differences between the content of the
  * newFlattenedChildren and the oldFlattenedChildren.
- *
- * ChildrenChangedMixin.js also exposes the `.flattenedChildren(el)` function.
  *
  * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
  * a) Detachment: ChildrenChangedMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
@@ -105,13 +102,11 @@ export const ChildrenChangedMixin = function (Base) {
 
     _triggerAllSlotchangedCallbacks() {
       let assignedMap = flatMap(this);
-      for (var slotName in assignedMap) {
+      for (let slotName in assignedMap)
         this._triggerCallback(slotName, assignedMap[slotName], this._assignedMap[slotName]);
-      }
       this._assignedMap = assignedMap;
     }
 
-    //we only need to slotchangedCallback the current slot name.
     _triggerSingleSlotchangedCallback(slotName) {
       let assignedMap = flatMap(this, slotName);
       this._triggerCallback(slotName, assignedMap[slotName], this._assignedMap[slotName]);
