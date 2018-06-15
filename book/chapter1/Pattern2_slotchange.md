@@ -121,6 +121,50 @@ There are two ways to do so, and you can read more about them in
 [SlotchangeMixin](../chapter2/Mixin1_SlotChangedMixin.md) and 
 [ChildrenChangedMixin](../chapter2/Mixin2_ChildrenChangedMixin.md).
 
+## Example: IfOnly
+
+A good way to understand the principle behind `slotchange` and the `.slotchangeCallback()`,
+is to look at an example of how `<red-frame>` would have been implemented **if only**
+Safari had thrown the initial-`slotchange`-event *and* both Safari and Chrome had made
+`slotchange` bubble. 
+
+```javascript
+class IfOnly__RedFrame extends HTMLElement {       
+  
+  constructor(){
+    super();
+    this._slotChangedListener = (e) => this.slotchangeCallback(e);
+    this.attachShadow({mode: "open"});     
+    this.shadowRoot.innerHTML =                  
+      `<style>
+        :host {
+          display: inline-block;
+          border: 10px solid red;
+        }                                                                              
+      </style>
+      <div id="count"></div>               
+      <slot></slot>`;
+    this.count = this.shadowRoot.getElementById("count");
+  }
+  
+  connectedCallback(){                          
+    this.shadowRoot.addEventListener("slotchange", this._slotChangedListener);
+  }
+  disconnectedCallback(){                       
+    this.shadowRoot.removeEventListener("slotchange", this._slotChangedListener);
+  }
+  slotchangeCallback(e){                       
+    this.count.innerText = e.currentTarget.assignedNodes().length;      
+  }
+}
+customElements.define("red-frame", IfOnly__RedFrame);
+```
+
+In this example, there is no need to cache the previously assigned nodes nor 
+to discover nor update the `<slot>` elements inside `this.shadowRoot`.
+This *greatly* reduces the complexity of listening for `slotchange` events and 
+thus the complexity of the components that do so.
+
 ## References
  * [MDN: `slotchange`](https://developer.mozilla.org/en-US/docs/Web/Events/slotchange)
  * [Elix project `SlotchangeMixin`](https://test.elix.org/elix/SlotContentMixin)
