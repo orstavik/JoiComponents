@@ -14,12 +14,12 @@ we also add a `slotchange` listener to those nodes.
 This approach gives us a `slotchange` callback that relies on `MutationObserver` for 
 its initial response. With the added benefit that 
 updates of the shadowDOM no longer might require the Mixin to update its slotchange listener.
-This means that users of ChildrenChangedMixin can 
+This means that users of SlotchangeMixin can 
 *alter* its shadowDOM *after* the mixin has added its observer, 
 *without* having to worry about such changes muting the mixin.
 No need to `updateSlotListeners()` when the shadowDOM changes.
 
-[link to the source of ChildrenChangedMixin](../../src/ChildrenChangedMixin.js)
+[link to the source of SlotchangeMixin](../../src/SlotchangeMixin.js)
 
 ## How to react to dynamic changes of the DOM inside a custom element?
 
@@ -40,15 +40,15 @@ must be observed. The platform provides two different API for doing this observa
 
 Using the pattern `ReactiveMethod` and `FunctionalMixin`, 
 these two API are combined to observe any and all changes to an elements `flattenedChildren`
-and trigger a life cycle method `.childrenChangedCallback(newflattenedChildren, oldflattenedChildren, isSlotChange)`
+and trigger a life cycle method `.slotchangeCallback(slot, newAssignedNodes, oldAssignedNodes)`
 whenever such a change occurs.
 
-The `ChildrenChangedMixin(Base)` uses the `constructor()` to initialize both listeners, and 
+The `SlotchangeMixin(Base)` uses the `constructor()` to initialize both listeners, and 
 `connectedCallback()` and `disconnectedCallback()` to efficiently add and remove these listeners when needed.
-In `connectedCallback()` ChildrenChangedMixin will first see if the element is using a shadowRoot.
-If *no* shadowRoot is set, `ChildrenChangedMixin` will simply observe for changes to lightDOM `.children` 
+In `connectedCallback()` SlotchangeMixin will first see if the element is using a shadowRoot.
+If *no* shadowRoot is set, `SlotchangeMixin` will simply observe for changes to lightDOM `.children` 
 of the `host` element (`this`).
-However, if shadowRoot *is* set, `ChildrenChangedMixin` will do two things:
+However, if shadowRoot *is* set, `SlotchangeMixin` will do two things:
 1. It will observe for changes to the `shadowRoot.children`. 
 This is likely not necessary, and should be a voluntary pattern added in the component itself?
 2. It will check to see if there are any `HTMLSlotElement`s that are directly attached to the shadowRoot.
@@ -58,16 +58,15 @@ And, finally, whenever the ChildrenChanges, these listeners will be checked to m
 ## Example
 
 ```javascript
-import {ChildrenChangedMixin, getVisibleChildren} from "./ChildrenChangedMixin.js";
+import {SlotchangeMixin, getVisibleChildren} from "./SlotchangeMixin.js";
 
-class MyWebComponent extends ChildrenChangedMixin(HTMLElement) {
+class MyWebComponent extends SlotchangeMixin(HTMLElement) {
                                                
   constructor(){
     super();
-    const myVisibleChildren = getVisibleChildren(this); //this can be called even when not connected
   }
   
-  childrenChangedCallback(newChildren, oldChildren, isSlotChange) {
+  slotchangeCallback(slot, newNodes, oldNodes) {
     //this method is called everytime a visible child changes
     //but only while the instance of MyWebComponent is connected to the DOM.
   }
@@ -76,9 +75,9 @@ class MyWebComponent extends ChildrenChangedMixin(HTMLElement) {
 }
 customElements.define("my-web-component", MyWebComponent);
 const el = new MyWebComponent();
-el.appendChild(document.createElement("div")); //.childrenChangedCallback is NOT triggered since el is not connected to DOM.
-document.querySelector("body").appendChild(el);//.childrenChangedCallback is triggered when el gets connected to DOM.
-el.appendChild(document.createElement("div")); //.childrenChangedCallback is triggered while el is connected and childList changes.
+el.appendChild(document.createElement("div")); //.slotchangeCallback is NOT triggered since el is not connected to DOM.
+document.querySelector("body").appendChild(el);//.slotchangeCallback is triggered when el gets connected to DOM.
+el.appendChild(document.createElement("div")); //.slotchangeCallback is triggered while el is connected and childList changes.
 ```
 ## Tests
 * [ChildrenChangedCallback in codepen: https://codepen.io/orstavik/pen/XEMWLE](https://codepen.io/orstavik/pen/XEMWLE)

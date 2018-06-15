@@ -44,8 +44,8 @@ class OlWc extends SlotchangeMixin(HTMLElement) {
     this.style.paddingLeft = "20px";
     this.style.display = "block";
   }
-  childrenChangedCallback(oldChildren, newChildren, isSlot) {     //[2]
-    newChildren
+  slotchangeCallback(slot, newNodes, oldNodes) {     //[2]
+    newNodes
       .filter(item => item instanceof LiWc)
       .forEach((el, i) => el.updateNumber(i + 1));
   }
@@ -70,7 +70,7 @@ customElements.define("li-wc", LiWc);
 1. The LiWc item element (LI) sets up a default shadowDom in which the number of the LI element thus far
 is unspecified (`#. `).
 2. When the OL is first connected, or whenever the list of visible children changes, 
-the `childrenChangedCallback(...)` is triggered. This method iterates the list of children 
+the `slotchangeCallback(...)` is triggered. This method iterates the list of children 
 and notifies all LI children about their LI-only order in the list by calling `el.updateNumber(i+1)`.
 3. When the LI element is notified about an updated position in its list, 
 it updates it shadowDom to display that position.

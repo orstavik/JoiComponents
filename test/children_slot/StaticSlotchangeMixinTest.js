@@ -337,7 +337,7 @@ describe('StaticSlotchangeMixin basics', function () {
     slotDIV.removeChild(el);   //disconnect
     el.appendChild(document.createElement("div"));    //is not triggered.
     el.appendChild(document.createElement("div"));    //is not triggered.
-    slotDIV.appendChild(el);   //childrenChangedCallback triggered on connect
+    slotDIV.appendChild(el);   //slotchangeCallback triggered on connect
     Promise.resolve().then(() => slotDIV.removeChild(el));
   });
 

@@ -1,7 +1,7 @@
 {
-  "name": "children-changed-callback",
+  "name": "JoiComponents",
   "version": "1.1.0",
-  "description": "Mixin to provide subclasses of HTMLElement with .childrenChangedCallback(newList, oldList) and .visibleChildren().",
+  "description": "Design patterns to build native web components",
   "main": "src/ChildrenChangedCallback.js",
   "directories": {
     "test": "test"
@@ -17,7 +17,7 @@
     "HTMLElement",
     "childList",
     "slotchange",
-    "childrenChangedCallback"
+    "slotchangeCallback"
   ],
   "author": "Ivar Orstavik",
   "license": "ISC",

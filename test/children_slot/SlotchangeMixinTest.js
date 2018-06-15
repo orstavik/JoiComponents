@@ -43,7 +43,7 @@ describe('SlotchangeMixin', function () {
     expect(el.test()).to.be.equal("abc");
   });
 
-  it("SlotchangeMixin add DIV imperative and trigger childrenChangedCallback", function (done) {
+  it("SlotchangeMixin add DIV imperative and trigger slotchangeCallback", function (done) {
     const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
       slotchangedCallback(slotName, newChildren, oldChildren) {
         expect(slotName).to.be.equal("");
@@ -61,9 +61,9 @@ describe('SlotchangeMixin', function () {
   });
 
   // WRONG TEST.. 
-  // it("SlotchangeMixin add SLOT imperative and trigger childrenChangedCallback", function (done) {
+  // it("SlotchangeMixin add SLOT imperative and trigger slotchangeCallback", function (done) {
   //   const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
-  //     childrenChangedCallback(oldChildren, newChildren) {
+  //     slotchangeCallback(slot, newChildren, oldChildren) {
   //       expect(oldChildren).to.deep.equal([]);
   //       // expect(oldChildren).to.be.equal(undefined);
   //       expect(newChildren.length).to.be.equal(0);
@@ -77,7 +77,7 @@ describe('SlotchangeMixin', function () {
   //   Promise.resolve().then(()=> document.querySelector("body").removeChild(el));
   // });
 
-  it("SlotchangeMixin added DIV and then SLOT imperative and trigger childrenChangedCallback", function (done) {
+  it("SlotchangeMixin added DIV and then SLOT imperative and trigger slotchangeCallback", function (done) {
     const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
       slotchangedCallback(slotName, newChildren, oldChildren) {
         expect(slotName).to.be.equal("");
@@ -95,7 +95,7 @@ describe('SlotchangeMixin', function () {
     Promise.resolve().then(() => document.querySelector("body").removeChild(el));
   });
 
-  it("SlotchangeMixin added DIV and then SLOT imperative and trigger childrenChangedCallback, mutation observer called between each invocation.", function (done) {
+  it("SlotchangeMixin added DIV and then SLOT imperative and trigger slotchangeCallback, mutation observer called between each invocation.", function (done) {
     const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
       slotchangedCallback(slotName, newChildren, oldChildren) {
         expect(slotName).to.be.equal("");
@@ -225,7 +225,7 @@ describe('SlotchangeMixin', function () {
     });
   });
 
-  it("connected-disconnected-connected. childrenChangedCallback only triggered when connected + MutationObserver only called once when micro task queued.", function (done) {
+  it("connected-disconnected-connected. slotchangeCallback only triggered when connected + MutationObserver only called once when micro task queued.", function (done) {
     const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
 
       slotchangedCallback(slotName, newChildren, oldChildren) {
@@ -240,15 +240,15 @@ describe('SlotchangeMixin', function () {
     customElements.define("connected-disconnected-connected", Subclass);
     const el = new Subclass();
     el.appendChild(document.createElement("div"));    //is not triggered.
-    document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
+    document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on connect
     document.querySelector("body").removeChild(el);   //disconnect
     el.appendChild(document.createElement("div"));    //is not triggered.
     el.appendChild(document.createElement("div"));    //is not triggered.
-    document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
+    document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on connect
     Promise.resolve().then(() => document.querySelector("body").removeChild(el));
   });
 
-  it("connected-wait-disconnected-connected. childrenChangedCallback only triggered when connected.", function (done) {
+  it("connected-wait-disconnected-connected. slotchangeCallback only triggered when connected.", function (done) {
     let counter = 0;
 
     const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
@@ -274,12 +274,12 @@ describe('SlotchangeMixin', function () {
     customElements.define("connected-settimeout-disconnected-connected", Subclass);
     const el = new Subclass();
     el.appendChild(document.createElement("div"));    //is not triggered.
-    document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
+    document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on connect
     Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
     setTimeout(() => {
       el.appendChild(document.createElement("div"));    //is not triggered.
       el.appendChild(document.createElement("div"));    //is not triggered.
-      document.querySelector("body").appendChild(el);   //childrenChangedCallback triggered on connect
+      document.querySelector("body").appendChild(el);   //slotchangeCallback triggered on connect
       Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
     }, 50);
   });

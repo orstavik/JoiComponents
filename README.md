@@ -35,8 +35,8 @@ If you want to copy them into your web component and/or adapt them to fit your n
 <!--0. Introduction. what is a lifecycle callback? HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
 1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
-5. [.slotchangeCallback()](book/chapter2/Mixin1_StaticSlotchangeMixin.md)
-6. [.childrenChangedCallback()](book/chapter2/Mixin2_ChildrenChangedMixin.md)
+5. [.slotchangeCallback() static](book/chapter2/Mixin1_StaticSlotchangeMixin.md)
+6. [.slotchangedCallback() dynamic](book/chapter2/Mixin2_SlotchangeMixin.md)
 3. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
 4. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
 5. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)

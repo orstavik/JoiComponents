@@ -56,9 +56,10 @@ However, if only a particular selection of your DOM needs to be observed,
 an alternative approach is to use the HelicopterParentChild for the original structure to be cloned,
 intercept the `connectedCallback()`/`disconnnectedCallback()` for the HelicopterChild,
 and use the HelicopterParent to construct and display the cloned view, the MiniMeDom.
-The MiniMeDom requires the `.getVisibleChildren()` function from the `ChildrenChangedMixin`:
+The MiniMeDom requires the `.getVisibleChildren()` function from the `SlotchangeMixin`:
 
 ```javascript
+//todo change to flattenNodes(nodes)!!
 function getVisibleChildren(el) {
   let res = [];
   for (let i = 0; i < el.children.length; i++) {

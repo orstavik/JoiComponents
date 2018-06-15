@@ -119,7 +119,7 @@ to cancel redundant callbacks is adding code and complexity to our web component
 To encapsulate this complexity we can create a Mixin that we can reuse across elements.
 There are two ways to do so, and you can read more about them in
 [SlotchangeMixin](../chapter2/Mixin1_StaticSlotchangeMixin.md) and 
-[ChildrenChangedMixin](../chapter2/Mixin2_ChildrenChangedMixin.md).
+[SlotchangeMixin](../chapter2/Mixin2_SlotchangeMixin.md).
 
 ## Example: IfOnly
 

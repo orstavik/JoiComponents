@@ -7,7 +7,7 @@ The SizeChangedMixin observes the contentRectangle of the custom element, and th
 1. web-component mediaquery: You need to change the style or the innerDOM of a custom element based on 
 its available screen size.
 2. You want to change some attributes of dependent elements (such as size or position) 
-based on a combination of size and/or content (cf. [ChildrenChangedMixin](ChildrenChangedMixin.md)).
+based on a combination of size and/or content (cf. [ChildrenChangedMixin](SlotchangeMixin.md)).
 
 ### Example of use:
 
