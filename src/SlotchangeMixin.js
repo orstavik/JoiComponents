@@ -3,7 +3,27 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
-import {flattenNodesMap} from "./flattenedChildren.js";
+import {flattenNodes} from "./flattenedChildren.js";
+
+function nodeListToMap(nodes, attr){
+  var res = {};
+  for (var i = 0; i < nodes.length; i++) {
+    var n = nodes[i];
+    var name = n.getAttribute ? (n.getAttribute(attr) || ""): "";
+    (res[name] || (res[name] = [])).push(n);
+  }
+  return res;
+}
+
+function flattenMap(nodeMap){
+  var res = {};
+  var keys = Object.keys(nodeMap);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    res[key] = flattenNodes(nodeMap[key]);
+  }
+  return res;
+}
 
 function arrayEquals(a, b) {
   return b && a && a.length === b.length && a.every((v, i) => v === b[i]);
@@ -53,6 +73,8 @@ export const SlotchangeMixin = function (Base) {
       this[slotchangeListener] = (e) => this[triggerSingleSlotchangedCallback](e.currentTarget.name);
       this[map] = {};
       this[hostChildrenSlots] = [];
+      this.notFlatMap = {};
+      this.flatMap = {};
     }
 
     connectedCallback() {
@@ -82,18 +104,16 @@ export const SlotchangeMixin = function (Base) {
     }
 
     [triggerAllSlotchangedCallbacks]() {
-      //todo 2a. here I would then just flatten each entry in the map.
-      let assignedMap = flattenNodesMap(this.childNodes);
-      for (let slotName in assignedMap)
-        this[triggerCallback](slotName, assignedMap[slotName], this[map][slotName]);
-      this[map] = assignedMap;
+      let newFlatMap = flattenMap(this.notFlatMap);
+      for (let slotName in newFlatMap)
+        this[triggerCallback](slotName, newFlatMap[slotName], this.flatMap[slotName]);
+      this.flatMap = newFlatMap;
     }
 
     [triggerSingleSlotchangedCallback](slotName) {
-      //todo 2b. here I would then just flatten the selected entry in the map.
-      let assignedMap = flattenNodesMap(this.childNodes, slotName);
-      this[triggerCallback](slotName, assignedMap[slotName], this[map][slotName]);
-      this[map][slotName] = assignedMap[slotName];
+      let newFlatNodeList = flattenNodes(this.notFlatMap[slotName]);
+      this[triggerCallback](slotName, newFlatNodeList, this.flatMap[slotName]);
+      this.flatMap[slotName] = newFlatNodeList;
     }
 
     [triggerCallback](slotName, newAssignedNodes, oldAssignedNodes) {
@@ -106,8 +126,7 @@ export const SlotchangeMixin = function (Base) {
         return;
       this[removeSlotListeners]();
       this[addSlotListeners]();
-      //todo 1. here I can make a nonFlattenedList of the children. This sorts the host children on their `slot`attribute
-      //todo this is slightly faster.
+      this.notFlatMap = nodeListToMap(this.childNodes, "slot");
       Promise.resolve().then(() => this[triggerAllSlotchangedCallbacks]());
       //Above is the extra trigger needed to fix the missing initial-`slotchange`-event in Safari.
       //We can await this in the microtask que, so that normal slotchange events in Chrome is triggered normally.
