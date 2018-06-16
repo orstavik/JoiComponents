@@ -39,6 +39,8 @@ const triggerSingleSlotchangedCallback = Symbol("triggerSingleSlotchangedCallbac
 const triggerAllSlotchangedCallbacks = Symbol("triggerAllSlotchangedCallbacks");
 const triggerCallback = Symbol("triggerCallback");
 const map = Symbol("map");
+const notFlatMap = Symbol("notFlatMap");
+const flatMap = Symbol("flatMap");
 
 /**
  * SlotchangedMixin adds a reactive lifecycle hook .slotchangedCallback(...) to its subclasses.
@@ -73,8 +75,8 @@ export const SlotchangeMixin = function (Base) {
       this[slotchangeListener] = (e) => this[triggerSingleSlotchangedCallback](e.currentTarget.name);
       this[map] = {};
       this[hostChildrenSlots] = [];
-      this.notFlatMap = {};
-      this.flatMap = {};
+      this[notFlatMap] = {};
+      this[flatMap] = {};
     }
 
     connectedCallback() {
@@ -104,16 +106,16 @@ export const SlotchangeMixin = function (Base) {
     }
 
     [triggerAllSlotchangedCallbacks]() {
-      let newFlatMap = flattenMap(this.notFlatMap);
+      let newFlatMap = flattenMap(this[notFlatMap]);
       for (let slotName in newFlatMap)
-        this[triggerCallback](slotName, newFlatMap[slotName], this.flatMap[slotName]);
-      this.flatMap = newFlatMap;
+        this[triggerCallback](slotName, newFlatMap[slotName], this[flatMap][slotName]);
+      this[flatMap] = newFlatMap;
     }
 
     [triggerSingleSlotchangedCallback](slotName) {
-      let newFlatNodeList = flattenNodes(this.notFlatMap[slotName]);
-      this[triggerCallback](slotName, newFlatNodeList, this.flatMap[slotName]);
-      this.flatMap[slotName] = newFlatNodeList;
+      let newFlatNodeList = flattenNodes(this[notFlatMap][slotName]);
+      this[triggerCallback](slotName, newFlatNodeList, this[flatMap][slotName]);
+      this[flatMap][slotName] = newFlatNodeList;
     }
 
     [triggerCallback](slotName, newAssignedNodes, oldAssignedNodes) {
@@ -126,7 +128,7 @@ export const SlotchangeMixin = function (Base) {
         return;
       this[removeSlotListeners]();
       this[addSlotListeners]();
-      this.notFlatMap = nodeListToMap(this.childNodes, "slot");
+      this[notFlatMap] = nodeListToMap(this.childNodes, "slot");
       Promise.resolve().then(() => this[triggerAllSlotchangedCallbacks]());
       //Above is the extra trigger needed to fix the missing initial-`slotchange`-event in Safari.
       //We can await this in the microtask que, so that normal slotchange events in Chrome is triggered normally.
