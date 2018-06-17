@@ -27,9 +27,9 @@
 
 <script type="module">
 
-  import {FlingEventMixin} from "../../src/FlingEventMixin.js";
+  import {DragFlingGesture} from "../../src/gestures/DragFling.js";
 
-  class FlingBall extends FlingEventMixin(HTMLElement) {
+  class FlingBall extends DragFlingGesture(HTMLElement) {
 
     constructor() {
       super();

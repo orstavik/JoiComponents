@@ -145,7 +145,8 @@
     var newScript = document.createElement('script');
     // Load it from the right place.
     var replacement = 'bundles/webcomponents-' + polyfills.join('-') + '.js';
-    var url = script.src.replace(name, replacement);
+    var ref = "https://rawgit.com/webcomponents/webcomponentsjs/master/webcomponents-loader.js";
+    var url = ref.replace(name, replacement);
     newScript.src = url;
     // if readyState is 'loading', this script is synchronous
     if (document.readyState === 'loading') {
@@ -163,6 +164,9 @@
       document.head.appendChild(newScript);
     }
   } else {
+    //todo can i do this
+    // window.WebComponents.waitFor = function(fn){if (fn instanceof Function)fn();};
+    //todo instead of this
     polyfillsLoaded = true;
     if (document.readyState === 'complete') {
       fireEvent()

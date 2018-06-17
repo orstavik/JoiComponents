@@ -19,9 +19,9 @@
 
 <script type="module">
 
-  import {FlingEventMixin} from "../../src/FlingEventMixin.js";
+  import {DragFlingGesture} from "../../src/gestures/DragFling.js";
 
-  class ScrollDiv extends FlingEventMixin(HTMLElement) {
+  class ScrollDiv extends DragFlingGesture(HTMLElement) {
 
     constructor() {
       super();

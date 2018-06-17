@@ -4,7 +4,7 @@
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
 
-import {flattenNodes} from "./flattenedChildren.js";
+import {flattenNodes} from "./flattenNodes.js";
 
 const slotchangeListener = Symbol("slotchangeListener");
 const triggerAllSlotchangeCB = Symbol("triggerSlotchangeCallback");

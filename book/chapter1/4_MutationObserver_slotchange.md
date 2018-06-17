@@ -78,9 +78,7 @@ the initial trigger is executed in any browser (ie once in Safari and twice in C
 really has changed.
 
 ```javascript
-import {flattenedChildren} from "./flattenedChildren.js";
-
-function getNecessarySlots(el) {
+import {flattenedChildren} from flaflattenNodes.jsion getNecessarySlots(el) {
   const slots = el.querySelectorAll("slot");
   const res = [];
   for (let i = 0; i < slots.length; i++) {

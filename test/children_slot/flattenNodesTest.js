@@ -1,4 +1,4 @@
-import {flattenNodes} from "../../src/flattenedChildren.js";
+import {flattenNodes} from "../../src/flattenNodes.js";
 
 function testElementNodeListTagAndID(nodes, ar) {
   let tagIds = Array.from(nodes).map(n => {
@@ -10,9 +10,9 @@ function testElementNodeListTagAndID(nodes, ar) {
   expect(tagIds).to.deep.equal(ar);
 }
 
-describe('flattenedChildrenTest basics', function () {
+describe('flattenNodesTest basics', function () {
 
-  it("flattenedChildren() on single element", function () {
+  it("flattenNodes() on single element", function () {
     const Subclass = class Subclass extends HTMLElement {
     };
     customElements.define("flattened-children-1", Subclass);
@@ -182,7 +182,7 @@ describe('flattenedChildrenTest basics', function () {
    * This example illustrate the problem of using one custom element
    * inside the shadowDom of another custom element.
    * (cf. Web components gold standard on content assignment).
-   * Here, `flattenedChildren(this.shadowRoot)` returns a much longer list:
+   * Here, `flattenNodes(this.shadowRoot)` returns a much longer list:
    * `[style, div#man, div#love, div#romance, ..., div#one, div#two]`.
    * The bucket list items of `ManBucketList` are still there,
    * the only difference being that they now also include

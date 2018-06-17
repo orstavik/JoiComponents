@@ -1,11 +1,50 @@
 <!-- load webcomponents bundle, which includes all the necessary polyfills -->
-<!--<script src="webcomponents-bundle.js"></script>-->
-<script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js"></script>
-
+<!--<script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js"></script>-->
+<script src="webcomponents-loader.js" defer></script>
 <script type="module">
-  import {MyElement} from "./my-element.js";
-  customElements.define("my-element", MyElement);
+  WebComponents.waitFor(() => {
+    // At this point we are guaranteed that all required polyfills have
+    // loaded, and can use web components API's.
+    // The standard pattern is to load element definitions that call
+    // `customElements.define` here.
+    // Note: returning the import's promise causes the custom elements
+    // polyfill to wait until all definitions are loaded and then upgrade
+    // the document in one batch, for better performance.
+    return import('my-element-defined.js');
+  });
 </script>
+<!--<script src="my-element-defined.js" defer></script>-->
+
+<!--<script defer>-->
+<!--class MyElement extends HTMLElement {-->
+<!--connectedCallback() {-->
+<!--this.style.display = "block";-->
+<!--this.style.width = "20px";-->
+<!--this.style.height = "20px";-->
+<!--this.style.borderRadius = "50%";-->
+<!--this.style.backgroundColor = "red";-->
+<!--}-->
+<!--}-->
+
+<!--debugger;-->
+<!--window.addEventListener("DOMContentLoaded", () => {-->
+<!--debugger;-->
+<!--WebComponents.waitFor(()=>{-->
+<!--debugger;-->
+<!--customElements.define("my-element", MyElement);-->
+<!--});-->
+<!--});-->
+<!--</script>-->
+
+<!--<script type="module">-->
+  <!--import {MyElement} from "./my-element.js";-->
+
+  <!--window.addEventListener("DOMContentLoaded", () => {-->
+    <!--WebComponents.waitFor(() => {-->
+      <!--customElements.define("my-element", MyElement);-->
+    <!--});-->
+  <!--});-->
+<!--</script>-->
 
 <!-- use the element -->
 <my-element></my-element>
