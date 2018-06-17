@@ -32,15 +32,15 @@ If you want to copy them into your web component and/or adapt them to fit your n
 9. [MutationObserver and slotchange](book/chapter1/4_MutationObserver_slotchange.md)
 
 ## Chapter 2: Lifecycle callbacks
-<!--0. Introduction. what is a lifecycle callback? HTMLElement core lifecycle, constructor(), connectedCallback(), and disconnectedCallback()-->
-1. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
-2. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
-5. [.slotchangeCallback() static](book/chapter2/Mixin1_StaticSlotchangeMixin.md)
-6. [.slotchangedCallback() dynamic](book/chapter2/Mixin2_SlotchangeMixin.md)
-3. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
-4. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
-5. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
-6. [Discussion: isolate FunctionalMixins](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
+1. [Intro: lifecycle methods](book/chapter2/Intro_native_lifecycle_hooks.md)
+2. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
+3. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
+4. [.slotchangeCallback() static](book/chapter2/Mixin1_StaticSlotchangeMixin.md)
+5. [.slotchangedCallback() dynamic](book/chapter2/Mixin2_SlotchangeMixin.md)
+6. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
+7. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
+8. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
+9. [Discussion: isolate FunctionalMixins](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
 
 ## Chapter 3: ComposedEvents and Gestures in JS
 1. [EventComposition](book/chapter3/Pattern1_ComposedEvents.md) (such as gestures, clicks, drag)

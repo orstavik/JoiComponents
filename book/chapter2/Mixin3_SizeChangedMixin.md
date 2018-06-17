@@ -1,4 +1,8 @@
 # SizeChangedMixin
+
+```javascript
+//todo rename to resizeCallback()!!
+```
 The purpose of `SizeChangedMixin` is to provide a reactive method called `sizeChangedCallback(contentRect)`
 and the method `getContentRect()`.
 The SizeChangedMixin observes the contentRectangle of the custom element, and then triggers 
