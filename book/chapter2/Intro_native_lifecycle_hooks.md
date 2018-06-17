@@ -22,7 +22,7 @@ Event callbacks, `attributeChangedCallback()` and `adoptedCallback()`, occur:
 2. in no particular order.
                                              
 In later chapters, *one* extra lifecycle callback `firstConnectedCallback()` will be added, 
-and *several* extra event callbacks such as `slotchangeCallback()`, `resizeCallback()`, `enterViewCallback()` and 
+and *several* extra event callbacks such as `slotchangedCallback()`, `resizeCallback()`, `enterViewCallback()` and 
 and several gesture (composed event) callbacks.
 
 ## `constructor()`

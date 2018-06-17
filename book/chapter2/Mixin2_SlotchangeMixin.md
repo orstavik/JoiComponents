@@ -40,7 +40,7 @@ must be observed. The platform provides two different API for doing this observa
 
 Using the pattern `ReactiveMethod` and `FunctionalMixin`, 
 these two API are combined to observe any and all changes to an elements `flattenedChildren`
-and trigger a life cycle method `.slotchangeCallback(slot, newAssignedNodes, oldAssignedNodes)`
+and trigger a life cycle method `.slotchangedCallback(slot, newAssignedNodes, oldAssignedNodes)`
 whenever such a change occurs.
 
 The `SlotchangeMixin(Base)` uses the `constructor()` to initialize both listeners, and 
@@ -66,7 +66,7 @@ class MyWebComponent extends SlotchangeMixin(HTMLElement) {
     super();
   }
   
-  slotchangeCallback(slot, newNodes, oldNodes) {
+  slotchangedCallback(slot, newNodes, oldNodes) {
     //this method is called everytime a visible child changes
     //but only while the instance of MyWebComponent is connected to the DOM.
   }
@@ -75,9 +75,9 @@ class MyWebComponent extends SlotchangeMixin(HTMLElement) {
 }
 customElements.define("my-web-component", MyWebComponent);
 const el = new MyWebComponent();
-el.appendChild(document.createElement("div")); //.slotchangeCallback is NOT triggered since el is not connected to DOM.
-document.querySelector("body").appendChild(el);//.slotchangeCallback is triggered when el gets connected to DOM.
-el.appendChild(document.createElement("div")); //.slotchangeCallback is triggered while el is connected and childList changes.
+el.appendChild(document.createElement("div")); //.slotchangedCallback is NOT triggered since el is not connected to DOM.
+document.querySelector("body").appendChild(el);//.slotchangedCallback is triggered when el gets connected to DOM.
+el.appendChild(document.createElement("div")); //.slotchangedCallback is triggered while el is connected and childList changes.
 ```
 ## Tests
 * [ChildrenChangedCallback in codepen: https://codepen.io/orstavik/pen/XEMWLE](https://codepen.io/orstavik/pen/XEMWLE)

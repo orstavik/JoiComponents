@@ -17,7 +17,7 @@
     "HTMLElement",
     "childList",
     "slotchange",
-    "slotchangeCallback"
+    "slotchangedCallback"
   ],
   "author": "Ivar Orstavik",
   "license": "ISC",

@@ -17,7 +17,7 @@
       `;
     }
 
-    slotchangeCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+    slotchangedCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
       let elementById = this.shadowRoot.getElementById("result");
       elementById.innerText = newFlattenedChildren.map(c => c.id).join(".");
     }

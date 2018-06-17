@@ -35,7 +35,7 @@ If you want to copy them into your web component and/or adapt them to fit your n
 1. [Intro: lifecycle methods](book/chapter2/Intro_native_lifecycle_hooks.md)
 2. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 3. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
-4. [.slotchangeCallback() static](book/chapter2/Mixin1_StaticSlotchangeMixin.md)
+4. [.slotchangedCallback() static](book/chapter2/Mixin1_StaticSlotchangeMixin.md)
 5. [.slotchangedCallback() dynamic](book/chapter2/Mixin2_SlotchangeMixin.md)
 6. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
 7. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)

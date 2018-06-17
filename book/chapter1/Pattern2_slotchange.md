@@ -123,7 +123,7 @@ There are two ways to do so, and you can read more about them in
 
 ## Example: IfOnly
 
-A good way to understand the principle behind `slotchange` and the `.slotchangeCallback()`,
+A good way to understand the principle behind `slotchange` and the `.slotchangedCallback()`,
 is to look at an example of how `<red-frame>` would have been implemented **if only**
 Safari had thrown the initial-`slotchange`-event *and* both Safari and Chrome had made
 `slotchange` bubble. 
@@ -133,7 +133,7 @@ class IfOnly__RedFrame extends HTMLElement {
   
   constructor(){
     super();
-    this._slotChangedListener = (e) => this.slotchangeCallback(e);
+    this._slotChangedListener = (e) => this.slotchangedCallback(e);
     this.attachShadow({mode: "open"});     
     this.shadowRoot.innerHTML =                  
       `<style>
@@ -153,7 +153,7 @@ class IfOnly__RedFrame extends HTMLElement {
   disconnectedCallback(){                       
     this.shadowRoot.removeEventListener("slotchange", this._slotChangedListener);
   }
-  slotchangeCallback(e){                       
+  slotchangedCallback(e){                       
     this.count.innerText = e.currentTarget.assignedNodes().length;      
   }
 }

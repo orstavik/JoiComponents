@@ -74,7 +74,7 @@ Chrome and the polyfill does, we will:
 1. trigger the reaction of a `slotchange` manually at startup so that you ensure that 
 the initial trigger is executed in any browser (ie once in Safari and twice in Chrome),
 2. cache the result of the `flattenedChildren` on the host node for these reactions, and
-3. make sure that `slotchangeCallback()` is not called unless the element's `flattenedChildren` 
+3. make sure that `slotchangedCallback()` is not called unless the element's `flattenedChildren` 
 really has changed.
 
 ```javascript
@@ -140,10 +140,10 @@ class SlotchangeComponent extends HTMLElement {
     if (arrayEquals(old, nevv))
       return;
     this._flattenedChildren = nevv;
-    this.slotchangeCallback(nevv, old, e);
+    this.slotchangedCallback(nevv, old, e);
   }
   
-  slotchangeCallback(newFlattenedChildren, oldFlattenedChildren, event){
+  slotchangedCallback(newFlattenedChildren, oldFlattenedChildren, event){
     //all the slottable flattenedChildren of the component would be
     const allChildrenFlattened = flattenedChildren(this.shadowRoot);
     //when the slot event is triggered, you can do this as well
@@ -163,7 +163,7 @@ inside the shadowDOM and add event listener for `slotchange` to all these nodes,
 and clean it up. Phu.. its a mouthful.
 2. the disharmony between `slotchange` in Safari and Chrome.
 To fix this problem, we cache the value of the transposable nodes between each potential triggering
-`slotchange` event. This ensures that the `slotchangeCallback(...)` will only be called once
+`slotchange` event. This ensures that the `slotchangedCallback(...)` will only be called once
 every time there is a change, regardless of how many times it is attempted triggered.
 
 This is starting to become complex, so we would like to isolate that in a functional mixin.

@@ -81,10 +81,10 @@
     "ex3 connectedCallback",
     "ex4 constructor true",
     "ex4 connectedCallback",
-    "ex1 slotchangeCallback",
-    "ex2 slotchangeCallback",
-    "ex3 slotchangeCallback",
-    "ex4 slotchangeCallback"
+    "ex1 slotchangedCallback",
+    "ex2 slotchangedCallback",
+    "ex3 slotchangedCallback",
+    "ex4 slotchangedCallback"
   ];
 
   import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
@@ -102,9 +102,9 @@
       createDiv(testValue, (this.id+" connectedCallback") === testValue)
     }
 
-    slotchangeCallback(slot, newList, oldList) {
+    slotchangedCallback(slot, newList, oldList) {
       let testValue = expecteds.shift();
-      createDiv(testValue, (this.id+" slotchangeCallback") === testValue)
+      createDiv(testValue, (this.id+" slotchangedCallback") === testValue)
     }
 
     exampleComponentLog(msg) {
