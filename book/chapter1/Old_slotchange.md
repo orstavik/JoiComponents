@@ -1,36 +1,4 @@
-# `MutationObserver` and `slotchange`
-
-## `MutationObserver`
-
-The DOM is dynamic. 
-Using JS, developers add and remove nodes in the DOM all the run-time.
-In the normal DOM, such changes are observed using the `MutationObserver` API.
-
-```javascript
-function onChange(changes) {
-  for (let c of changes) {
-    console.log(c.target, "'s .children have changed.");
-  }
-}
-const someElement = document.createElement("div");
-const myObserver = new MutationObserver(onChange);
-myObserver.observe(someElement, {childList: true});
-someElement.appendChild(document.createElement("span"));    //someElement's children have changed.
-```
-
-The `MutationObserver` observes changes in the list of `.children` of individual DOM nodes.
-You create a `MutationObserver` object with  a particular function, and 
-then you register a particular node and what type of mutation in the DOM you would like to observe.
-Then, when such a mutation happens to the DOM, the function is run.
-
-This function is given the list of all the changes for all the changes you asked for on that object.
-(But if you only specified `childList: true`, this list contains only one entry).
-And then you can add the reaction you need to the change. 
-The MutationObserver does not work for recursive changes, 
-and so if you for example need to observe changes in the entire DOM, 
-you would need to add such `MutationObserver`s to all DOM nodes with children.
-
-## `slotchange`
+# `slotchange` event
 Inside the shadowDOM the monitoring of childNodes is a little bit different.
 First of all, a shadowDOM is:
 1. supposed to be *much* smaller than a normal DOM,
@@ -78,7 +46,9 @@ the initial trigger is executed in any browser (ie once in Safari and twice in C
 really has changed.
 
 ```javascript
-import {flattenedChildren} from flaflattenNodes.jsion getNecessarySlots(el) {
+import {flattenedChildren} from "./flattenNodes.js";
+
+function getNecessarySlots(el) {
   const slots = el.querySelectorAll("slot");
   const res = [];
   for (let i = 0; i < slots.length; i++) {
@@ -158,7 +128,7 @@ There is a lot of code here that we use to solve two issues:
 1. `slotchange` does not bubble. 
 To tackle this issue, we must search for either a no-name slot or all the named slots
 inside the shadowDOM and add event listener for `slotchange` to all these nodes,
-and clean it up. Phu.. its a mouthful.
+and clean it up.
 2. the disharmony between `slotchange` in Safari and Chrome.
 To fix this problem, we cache the value of the transposable nodes between each potential triggering
 `slotchange` event. This ensures that the `slotchangedCallback(...)` will only be called once

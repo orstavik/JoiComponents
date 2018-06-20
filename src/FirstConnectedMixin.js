@@ -1,4 +1,4 @@
-const firstConnect = Symbol("hasConnected");
+const first = Symbol("hasConnected");
 /**
  * This echoes the ready method of Polymer.
  *
@@ -17,14 +17,11 @@ export const FirstConnectedMixin = function (Base) {
 
     constructor() {
       super();
-      this[firstConnect] = true;
+      this[first] = false;
     }
 
     connectedCallback() {
-      if(this[firstConnect]) {          //ATT!!
-        this[firstConnect] = false;
-        this.firstConnectedCallback();
-      }
+      this[first] || ((this[first] = true) && this.firstConnectedCallback());
       if (super.connectedCallback) super.connectedCallback();
     }
   }

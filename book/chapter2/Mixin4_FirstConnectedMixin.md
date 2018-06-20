@@ -1,39 +1,156 @@
-# FirstConnectedMixin
+# Mixin: FirstConnected
 The purpose of `FirstConnectedMixin` is to add a callback hook the first time, 
 and only first time, an element is connected to the DOM.
-`FirstConnectedMixin` is inspired by the Polymer.ready() callback.
+`FirstConnectedMixin` is inspired by the `PolymerElement.ready()` callback.
 
-<!--
-todo add an image of the lifecycle methods constructor, connectedCallback, disconnectedCallback.
--->
+But, why do we need a `.firstConnectedCallback()`? 
+Doesn't the `constructor()` and `.connectedCallback()` give us what we need?
 
-Why do we need a callback at both **constructor-time**, **firstConnectedCallback-time**, 
-and (repeated) **connectedCallback-time**?
-1. Browsers can create new HTMLElement instances in three ways: 
-   * Using constructor `new MyHTMLElement()`,
-   * `document.createElement("my-html-element")`, and
-   * from parsed HTML text.
+## Problem 1: No attributes in `constructor()`
 
-2. If you create the element via `document.createElement`, 
-then the element's constructor **cannot add any attributes to the element**.
-This restriction does not apply to elements created via the `constructor()` 
-or parsed from text. Because of this restriction, 
-the initial setup of attributes must be moved from constructor-time to connectedCallback-time.
+Browsers can create new HTMLElement instances in three ways. 
+1. Using a class constructor: `var el = new MyHTMLElement();`.
+2. Using `document.createElement`: `var el = document.createElement("my-element");`.
+3. From parsed HTML text, either from the html document or via `.innerHTML`: `<my-element></my-element>`.
 
-3. If an element is taken out and added to the DOM often, and 
-the element is doing the initial set up in its `connectedCallback()` method all the time,
-then you are both wasting time and resources and cluttering up the logic of the `connectedCallback()`
-function with code that you ideally would like to run only once at constructor-time.
+When you make a new custom element definition,
+you want your custom element to be constructable by all three.
+But. When you create an element via 2. `document.createElement`, 
+you are not allowed to add attributes. See the example:   
+   
+```javascript
+class AttributeConstructor extends HTMLElement {
+  constructor(){
+    super();                                                                      
+    this.setAttribute("no-no", "NoNoNo");                                         //[1]
+  }
+}
+customElements.define("att-con", AttributeConstructor);
+const works = new AttributeConstructor();                                         //[2]
+const worksToo = document.createElement("div");
+worksToo.innerHTML = "<att-con></att-con>";                                       //[3]
+const fails = document.createElement("att-con");                                  //[4]
+```
 
-4. In such cases, you would like to have a callback hook that is only triggered the 
-*first time* connectedCallback is called: `firstConnectedCallback()`.
+1. An attribute in added to the element in the `constructor()`.
+2. This works fine when the element is instantiated via the `constructor()`/`new` in JS.
+3. This works fine when the element is instantiated via HTML template, here via `.innerHTML`.
+4. But, this fails throws an Error when the element is instantiated via `document.createElement`
+(in Chrome: "DOMException: Failed to construct 'CustomElement': The result must not have attributes").
 
-### Example of use:
+Therefore, if your custom element needs to add or organize its attributes at creation-time, 
+and you only have the `constructor()` and `.connectedCallback()` to choose from,
+you must organize your elements every time the element is connected to the DOM.
+But, an element can be connected and reconnected multiple times during its lifecycle.
+And these times are likely to be performance sensitive, 
+as elements can often be attached to the DOM as part of a bigger branch. 
+Hence, it is less than ideal to do more work than strictly necessary at `connectedCallback()`.
+So, If you only need to set up your attributes once, 
+you would like to have a callback hook that is triggered sometime *after* the 
+`constructor()` but *before* the `connectedCallback()`: `firstConnectedCallback()`.
+
+## Problem 2: template elements created at start up
+
+With various use of template based patterns, libraries, frameworks, and `HTMLTemplateElement`,
+web apps can create several *alternative* DOM branches that it intends to switch between at run-time.
+For example, an app can create ten different pages as DOM branches in memory at startup, and
+then later switch between these pages by connecting and disconnecting them to the DOM one by one.
+
+Such an architecture can yield great performance while the app is in use and
+a simple and clear structure in development. It is a good thing.
+But, such an architecture also pushes a lot of work at startup time, thus slowing down the app at load time.
+In our example, all the ten pages and all their DOM elements are then created at startup time.
+Now, if the `constructor()` in all these DOM nodes are doing work,
+then these `constructor()`s will slow down the app at startup.
+
+In order to avoid this bottleneck, the 'meaty' set up work should be 
+removed from the `constructor()` and instead be delayed until either the browser has 
+spare time or when the element are first connected to the DOM.
+Hence `firstConnectedCallback()`.
+
+## `firstConnectedCallback()`
+
+It is surprisingly simple to create a callback method that is:
+* only called once 
+* immediately before an element is connected to the DOM for the very first time.
+
+In fact, it can be accomplished with just a single line of code placed at 
+*the very beginning* in an element's `connectedCallback()`:
+```javascript
+this.hasBeenConnected || ((this.hasBeenConnected = true) && this.firstConnectedCallback());
+```
+
+## Example: AlloAllo
+In this example, the element will:
+* log the first message once at the very beginning of the first `connectedCallback()`, and 
+* later the second question message both at the first and repeated `connectedCallback()`s.
+
+```javascript
+class AlloAllo extends HTMLElement {
+
+  firstConnectedCallback(){                                                                     //[3]
+    console.log("1. I will tell this only once.");
+  }
+  
+  connectedCallback(){
+    this.hasBeenConnected || ((this.hasBeenConnected = true) && this.firstConnectedCallback()); //[1]
+    //if (super.connectedCallback) super.connectedCallback();                                   //[2]
+    console.log("2. Do you remember what I told you?");
+  }
+}
+customElements.define("allo-allo", AlloAllo);
+
+const allo = document.createElement("allo-allo");
+const body = document.querySelector("body");
+setTimeout(()=> body.appendChild(allo), 0);
+//1. I will tell this only once.
+//2. Do you remember what I told you?
+setTimeout(()=> body.removeChild(allo), 1000);                           
+setTimeout(()=> body.appendChild(allo), 2000);
+//2. Do you remember what I told you?
+setTimeout(()=> body.removeChild(allo), 3000);
+setTimeout(()=> body.appendChild(allo), 4000);
+//2. Do you remember what I told you?
+```                                                                   
+
+1. `this.hasBeenConnected` is an undefined property on the element that is only defined and set when 
+`firstConnectedCallback()` is first called.
+2. To place the single line check and call to `firstConnectedCallback()` at the *absolute beginning* 
+of `connectedCallback()`, the line must be placed *above* any call to `super.connectedCallback()`.
+3. The first time `connectedCallback()` is called, `this.hasBeenConnected` is `undefined`.
+`this.hasBeenConnected` is then immediately set to true, and `this.firstConnectedCallback()` is called.
+Later, unless tampered with, `this.hasBeenConnected` is true and `this.firstConnectedCallback()` is not called for.
+
+## Mixin: FirstConnectedMixin
+
+The `firstConnectedCallback()` can also be set up as a mixin and used similarly.
+
+```javascript
+const first = Symbol("first");
+const FirstConnectedMixin = function (Base) {
+  return class FirstConnectedMixin extends Base {
+
+    constructor() {
+      super();
+      this[first] = false;
+    }
+
+    connectedCallback() {
+      this[first] || ((this[first] = true) && this.firstConnectedCallback());
+      if (super.connectedCallback) super.connectedCallback();
+    }
+  }
+};
+```
+
+### Example: AlloAlloMixin
+
+We recycle our `AlloAllo` example from above, except this time using an external mixin. The result is the same.
 
 ```javascript
 import {FirstConnectedMixin} from "https://rawgit.com/orstavik/JoiComponents/master/src/FirstConnectedMixin.js";
 
-class AlloAllo extends FirstConnectedMixin(HTMLElement) {
+class AlloAlloMixin extends FirstConnectedMixin(HTMLElement) {
 
   firstConnectedCallback(){
     console.log("1. I will tell this only once.");
@@ -41,90 +158,31 @@ class AlloAllo extends FirstConnectedMixin(HTMLElement) {
   
   connectedCallback(){
     super.connectedCallback();
-    console.log("2. Do you remember what I told you.");
+    console.log("2. Do you remember what I told you?");
   }
 }
-customElements.define("allo-allo", AlloAllo);
-```                                                                   
-and you can test it like this:
+customElements.define("allo-allo-mixin", AlloAlloMixin);
 
-```javascript
-const allo = document.createElement("allo-allo");
+const allo = document.createElement("allo-allo-mixin");
 const body = document.querySelector("body");
 setTimeout(()=> body.appendChild(allo), 0);
 //1. I will tell this only once.
-//2. Do you remember what I told you.
+//2. Do you remember what I told you?
 setTimeout(()=> body.removeChild(allo), 1000);                           
 setTimeout(()=> body.appendChild(allo), 2000);
-//2. Do you remember what I told you.
+//2. Do you remember what I told you?
 setTimeout(()=> body.removeChild(allo), 3000);
 setTimeout(()=> body.appendChild(allo), 4000);
-//2. Do you remember what I told you.
-```                      
+//2. Do you remember what I told you?
+```                                                                   
 
 Test it out on [codepen](https://codepen.io/orstavik/pen/pLmYEM).
 
-## `firstConnectedCallback()` as a single line plug (alternative to mixin).
-To create a `firstConnectedCallback()` that runs just *before* the first 
-`connectedCallback()` can be set up with a single line [*] in `connectedCallback()`.
-
-```javascript
-class MyElement extends HTMLElement {
-
-    connectedCallback() {
-      this.__firstTimeConnected || ((this.__firstTimeConnected = true) && this.firstConnectedCallback()); //[*]
-      if (super.connectedCallback) super.connectedCallback();
-    }
-    
-    firstConnectedCallback(){
-      this.style = {your: "initialOneTimeStyles"};
-      this.shadowRoot.innerHTML ="<p>Set up things you never change</p>";
-      this.setAttribute("your-attribute", "initialValue");
-    }
-  }
-
-```
-This line [*] should be placed above calls to `super.connectedCallback()` 
-and the rest of the body of `connectedCallback()`. 
-This position will make `firstConnectedCallback()` run before the body of `connectedCallback()`, 
-and it makes more sense that the body of `firstConnectedCallback()` runs first 
-and the body of `connectedCallback()` second. The full implementation is equally simple.
-
-```javascript
-const firstConnect = Symbol("firstConnect");
-class FirstConnectedMixin extends HTMLElement {
-
-    constructor() {
-      super();
-      this[firstConnect] = true;
-    }
-
-    connectedCallback() {
-      if(this[firstConnect]) {          //ATT!!
-        this[firstConnect] = false;
-        this.firstConnectedCallback();
-      }
-      if (super.connectedCallback) super.connectedCallback();
-    }
-  }
-```
-
-## When not to use FirstConnectedMixin 
-1. If your element is not reconnected to the DOM multiple times, but is added once, and 
-then left alone, then a separation of `firstConnectedCallback()` and regular `connectedCallback()`is
-unnecessary.
-
-2. If your custom element uses hyper, lit-html or some other DOM-based templating tool that 
-provide efficient rewiring of DOM nodes, the efficiency benefits of adding 
-`firstConnectedCallback()` might not outweigh the complexity of splitting 
-`connectedCallback()` in two.
-
 ## Opinionated advice
-1. Consider if you really need to split `connectedCallback()`, and don't use it if you don't need it.
-2. Use the single line plug if it is just a one time thing, and add a reference in your code to this page.
-3. Use the FirstConnectedMixin if your element is already using several FunctionalMixins.
-4. Use the FirstConnectedMixin if you set up `firstConnectedCallback()` in several different 
-components in your app.
+* the platform could include a boolean argument in the native connectedCallback that would be true 
+if the connectedCallback had never been run before on this particular element. 
+Such a change would not break existing code, should be efficient, would simplify app code, and 
+unify various frameworks. Just a thought..
 
 ## Reference
  * find documentation on Polymer .ready()

@@ -21,9 +21,9 @@ Event callbacks, `attributeChangedCallback()` and `adoptedCallback()`, occur:
 1. *when* an element is connected to the DOM,
 2. in no particular order.
                                              
-In later chapters, *one* extra lifecycle callback `firstConnectedCallback()` will be added, 
-and *several* extra event callbacks such as `slotchangedCallback()`, `resizeCallback()`, `enterViewCallback()` and 
-and several gesture (composed event) callbacks.
+Later I will add *one* extra lifecycle callback: `firstConnectedCallback()`. 
+Then, in the next chapter, I will also add *several* extra event callbacks such 
+as `slotchangedCallback()`, `resizeCallback()`, `enterViewCallback()` and numerous gesture callbacks.
 
 ## `constructor()`
 
@@ -37,7 +37,8 @@ class MyComponent extends HTMLElement {
     this.attachShadow({mode: "open"});                             //[2]
     this.shadowRoot.innerHTML = "hello <slot></slot>";
     this._onClick = this._clickTrigger.bind(this);                 //[3]
-    this.getAttribute("active") || this.setAttribute("active", "");//[4]
+    //this.getAttribute("nono") || this.setAttribute("nono", "");  //[4]
+    //const nonono = document.querySelector("#context");           //[5]
   }
   
   _clickTrigger(e){
@@ -57,13 +58,28 @@ In custom elements event listeners almost always to access properties and method
 particular custom element, ie. the event-listener-closures needs to bind `this` to the custom element.
 To set up event-listener-closures in the constructor() is both the cleanest and most efficient way
 to do so.
-4. set up default attributes of the host element.
+4. *NO* attributes should be added in the constructor. See [Mixin: FirstConnected](Mixin4_FirstConnectedMixin.md) for more details. 
+5. In the `constructor()` you do *not* have access to the DOM surrounding the `host` element.
+In the `constructor()` the element is *not connected*.
+Therefore, the general rule to *NOT REACH INTO THE DOM* is especially true in the `constructor()`.
 
-In the `constructor()` you do *not* have access to the DOM surrounding the `host` element.
-You do neither know where the custom element will be connected, if ever connected.
-Therefore, the general rule to *NOT* query or manipulate the DOM is especially true
-in the `constructor()`.
+### How to avoid overwriting already-set-attributes?
+When you declare an HTML element in an HTML document (or in a string passed to `.innerHTML`),
+you can also set one or more attributes with string values on that element node.
+We can think of these already-set-attributes as being set by the 'author' of the html document.
+These already-set-attributes will be set up in the element as part of the HTMLElement constructor 
+(the `super()` in a custom element's `constructor()`).
 
+When you declare a custom element, you want to make sure that you do not overwrite any 
+attributes set by the 'author'/user of your custom element.
+To avoid overwriting such already-set-attributes when giving attributes a default value at set up, 
+you must check if the attribute already exists *before* giving it a default value.
+```javascript
+this.hasAttribute("one") || this.setAttribute("one", "default value"); //todo only use .getAttribute??  
+//default values needs to be tested for empty
+this.getAttribute("style") || this.setAttribute("one", "default value");  
+```
+                              
 ### `.firstConnectedCallback()` as an alternative to `constructor()`.
 Sometimes, custom elements can be set up in HTML templates or other structures 
 that are not immediately connected to the DOM.
@@ -183,3 +199,31 @@ ATT!! In the polyfill the upgrade process will change the content of the custom 
 
 ## References
  * [MDN: Using custom elements](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements)
+ * [Do not to override page author](https://developers.google.com/web/fundamentals/web-components/best-practices#dont-override)
+
+<!--
+## custom element upgrade
+
+The `HTMLElement.constructor()` is a little tricky. 
+When the browser parses an HTML document, it can encounter custom element tags that it does not yet know.
+These custom elements might be defined later when the browser has loaded a particular script,
+or not defined at all because the developer has forgotten to include a definition of it.
+In any case, the browser will when it encounters an HTML tag for a custom element it does not yet know,
+create a HTMLUnkownElement object for that tag that it will handle later.
+
+However, even though the browser cannot do much with the HTMLUnkownElement object,
+it can and will populate it with any attributes it finds in the tag.
+And the browser will also display it using the CSS rules it has for that tag.
+Then, when the browser has loaded the definition for that tag via `customElements.define`,
+it will then so-called `upgrade` the custom element.
+The `upgrade` of custom elements is a special process in browsers for just this situation,
+where the browser has instantiated and added a custom element to the DOM *before* it has its definition.
+In the `upgrade` process the browser takes the existing object and then calls its now discovered 
+`constructor()` and its `connectedCallback()` *after* the browser has already instantiated 
+the element *and* added that element to the DOM.
+
+The developer rarely notices this upgrade process; 
+most often it is as if the element was constructed and connected to the DOM normally.
+But, when it comes to attributes and attribute values, 
+the developer should take care not over-write attributes already defined and added to the `host` node. 
+-->

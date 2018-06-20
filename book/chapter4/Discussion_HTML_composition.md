@@ -1,3 +1,54 @@
+# Pattern PropsDownEventsUp
+
+this applies to interaction between components within the same DOM.
+Such as application logic components.
+
+# Pattern AttributeAndChildrenIntoAnotherDOM_ComposedEventsAndAttributesOutOfAnotherDOM
+Let's be clear and opinionated. 
+The primary way to pass down into data a web component.
+*Not properties*.
+The reason Attributes is an aspect of an HTML element/DOM node object that can be:
+1. set in HTML template,
+2. read and set in JS
+from both HTML
+Across DOM borders: 
+In the same DOM: PropsDownEventsUp
+
+## Attributes are "stable state switches"
+
+You use attributes to describe stable state changes.
+
+If you need to pass a lot of data into an element, that should not change frequently, 
+and across DOM borders, you use HTML children elements.
+
+If you need to pass a lot of data into an element, that should change frequently or structured deeper than one level and branched,
+inside DOM borders or across DOM borders, you pass it into methods on the dom node object.
+
+If you set state that only applies to style within the same DOM, you use CSS classes.
+Only within the same DOM? CSS classes for style.
+
+If you pass data that will persist across DOM borders, 
+that are shallow and not rich, pass it as attributes.
+Such data function as a state marker. That is intended to persist over at least one frame.
+
+If you need to pass out 
+
+### Why use attributes instead of properties?
+Adding properties to a custom element has other benefits, such as allowing different simple types 
+(boolean, numbers) and other more complex types (arrays and objects).
+But, despite being limited to string values,
+attributes has the benefit over properties that it can be written/read in both HTML, CSS, and JS.
+In fact, it is only attributes and child elements that are used both in HTML, CSS, and JS to control
+one and the same custom element directly.
+So, in order for a JS property to be accessed in HTML (viewed in dev tools for example) or CSS 
+(control styles), it has to be translated into an attribute.
+
+Thus, if a custom element needs to use an internal state to coordinate behavior across both 
+HTML, CSS and JS, you should set this internal state using one or more attributes.
+As such, attributes (and child elements) provide the only vehicle to set an internal 
+state of an HTML element that is globally available to both HTML, CSS, and JS.
+
+
 # HTML composition / Interaction between lightDOM and shadowDOM
 
 HTML composition is to create new DOM structures by combining html elements.
@@ -75,4 +126,4 @@ Use StaticSlotchangeMixin or SlotchangeMixin to observe changes of assignable no
 
 ## References
  * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
- * [cf. HelicopterParentChild](../chapter4/Pattern2_HelicopterParentChild.md). 
+ * [cf. HelicopterParentChild](Pattern2_HelicopterParentChild.md). 

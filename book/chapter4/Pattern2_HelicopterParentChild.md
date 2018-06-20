@@ -29,7 +29,7 @@ The HelicopterParentChild pattern usefulness increases with:
 ## Example 1: custom OL + LI
 In this example we look at a HelicopterParent that needs to *change one or more children elements based on 
 their position in the group*.
-When making the HelicopterParent element, I use the [SlotchangeMixin](../chapter2/Mixin2_SlotchangeMixin.md) to 
+When making the HelicopterParent element, I use the [SlotchangeMixin](../chapter2/Old_Mixin2_SlotchangeMixin.md) to 
 a) simplify the act of listening for dynamic changes to the DOM, and 
 b) process slotted items on par with normal items.
 
@@ -165,14 +165,14 @@ In JS a simple loop would enable you to work between the elements of a list;
 A mapping function would enable you to adapt only some child elements in a list.
 In JS you can avoid creating two codependent classes like this.
   
-In HTML, you have no `for`-loops. And no mapping functions neither. Yes, HTML is limited. 
+In HTML, you have no `for`-loops. And no map function neither. Yes, HTML is limited. 
 HTML requires a different mindset than JS.
 If you don't like this mindset, I understand where you are coming from. You come from JS. 
 Where you can think bigger thoughts.
 However, once you learn the HelicopterParentChild pattern, it is not all bad.
 You might even like it enough to use it in JS! 
 Just remember that with this pattern you contain the complex interaction of the HelicopterParent
-to its HelicopterChild. That means that if something goes wrong, you where the fault lies:
+to its HelicopterChild. That means that if something goes wrong, you know where the fault lies:
 the HelicopterParent, HelicopterChild or both. You also know that their interaction stays 
 in the family: any errors here should not directly affect any other element in your app. 
 And that is good. That makes it worth it.
