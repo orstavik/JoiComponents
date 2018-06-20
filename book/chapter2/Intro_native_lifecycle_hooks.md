@@ -58,58 +58,25 @@ In custom elements event listeners almost always to access properties and method
 particular custom element, ie. the event-listener-closures needs to bind `this` to the custom element.
 To set up event-listener-closures in the constructor() is both the cleanest and most efficient way
 to do so.
-4. *NO* attributes should be added in the constructor. See [Mixin: FirstConnected](Mixin4_FirstConnectedMixin.md) for more details. 
+4. *NO* attributes should be added in the constructor. See `.firstConnectedCallback()`. 
 5. In the `constructor()` you do *not* have access to the DOM surrounding the `host` element.
 In the `constructor()` the element is *not connected*.
 Therefore, the general rule to *NOT REACH INTO THE DOM* is especially true in the `constructor()`.
-
-### How to avoid overwriting already-set-attributes?
-When you declare an HTML element in an HTML document (or in a string passed to `.innerHTML`),
-you can also set one or more attributes with string values on that element node.
-We can think of these already-set-attributes as being set by the 'author' of the html document.
-These already-set-attributes will be set up in the element as part of the HTMLElement constructor 
-(the `super()` in a custom element's `constructor()`).
-
-When you declare a custom element, you want to make sure that you do not overwrite any 
-attributes set by the 'author'/user of your custom element.
-To avoid overwriting such already-set-attributes when giving attributes a default value at set up, 
-you must check if the attribute already exists *before* giving it a default value.
-```javascript
-this.hasAttribute("one") || this.setAttribute("one", "default value"); //todo only use .getAttribute??  
-//default values needs to be tested for empty
-this.getAttribute("style") || this.setAttribute("one", "default value");  
-```
-                              
-### `.firstConnectedCallback()` as an alternative to `constructor()`.
-Sometimes, custom elements can be set up in HTML templates or other structures 
-that are not immediately connected to the DOM.
-On such occasions, to run complex set up routines for several components might slow down
-other processes in the browser such as rendering the first impression.
-If this is the case, you want to delay the set up of the element until `.firstConnectedCallback()`.
-See [FirstConnectedMixin](Mixin4_FirstConnectedMixin.md) for more details.
-Most often, the entire body of the `constructor()` can then be moved into `.firstConnectedCallback()`,
-and you can skip the `constructor()` entirely. 
-
-The Polymer project advocates consistent use of a `.firstConnectedCallback()` equivalent 
-called `.ready()`. I'm not sure as to what I personally think about that.
-On the one hand, all your custom elements can be used by frameworks and settings where their
-`constructor()` methods *should* be delayed.
-However, consistently replacing the well-known, native and generic `constructor()` with 
-a largely unknown, non-native, and DOM-particular `.firstConnectedCallback()` or `.ready()`
-is not good. In most web apps, and in the best practice advocated in this book, 
-the performance benefit of `.firstConnectedCallback()` is rarely needed and therefore rarely employed.
 
 ## `connectedCallback()` and `disconnectedCallback()`
 
 `connectedCallback()` and `disconnectedCallback()` is called when the custom element
 is connected and disconnected to the active DOM.
-While the `constructor()` (or `.firstConnectedCallback()`) *creates* the content of a 
-custom element,
+While the `constructor()` *sets up* the content of a custom element,
 `connectedCallback()` *activates* said content. Most often, this means to:
 * add event-listener-closures to either `this` or `window` 
 (depending on which event is observed), and/or 
 * activating `Observer` or plain function callbacks on other objects.
-The `disconnectedCallback()` reverses and cleans up the actions performed in `connectedCallback()`. 
+
+`disconnectedCallback()` reverses and cleans up the actions performed in `connectedCallback()`.
+
+However, as hinted at in the example above, attributes cannot be set up in the `constructor()`.
+The platform therefore anticipates that attributes are set up in `connectedCallback()`.
 
 ```javascript
 class MyComponent extends HTMLElement {
@@ -118,14 +85,14 @@ class MyComponent extends HTMLElement {
     this.attachShadow({mode: "open"});                             
     this.shadowRoot.innerHTML = "hello <slot></slot>";
     this._onClick = this._clickTrigger.bind(this);                 
-    this.getAttribute("active") || this.setAttribute("active", "");
   }
   
   connectedCallback(){                                             
     this.addEventListener("click", this._onClick);                 //[1]
+    this.getAttribute("active") || this.setAttribute("active", "");//[2]
   }
   disconnectedCallback(){
-    this.removeEventListener("click", this._onClick);              //[2]
+    this.removeEventListener("click", this._onClick);              //[3]
   }
 
   _clickTrigger(e){
@@ -133,9 +100,29 @@ class MyComponent extends HTMLElement {
   }
 }
 ```
-1. The event listener `this._onClick` is activated.
-2. The event listener `this._onClick` is deactivated.
+1. The event listener `this._onClick` is activated while connected.
+2. The attribute `active` is given a default value if not previously set. See below for more details.
+3. The event listener `this._onClick` is deactivated while disconnected.
 
+### Avoid overwriting start-tag-attributes?
+When you declare an HTML element in an HTML document (or in a string passed to `.innerHTML`),
+you can also set one or more attributes with string values in that element start tag.
+```html
+<my-element start-tag-attribute="This value is specified by the author in the start tag"></my-element>
+```
+These start-tag-attributes will be set up in the element as part of the HTMLElement constructor 
+(the `super()` in a custom element's `constructor()`).
+
+When you declare a custom element, you want to make sure that you do not overwrite any 
+start-tag-attributes on your custom element instances. 
+If you do so inadvertently, the users (the html authors using your element) cannot 
+explicitly define these attributes.
+To avoid overwriting such start-tag-attributes when giving attributes a default value at set up, 
+you must check if the attribute already exists *before* giving it a default value.
+```javascript
+this.hasAttribute("one") || this.setAttribute("one", "default value");  
+```
+                              
 ## `adoptedCallback()`
 `adoptedCallback()` is triggered when a custom element is transplanted *into* a new document.
 This is a highly specialized use-case. In fact, I cannot imagine *when* it would be better to
@@ -183,8 +170,11 @@ Here is an example:
   </body>
 </html>
 ```
-1. The `<upgrade-me id="one">` element is used in the HTML template.
+1. The `<upgrade-me id="one">` element is used in the HTML template. 
+At the time when the parser first encounters this tag, the `<upgrade-me>` tag is unknown to the browser.
+The browser therefore instantiates the element as an HTMLUnknownElement.
 2. The `<upgrade-me id="too">` element is used inside `.innerHTML`.
+The `<upgrade-me>` tag is still unknown to the browser.
 3. *Before* the class definition is loaded, both `<upgrade-me>` elements
 are typeof `HTMLUnknownElement`.
 4. The `upgrade-me` tag is registered to the `UpgradeMe` class in `customElements`.

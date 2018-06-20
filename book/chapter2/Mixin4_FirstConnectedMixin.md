@@ -178,11 +178,31 @@ setTimeout(()=> body.appendChild(allo), 4000);
 
 Test it out on [codepen](https://codepen.io/orstavik/pen/pLmYEM).
 
-## Opinionated advice
+## Opinions
 * the platform could include a boolean argument in the native connectedCallback that would be true 
 if the connectedCallback had never been run before on this particular element. 
 Such a change would not break existing code, should be efficient, would simplify app code, and 
 unify various frameworks. Just a thought..
 
+The Polymer project advocates consistent use of a `.firstConnectedCallback()` equivalent 
+called `.ready()`. I'm not sure as to what I personally think about that.
+On the one hand, all your custom elements can be used by frameworks and settings where their
+`constructor()` methods *should* be delayed.
+However, consistently replacing the well-known, native and generic `constructor()` with 
+a largely unknown, non-native, and DOM-particular `.firstConnectedCallback()` or `.ready()`
+is not good.
+
 ## Reference
  * find documentation on Polymer .ready()
+ 
+ <!--
+ ## `.firstConnectedCallback()` as an alternative to `constructor()`.
+ Sometimes, custom elements can be set up in HTML templates or other structures 
+ that are not immediately connected to the DOM.
+ On such occasions, to run complex set up routines for several components might slow down
+ other processes in the browser such as rendering the first impression.
+ If this is the case, you want to delay the set up of the element until `.firstConnectedCallback()`.
+ See [Mixin: FirstConnected](Mixin4_FirstConnectedMixin.md) for more details.
+ Most often, the entire body of the `constructor()` can then be moved into `.firstConnectedCallback()`,
+ and you can skip the `constructor()` entirely.
+ -->
