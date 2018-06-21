@@ -29,50 +29,38 @@
 
   import {DragFlingGesture} from "../../src/gestures/DragFling.js";
 
-  class FlingBall extends DragFlingGesture(HTMLElement) {
+  class FlingBallCB extends DragFlingGesture(HTMLElement) {
 
-    constructor() {
-      super();
-      this._onDragStartListener = e => this._onDraggingStart(e);
-      this._onDraggingListener = e => this._onDragging(e);
-      this._onFlingingListener = e => this._onFlinging(e);
+    static get dragFlingEventOrCallback(){
+      return -1;
     }
 
-    connectedCallback() {
-      super.connectedCallback();
-      this.addEventListener("draggingstart", this._onDragStartListener);
-      this.addEventListener("dragging", this._onDraggingListener);
-      this.addEventListener("fling", this._onFlingingListener);
+    draggingstartCallback(detail){
+      this.startTime = detail.event.timeStamp;
     }
 
-    disconnectedCallback() {
-      super.disconnectedCallback();
-      this.removeEventListener("draggingstart", this._onDragStartListener);
-      this.removeEventListener("dragging", this._onDraggingListener);
-      this.removeEventListener("fling", this._onFlingingListener);
-    }
-
-    _onDraggingStart(e){
-      this.startTime = e.timeStamp;
-    }
-
-    _onDragging(e) {
+    draggingCallback(detail){
       this.style.transition = undefined;
-      this.style.left = (parseFloat(this.style.left) + e.detail.moveX) + "px";
-      this.style.top = (parseFloat(this.style.top) + e.detail.moveY) + "px";
+      this.style.left = (parseFloat(this.style.left) + detail.distX) + "px";
+      this.style.top = (parseFloat(this.style.top) + detail.distY) + "px";
     }
 
-    _onFlinging(e) {
-      const totalTime = e.timeStamp - this.startTime;
-      const addX = e.detail.xSpeedPxMs * totalTime;
-      const addY = e.detail.ySpeedPxMs * totalTime;
+    draggingstopCallback(detail){
+      console.log(detail);
+    }
+
+    flingCallback(detail) {
+      const e = detail.e;
+      const totalTime = detail.durationMs;
+      const addX = detail.distX;
+      const addY = detail.distY;
       this.style.transition = "all " + totalTime + "ms cubic-bezier(0.39, 0.58, 0.57, 1)";
       this.style.left = (parseFloat(this.style.left) + addX) + "px";
       this.style.top = (parseFloat(this.style.top) + addY) + "px";
     }
   }
 
-  customElements.define("fling-ball", FlingBall);
+  customElements.define("fling-ball", FlingBallCB);
 </script>
 
 </body>
