@@ -177,7 +177,7 @@ export const DragFlingGesture = function (Base) {
       this[callbackAndOrEvent]("draggingstart", detail);
     }
 
-    [mouseStopListener]() {
+    [mouseStop]() {
       this[fling](e, e.x, e.y);
       this[callbackAndOrEvent]("draggingend", detail);
 
@@ -188,7 +188,7 @@ export const DragFlingGesture = function (Base) {
       this[activeEventOrCallback] = undefined;
     }
 
-    [touchStopListener]() {
+    [touchStop]() {
       this[fling](e, e.targetTouches[0].pageX, e.targetTouches[0].pageY);
       this[callbackAndOrEvent]("draggingend", detail);
 
@@ -200,11 +200,11 @@ export const DragFlingGesture = function (Base) {
       this[activeEventOrCallback] = undefined;
     }
 
-    [mouseMoveListener](e) {
+    [mouseMove](e) {
       this[move](e, e.x, e.y);
     }
 
-    [touchMoveListener](e) {
+    [touchMove](e) {
       this[move](e, e.targetTouches[0].pageX, e.targetTouches[0].pageY);
     }
 
