@@ -1,4 +1,4 @@
-# Pattern SuperRide
+# Pattern StaticSettings
 
 The native function `static get observedAttributes()` that is used to control the
 native function `.attributeChangedCallback(name, oldValue, newValue)` is simpler than it might seem.
