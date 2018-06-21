@@ -18,7 +18,7 @@ const mouseStop = Symbol("mouseStop");
 
 const fling = Symbol("fling");
 const move = Symbol("move");
-const callbackAndOrEvent = Symbol("callbackAndOrEvent");
+const eventAndOrCallback = Symbol("callbackAndOrEvent");
 
 const cachedEvents = Symbol("cachedEvents");
 const active = Symbol("active");
@@ -159,7 +159,7 @@ export const DragFlingGesture = function (Base) {
 
       const detail = {event: e, x: e.x, y: e.y};
       this[cachedEvents] = [detail];
-      this[callbackAndOrEvent]("draggingstart", detail);
+      this[eventAndOrCallback]("draggingstart", detail);
     }
 
     [touchStart](e) {
@@ -168,18 +168,18 @@ export const DragFlingGesture = function (Base) {
       if (this[active] === 2)   //this will be a second touch
         return this[touchStopListener]();
       this[active] = 2;
-      this[activeEventOrCallback] = this.dragFlingEventOrCallback;
+      this[activeEventOrCallback] = this.constructor.dragFlingEventOrCallback;
       this.addEventListener("touchmove", this[touchMoveListener]);
       this.addEventListener("touchend", this[touchStopListener]);
       this.addEventListener("touchcancel", this[touchStopListener]);
       const detail = {event: e, x: e.targetTouches[0].pageX, y: e.targetTouches[0].pageY};
       this[cachedEvents] = [detail];
-      this[callbackAndOrEvent]("draggingstart", detail);
+      this[eventAndOrCallback]("draggingstart", detail);
     }
 
-    [mouseStop]() {
+    [mouseStop](e) {
       this[fling](e, e.x, e.y);
-      this[callbackAndOrEvent]("draggingend", detail);
+      this[eventAndOrCallback]("draggingend", detail);
 
       this.removeEventListener("mousemove", this[mouseMoveListener]);
       this.removeEventListener("mouseup", this[mouseStopListener]);
@@ -188,9 +188,9 @@ export const DragFlingGesture = function (Base) {
       this[activeEventOrCallback] = undefined;
     }
 
-    [touchStop]() {
+    [touchStop](e) {
       this[fling](e, e.targetTouches[0].pageX, e.targetTouches[0].pageY);
-      this[callbackAndOrEvent]("draggingend", detail);
+      this[eventAndOrCallback]("draggingend", detail);
 
       this.removeEventListener("touchmove", this[touchMoveListener]);
       this.removeEventListener("touchend", this[touchStopListener]);
@@ -212,11 +212,11 @@ export const DragFlingGesture = function (Base) {
       const prevDetail = this[cachedEvents][this[cachedEvents].length - 1];
       const detail = makeDetail(event, x, y, prevDetail);
       this[cachedEvents].push(detail);
-      this[callbackAndOrEvent]("dragging", detail);
+      this[eventAndOrCallback]("dragging", detail);
     }
 
     [fling](e, x, y) {
-      const settings = this.flingSettings;
+      const settings = this.constructor.flingSettings;
       let endTime = e.timeStamp;
       const flingTime = endTime - settings.minDuration;
       const flingStart = findLastEventOlderThan(this[cachedEvents], flingTime);
@@ -225,11 +225,11 @@ export const DragFlingGesture = function (Base) {
       const detail = makeDetail(e, x, y, flingStart);
       if (detail.distDiag >= settings.minDistance) {
         detail.angle = flingAngle(detail.distX, detail.distY);
-        this[callbackAndOrEvent]("fling", detail);
+        this[eventAndOrCallback]("fling", detail);
       }
     }
 
-    [callbackAndOrEvent](eventName, detail) {
+    [eventAndOrCallback](eventName, detail) {
       if (this[activeEventOrCallback] <= 0) {
         let cbName = eventName + "Callback";
         this[cbName] && this[cbName](detail);
@@ -237,6 +237,5 @@ export const DragFlingGesture = function (Base) {
       if (this[activeEventOrCallback] >= 0)
         this.dispatchEvent(new CustomEvent(eventName, {bubbles: true, detail}));
     }
-
   }
 };
