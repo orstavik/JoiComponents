@@ -5,41 +5,147 @@ native function `.attributeChangedCallback(name, oldValue, newValue)` is simpler
 `static get observedAttributes()` simply provides a function that every element can choose to
 override if they want. But to see it in action, we need an example:
 
-## Example OverRideMyName
+## Example DoubleAgent
 
-In this example, we have a class `SuperMyName`.
-this class has a method `writeMyName()` that prints a name to the console.
-`SuperMyName` also has a static getter method `name`.
-
-In addition, we have a class called `MyName`.
-This class extends `SuperMyName`, but it does not override the method `writeMyName()`.
-But, `MyName` still intends to change the name written to the console, but 
-it will do so by overriding the static getter method `name`.
+In this example, we have two classes: `JamesBond` and `TheGirl` that extends `JamesBond`.
+`JamesBond` has a method `myNameIs()` that prints a name to the console.
+`JamesBond` also has a static getter method `name`.
+`TheGirl` only overrides the static getter method `name`, and not `writeMyName()`.
 
 ```javascript
-class SuperMyName {
+class JamesBond {
   
   static get name(){                //[1]  
-    return "James Bond";
+    return "Bond, James Bond";
   }
   writeMyName(){
     console.log(this.name);         //[2]
   }
 }
-class MyName extends SuperMyName {
+
+class TheGirl extends JamesBond {
   
   static get name(){                //[3]        
     return "Miss Moneypenny";
   }
 }
 
-const agent007 = new SuperMyName();
-agent007.writeMyName();             //[4] //James Bond
-const agent008 = new SuperMyName();
-agent008.name = "Goldfinger";         
-agent008.writeMyName();             //[5] //Goldfinger
-const agent007pluss1 = new MyName();
-agent007pluss1.writeMyName();       //[6] //Miss Moneypenny
+const agent007 = new JamesBond();
+agent007.writeMyName();             //[4] //Bond, James Bond
+const badGuy = new JamesBond();
+badGuy.name = "Goldfinger";         
+badGuy.writeMyName();               //[5] //Goldfinger
+const plusOne = new TheGirl();
+plusOne.writeMyName();              //[6] //Miss Moneypenny
+```
+1. 
+2.
+3.
+4.
+5.
+6.                               
+
+## Example: `LongpressSettingsMixin`
+
+When implementing a `longpress` gesture mixin, 
+we likely need to adjust the settings for:
+* how long the button must be pressed, and
+* how much the user might move his finger before he cancels the press.
+ 
+```javascript
+const startListener = Symbol("startListener");
+const stopListener = Symbol("stopListener");
+const start = Symbol("start");
+const stop = Symbol("stop");
+const startEvent = Symbol("startEvent");
+const settings = Symbol("settings");
+
+const LongPressMixin = function(Base) {
+  return class LongPressMixin extends Base {
+    
+    static get longpressSettings(){                //[1]  
+      return {minDuration: 1000, maxMovement: 20};
+    }
+    
+    constructor(){
+      super();
+      this[startListener] = (e) => this[start];
+      this[stopListener] = (e) => this[stop];
+      this[startEvent] = undefined;
+    }
+    
+    connectedCallback(){
+      if (super.connectedCallback) super.connectedCallback();
+      this.addEventListener("mousedown", this[startListener]);
+    }
+    
+    disconnectedCallback(){
+      if (super.disconnectedCallback) super.disconnectedCallback();
+      this.removeEventListener("mousedown", this[startListener]);
+    }
+    
+    this[start](e){
+      this.addEventListener("mouseup", this[stopListener]);
+      this[startEvent] = e;
+      this[settings] = this.longpressSettings();
+    }                                                                  
+    
+    this[stop](e){
+      this.removeEventListener("mouseup", this[stopListener]);
+      const duration = e.timeStamp - this[startEvent].timeStamp;
+      const moveX = e.x - this[startEvent].x;
+      const moveY = e.y - this[startEvent].y;
+      const distance = Math.sqrt(moveX*moveX + moveY*moveY);
+      if (this[settings].maxMovement >= distance && this[settings].minDuration <= duration)  //[2]
+        this.dispatchEvent(new CustomEvent("longpress", {bubbles: true, detail: {duration, distance}}));
+      this[startEvent] = undefined;
+      this[settings] = undefined;
+    }
+  }
+};
+
+class LongPressOne extends LongPressMixin(HTMLElement){
+  connectedCallback(){
+    super.connectedCallback();
+    this.attachShadow({mode: "open"});
+    this.shadowRoot.innerHTML = "<div style='width: 10px; height: 10px; border: 10px solid red;'></div>"
+  }
+}
+
+class LongPressTwo extends LongPressMixin(HTMLElement){
+  
+  static get longpressSettings(){
+    return Object.assign(super.longpressSettings(), {minDuration: 2000});
+  }
+  
+  connectedCallback(){
+    super.connectedCallback();
+    this.attachShadow({mode: "open"});
+    this.shadowRoot.innerHTML = "<div style='width: 10px; height: 10px; border: 10px solid blue;'></div>"
+  }
+  
+}
+
+customElements.define("long-press-one", LongPressOne);
+customElements.define("long-press-two", LongPressTwo);
+
+//A needs 1000ms press
+const A = new LongPressOne();
+one.addEventListener("longpress", () => console.log("one"));
+
+//B needs 2000ms press
+const B = new LongPressTwo();
+
+//C needs 3000ms press, and A still needs 1000ms press
+const C = new LongPressOne();
+C.longpressSettings = {minDuration: 3000, maxMovement: 20};
+
+//D changes the LongPressOne prototype, so now A, C and D all need a 4000ms press
+//don't do this..
+const D = new LongPressOne();
+D.__proto__.longpressSettings = function(){
+  return {minDuration: 3000, maxMovement: 20};
+};
 ```
 1. 
 2.
