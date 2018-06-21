@@ -1,3 +1,5 @@
+# todo this is just sketches and comments
+
 # Pattern PropsDownEventsUp
 
 this applies to interaction between components within the same DOM.
@@ -70,12 +72,13 @@ a select set of established pathways.
 
 ### Webcomponent rudeness: the `DocumentReaching` anti-pattern
 
+TODO rename DirectTamperingWithAnotherDOM DOM-Tampering
 Aside from these established pathways, 
 altering, passing data or querying inside the scope of another document is an anti-pattern: 
 DocumentReaching.
 Symptoms of this antipattern are references to:
 1. `this.ownerDocument`. This is a reference to the lightDOM document, and should rarely be used.
-2. `document.querySelector("xyz")`. This is a reference to the main document, and 
+2. `document.querySelector("xyz")` from within a custom element. This is a reference to the main document, and 
 should not be accessed from inside a custom element.
 3. `someElement.shadowRoot`. If someElement is not `this` element (and then you should write `this.shadowRoot`), 
 you should not interfere with that custom elements orchestration of its shadowDOM elements.

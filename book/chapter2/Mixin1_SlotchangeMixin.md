@@ -134,6 +134,8 @@ the first argument `slot` of the callback method can be used.
 * https://github.com/w3c/webcomponents/issues/493#issuecomment-218077582
 * https://dom.spec.whatwg.org/#mutation-observers
 * https://github.com/whatwg/dom/issues/126
+
+## TODO Add static get excludeSlot(){ return ["slotNameToBeExcluded", "excludeMeTo"];}??
  
 ## Acknowledgments
 Many thanks to Jan Miksovsky and the Elix project for input and inspiration.

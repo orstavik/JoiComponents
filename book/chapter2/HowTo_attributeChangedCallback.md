@@ -95,6 +95,10 @@ To change this now would cause confusion and bugs.
 But developers should not copy the principle of oldValue before newValue for custom element callbacks.
 The order should be newValue before oldValue. 
 
+## TODO explain the pattern behind static get observedAttributes() ?? 
+how it can be used inside a functional mixin.
+how it can be overridden both statically and in each individual object.
+
 ## References
  * MDN on `attributeChangedCallback`
  * MDN on `observedAttributes`

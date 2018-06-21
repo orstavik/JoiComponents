@@ -28,19 +28,21 @@ If you want to copy them into your web component and/or adapt them to fit your n
 5. [How to chain `<slot>`s](book/chapter1/HowTo_chainSlots.md)
 6. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
 7. [Pattern: `slotchange`](book/chapter1/Pattern2_slotchange.md)
-8. [Attribute reaction](book/chapter1/Pattern4_AttributeReaction.md)
-9. [MutationObserver and slotchange](book/chapter1/4_MutationObserver_slotchange.md)
+8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
+9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)
 
-## Chapter 2: Lifecycle callbacks
-1. [Intro: lifecycle methods](book/chapter2/Intro_native_lifecycle_hooks.md)
+## Chapter 2a: Lifecycle callbacks
+1. [Intro: native callbacks](book/chapter2/Intro_native_lifecycle_hooks.md)
+4. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
+
+## Chapter 2b: Event callbacks
+8. [.attributeChangedCallback()](book/chapter2/HowTo_attributeChangedCallback.md)
 2. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 3. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
-4. [.slotchangedCallback() static](book/chapter2/Mixin1_StaticSlotchangeMixin.md)
-5. [.slotchangedCallback() dynamic](book/chapter2/Mixin2_SlotchangeMixin.md)
-6. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
-7. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
-8. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
-9. [Discussion: isolate FunctionalMixins](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
+5. [.slotchangedCallback()](book/chapter2/Mixin1_SlotchangeMixin.md)
+6. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
+7. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
+8. [Discussion: isolate FunctionalMixins](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
 
 ## Chapter 3: ComposedEvents and Gestures in JS
 1. [EventComposition](book/chapter3/Pattern1_ComposedEvents.md) (such as gestures, clicks, drag)
@@ -56,7 +58,8 @@ If you want to copy them into your web component and/or adapt them to fit your n
 3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
 4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
 5. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter4/Pattern4_MiniMe.md)
-6. [Discussion: HTML composition](book/chapter5/HTML_composition.md)
+6. [Pattern: JSONAttributes](book/chapter4/Pattern_jsonAttributes.md)
+7. [Discussion: HTML composition](book/chapter4/Discussion_HTML_composition.md)
 
 
 <!--
@@ -71,6 +74,7 @@ Element to wrap methods for lazy-loading image.
 Sometimes, this needs to be inlined. But often not, only loaded first.
 Look at the lighthouse presentation Google/IO
 
+Z. Sibling based ordered list.
 
 -->
 
