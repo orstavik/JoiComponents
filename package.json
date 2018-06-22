@@ -1,6 +1,6 @@
 {
   "name": "JoiComponents",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Design patterns to build native web components",
   "main": "src/ChildrenChangedCallback.js",
   "directories": {
