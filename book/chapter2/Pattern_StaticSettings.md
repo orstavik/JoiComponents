@@ -1,57 +1,55 @@
-# Pattern StaticSettings
+# Pattern: StaticSettings
 
-The native function `static get observedAttributes()` that is used to control the
-native function `.attributeChangedCallback(name, oldValue, newValue)` is simpler than it might seem.
-`static get observedAttributes()` simply provides a function that every element can choose to
-override if they want. But to see it in action, we need an example:
+The callback method `.attributeChangedCallback(name, oldValue, newValue)`
+is controlled by settings defined by `static get observedAttributes()`.
+I call this pattern StaticSettings.
 
-## Example DoubleAgent
+At the heart of the StaticSettings pattern is a static getter method for settings (ie. StaticSetting)
+such as `static get observedAttributes()`.
+The StaticSetting returns values that a super class can use to guide its actions.
+`static` methods in JS are placed with the class prototype object.
+Getter methods (`get`) are function properties that you access as if they were data properties.
+And so, the complex signature `static get observedAttributes()` basically
+defines `observedAttributes` is a universal property for all objects of the class.
 
-In this example, we have two classes: `JamesBond` and `TheGirl` that extends `JamesBond`.
-`JamesBond` has a method `myNameIs()` that prints a name to the console.
-`JamesBond` also has a static getter method `name`.
-`TheGirl` only overrides the static getter method `name`, and not `writeMyName()`.
+## How does StaticSettings work?
+The secret behind this pattern is **mixins use StaticSettings** and 
+**subclasses can override StaticSettings**.
 
-```javascript
-class JamesBond {
-  
-  static get name(){                //[1]  
-    return "Bond, James Bond";
-  }
-  writeMyName(){
-    console.log(this.name);         //[2]
-  }
-}
-
-class TheGirl extends JamesBond {
-  
-  static get name(){                //[3]        
-    return "Miss Moneypenny";
-  }
-}
-
-const agent007 = new JamesBond();
-agent007.writeMyName();             //[4] //Bond, James Bond
-const badGuy = new JamesBond();
-badGuy.name = "Goldfinger";         
-badGuy.writeMyName();               //[5] //Goldfinger
-const plusOne = new TheGirl();
-plusOne.writeMyName();              //[6] //Miss Moneypenny
+`this.constructor.staticSettingName` will access a StaticSetting named `staticSettingName`. 
+This you typically do in a super class or FunctionalMixin you intend other classes to extend.
+To override the same StaticSetting in a subsequent class, define static getter method for `staticSettingName`, 
+such as:
 ```
-1. 
-2.
-3.
-4.
-5.
-6.                               
+static get staticSettingName() {
+  const defaultSettings = Object.getPrototypeOf(this).staticSettingName;  //[1]
+  return Object.assign(defaultSettings, {newSetting: 200});               //[2]
+}
+```
+1. `Object.getPrototypeOf(this).staticSettingName` accesses the (default) settings already defined 
+by the mixin or super class. 
+In the context of a `static` class method, `this` refers to the prototype (class) object.
+To get the super class of this prototype, use `Object.getPrototypeOf(this)`.
+2. If the settings is a complex object, it might be wise to not overwrite the default settings completely,
+but instead extend it using functions such as `Object.assign`.
+
+The benefit of making the settings static, is that the same settings will then 
+be shared by all instances of the element class.
+This is both efficient in terms of memory, as the same value will not be multiplied across elements,
+and creates a more transparent structure as the developer knows that all instances of an element
+will share the same settings.
 
 ## Example: `LongpressSettingsMixin`
 
-When implementing a `longpress` gesture mixin, 
-we likely need to adjust the settings for:
+When implementing a `longpress` gesture mixin, we might likely need to control:
 * how long the button must be pressed, and
-* how much the user might move his finger before he cancels the press.
+* how much the user is allowed to move his finger from start to end.
  
+In the example below, I implement a StaticSetting `longpressSettings` in `LongPressMixin`.
+I then implement two different subclasses of LongPressMixin: 
+`LongPressOne` that uses the default `longpressSettings` and 
+`LongPressTwo` that overrides `longpressSettings`.
+
 ```javascript
 const startListener = Symbol("startListener");
 const stopListener = Symbol("stopListener");
@@ -63,14 +61,14 @@ const settings = Symbol("settings");
 const LongPressMixin = function(Base) {
   return class LongPressMixin extends Base {
     
-    static get longpressSettings(){                //[1]  
+    static get longpressSettings(){                                              //[1]  
       return {minDuration: 1000, maxMovement: 20};
     }
     
     constructor(){
       super();
-      this[startListener] = (e) => this[start];
-      this[stopListener] = (e) => this[stop];
+      this[startListener] = (e) => this[start](e);
+      this[stopListener] = (e) => this[stop](e);
       this[startEvent] = undefined;
     }
     
@@ -83,20 +81,19 @@ const LongPressMixin = function(Base) {
       if (super.disconnectedCallback) super.disconnectedCallback();
       this.removeEventListener("mousedown", this[startListener]);
     }
-    
-    this[start](e){
+    [start](e) {
       this.addEventListener("mouseup", this[stopListener]);
       this[startEvent] = e;
-      this[settings] = this.longpressSettings();
-    }                                                                  
+    }
     
-    this[stop](e){
-      this.removeEventListener("mouseup", this[stopListener]);
+    [stop](e) {
+      this.shadowRoot.removeEventListener("mouseup", this[stopListener]);
       const duration = e.timeStamp - this[startEvent].timeStamp;
       const moveX = e.x - this[startEvent].x;
       const moveY = e.y - this[startEvent].y;
       const distance = Math.sqrt(moveX*moveX + moveY*moveY);
-      if (this[settings].maxMovement >= distance && this[settings].minDuration <= duration)  //[2]
+      const settings = this.constructor.longpressSettings;                       //[2]
+      if (settings.maxMovement >= distance && settings.minDuration <= duration)  //[3]
         this.dispatchEvent(new CustomEvent("longpress", {bubbles: true, detail: {duration, distance}}));
       this[startEvent] = undefined;
       this[settings] = undefined;
@@ -104,7 +101,7 @@ const LongPressMixin = function(Base) {
   }
 };
 
-class LongPressOne extends LongPressMixin(HTMLElement){
+class LongPressOne extends LongPressMixin(HTMLElement){                          //[4]
   connectedCallback(){
     super.connectedCallback();
     this.attachShadow({mode: "open"});
@@ -115,15 +112,16 @@ class LongPressOne extends LongPressMixin(HTMLElement){
 class LongPressTwo extends LongPressMixin(HTMLElement){
   
   static get longpressSettings(){
-    return Object.assign(super.longpressSettings(), {minDuration: 2000});
-  }
+    const defaultSettings = Object.getPrototypeOf(this).staticSettingName;       //[5]
+    return Object.assign(defaultSettings, {minDuration: 200});                   //[6]
+    // return {minDuration: 200, maxMovement: 20};
+  }                                                   
   
   connectedCallback(){
     super.connectedCallback();
     this.attachShadow({mode: "open"});
     this.shadowRoot.innerHTML = "<div style='width: 10px; height: 10px; border: 10px solid blue;'></div>"
   }
-  
 }
 
 customElements.define("long-press-one", LongPressOne);
@@ -131,70 +129,64 @@ customElements.define("long-press-two", LongPressTwo);
 
 //A needs 1000ms press
 const A = new LongPressOne();
-one.addEventListener("longpress", () => console.log("one"));
-
-//B needs 2000ms press
+A.id = "A";
+document.querySelector("body").appendChild(A);
+//B needs only 200ms press
 const B = new LongPressTwo();
+B.id = "B";
+document.querySelector("body").appendChild(B);
+document.addEventListener("longpress", (e) => console.log(e.path[0].id, e.detail.duration));
+```
+1. The StaticSetting method is set up in the mixin super class.
+This static property defines the default setting values. 
+2. The StaticSetting is retrieved as `this.constructor.longpressSettings`.
+3. The StaticSetting is then used to control the ReactiveMethod callback and EventRecording.
+4. Subclasses that do not override `static get longpressSettings()` uses the default values.
+5. To access the default values when you override the StaticSetting in a subclass,
+use `Object.getPrototypeOf(this).staticSettingName`.
+6. When overriding a super class, you can extend the default values or define all settings directly.
 
-//C needs 3000ms press, and A still needs 1000ms press
-const C = new LongPressOne();
-C.longpressSettings = {minDuration: 3000, maxMovement: 20};
+## References
+ * [MDN: static](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/static)
+ 
+<!--
+## Example DoubleAgent
 
-//D changes the LongPressOne prototype, so now A, C and D all need a 4000ms press
-//don't do this..
-const D = new LongPressOne();
-D.__proto__.longpressSettings = function(){
-  return {minDuration: 3000, maxMovement: 20};
-};
+In this example, we have two classes: `JamesBond` and `TheGirl` that extends `JamesBond`.
+`JamesBond` has a method `myNameIs()` that prints a name to the console.
+`JamesBond` also has a static getter method `name`.
+`TheGirl` only overrides the static getter method `name`, and not `writeMyName()`.
+
+```javascript
+class JamesBond {
+  
+  static get name(){                   //[1]  
+    return "Bond, James Bond";
+  }
+  myNameIs(){
+    console.log(this.constructor.name);//[2]
+  }
+}
+
+class TheGirl extends JamesBond {
+  
+  static get name(){                   //[3]        
+    return "Miss Moneypenny";
+  }
+}
+
+const agent007 = new JamesBond();
+agent007.myNameIs();                   //[4] //Bond, James Bond
+const badGuy = new JamesBond();
+badGuy.name = "Goldfinger";         
+badGuy.myNameIs();                     //[5] //Goldfinger
+const plusOne = new TheGirl();
+plusOne.myNameIs();                    //[6] //Miss Moneypenny
 ```
 1. 
 2.
 3.
 4.
 5.
-6.
-
-## how to use it?
-why use static?
-because most of your elements likely use the same settings. so you don't need to add all the extra stuff in all your objects.
-BUT!! You can use non static overrides on each individual element. Both works
-
-use it to set settings that your mixin needs.
-these settings can then be used as default value, as a per element type value, and also, if you really need, per element value.
-
-
-## Why `static get observedAttributes()`?
-When you make a custom element, you most often need only observe a few custom attributes.
-But, HTML elements has many attributes. Some of these attributes such as `style` 
-can change value quite often. So, if all attribute changes of custom elements 
-would trigger a JS callback, the browser would slow down.
-                                                        
-Therefore, the browser is interested in *avoiding* `attributeChangedCallback(...)`
-for all the attribute changes which the custom element do not care about. 
-By making the developer specify which attributes should 
-trigger `attributeChangedCallback` in `static get observedAttributes()`,
-the browser can *ignore* all changes to other attributes.
-
-`static get observedAttributes()` is attached to the custom element prototype and 
-applies equally to all instances of the element.
-`static get observedAttributes()` returns an array of strings which represents 
-a list of the attribute names to be observed.
-
-## Comment on JS parameter order 
-There is one minor flaw with the `attributeChangedCallback(...)` standard:
-the order of arguments should have been `name`, `newValue`, `oldValue`, 
-*not* `name`, `oldValue`, `newValue`. 
-`newValue` is commonly needed, while `oldValue` is not.
-If `oldValue` was placed last, then most often implementations of the `attributeChangedCallback(...)`
-would have been able to skip the third argument.
-To change this now would cause confusion and bugs. 
-But developers should not copy the principle of oldValue before newValue for custom element callbacks.
-The order should be newValue before oldValue. 
-
-## TODO explain the pattern behind static get observedAttributes() ?? 
-how it can be used inside a functional mixin.
-how it can be overridden both statically and in each individual object.
-
-## References
- * MDN on `attributeChangedCallback`
- * MDN on `observedAttributes`
+6.                               
+-->

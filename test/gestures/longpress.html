@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+<script>
+  const startListener = Symbol("startListener");
+  const stopListener = Symbol("stopListener");
+  const start = Symbol("start");
+  const stop = Symbol("stop");
+  const startEvent = Symbol("startEvent");
+  const settings = Symbol("settings");
+
+  const LongPressMixin = function (Base) {
+    return class LongPressMixin extends Base {
+
+      static get longpressSettings() {                //[1]
+        return {minDuration: 1000, maxMovement: 20};
+      }
+
+      constructor() {
+        super();
+        this[startListener] = (e) => this[start](e);
+        this[stopListener] = (e) => this[stop](e);
+        this[startEvent] = undefined;
+      }
+
+      connectedCallback() {
+        if (super.connectedCallback) super.connectedCallback();
+        this.addEventListener("mousedown", this[startListener]);
+      }
+
+      disconnectedCallback() {
+        if (super.disconnectedCallback) super.disconnectedCallback();
+        this.removeEventListener("mousedown", this[startListener]);
+      }
+
+      [start](e) {
+        this.addEventListener("mouseup", this[stopListener]);
+        this[startEvent] = e;
+        this[settings] = this.constructor.longpressSettings;    //[1] this is added at the beginning of the sequence, so that IF something bad was to happen, they will not change during an event recording.
+      }
+
+      [stop](e) {
+        this.shadowRoot.removeEventListener("mouseup", this[stopListener]);
+        const duration = e.timeStamp - this[startEvent].timeStamp;
+        const moveX = e.x - this[startEvent].x;
+        const moveY = e.y - this[startEvent].y;
+        const distance = Math.sqrt(moveX * moveX + moveY * moveY);
+        if (this[settings].maxMovement >= distance && this[settings].minDuration <= duration)  //[2]
+          this.dispatchEvent(new CustomEvent("longpress", {bubbles: true, detail: {duration, distance}}));
+        this[startEvent] = undefined;
+        this[settings] = undefined;
+      }
+    }
+  };
+
+  class LongPressOne extends LongPressMixin(HTMLElement) {
+    connectedCallback() {
+      super.connectedCallback();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<div style='width: 10px; height: 10px; border: 10px solid red;'></div>"
+    }
+  }
+
+  class LongPressTwo extends LongPressMixin(HTMLElement) {
+
+    static get longpressSettings() {
+      return Object.assign(Object.getPrototypeOf(this).longpressSettings, {minDuration: 200});
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<div style='width: 10px; height: 10px; border: 10px solid blue;'></div>"
+    }
+  }
+
+  customElements.define("long-press-one", LongPressOne);
+  customElements.define("long-press-two", LongPressTwo);
+
+  //A needs 1000ms press
+  const A = new LongPressOne();
+  A.id = "A";
+  document.querySelector("body").appendChild(A);
+  //B needs only 200ms press
+  const B = new LongPressTwo();
+  B.id = "B";
+  document.querySelector("body").appendChild(B);
+
+  document.addEventListener("longpress", (e) => console.log(e.path[0].id, e.detail.duration));
+
+</script>
+</body>
+</html>
