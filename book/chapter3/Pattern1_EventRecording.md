@@ -1,21 +1,24 @@
-# Pattern: ComposedEvents
+# Pattern: EventRecording
 
-ComposedEvent is a pattern for transforming one series of events into another series of events.
+EventRecording is a pattern for transforming one series of events into another series of events.
+You are composing one or more events from a series of one or more other events.
 `Double-tap to zoom`, `drag to scroll`, and even good all `click` and `doubleclick` are 
-all examples of such composed events or gestures implemented natively by the browsers.
+all examples of such recorded events or gestures implemented natively by the browsers.
 
-When creating a ComposedEvent yourself, you must:
-1. listen for a series of more primitive, underlying events,
-2. when the events fit a certain pattern described by a) time, b) sequence, and/or c) value 
-(such as position of fingers in touch-events), and
-3. then the ComposedEvent is detected and a new custom event is dispatched.
+**EventRecording** is done with the following steps:
+1. record a series of more primitive, underlying events,
+2. if and when the events fit a certain pattern described by 
+   * time, 
+   * sequence, and/or 
+   * value (such as position of fingers in touch-events), 
+3. then dispatch one or more new composed events.
 
-ComposedEvent is a variant of the ReactiveMethod pattern, but      
+EventRecording is a variant of the ReactiveMethod pattern, but      
 instead of treating the reactive method as an endpoint for external use, 
 the reactive method function as an internal processing (a middle step) 
 that produces an event (the end result) for external use. 
 Where the ReactiveMethod pattern only *listen-then-react*, 
-the EventComposition *listen-then-react-then-dispatch*.
+the EventRecording pattern *listens-then-react-then-dispatch*.
 
 ### Example: tripple-click-element
 
@@ -84,24 +87,23 @@ setTimeout(()=> {
 ```
 
 ### Implementation comments
-Avoid too much calculation and process that cost time. 
-Events being processed like this will potentially be quite taxing for the browser.
-* Delay processing until it is truly necessary
-* Do not add edge-case processing into the Mixin. Alternatives are:                    
-  * provide a pure function that run on the basic data of the event
-  * create a separate mixin that handles the edge case.
+Avoid expensive processing. 
+EventRecording will likely tax the browser. 
+You likely need to process some data in order to evaluate if the recorded events should 
+triggered a reaction or dispatch a composed event.
+But delay such processing until it is needed, and 
+try to limit the production of other event data within the EventRecorder.
 
 [TrippleClickElement on codepen.io](https://codepen.io/orstavik/pen/GxaxbL).
 
-## Benefits of ComposedEvents
-With ComposedEvent it is simple to maintain a smaller footprint 
+## Benefits of EventRecording
+With EventRecording it is simple to maintain a smaller footprint 
 *both* for performance *and* code complexity.
 
 When both listening for primitive events and dispatching custom events is added to 
 elements of a custom element, it is easier to maintain the hygiene based on the custom elements
 state or lifecycle callbacks.
 In this instance, the click listener is only active when the element is connected to the DOM.
-
 
 The main reasons for using such a pattern and creating custom elements when you need to translate events,
 is that the custom elements connectedCallback and disconnectedCallback provides a simple and safe way to
@@ -114,10 +116,9 @@ In addition, some event translation require:
 4. complex processing of the event data coming in and/or going out, and/or
 5. extensive testing.
 
-If so, apply the EventComposition pattern as a [FunctionalMixin](../chapter2/Pattern2_FunctionalMixin.md).
+If so, apply the EventRecording pattern as a [FunctionalMixin](../chapter2/Pattern2_FunctionalMixin.md).
 
-
-## Problems with ComposedEvents
+## Problems with EventRecording
 At first sight the pattern seem overly complex and heavy handed. 
 Why do we need to create a special custom component to achieve something 
 as simple as just translating 3 clicks to a tripple-click? In addition,
@@ -125,7 +126,7 @@ there are several apparent limitations to this approach:
 
 1. Creating a custom element prevents the "tripple-click" to be applied to other 
 existing components  such as regular HTML elements or third party elements. 
-To apply trippleclick on a normal div, a second implementation of the same logic must be made.
+To apply `trippleclick` on a normal div, a second implementation of the same logic must be made.
 
 2. Attaching this functionality to the type does not enable the developer to selectively 
 choose to dispatch tripple-click on some elements, while not on others of the same type. 
@@ -139,17 +140,17 @@ trippleClick(onOff = true) {
 }
 ```
 
-## Conflict between different ComposedEvents
-As long as the composed event neither alters the original event nor stops its propagation, 
-instances of the EventComposition pattern themselves should not cause any conflict. 
+## Conflict between different EventRecordings
+As long as the event recording neither alters the original event nor stops its propagation, 
+instances of the EventRecording pattern themselves should not cause any conflict. 
 
-However, the handling of different ComposedEvents might interrupt each others functioning.
-If you on a button bind two the two composed events a) `tripple-click` to an alert function
+However, the handling of different EventRecordings might interrupt each others functioning.
+If you on a button bind two composed events a) `tripple-click` to an alert function
 and b) `doubleclick` to a function that deletes the button itself, then `tripple-click` will be 
-hard to trigger and your ComposedEvents conflict with one another. Such conflicts should be handled
-by the user of the ComposedEvents, and not the custom element that issues them.
+hard to trigger and your EventRecordings conflict with one another. Such conflicts should be handled
+by the user of the composed events, and not the custom element that issues them.
 
-## Conflict between ComposedEvent gestures and some browsers/OSes
+## Conflict between EventRecording gestures and some browsers/OSes
 
 * double-tap to zoom: because some browsers and touch devices provide an underlying response by 
 the browsers to zoom when doubletap'ed, then the browsers must wait 350ms after a click has 
@@ -158,7 +159,7 @@ To avoid such delay, the css `touch-action` attribute can be added.
 
 * multi-touch gestures such as four finger swipes.
 
-## App-specific custom events vs EventCompositions for generic events.
+## App-specific custom events vs EventRecordings for generic events.
 
 There are several reasons why you might need your own events. 
 Sometimes, you want to differentiate your app logic events from generic events. 

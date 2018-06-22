@@ -181,7 +181,7 @@ enables them to be tested as a unit. The more **isolated** the Base of a set of 
 the more manageable and scalable their use becomes. 
 This is why the pattern is called **IsolatedFunctionalMixin**.
 
-Only **IsolatedFunctionalMixins** are needed to trigger **ReactiveMethod** and **ComposedEvent**. 
+Only **IsolatedFunctionalMixins** are needed to trigger **ReactiveMethod** and **EventRecording**. 
 Adding a bigger `Base` and additional dependencies for the functional mixins, will likely be too complex
 to manage independently by the developer. To lessen that complexity, a custom subclass of 
 HTMLElement (cf. PolymerElement) will become prefential, and this shared library must be universally 

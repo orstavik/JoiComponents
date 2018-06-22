@@ -3,14 +3,10 @@
 `attributeChangedCallback` is a callback method that is triggered every time an 
 attribute listed in `observedAttributes` is instantiated or changes. 
 
-When an attribute of a custom element is changed, 
-this event *can* trigger a native callback method on the custom element called 
-`.attributeChangedCallback(name, oldValue, newValue)`.
-
-In order to trigger the `.attributeChangedCallback(...)` function, 
-the name of the attribute must first be registered as an observed attribute.
-To register an observed attribute, the name of the attribute must be added to the 
-returned array from another native function `static get observedAttributes()`.                         
+To register an attribute in `observedAttributes` list, 
+the name of the attribute must be added as a string to the 
+returned array from the native function `static get observedAttributes()`.
+For more about `static get observedAttributes()`, see the [StaticSettings pattern](Pattern_StaticSettings.md).
 
 ## Example SayMyName
 ```html
@@ -68,6 +64,8 @@ This change triggers a new callback:
 After this callback, the browser presents `your name is: the Terrible, Ivan`.
 
 ## Why `static get observedAttributes()`?
+Or rather, why not trigger an `attributeChangedCallback(...)` for all attributes, always?
+
 When you make a custom element, you most often need only observe a few custom attributes.
 But, HTML elements has many attributes. Some of these attributes such as `style` 
 can change value quite often. So, if all attribute changes of custom elements 
@@ -79,11 +77,6 @@ By making the developer specify which attributes should
 trigger `attributeChangedCallback` in `static get observedAttributes()`,
 the browser can *ignore* all changes to other attributes.
 
-`static get observedAttributes()` is attached to the custom element prototype and 
-applies equally to all instances of the element.
-`static get observedAttributes()` returns an array of strings which represents 
-a list of the attribute names to be observed.
-
 ## Comment on JS parameter order 
 There is one minor flaw with the `attributeChangedCallback(...)` standard:
 the order of arguments should have been `name`, `newValue`, `oldValue`, 
@@ -94,10 +87,6 @@ would have been able to skip the third argument.
 To change this now would cause confusion and bugs. 
 But developers should not copy the principle of oldValue before newValue for custom element callbacks.
 The order should be newValue before oldValue. 
-
-## TODO explain the pattern behind static get observedAttributes() ?? 
-how it can be used inside a functional mixin.
-how it can be overridden both statically and in each individual object.
 
 ## References
  * MDN on `attributeChangedCallback`
