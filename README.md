@@ -17,8 +17,27 @@ In fact, it is the ambition with this book that you no longer need a framework t
 scalable, manageable, simple, yet powerful web apps. Modern browsers now has all the power you desire.
 Hence, every mixin strives for no other dependencies than itself and the (polyfilled) platform. 
 
-So, if you want to test the mixins directly, go right ahead (and use them via rawgit.com or unpkg.com). 
-If you want to copy them into your web component and/or adapt them to fit your need, do so freely.
+The following mixins are directly available via rawgit.com and unpkg.com:
+Regular mixins:
+* [EnterViewMixin.js](src/EnterViewMixin.js)
+* [FirstConnectedMixin.js](src/FirstConnectedMixin.js)
+* [HashChangedMixin.js](src/HashChangedMixin.js)
+* [SizeChangedMixin.js](src/SizeChangedMixin.js)
+* [SlotchangeMixin.js](src/SlotchangeMixin.js)
+* [StaticSlotchangeMixin.js](src/StaticSlotchangeMixin.js)
+
+Gestures:
+* [gestures/DragFling.js](src/gestures/DragFling.js)
+* [gestures/Pinch.js](src/gestures/Pinch.js)
+* [gestures/Swipe.js](src/gestures/Swipe.js)
+
+Other resources:
+* [polyfill-loader.js](src/polyfill-loader.js)
+* [flattenNodes.js](src/flattenNodes.js)
+
+Example of complete links:
+ * [https://unpkg.com/joicomponents@1.2.0/src/SlotchangeMixin.js](https://unpkg.com/joicomponents@1.2.0/src/SlotchangeMixin.js)
+ * [https://cdn.rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js](https://rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js)
 
 ## Chapter 1: How to make a web component?
 1. [Define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
