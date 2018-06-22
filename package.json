@@ -1,8 +1,8 @@
 {
-  "name": "JoiComponents",
+  "name": "joicomponents",
   "version": "1.2.0",
   "description": "Design patterns to build native web components",
-  "main": "src/ChildrenChangedCallback.js",
+  "main": "src/slotchangeMixin.js",
   "directories": {
     "test": "test"
   },
@@ -11,18 +11,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/orstavik/children-changed-callback.git"
+    "url": "git+https://github.com/orstavik/JoiComponents.git"
   },
   "keywords": [
-    "HTMLElement",
-    "childList",
+    "design patterns",
+    "cookbook",
+    "native",
+    "web components",
+    "custom elements",
     "slotchange",
     "slotchangedCallback"
   ],
   "author": "Ivar Orstavik",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/orstavik/children-changed-callback/issues"
+    "url": "https://github.com/orstavik/JoiComponents"
   },
-  "homepage": "https://github.com/orstavik/children-changed-callback#readme"
+  "homepage": "https://github.com/orstavik/JoiComponents"
 }
