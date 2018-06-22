@@ -25,7 +25,8 @@ There are two approaches to implement `SlotchangeMixin`:
 `StaticSlotchangeMixin` and `SlotchangeMixin`.
 
 ## `StaticSlotchangeMixin`
-`StaticSlotchangeMixin` implements a strategy that listens for `slotchange` events inside 
+[`StaticSlotchangeMixin`](../../src/StaticSlotchangeMixin.js) 
+implements a strategy that listens for `slotchange` events inside 
 the shadowDOM only, the most intuitive approach.
 At `connectedCallback()`-time, the `StaticSlotchangeMixin` will discover any `<slot>`
 elements inside it, add `slotchange` event listeners on those `<slot>` elements and trigger 
@@ -33,13 +34,13 @@ a `slotchangedCallback(...)` for each `slotName` at `firstConnectedCallback()`-t
 whenever the `.assignedNodes()` of one of those `<slot>`s changes.
 
 ### Problem: `this.updateSlotListeners()`
-But. There is a problem with `SlotchangedMixin`.
+But. There is a problem with `StaticSlotchangedMixin`.
 * If the content of the custom element's `shadowRoot` is altered,
 * **while** the custom element is **connected** to the DOM,
 * so as to **add or remove a `<slot>` element** under `this.shadowRoot`,
 * then a custom method **`this.updateSlotListeners()` must be called** on 
 the custom element,
-* so that the `SlotchangedMixin` can attach new event listeners for `slotchange` events,
+* so that the `StaticSlotchangedMixin` can attach new event listeners for `slotchange` events,
 * and remove unnecessary event listeners.
 * `updateSlotListeners()` will trigger a `slotchangedCallback()` for any new `<slot>`,
 * and this is also necessary for the custom element to be able to continue to 
@@ -57,7 +58,8 @@ So we must continue to listen for `<slot>` node directly and `updateSlotListener
 Or.. we could employ a different strategy to observe `slotchange` events. Enter `SlotchangeMixin`.
 
 ## `SlotchangeMixin`
-`SlotchangeMixin` implements a different strategy to observe `slotchange` events.
+[`SlotchangeMixin`](../../src/SlotchangeMixin.js) 
+implements a different strategy to observe `slotchange` events.
 Instead of attaching event listeners for `slotchange` events on the `<slot>` elements 
 inside the `shadowRoot`, `SlotchangeMixin` instead **observes the `childNodes` of the
 `host` node** in the lightDOM using `MutationObserver`. `SlotchangeMixin` then categorizes 
@@ -98,7 +100,7 @@ In this example we remake the `<red-frame>` `SlotchangeMixin`.
         <slot></slot>`;                     
     }
     
-    slotchangedCallback(slot, newAssignedNodes) {            //[1]
+    slotchangedCallback(slotName, newAssignedNodes) {            //[1]
       const div = this.shadowRoot.getElementById("count");
       div.innerText = newAssignedNodes.length;
     }
@@ -122,8 +124,8 @@ In this example we remake the `<red-frame>` `SlotchangeMixin`.
 ```
 1. All the functionality of efficiently and harmonically listening for `slotchange` events
 are encapsulated in `SlotchangeMixin`.
-If there are more than one `<slot>` element that one needs to distinguish between, 
-the first argument `slot` of the callback method can be used.
+If you need to distinguish between different `<slot>` elements, 
+use the first argument `slotName` of the callback method.
 
 ## References
 * https://github.com/webcomponents/gold-standard/wiki/Content-Changes
@@ -134,8 +136,8 @@ the first argument `slot` of the callback method can be used.
 * https://github.com/w3c/webcomponents/issues/493#issuecomment-218077582
 * https://dom.spec.whatwg.org/#mutation-observers
 * https://github.com/whatwg/dom/issues/126
-
-## TODO Add static get excludeSlot(){ return ["slotNameToBeExcluded", "excludeMeTo"];}??
  
 ## Acknowledgments
 Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
+
+TODO: Add StaticSetting `excludeSlot(){ return ["slotNameToBeExcluded", "excludeMeTo"];}`?

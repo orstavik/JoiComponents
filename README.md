@@ -48,7 +48,7 @@ Example of complete links:
 6. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
 7. [Pattern: `slotchange`](book/chapter1/Pattern2_slotchange.md)
 8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
-9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)
+<!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
 
 ## Chapter 2a: Lifecycle callbacks
 1. [Intro: native callbacks](book/chapter2/Intro_native_lifecycle_hooks.md)

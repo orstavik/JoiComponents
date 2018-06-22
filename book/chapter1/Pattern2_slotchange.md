@@ -14,11 +14,11 @@ The initial-`slotchange`-event is the `slotchange` event that is dispatched
 when the slot is created and assigned nodes for the very first time.
 Both Chrome and the polyfill dispatch an initial-`slotchange`-event, but Safari does not.
 This discrepancy can be harmonized in the following ways:
-1. Ignore the initial-`slotchange`-event, except in Safari. 
-2. Create an extra `slotchange`-event at `connectedCallback()` only in Safari.
-3. Create an extra `slotchange`-event in all browser, but 
-ensure that the `slotchange`-event listener is only run when the `.assignedNodes()`
-of the `<slot>` has actually changed.
+   1. Ignore the initial-`slotchange`-event, except in Safari. 
+   2. Create an extra `slotchange`-event at `connectedCallback()` only in Safari.
+   3. Create an extra `slotchange`-event in all browser, but 
+      ensure that the `slotchange`-event listener is only run when the `.assignedNodes()`
+      of the `<slot>` has actually changed.
 
 ## Example 1: RedFrame
 
