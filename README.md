@@ -37,6 +37,7 @@ If you want to copy them into your web component and/or adapt them to fit your n
 
 ## Chapter 2b: Event callbacks
 8. [.attributeChangedCallback()](book/chapter2/HowTo_attributeChangedCallback.md)
+8. [StaticSetting](book/chapter2/Pattern_StaticSettings.md)
 2. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 3. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
 5. [.slotchangedCallback()](book/chapter2/Mixin1_SlotchangeMixin.md)
@@ -44,13 +45,14 @@ If you want to copy them into your web component and/or adapt them to fit your n
 7. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
 8. [Discussion: isolate FunctionalMixins](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
 
-## Chapter 3: ComposedEvents and Gestures in JS
-1. [EventComposition](book/chapter3/Pattern1_ComposedEvents.md) (such as gestures, clicks, drag)
-2. [Discussion: conflicting gestures](book/chapter3/Problem_conflicting_gestures.md) (such as gestures, clicks, drag)
+## Chapter 3: Gestures
+1. [EventAndOrCallback](book/chapter3/Pattern3_EventAndOrCallback.md)
+1. [EventRecording](book/chapter3/Pattern1_EventRecording.md)
+2. [Discussion: conflicting gestures](book/chapter3/Problem_conflicting_gestures.md)
 3. [InvadeAndRetreat!](book/chapter3/Pattern5_InvadeAndRetreat.md)
-4. [DragFlingMixin](book/chapter3/Mixin1_DragFlingGesture.md) (SingleFingerGesture, DragGesture)
+4. [DragFlingMixin](book/chapter3/Mixin1_DragFlingGesture.md) (PointerGesture)
 5. [SwipeFlingMixin](book/chapter3/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-6. [PinchGesture](book/chapter3/Mixin3_PinchGesture.md) (TwoFingerGesture, PinchGesture)
+6. [PinchGesture](book/chapter3/Mixin3_PinchGesture.md) (TwoFingerGesture)
 
 ## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)

@@ -1,14 +1,12 @@
-# DragFlingGesture
+# Mixin: DragFlingGesture
 The purpose of `DragFlingGesture` is to add dragging and fling events and/or callbacks to an element.
 The `DragFlingGesture` is built using the patterns:
 1. [ReactiveMethod](../chapter2/Pattern1_ReactiveMethod.md)
 2. [FunctionalMixin](../chapter2/Pattern2_FunctionalMixin.md)
-3. [EventComposition](Pattern4_EventComposition.md)
-4. [StaticGetOverridableSettings](Pattern4_EventComposition.md)
-.
-The `DragFlingGesture` **depends on pointerevents**.
+3. [EventRecording](Pattern1_EventRecording.md)
+4. [StaticSettings](../chapter2/Pattern_StaticSettings.md)
 
-### Example of use:
+## Example: DraggingBlock
 
 ```javascript
 import {DragFlingGesture} from "https://rawgit.com/orstavik/JoiComponents/master/src/DragFlingMixin.js";
@@ -48,6 +46,12 @@ Removes the listener for `dragging` event when the element disconnects.
 
 Test it out on [codepen](https://codepen.io/orstavik/pen/XEwPaE).
 
-#### References
+## Comments on implementation
+1. `DragFlingGesture` does not use pointerevents. It could have. But it doesn't. 
+This means that the PEP polyfill is not needed for this mixin.
+
+## References
+* [Lauke: getting touchy presentation](https://www.youtube.com/watch?v=jSL-RluQhMs)
+* [Lauke: getting touchy on github](https://github.com/patrickhlauke/getting-touchy-presentation)
 * https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events
 * https://github.com/jquery/PEP
