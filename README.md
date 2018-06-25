@@ -52,13 +52,14 @@ Example of complete links:
 
 ## Chapter 2a: Lifecycle callbacks
 1. [Intro: native callbacks](book/chapter2/Intro_native_lifecycle_hooks.md)
-4. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
+2. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
+3. [.firstOpportunityCallback()](book/chapter2/Mixin6_FirstOpportunityMixin.md)
 
 ## Chapter 2b: Event callbacks
-8. [.attributeChangedCallback()](book/chapter2/HowTo_attributeChangedCallback.md)
-8. [StaticSetting](book/chapter2/Pattern_StaticSettings.md)
-2. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
-3. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
+1. [.attributeChangedCallback()](book/chapter2/HowTo_attributeChangedCallback.md)
+2. [StaticSetting](book/chapter2/Pattern_StaticSettings.md)
+3. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
+4. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
 5. [.slotchangedCallback()](book/chapter2/Mixin1_SlotchangeMixin.md)
 6. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
 7. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
