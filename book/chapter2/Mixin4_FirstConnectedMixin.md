@@ -49,7 +49,11 @@ So, If you only need to set up your attributes once,
 you would like to have a callback hook that is triggered sometime *after* the 
 `constructor()` but *before* the `connectedCallback()`: `firstConnectedCallback()`.
 
-## Problem 2: template elements created at start up
+## Problem 2: setup-traffic-jam
+
+When an element with shadowDOM is setup, the internal shadowDOM is usually created and added to the element 
+regardless of whether or not the element is yet connected to the DOM (and thus the shadowDOM needed).
+This shadowDOM might in turn contain other complex elements, thus spawning a somewhat big and expensive setup operation.
 
 With various use of template based patterns, libraries, frameworks, and `HTMLTemplateElement`,
 web apps can create several *alternative* DOM branches that it intends to switch between at run-time.
@@ -58,12 +62,13 @@ then later switch between these pages by connecting and disconnecting them to th
 
 Such an architecture can yield great performance while the app is in use and
 a simple and clear structure in development. It is a good thing.
-But, such an architecture also pushes a lot of work at startup time, thus slowing down the app at load time.
+But, such an architecture also pushes a lot of work at startup time.
+Doing too much work at startup slows down the app load time.
 In our example, all the ten pages and all their DOM elements are then created at startup time.
 Now, if the `constructor()` in all these DOM nodes are doing work,
 then these `constructor()`s will slow down the app at startup.
 
-In order to avoid this bottleneck, the 'meaty' set up work should be 
+In order to avoid this bottleneck, the setting-up of element work should be 
 removed from the `constructor()` and instead be delayed until either the browser has 
 spare time or when the element are first connected to the DOM.
 Hence `firstConnectedCallback()`.
