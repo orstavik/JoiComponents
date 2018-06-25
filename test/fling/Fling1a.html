@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+<!--<script src="https://hammerjs.github.io/dist/hammer.js"></script>-->
+<!--<script src="//cdn.rawgit.com/hammerjs/touchemulator/0.0.2/touch-emulator.js"></script>-->
+<!--<script> TouchEmulator(); </script>-->
+
+<style>
+  .ball {
+    display: block;
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid red;
+  }
+  div {
+    height: 150px;
+    width: 100vw;
+    border: 2px solid red;
+    display: inline-block;
+    border: 2px solid black;
+  }
+</style>
+
+<div> Event
+  <fling-ball class="ball" style="top: 75px; left: 100px;"></fling-ball>
+  <fling-ball class="ball" style="top: 75px; left: 300px;">
+    fling me with selectable text,
+    but neither I nor later siblings
+    can be flung if the text is selected!
+  </fling-ball>
+  <fling-ball class="ball" style="top: 75px; left: 600px; user-select: none">non-selectable text</fling-ball>
+</div>
+
+<div> Event + Callback
+  <fling-balls-event-callback class="ball" style="top: 225px; left: 100px;"></fling-balls-event-callback>
+  <fling-balls-event-callback class="ball" style="top: 225px; left: 400px;">
+    selectable text
+  </fling-balls-event-callback>
+  <fling-balls-event-callback class="ball" style="top: 225px; left: 600px; user-select: none">non-selectable text
+  </fling-balls-event-callback>
+</div>
+<div> Callback
+  <fling-balls-callback class="ball" style="top: 375px; left: 100px;"></fling-balls-callback>
+  <fling-balls-callback class="ball" style="top: 375px; left: 300px;">
+    selectable text
+  </fling-balls-callback>
+  <fling-balls-callback class="ball" style="top: 375px; left: 600px; user-select: none">non-selectable text
+  </fling-balls-callback>
+</div>
+
+<script type="module">
+
+  import {DragFlingGesture} from "../../src/gestures/DragFling.js";
+
+  class FlingBallE extends DragFlingGesture(HTMLElement) {
+
+    constructor() {
+      super();
+      this._dragListener = e => this._onDragging(e);
+      this._dragstartListener = e => this._onDraggingStart(e);
+      this._dragendListener = e => this._onDraggingEnd(e);
+      this._dragListener = e => this._onDragging(e);
+      this._flingListener = e => this._onFling(e);
+      this._cachedTouchAction = undefined;
+      this._cachedUserSelect = undefined;
+    }
+
+    static get dragFlingEventOrCallback() {
+      return 1;
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      this.addEventListener("draggingstart", this._dragstartListener);
+      this.style.userSelect = "none";
+      this.style.touchAction = "none";
+    }
+
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this.removeEventListener("draggingstart", this._dragstartListener);
+    }
+
+    _onDraggingStart(e) {
+      this.style.backgroundColor = "red";
+      this.addEventListener("dragging", this._dragListener);
+      const body = document.querySelector("body");
+      this._cachedTouchAction = body.style.touchAction;
+      this._cachedUserSelect = body.style.userSelect;
+      body.style.touchAction = "none";
+      body.style.userSelect = "none";
+    }
+
+    _onDragging(e) {
+      this.style.transition = undefined;
+      this.style.left = (parseFloat(this.style.left) + e.detail.distX) + "px";
+      this.style.top = (parseFloat(this.style.top) + e.detail.distY) + "px";
+      this.addEventListener("draggingend", this._dragendListener);
+      this.addEventListener("fling", this._flingListener);
+    }
+
+    _onDraggingEnd(e) {
+      this.style.backgroundColor = "unset";
+      this.removeEventListener("draggingend", this._dragendListener);
+      this.removeEventListener("fling", this._flingListener);
+      this.removeEventListener("dragging", this._dragListener);
+      const body = document.querySelector("body");
+      body.style.touchAction = this._cachedTouchAction;
+      body.style.userSelect = this._cachedUserSelect;
+      this._cachedTouchAction = "none";
+      this._cachedUserSelect = "none";
+    }
+
+    _onFling(e) {
+      const a = e.detail.e;
+      const totalTime = e.detail.durationMs;
+      const addX = e.detail.distX;
+      const addY = e.detail.distY;
+      this.style.transition = "all " + totalTime + "ms cubic-bezier(0.39, 0.58, 0.57, 1)";
+      this.style.left = (parseFloat(this.style.left) + addX) + "px";
+      this.style.top = (parseFloat(this.style.top) + addY) + "px";
+    }
+  }
+
+  class FlingBallCBE extends DragFlingGesture(HTMLElement) {
+
+    constructor() {
+      super();
+      this._dragListener = e => this._onDragging(e);
+      this._dragstartListener = e => this._onDraggingStart(e);
+      this._dragendListener = e => this._onDraggingEnd(e);
+      this._dragListener = e => this._onDragging(e);
+      this._flingListener = e => this._onFling(e);
+      this._cachedTouchAction = undefined;
+      this._cachedUserSelect = undefined;
+    }
+
+    static get dragFlingEventOrCallback() {
+      return 0;
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      this.addEventListener("draggingstart", this._dragstartListener);
+      this.style.userSelect = "none";
+      this.style.touchAction = "none";
+    }
+
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this.removeEventListener("draggingstart", this._dragstartListener);
+    }
+
+    _onDraggingStart(e) {
+      this.style.backgroundColor = "green";
+      this.addEventListener("dragging", this._dragListener);
+      const body = document.querySelector("body");
+      this._cachedTouchAction = body.style.touchAction;
+      this._cachedUserSelect = body.style.userSelect;
+      body.style.touchAction = "none";
+      body.style.userSelect = "none";
+    }
+
+    _onDragging(e) {
+      this.style.transition = undefined;
+      this.style.top = (parseFloat(this.style.top) + e.detail.distY) + "px";
+      this.addEventListener("draggingend", this._dragendListener);
+      this.addEventListener("fling", this._flingListener);
+    }
+
+    _onDraggingEnd(e) {
+      this.style.backgroundColor = "unset";
+      this.removeEventListener("draggingend", this._dragendListener);
+      this.removeEventListener("fling", this._flingListener);
+      this.removeEventListener("dragging", this._dragListener);
+      const body = document.querySelector("body");
+      body.style.touchAction = this._cachedTouchAction;
+      body.style.userSelect = this._cachedUserSelect;
+      this._cachedTouchAction = "none";
+      this._cachedUserSelect = "none";
+    }
+
+    _onFling(e) {
+      const a = e.detail.e;
+      const totalTime = e.detail.durationMs;
+      const addX = e.detail.distX;
+      const addY = e.detail.distY;
+      this.style.transition = "all " + totalTime + "ms cubic-bezier(0.39, 0.58, 0.57, 1)";
+      this.style.top = (parseFloat(this.style.top) + addY) + "px";
+    }
+
+    draggingstartCallback(detail) {
+      this.style.backgroundColor = "blue";
+    }
+
+    draggingCallback(detail) {
+      this.style.transition = undefined;
+      this.style.left = (parseFloat(this.style.left) + detail.distX) + "px";
+    }
+
+    draggingendCallback(detail) {
+      this.style.backgroundColor = "unset";
+    }
+
+    flingCallback(detail) {
+      const e = detail.e;
+      const totalTime = detail.durationMs;
+      const addX = detail.distX;
+      const addY = detail.distY;
+      this.style.transition = "all " + totalTime + "ms cubic-bezier(0.39, 0.58, 0.57, 1)";
+      this.style.left = (parseFloat(this.style.left) + addX) + "px";
+    }
+  }
+
+  class FlingBallCB extends DragFlingGesture(HTMLElement) {
+
+    constructor() {
+      super();
+      this._dragListener = e => this._onDragging(e);
+      this._dragstartListener = e => this._onDraggingStart(e);
+      this._dragendListener = e => this._onDraggingEnd(e);
+      this._dragListener = e => this._onDragging(e);
+      this._flingListener = e => this._onFling(e);
+    }
+
+    static get dragFlingEventOrCallback() {
+      return -1;
+    }
+
+    draggingstartCallback(detail) {
+      this.style.backgroundColor = "blue";
+    }
+
+    draggingCallback(detail) {
+      this.style.transition = undefined;
+      this.style.left = (parseFloat(this.style.left) + detail.distX) + "px";
+      this.style.top = (parseFloat(this.style.top) + detail.distY) + "px";
+    }
+
+    draggingendCallback(detail) {
+      this.style.backgroundColor = "unset";
+    }
+
+    flingCallback(detail) {
+      const e = detail.e;
+      const totalTime = detail.durationMs;
+      const addX = detail.distX;
+      const addY = detail.distY;
+      this.style.transition = "all " + totalTime + "ms cubic-bezier(0.39, 0.58, 0.57, 1)";
+      this.style.left = (parseFloat(this.style.left) + addX) + "px";
+      this.style.top = (parseFloat(this.style.top) + addY) + "px";
+    }
+  }
+
+  customElements.define("fling-ball", FlingBallE);
+  customElements.define("fling-balls-event-callback", FlingBallCBE);
+  customElements.define("fling-balls-callback", FlingBallCB);
+</script>
+
+</body>
+</html>

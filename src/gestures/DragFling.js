@@ -189,8 +189,10 @@ export const DragFlingGesture = function (Base) {
     }
 
     [touchStop](e) {
-      this[fling](e, e.targetTouches[0].pageX, e.targetTouches[0].pageY);
-      this[eventAndOrCallback]("draggingend", {event: e, x: e.targetTouches[0].pageX, y: e.targetTouches[0].pageY});
+      const lastMoveDetail = this[cachedEvents][this[cachedEvents].length-1];
+      const detail = {event: e, x: lastMoveDetail.x, y: lastMoveDetail.y};
+      this[fling](detail.event, detail.x, detail.y);
+      this[eventAndOrCallback]("draggingend", detail);
 
       window.removeEventListener("touchmove", this[touchMoveListener]);
       window.removeEventListener("touchend", this[touchStopListener]);
