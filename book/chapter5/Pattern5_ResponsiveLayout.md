@@ -10,14 +10,14 @@ To show how the ResponsiveLayout pattern works,
 I will here present a normal layout structure for web pages.
 
 ```javascript
-import { SizeChangedMixin } from "https://rawgit.com/orstavik/JoiComponents/master/src/SizeChangedMixin.js";
+import { ResizeMixin } from "https://rawgit.com/orstavik/JoiComponents/master/src/ResizeMixin.js";
 
-class ResponsiveLayout extends SizeChangedMixin(HTMLElement) {   //[1]
+class ResponsiveLayout extends ResizeMixin(HTMLElement) {   //[1]
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
     this._resizeListener = s =>
-      this.sizeChangedCallback({
+      this.resizeCallback({
         width: window.innerWidth,
         height: window.innerHeight
       });
@@ -68,7 +68,7 @@ class ResponsiveLayout extends SizeChangedMixin(HTMLElement) {   //[1]
 <div style="grid-area: footer">
   <slot name="footer"></slot>
 </div>`;
-    this.sizeChangedCallback({
+    this.resizeCallback({
       width: window.innerWidth,
       height: window.innerHeight
     });
@@ -78,7 +78,7 @@ class ResponsiveLayout extends SizeChangedMixin(HTMLElement) {   //[1]
     window.removeEventListener("resize", this._resizeListener);
   }
 
-  sizeChangedCallback({ width, height }) {                       //[4]
+  resizeCallback({ width, height }) {                       //[4]
     const w =
       width > 1000 ? "large" : 
       width > 800 ? "medium" : 
@@ -91,7 +91,7 @@ customElements.define("responsive-layout", ResponsiveLayout);
 ```    
 [ResponsiveLayout on codepen.io](https://codepen.io/orstavik/pen/OZXZGN).
 
-1. Adding `SizeChangedMixin` to observe and react to size changes of the element.
+1. Adding `ResizeMixin` to observe and react to size changes of the element.
 2. Use the `<style></style>` tag to describe the different layouts for different size 
 attribute values such as `:host([size="large"])`, `:host([size="medium"])`.
 3. Wrap the `<slot>`-elements in `<div>`s as slots can't be positioned in the grid directly. //verify this

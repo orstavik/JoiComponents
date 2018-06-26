@@ -24,9 +24,9 @@
 </head>
 <body>
 <script type="module">
-  import {SizeChangedMixin} from "../../src/SizeChangedMixin.js";
+  import {ResizeMixin} from "../../src/ResizeMixin.js";
 
-  class ResponsiveLayout extends SizeChangedMixin(HTMLElement) {
+  class ResponsiveLayout extends ResizeMixin(HTMLElement) {
     constructor() {
       super();
       this.attachShadow({mode: "open"});
@@ -84,7 +84,7 @@
   </div>
 </div>
 `;
-      this.sizeChangedCallback({
+      this.resizeCallback({
         width: window.innerWidth,
         height: window.innerHeight
       });
@@ -94,7 +94,7 @@
       super.disconnectedCallback();
     }
 
-    sizeChangedCallback({width, height}) {
+    resizeCallback({width, height}) {
       const w =
         width > 1000 ? "large" :
           width > 800 ? "medium" :

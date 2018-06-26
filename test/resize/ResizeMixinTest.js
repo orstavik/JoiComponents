@@ -1,18 +1,18 @@
-import {SizeChangedMixin} from "../../src/SizeChangedMixin.js";
+import {ResizeMixin} from "../../src/ResizeMixin.js";
 
 const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
 
-describe('SizeChangedMixin basics', function () {
+describe('ResizeMixin basics', function () {
 
   it("extend HTMLElement class and make an element", function () {
-    const SizeChangedElement = SizeChangedMixin(HTMLElement);
+    const SizeChangedElement = ResizeMixin(HTMLElement);
     customElements.define("must-use-custom-elements-define-to-enable-constructor-size", SizeChangedElement);
     const el = new SizeChangedElement();
-    expect(el.constructor.name).to.be.equal("SizeChangedMixin");
+    expect(el.constructor.name).to.be.equal("ResizeMixin");
   });
 
-  it("subclass SizeChangedMixin", function () {
-    const SubclassSizeChangedElement = class SubclassSizeChanged extends SizeChangedMixin(HTMLElement) {
+  it("subclass ResizeMixin", function () {
+    const SubclassSizeChangedElement = class SubclassSizeChanged extends ResizeMixin(HTMLElement) {
       test() {
         return "abc";
       }
@@ -23,8 +23,8 @@ describe('SizeChangedMixin basics', function () {
     expect(el.test()).to.be.equal("abc");
   });
 
-  it("subclass SizeChangedMixin anonymous", function () {
-    const SubclassSizeChangedElement = class extends SizeChangedMixin(HTMLElement) {
+  it("subclass ResizeMixin anonymous", function () {
+    const SubclassSizeChangedElement = class extends ResizeMixin(HTMLElement) {
       test() {
         return "abc";
       }
@@ -36,7 +36,7 @@ describe('SizeChangedMixin basics', function () {
   });
 
   it(".getContentRect() returns {width: 0, height: 0}", function () {
-    const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
+    const Subclass = class Subclass extends ResizeMixin(HTMLElement) {
     };
     customElements.define("get-content-size", Subclass);
     const el = new Subclass();
@@ -44,7 +44,7 @@ describe('SizeChangedMixin basics', function () {
   });
 
   it("style.display set to inline-block on connection", function () {
-    const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
+    const Subclass = class Subclass extends ResizeMixin(HTMLElement) {
     };
     customElements.define("style-inline-block", Subclass);
     const el = new Subclass();
@@ -57,10 +57,10 @@ describe('SizeChangedMixin basics', function () {
 });
 
 //ATT!! the child cannot be removed until after the next ResizeObservation, the simplest way to get there is 2 x rAF
-describe('sizeChangedCallback simple', function () {
-  it("call sizeChangedCallback on connecting an element to document - using constructor", function (done) {
-    const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
-      sizeChangedCallback(rect) {
+describe('resizeCallback simple', function () {
+  it("call resizeCallback on connecting an element to document - using constructor", function (done) {
+    const Subclass = class Subclass extends ResizeMixin(HTMLElement) {
+      resizeCallback(rect) {
         assert(rect.width > 0);
         assert(rect.height > 0);
         done();
@@ -73,9 +73,9 @@ describe('sizeChangedCallback simple', function () {
     raf_x(2, () => document.querySelector("body").removeChild(el));
   });
 
-  it("call sizeChangedCallback on connecting an element to document - using document.createElement", function (done) {
-    const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
-      sizeChangedCallback(rect) {
+  it("call resizeCallback on connecting an element to document - using document.createElement", function (done) {
+    const Subclass = class Subclass extends ResizeMixin(HTMLElement) {
+      resizeCallback(rect) {
         assert(rect.width > 0);
         assert(rect.height > 0);
         done();
@@ -91,13 +91,13 @@ describe('sizeChangedCallback simple', function () {
   });
 });
 
-describe("sizeChangedCallback(rect) size-changed-x", function () {
+describe("resizeCallback(rect) resize-changed-x", function () {
 
   let prevWidth, testHook;
 
   before(() => {
-    const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
-      sizeChangedCallback(rect) {
+    const Subclass = class Subclass extends ResizeMixin(HTMLElement) {
+      resizeCallback(rect) {
         testHook(rect);
       }
     };
@@ -118,7 +118,7 @@ describe("sizeChangedCallback(rect) size-changed-x", function () {
       done();
     };
     const el = document.createElement("size-changed-x");
-    el.innerText = "size-changed-x:";
+    el.innerText = "resize-changed-x:";
     document.querySelector("#testContainer").appendChild(el);
   });
 
@@ -148,7 +148,7 @@ describe("sizeChangedCallback(rect) size-changed-x", function () {
     });
   });
 
-  it("Frame 3: change element.style.padding, margin, border DOES NOT trigger sizeChangedCallback", function (done) {
+  it("Frame 3: change element.style.padding, margin, border DOES NOT trigger resizeCallback", function (done) {
     raf_x(3, () => {
       testHook = function (rect) {
         assert(false);
@@ -161,7 +161,7 @@ describe("sizeChangedCallback(rect) size-changed-x", function () {
     });
   });
 
-  it("Frame 4: produce new layout but with the same contentRect DOES NOT trigger sizeChangedCallback", function (done) {
+  it("Frame 4: produce new layout but with the same contentRect DOES NOT trigger resizeCallback", function (done) {
     raf_x(4, () => {
       testHook = function (rect) {
         assert(false);
@@ -210,8 +210,8 @@ describe("test of switching between inline and inline-block", function () {
   let testHook;
 
   before(() => {
-    const Subclass = class Subclass extends SizeChangedMixin(HTMLElement) {
-      sizeChangedCallback(rect) {
+    const Subclass = class Subclass extends ResizeMixin(HTMLElement) {
+      resizeCallback(rect) {
         testHook(rect, this.getContentRect());
       }
     };
@@ -231,11 +231,11 @@ describe("test of switching between inline and inline-block", function () {
       done();
     };
     const el = document.createElement("size-changed-inline-switch");
-    el.innerText = "size-changed-x:";
+    el.innerText = "resize-changed-x:";
     document.querySelector("#testContainer").appendChild(el);
   });
 
-  it("Frame 1: inflight change to display: inline triggers a sizeChangedCallback with values 0,0 for ResizeObserver", function (done) {
+  it("Frame 1: inflight change to display: inline triggers a resizeCallback with values 0,0 for ResizeObserver", function (done) {
     raf_x(1, () => {
       testHook = function (rect) {
         assert(rect.width === 0);
@@ -247,7 +247,7 @@ describe("test of switching between inline and inline-block", function () {
     });
   });
 
-  it("Frame 2: inflight change to display: block triggers a sizeChangedCallback with DIFFERING values from getContentRect and the contentRect from ResizeObserver", function (done) {
+  it("Frame 2: inflight change to display: block triggers a resizeCallback with DIFFERING values from getContentRect and the contentRect from ResizeObserver", function (done) {
     raf_x(2, () => {
       testHook = function (rect, rect2) {
         assert(rect.width > 0);

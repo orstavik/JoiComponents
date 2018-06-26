@@ -1,4 +1,4 @@
-# Discussion: Why use web components instead of CSS pseudo elements and CSS media queries?
+# Discussion: Why use custom elements instead of CSS pseudo elements and CSS media queries?
 
 TLDR; Benefits of web components for styling:
 * Remove grid/layout/css media queries and css pseudo elements from the global css.
@@ -9,7 +9,7 @@ Most web apps today implement this using CSS media queries.
 But, CSS media queries has its limitation that it only listens to the size of the entire window.
 If you have an individual element which you would like to lay itself out differently based on its size,
 CSS media queries doesn't really help. Here, you would need to observe the size of the element in 
-question and react to `sizeChangedCallback()`. 
+question and react to `resizeCallback()`. 
 
 ### 2. encapsulate css media queries
 Even though CSS media queries can complete the task, 

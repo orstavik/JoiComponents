@@ -36,22 +36,22 @@ class ResizeObserverRAF {
 
 const onlyOnSizeChangedOnAll = entries => {
   for (let entry of entries)
-    entry.target.sizeChangedCallback(entry.contentRect);
+    entry.target.resizeCallback(entry.contentRect);
 };
 const chromeResizeObserver = window.ResizeObserver ? new ResizeObserver(onlyOnSizeChangedOnAll) : undefined;
 const rafResizeObserver = new ResizeObserverRAF(onlyOnSizeChangedOnAll);
 
 /**
- * The purpose of this SizeChangedMixin is to provide a function hook that is triggered
- * everytime the size of the contentRectangle of the webcomponent changes, but only once per frame.
- * Such a hook has two primary use-cases:
- * 1. "web-component mediaquery": You need to change the innerDOM of an element based on its available screen size.
+ * ResizeMixin provides a callback method `resizeCallback(...)` that triggers
+ * every time the size of a custom element's contentRectangle changes, max once per frame.
+ * resizeCallback(...) has two primary use-cases:
+ * 1. "custom element mediaquery": You want to adapt the shadowDOM of an element based on its size.
  * 2. You want to change some attributes of dependent elements (such as size or position) based on a combination of
  * size and/or content.
  *
- * All elements implementing SizeChangedMixin have changes in their _inner_ size observed.
+ * All elements implementing ResizeMixin have changes in their _inner_ size observed.
  * "Inner size" is defined as "contentRect" in Chrome's ResizeObserver,
- * or "window.getComputedStyle(this).width+height".
+ * or "window.getComputedStyle(this).width" and ".height".
  *
  * In Chrome, this is done using ResizeObserver. The ResizeObserver has the following limitations:
  * 1. sometimes the contentRect is different from the getComputedStyle.width and .height values!! Why?? (see last test)
@@ -60,16 +60,16 @@ const rafResizeObserver = new ResizeObserverRAF(onlyOnSizeChangedOnAll);
  *
  * In other browsers, this is done in the requestAnimationQue.
  *
- * ATT!! sizeChangedCallback does not take into account css transforms. Neither in ResizeObserver nor rAF mode.
+ * ATT!! resizeCallback does not take into account css transforms. Neither in ResizeObserver nor rAF mode.
  * This is not a big problem as layout of the children are likely to want to be transformed with the parent,
  * and if you need to parse transform matrix, you can do still do it, but using your own rAF listener that
  * checks and parses the style.transform tag for changes.
  *
  * @param Base class that extends HTMLElement
- * @returns {SizeChangedMixin} class that extends HTMLElement
+ * @returns {ResizeMixin} class that extends HTMLElement
  */
-export const SizeChangedMixin = function (Base) {
-  return class SizeChangedMixin extends Base {
+export const ResizeMixin = function (Base) {
+  return class ResizeMixin extends Base {
 
     constructor() {
       super();
@@ -79,13 +79,12 @@ export const SizeChangedMixin = function (Base) {
 
     /**
      * Override this method to do actions when children changes.
-     * todo remove sizeChangedCallback?
-     *
      * @param rect
      */
-    sizeChangedCallback(rect = {width: 0, height: 0}) {
-      if (super.sizeChangedCallback) super.sizeChangedCallback(rect);
-    }
+    //todo change signature to simple resizeCallback(width, height)
+    // resizeCallback(rect = {width: 0, height: 0}) {
+    //   if (super.resizeCallback) super.resizeCallback(rect);
+    // }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();

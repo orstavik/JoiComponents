@@ -12,11 +12,11 @@
 
 <script type="module">
 
-  import {SizeChangedMixin} from "../../src/SizeChangedMixin.js";
+  import {ResizeMixin} from "../../src/ResizeMixin.js";
 
-  class ExampleComponent extends SizeChangedMixin(HTMLElement) {
+  class ExampleComponent extends ResizeMixin(HTMLElement) {
 
-    sizeChangedCallback(rect) {
+    resizeCallback(rect) {
       console.log(rect);
     }
   }

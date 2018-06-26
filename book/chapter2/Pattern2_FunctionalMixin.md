@@ -6,7 +6,7 @@ Finding out **when** a reactive method should be triggered is often complex:
 * Information concerning the browser state might be raw and require parsing and/or computation.
 * Information concerning the browser state might require caching data over time. 
 * Observing for multiple components of the same type as one can be more efficient than observing multiple components one by one.
-(cf. [SlotchangeMixin](Old_Mixin2_SlotchangeMixin.md) and [SizeChangedMixin](Mixin2_SizeChangedMixin.md)).
+(cf. [SlotchangeMixin](Old_Mixin2_SlotchangeMixin.md) and [ResizeMixin](Mixin2_ResizeMixin.md)).
 
 Therefore, a good listener method often require a few lines of code, both simple and complex.
 If this code is put in the same scope as the code that reacts to the event, 
