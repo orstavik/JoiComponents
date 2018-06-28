@@ -1,10 +1,3 @@
-const startDiagonal = Symbol("startDiagonal");
-const startWidth = Symbol("startWidth");
-const startHeight = Symbol("startHeight");
-const startAngle = Symbol("startAngle");
-const lastDiagonal = Symbol("lastDiagonal");
-const lastWidth = Symbol("lastWidth");
-const lastHeight = Symbol("lastHeight");
 const lastAngle = Symbol("lastAngle");
 const id1 = Symbol("touchId1");
 const id2 = Symbol("touchId2");
@@ -17,6 +10,9 @@ const endListener = Symbol("touchEndListener");
 const start = Symbol("touchStart");
 const move = Symbol("touchMove");
 const end = Symbol("touchEnd");
+const endCachedDetail = Symbol("endCachedDetail");
+const activeEventOrCallback = Symbol("activeEventOrCallback");
+const eventAndOrCallback = Symbol("callbackAndOrEvent");
 
 function calcAngle(x, y) {
   return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
@@ -24,26 +20,28 @@ function calcAngle(x, y) {
 
 /**
  * Two-finger mixin for pinch, expand, rotate and doubledragging gestures.
- * The pinch event is fired when two fingers are pressed and moved against the screen.
- * PinchGesture translates a sequence of touchstart, touchmove
+ * The purpose of PinchGestureGesture is to add pinch events and/or callbacks to an element.
+ * The pinchGestureCallback(detail) is fired when two fingers are pressed
+ * and moved against the screen.
+ * PinchGestureCallback(...) translates a sequence of touchstart, touchmove
  * and touchend events into a series of pinch events.
  *
- * Events:
- *  - pinchstart
- *    .detail: {touchevent, x1, y1, x2, y2, diagonal, width, height, angle, averageX, averageY}
- *  - pinchmove
- *    .detail: {
- *           touchevent,
- *           x1, y1, x2, y2,
- *           width, height, diagonal,
- *           widthStart, heightStart, diagonalStart,
- *           widthLast, heightLast, diagonalLast,
- *           rotationLast,                          //clockwise rotation since previous pinchmove
- *           rotationStart                          //clockwise rotation since pinchstart
- *           averageMoveX, averageMoveY             //two finger average movements
- *     }
- *  - pinchend
- *    .detail: {touchevent}
+ *    startDetail:
+ *    {touchevent, x1, y1, x2, y2, diagonal, width, height, angle, averageX, averageY}
+
+ moveDetail
+ {
+*           touchevent,
+*           x1, y1, x2, y2,
+*           width, height, diagonal,
+*           widthStart, heightStart, diagonalStart,
+*           widthLast, heightLast, diagonalLast,
+*           rotationLast,                          //clockwise rotation since previous pinchmove
+*           rotationStart                          //clockwise rotation since pinchstart
+*           averageMoveX, averageMoveY             //two finger average movements
+*     }
+ *  - endDetail
+ *    {touchevent}
  *
  * Two finger gestures..
  * I need different detail data for different type of events
@@ -73,6 +71,15 @@ export const PinchGesture = function (Base) {
       this[startListener] = (e) => this[start](e);
       this[moveListener] = (e) => this[move](e);
       this[endListener] = (e) => this[end](e);
+      this[activeEventOrCallback] = 0;
+    }
+
+    /**
+     * By default it is only event
+     * @returns {number} 0 = event+callback, 1 = only event, -1 = only callback
+     */
+    static get dragFlingEventOrCallback() {
+      return -1;
     }
 
     connectedCallback() {
@@ -130,27 +137,29 @@ export const PinchGesture = function (Base) {
       this[id1] = f1.identifier;
       this[id2] = f2.identifier;
 
+      this[activeEventOrCallback] = this.constructor.dragFlingEventOrCallback;
       const detail = this.makeDetail(f2.pageX, f1.pageX, f2.pageY, f1.pageY, e);
       this[cachedEventDetails] = [detail];
-      this.dispatchEvent(new CustomEvent("pinchstart", {bubbles: true, composed: true, detail}));
+      this[eventAndOrCallback]("pinchstart", detail);
     }
 
     [move](e) {
       e.preventDefault();
-      const lastEventDetail = this[cachedEventDetails][this[cachedEventDetails].length - 1];
-      const startEventDetail = this[cachedEventDetails][0];
+      //b. const lastEventDetail = this[cachedEventDetails][this[cachedEventDetails].length - 1];
+      //a. const startEventDetail = this[cachedEventDetails][0];
 
       const f1 = e.targetTouches[0];
       const f2 = e.targetTouches[1];
       const detail = this.makeDetail(f2.pageX, f1.pageX, f2.pageY, f1.pageY, e);
-      detail.distDiagonal = detail.diagonal - lastEventDetail.diagonal;
-      detail.distWidth = detail.width - lastEventDetail.width;
-      detail.distHeight = detail.height - lastEventDetail.height;
-      detail.rotation = lastEventDetail.angle - detail.angle;
-      detail.rotationStart = startEventDetail.angle - detail.angle;
+      //a. detail.distDiagonal = detail.diagonal / startEventDetail.diagonal; //changing distChange, into a fractionFromStart
+      //a. detail.distWidth = detail.width / startEventDetail.width;
+      //a. detail.distHeight = detail.height / startEventDetail.height;
+      //a. detail.rotationStart = startEventDetail.angle - detail.angle;
+      //b. detail.rotation = lastEventDetail.angle - detail.angle;
 
+      //todo still need cachedEvents to do spin on rotation and scalefling for scaling
       this[cachedEventDetails].push(detail);
-      this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, composed: true, detail}));
+      this[eventAndOrCallback]("pinch", detail);
     }
 
     makeDetail(x2, x1, y2, y1, touchevent) {
@@ -180,10 +189,22 @@ export const PinchGesture = function (Base) {
       //const body = document.querySelector("body");
       // body.style.touchAction = this[cachedTouchAction];                       //max1
       // this[cachedTouchAction] = undefined;
+      this[endCachedDetail] = {touchevent: e};
+      this[activeEventOrCallback] = undefined;
       this[cachedEventDetails] = undefined;
       this[id1] = undefined;
       this[id2] = undefined;
-      this.dispatchEvent(new CustomEvent("pinchend", {bubbles: true, composed: true, detail: {touchevent: e}}));
+      this[eventAndOrCallback]("pinchend", this[endCachedDetail]);
+    }
+
+
+    [eventAndOrCallback](eventName, detail) {
+      if (this[activeEventOrCallback] <= 0) {
+        let cbName = eventName + "Callback";
+        this[cbName] && this[cbName](detail);
+      }
+      if (this[activeEventOrCallback] >= 0)
+        this.dispatchEvent(new CustomEvent(eventName, {bubbles: true, detail}));
     }
   }
 };

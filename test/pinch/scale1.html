@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style type="text/css" rel="stylesheet">
+
+    scale-block-two {
+      display: inline-block;
+      position: relative;
+      top: 10px;
+      width: 150px;
+      height: 150px;
+      margin: 20px;
+    }
+
+    scale-block-two {
+      border: 4px solid red;
+    }
+
+  </style>
+  <script src="https://hammerjs.github.io/dist/hammer.js"></script>
+  <script src="//cdn.rawgit.com/hammerjs/touchemulator/0.0.2/touch-emulator.js"></script>
+  <script> TouchEmulator(); </script>
+</head>
+<body>
+<scale-block-two>Callback()</scale-block-two>
+<script type="module">
+  import {PinchGesture} from '../../src/gestures/Pinch.js'; //test
+
+  function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+      results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+  }
+  var eAOc = parseInt(getParameterByName("eventAndOrCallback") || 0);
+
+  class ScaleBlock1 extends PinchGesture(HTMLElement) {
+
+    static get dragFlingEventOrCallback() {
+      return eAOc;
+    }
+
+    constructor() {
+      super();
+      this._pinchstartListener = e => this.pinchstartEvent(e.detail);
+      this._pinchListener = e => this.pinchEvent(e.detail);
+    }
+
+    connectedCallback(){
+      super.connectedCallback();
+      this.addEventListener("pinchstart", this._pinchstartListener);
+      this.addEventListener("pinch", this._pinchListener);
+    }
+
+    disconnectedCallback(){
+      super.disconnectedCallback();
+      this.removeEventListener("pinchstart", this._pinchstartListener);
+      this.removeEventListener("pinch", this._pinchListener);
+    }
+
+    pinchstartEvent(pinchDetail) {
+      this._startWidth = pinchDetail.width;
+      this._startHeight = pinchDetail.height;
+    }
+    pinchEvent(pinchDetail) {
+      const width = pinchDetail.width / this._startWidth;
+      const height = pinchDetail.height / this._startHeight;
+      this.innerText = `scaleX(${width}) scaleY(${height})`;
+    }
+
+    pinchstartCallback(pinchDetail) {
+      this._startWidth = pinchDetail.width;
+      this._startHeight = pinchDetail.height;
+    }
+    pinchCallback(pinchDetail) {
+      const width = pinchDetail.width / this._startWidth;
+      const height = pinchDetail.height / this._startHeight;
+      this.style.transform = `scaleX(${width}) scaleY(${height})`;
+//      this.dispatchEvent(new CustomEvent("pinch", detail));
+      //todo remove the staticSetting for eventAndOrCallback, replace with just a description of how to dispatch events from callbacks?
+      //todo That is very simple, and it costs very little.. yes , it costs very little.
+      //todo the problem is that sometimes, we want only the events to be thrown. That would make our code simpler.
+      //todo so, in that case, we might want a staticSetting that throws events too.. yes. so the static setting is only
+      //todo throwEvents() return [list of event names]?? or will that be very heavy.. hm, that will be a little heavy. And complex
+      //todo the only thing I would like to save is the throwing of events from the move itself.
+      //todo no, I throw all events, or I throw none. I always do callbacks.
+      //todo that is it.
+    }
+  }
+
+  customElements.define("scale-block-two", ScaleBlock1);
+
+</script>
+</body>
+</html>

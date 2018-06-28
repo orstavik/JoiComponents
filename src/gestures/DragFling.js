@@ -36,6 +36,7 @@ function flingAngle(x = 0, y = 0) {
   return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
 }
 
+//todo remove the startDetail??
 function makeDetail(event, x, y, startDetail) {
   const distX = x - startDetail.x;
   const distY = y - startDetail.y;
