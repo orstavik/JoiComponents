@@ -1,93 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <body>
+<style>
+  longpress-button-callback,
+  longpress-button-event,
+  longpress-button-callback-and-event{
+    display: block;
+    width: 200px;
+    height: 50px;
+    background: lightblue;
+    border: 10px solid blue;
+    margin: 10px;
+    padding: 10px;
+  }
+</style>
+<h1>Longpress demo: press each box more than 1000ms</h1>
+<longpress-button-callback>Callback<br>yellow body</longpress-button-callback>
+<longpress-button-event>Event<br>red border</longpress-button-event>
+<longpress-button-callback-and-event>Event and Callback<br>green body and border</longpress-button-callback-and-event>
+
 <script>
-  const startListener = Symbol("startListener");
-  const stopListener = Symbol("stopListener");
-  const start = Symbol("start");
-  const stop = Symbol("stop");
-  const startEvent = Symbol("startEvent");
-  const settings = Symbol("settings");
 
-  const LongPressMixin = function (Base) {
-    return class LongPressMixin extends Base {
+  function LongpressMixin (Base){
+    return class LongpressMixin extends Base{
 
-      static get longpressSettings() {                //[1]
-        return {minDuration: 1000, maxMovement: 20};
+      static get longpressDuration() {
+        return 1000;
       }
 
-      constructor() {
+      // static get longpressEvent() {                                     //[3]
+      //   return false;
+      // }
+
+      constructor(){
         super();
-        this[startListener] = (e) => this[start](e);
-        this[stopListener] = (e) => this[stop](e);
-        this[startEvent] = undefined;
+        this._downListener = (e) => this._down(e);
+        this._upListener = (e) => this._up(e);
+        this._downTime = undefined;
       }
 
-      connectedCallback() {
+      connectedCallback(){
         if (super.connectedCallback) super.connectedCallback();
-        this.addEventListener("mousedown", this[startListener]);
+        this.addEventListener("mousedown", this._downListener);
       }
 
-      disconnectedCallback() {
+      disconnectedCallback(){
         if (super.disconnectedCallback) super.disconnectedCallback();
-        this.removeEventListener("mousedown", this[startListener]);
+        this.removeEventListener("mousedown", this._downListener);
       }
 
-      [start](e) {
-        this.addEventListener("mouseup", this[stopListener]);
-        this[startEvent] = e;
-        this[settings] = this.constructor.longpressSettings;    //[1] this is added at the beginning of the sequence, so that IF something bad was to happen, they will not change during an event recording.
+      _down(e){
+        this._downTime = e.timeStamp;
+        this.addEventListener("mouseup", this._upListener);
       }
 
-      [stop](e) {
-        this.shadowRoot.removeEventListener("mouseup", this[stopListener]);
-        const duration = e.timeStamp - this[startEvent].timeStamp;
-        const moveX = e.x - this[startEvent].x;
-        const moveY = e.y - this[startEvent].y;
-        const distance = Math.sqrt(moveX * moveX + moveY * moveY);
-        if (this[settings].maxMovement >= distance && this[settings].minDuration <= duration)  //[2]
-          this.dispatchEvent(new CustomEvent("longpress", {bubbles: true, detail: {duration, distance}}));
-        this[startEvent] = undefined;
-        this[settings] = undefined;
+      _up(e){
+        this.removeEventListener("mouseup", this._upListener);
+        const duration = e.timeStamp -this._downTime;
+        if (duration < this.constructor.longpressDuration)
+          return;
+        this.longpressCallback && this.longpressCallback(duration);         //[1]
+        if (this.constructor.longpressEvent)                                //[2]
+          this.dispatchEvent(new CustomEvent("longpress", {bubbles: true}));
       }
-    }
-  };
-
-  class LongPressOne extends LongPressMixin(HTMLElement) {
-    connectedCallback() {
-      super.connectedCallback();
-      this.attachShadow({mode: "open"});
-      this.shadowRoot.innerHTML = "<div style='width: 10px; height: 10px; border: 10px solid red;'></div>"
     }
   }
 
-  class LongPressTwo extends LongPressMixin(HTMLElement) {
+  class LongpressButtonCallback extends LongpressMixin(HTMLElement) {
 
-    static get longpressSettings() {
-      return Object.assign(Object.getPrototypeOf(this).longpressSettings, {minDuration: 200});
-    }
-
-    connectedCallback() {
-      super.connectedCallback();
-      this.attachShadow({mode: "open"});
-      this.shadowRoot.innerHTML = "<div style='width: 10px; height: 10px; border: 10px solid blue;'></div>"
+    longpressCallback(duration){
+      this.style.background = "yellow";
     }
   }
 
-  customElements.define("long-press-one", LongPressOne);
-  customElements.define("long-press-two", LongPressTwo);
+  class LongpressButtonEvent extends LongpressMixin(HTMLElement) {
 
-  //A needs 1000ms press
-  const A = new LongPressOne();
-  A.id = "A";
-  document.querySelector("body").appendChild(A);
-  //B needs only 200ms press
-  const B = new LongPressTwo();
-  B.id = "B";
-  document.querySelector("body").appendChild(B);
+    static get longpressEvent() {                                     //[3]
+      return true;                  //this element will throw longpress events.
+    }
+  }
 
-  document.addEventListener("longpress", (e) => console.log(e.path[0].id, e.detail.duration));
+  class LongpressButtonCallbackAndEvent extends LongpressMixin(HTMLElement) {
 
+    static get longpressEvent() {                                     //[3]
+      return true;                  //this element will throw longpress events.
+    }
+
+    longpressCallback(duration){
+      this.style.background = "green";
+    }
+  }
+
+  customElements.define("longpress-button-callback", LongpressButtonCallback);
+  customElements.define("longpress-button-event", LongpressButtonEvent);
+  customElements.define("longpress-button-callback-and-event", LongpressButtonCallbackAndEvent);
+
+  document.querySelector("longpress-button-event").addEventListener("longpress", (e) => e.currentTarget.style.borderColor = "darkred");
+  document.querySelector("longpress-button-callback-and-event").addEventListener("longpress", (e) => e.currentTarget.style.borderColor = "darkgreen");
 </script>
 </body>
 </html>

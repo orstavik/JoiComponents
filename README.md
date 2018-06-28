@@ -18,26 +18,32 @@ scalable, manageable, simple, yet powerful web apps. Modern browsers now has all
 Hence, every mixin strives for no other dependencies than itself and the (polyfilled) platform. 
 
 The following mixins are directly available via rawgit.com and unpkg.com:
-Regular mixins:
+
+**Regular mixins:**
 * [EnterViewMixin.js](src/EnterViewMixin.js)
 * [FirstConnectedMixin.js](src/FirstConnectedMixin.js)
 * [HashChangedMixin.js](src/HashChangedMixin.js)
-* [SizeChangedMixin.js](src/SizeChangedMixin.js)
+* [ResizeMixin.js](src/ResizeMixin.js)
 * [SlotchangeMixin.js](src/SlotchangeMixin.js)
 * [StaticSlotchangeMixin.js](src/StaticSlotchangeMixin.js)
 
-Gestures:
+**Gestures:**
 * [gestures/DragFling.js](src/gestures/DragFling.js)
-* [gestures/Pinch.js](src/gestures/Pinch.js)
+* [gestures/PinchSpin.js](src/gestures/PinchSpin.js)
 * [gestures/Swipe.js](src/gestures/Swipe.js)
 
-Other resources:
+**Other resources:**
 * [polyfill-loader.js](src/polyfill-loader.js)
 * [flattenNodes.js](src/flattenNodes.js)
 
 Example of complete links:
  * [https://unpkg.com/joicomponents@1.2.0/src/SlotchangeMixin.js](https://unpkg.com/joicomponents@1.2.0/src/SlotchangeMixin.js)
  * [https://cdn.rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js](https://rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js)
+
+|            | Atomic  | Composed |
+| ---------- |-------- | -------- |
+| lifecycle<br>sequential  | **constructor()**<br>**connectedCallback()**<br>**disconnectedCallback()**<br>firstConnectedCallback()<br>enterViewCallback()<br>setupCallback() |  |
+| event<br>random      | **attributeChangedCallback(name, oldValue, newValue)**<br>**adoptedCallback()**<br>slotchangeCallback(name, newFlattenedChildNodes, oldFlattenedChildNodes)<br>resizeCallback(contentRect)<br>hashchangedCallback("hash")<br> | dragFlingCallbacks<br>pinchCallbacks<br>swipeCallbacks|
 
 ## Chapter 1: How to make a web component?
 1. [Define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
@@ -61,13 +67,13 @@ Example of complete links:
 3. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
 4. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
 5. [.slotchangedCallback()](book/chapter2/Mixin1_SlotchangeMixin.md)
-6. [.sizeChangedCallback()](book/chapter2/Mixin2_SizeChangedMixin.md)
+6. [.resizeCallback()](book/chapter2/Mixin2_ResizeMixin.md)
 7. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
 8. [Discussion: isolate FunctionalMixins](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
 
 ## Chapter 3: Gestures
-1. [EventAndOrCallback](book/chapter3/Pattern3_EventAndOrCallback.md)
 1. [EventRecording](book/chapter3/Pattern1_EventRecording.md)
+1. [OptionalCallbacksEvents](book/chapter3/Pattern3_OptionalCallbacksEvents.md)
 2. [Discussion: conflicting gestures](book/chapter3/Problem_conflicting_gestures.md)
 3. [InvadeAndRetreat!](book/chapter3/Pattern5_InvadeAndRetreat.md)
 4. [DragFlingMixin](book/chapter3/Mixin1_DragFlingGesture.md) (PointerGesture)
