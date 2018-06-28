@@ -28,45 +28,34 @@ function makeDetail(touchevent) {
 }
 
 /**
- * todo now it should only reacts to two fingers. adding a third finger should end the eventRecording.
- *
- * Two-finger mixin for pinch, expand, rotate and doubledragging gestures.
- * The purpose of PinchGestureGesture is to add pinch events and/or callbacks to an element.
- * The pinchGestureCallback(detail) is fired when two fingers are pressed
- * and moved against the screen.
- * PinchGestureCallback(...) translates a sequence of touchstart, touchmove
- * and touchend events into a series of pinch events.
- *
- *    startDetail:
- *    {touchevent, x1, y1, x2, y2, diagonal, width, height, angle, averageX, averageY}
-
- moveDetail
- {
-*           touchevent,
-*           x1, y1, x2, y2,
-*           width, height, diagonal,
-*           widthStart, heightStart, diagonalStart,
-*           widthLast, heightLast, diagonalLast,
-*           rotationLast,                          //clockwise rotation since previous pinchmove
-*           rotationStart                          //clockwise rotation since pinchstart
-*           averageMoveX, averageMoveY             //two finger average movements
-*     }
- *  - endDetail
- *    {touchevent}
- *
- * Two finger gestures..
- * I need different detail data for different type of events
- *  - rotations for rotating
- *  - distances for pinch
- *  - movements averages for map drag
- *
- * todo move this into the documentation for pinch
- * Speed can be calculated as (can be applied to width, height, diagonal, angle):
- *
- *   function speed(nowLength, thenLength, now, then) {
- *     return (nowLength - thenLength) / (now - then);
- *   }
- *
+ * PinchGesture mixin.
+ * PinchGesture records a sequence of two-finger touchstart, touchmove
+ * and touchend events into a series of pinch and spin events.
+ * The PinchGesture mixin only reacts when only two fingers are used.
+ * If three fingers touches the screen, the EventRecording is cancelled.
+ * 
+ * PinchGesture can be used for two finger gestures such as:
+ *  - pinch
+ *  - expand
+ *  - rotate
+ *  - two-finger drag
+ * 
+ * If both the two fingers are removed from the screen while in motion,
+ * a spin-event is triggered. The spin event resembles the fling event.
+ * 
+ * PinchGesture has the following *optional* reactive callback methods:
+ *  - pinchstartCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle})
+ *  - pinchCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle})
+ *  - pinchendCallback({touchevent})
+ *  - spinCallback({touchevent, diagonal, width, height, angle, duration})
+ * 
+ * PinchGesture has the following StaticSettings:
+ *  - pinchEvent: true => mixin will also dispatch the following events
+ *     - pinchstart:  {touchevent, x1, y1, x2, y2, diagonal, width, height, angle}
+ *     - pinch:       {touchevent, x1, y1, x2, y2, diagonal, width, height, angle}
+ *     - pinchend:    {touchevent}
+ *     - spin:        {touchevent, diagonal, width, height, angle, duration}
+ * 
  * @param Base
  * @returns {PinchGesture}
  */
@@ -87,8 +76,12 @@ export const PinchGesture = function (Base) {
      * By default it is only callback, if this staticSetting is true, dispatch event too
      * @returns {boolean} true => di
      */
-    // static get dragFlingEventOrCallback() {
+    // static get pinchEvent() {
     //   return false;
+    // }
+
+    // static get spinDuration() {
+    //   return 50;    //to max: we need probably a smaller number here than on fling..
     // }
 
     connectedCallback() {
@@ -102,34 +95,6 @@ export const PinchGesture = function (Base) {
       this.removeEventListener("touchstart", this[startListener]);
     }
 
-    /**
-     * e.preventDefault() will make the browsers pan and scroll based on touch not happen.
-     * But, this might not be what you want. You might want a scroll to be unaffected by your mixin.
-     * And so,
-     *
-     * Todo: "touch-action: none" vs. e.preventDefault()
-     * 1. add "touch-action: none" or "touch-action: pan-x" to the style of
-     * a) the element itself and/or
-     * b) any parent element up so far as to cover the area
-     * that you think the user might get in contact with during the gesture.
-     * This is bad because a) it is not supported in Safari and b) it might require you to block touch-action such as
-     * essential pan-based scrolling and pinch zooming on the entire screen.
-     *
-     * 2. add "touch-action: none" when the gesture event is triggered
-     * (at the same time as the eventListeners for the move and up are added).
-     * a) I should probably do this with "touch-action: none" on the body element.
-     * So to prevent it happening on the entire screen. That means that we need to cache the value of that property,
-     * so that when the gesture stops, we restore that property to its original state.
-     * In addition, e.preventDefault() is run on move event.
-     * This seems like a better strategy.
-     * Open questions are:
-     * 1. will the browser intercept on the first move?? for example zoom just a little bit before it reacts? I think not.
-     * 2. if we run e.preventDefault(), is it necessary at all to stress with the css touch-action property?
-     * Will the default scroll in a browser ever run before the e.preventDefault is called?
-     * And if so, can that be considered just a bug and not to be considered?
-     *
-     * @param e
-     */
     [start](e) {
       if (this[recordedEventDetails] !== undefined)  //this must be more than two fingers
         return this[end](e);
@@ -142,7 +107,7 @@ export const PinchGesture = function (Base) {
       window.addEventListener("touchmove", this[moveListener]);
       window.addEventListener("touchend", this[endListener]);
       window.addEventListener("touchcancel", this[endListener]);
-      this[addEvent] = this.constructor.dragFlingEventOrCallback;
+      this[addEvent] = this.constructor.pinchEvent;
       const detail = makeDetail(e);
       this[recordedEventDetails] = [detail];
       this.pinchstartCallback && this.pinchstartCallback(detail);
@@ -151,22 +116,16 @@ export const PinchGesture = function (Base) {
 
     [move](e) {
       e.preventDefault();
-
       const detail = makeDetail(e);
       this[recordedEventDetails].push(detail);
       this.pinchCallback && this.pinchCallback(detail);
       this[addEvent] && this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, detail}));
     }
 
-    /**
-     * This is only called when one of the events triggered when the pinch is active.
-     * You can add more fingers (accidentally touch the screen with more fingers while you rotate or pinch),
-     * but you cannot take one of the two original target fingers off the screen.
-     */
     [end](e) {
       e.preventDefault();
-      //todo add the fling calculations for both rotation, pinch and doubledrag
-      //todo still need cachedEvents to do spin on rotation and scalefling for scaling
+      //todo add the fling calculations for spin both rotation, pinch and doubledrag
+      //todo we use this[recordedEventDetails] to calculate spin on rotation and scalefling for scaling
       window.removeEventListener("touchmove", this[moveListener]);
       window.removeEventListener("touchend", this[endListener]);
       window.removeEventListener("touchcancel", this[endListener]);
