@@ -11,14 +11,23 @@ const start = Symbol("touchStart");
 const move = Symbol("touchMove");
 const end = Symbol("touchEnd");
 const endCachedDetail = Symbol("endCachedDetail");
-const activeEventOrCallback = Symbol("activeEventOrCallback");
-const eventAndOrCallback = Symbol("callbackAndOrEvent");
+const doDispatch = Symbol("activeEventOrCallback");
 
 function calcAngle(x, y) {
   return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
 }
 
+function makeDetail(x2, x1, y2, y1, touchevent) {
+  const width = x2 > x1 ? x2 - x1 : x1 - x2;
+  const height = y2 > y1 ? y2 - y1 : y1 - y2;
+  const diagonal = Math.sqrt(width * width + height * height);
+  const angle = calcAngle(x1 - x2, y1 - y2);
+  return {touchevent, x1, y1, x2, y2, diagonal, width, height, angle};
+}
+
 /**
+ * todo now it should only reacts to two fingers. adding a third finger should end the eventRecording.
+ *
  * Two-finger mixin for pinch, expand, rotate and doubledragging gestures.
  * The purpose of PinchGestureGesture is to add pinch events and/or callbacks to an element.
  * The pinchGestureCallback(detail) is fired when two fingers are pressed
@@ -71,16 +80,16 @@ export const PinchGesture = function (Base) {
       this[startListener] = (e) => this[start](e);
       this[moveListener] = (e) => this[move](e);
       this[endListener] = (e) => this[end](e);
-      this[activeEventOrCallback] = 0;
+      this[doDispatch] = false;
     }
 
     /**
-     * By default it is only event
-     * @returns {number} 0 = event+callback, 1 = only event, -1 = only callback
+     * By default it is only callback, if this staticSetting is true, dispatch event too
+     * @returns {boolean} true => di
      */
-    static get dragFlingEventOrCallback() {
-      return -1;
-    }
+    // static get dragFlingEventOrCallback() {
+    //   return false;
+    // }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
@@ -122,10 +131,13 @@ export const PinchGesture = function (Base) {
      * @param e
      */
     [start](e) {
-      if (this[id1] !== undefined || e.targetTouches.length < 2)
-        return;
+      if (e.targetTouches.length !== 2){
+        if (this[id1] === undefined)
+          return;
+        return this[end](e);
+      }
       e.preventDefault();
-      //const body = document.querySelector("body");
+      // const body = document.querySelector("body");
       // this[cachedTouchAction] = body.style.touchAction;
       // body.style.touchAction = "none";                       //max1
       window.addEventListener("touchmove", this[moveListener]);
@@ -137,37 +149,24 @@ export const PinchGesture = function (Base) {
       this[id1] = f1.identifier;
       this[id2] = f2.identifier;
 
-      this[activeEventOrCallback] = this.constructor.dragFlingEventOrCallback;
-      const detail = this.makeDetail(f2.pageX, f1.pageX, f2.pageY, f1.pageY, e);
+      this[doDispatch] = this.constructor.dragFlingEventOrCallback;
+      const detail = makeDetail(f2.pageX, f1.pageX, f2.pageY, f1.pageY, e);
       this[cachedEventDetails] = [detail];
-      this[eventAndOrCallback]("pinchstart", detail);
+      this.pinchstartCallback && this.pinchstartCallback(detail);
+      this[doDispatch] && this.dispatchEvent(new CustomEvent("pinchstart", {bubbles: true, detail}));
     }
 
     [move](e) {
       e.preventDefault();
-      //b. const lastEventDetail = this[cachedEventDetails][this[cachedEventDetails].length - 1];
-      //a. const startEventDetail = this[cachedEventDetails][0];
 
       const f1 = e.targetTouches[0];
       const f2 = e.targetTouches[1];
-      const detail = this.makeDetail(f2.pageX, f1.pageX, f2.pageY, f1.pageY, e);
-      //a. detail.distDiagonal = detail.diagonal / startEventDetail.diagonal; //changing distChange, into a fractionFromStart
-      //a. detail.distWidth = detail.width / startEventDetail.width;
-      //a. detail.distHeight = detail.height / startEventDetail.height;
-      //a. detail.rotationStart = startEventDetail.angle - detail.angle;
-      //b. detail.rotation = lastEventDetail.angle - detail.angle;
+      const detail = makeDetail(f2.pageX, f1.pageX, f2.pageY, f1.pageY, e);
 
       //todo still need cachedEvents to do spin on rotation and scalefling for scaling
       this[cachedEventDetails].push(detail);
-      this[eventAndOrCallback]("pinch", detail);
-    }
-
-    makeDetail(x2, x1, y2, y1, touchevent) {
-      const width = x2 > x1 ? x2 - x1 : x1 - x2;
-      const height = y2 > y1 ? y2 - y1 : y1 - y2;
-      const diagonal = Math.sqrt(width * width + height * height);
-      const angle = calcAngle(x1 - x2, y1 - y2);
-      return {touchevent, x1, y1, x2, y2, diagonal, width, height, angle};
+      this.pinchCallback && this.pinchCallback(detail);
+      this[doDispatch] && this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, detail}));
     }
 
     /**
@@ -179,9 +178,9 @@ export const PinchGesture = function (Base) {
       e.preventDefault();
       if (this[id1] === undefined)
         return;
-      if ((e.targetTouches[0] && e.targetTouches[0].identifier === this[id1]) &&
-        (e.targetTouches[1] && e.targetTouches[1].identifier === this[id2]))
-        return;
+      // if ((e.targetTouches[0] && e.targetTouches[0].identifier === this[id1]) &&
+      //   (e.targetTouches[1] && e.targetTouches[1].identifier === this[id2]))
+      //   return;
       //todo add the fling calculations for both rotation, pinch and doubledrag
       window.removeEventListener("touchmove", this[moveListener]);
       window.removeEventListener("touchend", this[endListener]);
@@ -189,22 +188,13 @@ export const PinchGesture = function (Base) {
       //const body = document.querySelector("body");
       // body.style.touchAction = this[cachedTouchAction];                       //max1
       // this[cachedTouchAction] = undefined;
-      this[endCachedDetail] = {touchevent: e};
-      this[activeEventOrCallback] = undefined;
       this[cachedEventDetails] = undefined;
       this[id1] = undefined;
       this[id2] = undefined;
-      this[eventAndOrCallback]("pinchend", this[endCachedDetail]);
-    }
-
-
-    [eventAndOrCallback](eventName, detail) {
-      if (this[activeEventOrCallback] <= 0) {
-        let cbName = eventName + "Callback";
-        this[cbName] && this[cbName](detail);
-      }
-      if (this[activeEventOrCallback] >= 0)
-        this.dispatchEvent(new CustomEvent(eventName, {bubbles: true, detail}));
+      const detail = {touchevent: e};
+      this[endCachedDetail] = detail;
+      this.pinchendCallback && this.pinchendCallback(detail);
+      this[doDispatch] && this.dispatchEvent(new CustomEvent("pinchend", {bubbles: true, detail}));
     }
   }
 };
