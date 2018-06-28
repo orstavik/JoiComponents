@@ -2,7 +2,7 @@ import {PinchGesture} from '../../src/gestures/PinchSpin.js';
 
 export class ScaleBlock extends PinchGesture(HTMLElement) {
 
-  static get dragFlingEventOrCallback() {
+  static get pinchEvent() {
     return true;
   }
 

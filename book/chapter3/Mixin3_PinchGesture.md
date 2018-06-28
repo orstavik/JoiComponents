@@ -29,7 +29,7 @@ The detail of the event is the original touchend event.
 ### Example of use:
 
 ```javascript
-import {PinchGesture} from "https://rawgit.com/orstavik/JoiComponents/master/src/gestures/Pinch.js";
+import {PinchGesture} from "./PinchSpin.js";
 
 class PinchBlock extends PinchGesture(HTMLElement) { //[1]
 
@@ -62,6 +62,14 @@ customElements.define("pinch-block", PinchBlock);
 ```                                                                   
 1. Adding the functional mixin `PinchGesture(HTMLElement)`. 
 PinchBlock elements will now dispatch pinch events when pressed with two fingers.
+
+## Speed calculations
+Speed can be calculated as (can be applied to width, height, diagonal, angle):
+```javascript
+function speed(nowLength, thenLength, now, then) {
+  return (nowLength - thenLength) / (now - then);
+}
+```
 
 [Test the example on codepen](https://codepen.io/orstavik/pen/rvBopM).
 

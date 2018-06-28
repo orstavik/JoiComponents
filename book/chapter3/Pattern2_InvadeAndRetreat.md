@@ -134,3 +134,31 @@ To create excellent GestureMixins, such as the ones in
 [Chapter 5 Gesture mixins](Mixin1_DragFlingGesture.md).
 
 The pattern InvadeAndRetreat handles [conflicting gestures](Discussion_conflicting_gestures.md).
+
+<!--
+Todo check that this research is included in this chapter
+     * e.preventDefault() will make the browsers pan and scroll based on touch not happen.
+     * But, this might not be what you want. You might want a scroll to be unaffected by your mixin.
+     * And so,
+     *
+     * Todo: "touch-action: none" vs. e.preventDefault()
+     * 1. add "touch-action: none" or "touch-action: pan-x" to the style of
+     * a) the element itself and/or
+     * b) any parent element up so far as to cover the area
+     * that you think the user might get in contact with during the gesture.
+     * This is bad because a) it is not supported in Safari and b) it might require you to block touch-action such as
+     * essential pan-based scrolling and pinch zooming on the entire screen.
+     *
+     * 2. add "touch-action: none" when the gesture event is triggered
+     * (at the same time as the eventListeners for the move and up are added).
+     * a) I should probably do this with "touch-action: none" on the body element.
+     * So to prevent it happening on the entire screen. That means that we need to cache the value of that property,
+     * so that when the gesture stops, we restore that property to its original state.
+     * In addition, e.preventDefault() is run on move event.
+     * This seems like a better strategy.
+     * Open questions are:
+     * 1. will the browser intercept on the first move?? for example zoom just a little bit before it reacts? I think not.
+     * 2. if we run e.preventDefault(), is it necessary at all to stress with the css touch-action property?
+     * Will the default scroll in a browser ever run before the e.preventDefault is called?
+     * And if so, can that be considered just a bug and not to be considered?
+-->
