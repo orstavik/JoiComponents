@@ -7,6 +7,7 @@ const end = Symbol("touchEnd");
 
 const recordedEventDetails = Symbol("recordedEventDetails");
 const cachedTouchAction = Symbol("cachedTouchAction");
+const oneHit = Symbol("firstTouchIsAHit");
 
 function calcAngle(x, y) {
   return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
@@ -57,6 +58,9 @@ function makeDetail(touchevent) {
  *
  * [1] pinchend coordinates are copied from the last successful pinch.
  *
+ * `PinchGesture` implement an extensive [InvadeAndRetreat!] strategy
+ * to block default actions in the browsers such as "pinch-to-zoom".
+ *
  * @param Base
  * @returns {PinchGesture}
  */
@@ -66,6 +70,7 @@ export const PinchGesture = function (Base) {
       super();
       this[recordedEventDetails] = undefined;
       this[cachedTouchAction] = undefined;
+      this[oneHit] = false;
 
       this[startListener] = (e) => this[start](e);
       this[moveListener] = (e) => this[move](e);
@@ -86,7 +91,7 @@ export const PinchGesture = function (Base) {
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
-      // this.style.touchAction = "none"; //todo study this
+      this.style.touchAction = "none";                          //block touchAction
       this.addEventListener("touchstart", this[startListener]);
     }
 
@@ -96,14 +101,21 @@ export const PinchGesture = function (Base) {
     }
 
     [start](e) {
-      if (this[recordedEventDetails] !== undefined)  //this must be more than two fingers
+      const length = e.targetTouches.length;
+      if (length > 2)
         return this[end](e);
-      if (e.targetTouches.length !== 2)              //this must be only one finger
+      if (length === 1){
+        this[oneHit] = true;
         return;
-      e.preventDefault();
-      // const body = document.querySelector("body");
-      // this[cachedTouchAction] = body.style.touchAction;
-      // body.style.touchAction = "none";                       //max1
+      }
+      if(length !== 2)
+        throw new Error("omg?! how many fingers??");
+      if(!this[oneHit])                                         //first finger was not pressed on the element, so this second touch is part of something bigger.
+        return;
+      e.preventDefault();                                       //block defaultAction
+      const body = document.querySelector("body");              //block touchAction
+      this[cachedTouchAction] = body.style.touchAction;         //block touchAction
+      body.style.touchAction = "none";                          //block touchAction
       window.addEventListener("touchmove", this[moveListener]);
       window.addEventListener("touchend", this[endListener]);
       window.addEventListener("touchcancel", this[endListener]);
@@ -115,22 +127,23 @@ export const PinchGesture = function (Base) {
 
     [move](e) {
       e.preventDefault();
-      const detail = makeDetail(e);
+      const detail = makeDetail(e);                             //block defaultAction
       this[recordedEventDetails].push(detail);
       this.pinchCallback && this.pinchCallback(detail);
       this.constructor.pinchEvent && this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, detail}));
     }
 
     [end](e) {
-      e.preventDefault();
+      e.preventDefault();                                       //block defaultAction
       //todo add the fling calculations for spin both rotation, pinch and doubledrag
       //todo we use this[recordedEventDetails] to calculate spin on rotation and scalefling for scaling
       window.removeEventListener("touchmove", this[moveListener]);
       window.removeEventListener("touchend", this[endListener]);
       window.removeEventListener("touchcancel", this[endListener]);
-      //const body = document.querySelector("body");
-      // body.style.touchAction = this[cachedTouchAction];                       //max1
-      // this[cachedTouchAction] = undefined;
+      this[oneHit] = false;
+      const body = document.querySelector("body");              //retreat touchAction
+      body.style.touchAction = this[cachedTouchAction];         //retreat touchAction
+      this[cachedTouchAction] = undefined;                      //retreat touchAction
       const detail = this[recordedEventDetails][this[recordedEventDetails].length-1];
       detail.touchevent = e;
       this[recordedEventDetails] = undefined;
