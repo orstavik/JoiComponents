@@ -64,59 +64,54 @@ The *OptionalCallback* methods' names and argument
 correspond exactly to the *OptionalEvent* name and detail. 
 
 `PinchGesture` does not need to implement an extensive InvadeAndRetreat strategy as 
-browsers do not attribute any default actions to two-finger gestures (todo, find reference).
+browsers do not attribute any default actions to two-finger gestures.
 
-## Events:
-1. `pinchstart` is fired when two fingers first are *pressed on this element*.
-The detail of the event is the `touchstart` event that triggered `pinchstart`.
-2. `pinchmove` is fired when these same two fingers move.
-The detail is:
-   * distance        (since last `pinchmove`)
-   * distanceStart   (since `pinchstart`)
-   * rotation        (since last `pinchmove`)
-   * rotationStart   (since `pinchstart`)
-   * TODO: add distX and distY also, 
-     so that for example scaling can be done 
-     using separate x and y values 
-3. `pinchend` is fired when one of the original fingers are lifted from the screen.
-The detail of the event is the original touchend event.
+## Example: SpinningTop
 
-## Example: RotateBlock
+```html
 
-```javascript
-import {PinchGesture} from "./PinchSpin.js";
-
-class PinchBlock extends PinchGesture(HTMLElement) { //[1]
-
-  constructor(){
-    super();
-    this._onPinchListener = e => this._onPinch(e);      //[2]
+<style>
+  spinning-top {
+    border-radius: 60%;
+    border-width: 20px;
+    border-style: solid;
+    border-bottom-color: red;
+    border-top-color: green;
+    border-left-color: yellow;
+    border-right-color: blue;
+    background-color: pink;
   }
+</style>
 
-  connectedCallback(){
-    super.connectedCallback();
-    this.style.display = "block"; 
-    this.style.position = "fixed"; 
-    this.style.left = "100px";
-    this.style.top = "100px";
-    this.style.width = "300px";
-    this.style.height = "300px";
-    this.style.background = "red";
-    this.addEventListener("pinch", this._onPinchListener);
-  }
+<spinning-top></spinning-top>
+
+<script type="module">
+  import {PinchGesture} from "./PinchSpin.js";
   
-  disconnectedCallback(){
-    this.removeEventListener("pinch", this._onPinchListener);    
-  }
+  class SpinningTop extends PinchGesture(HTMLElement) { //[1]
   
-  _onPinch(e){
-    this.style.transform =`rotate(-${e.detail.rotationStart}deg)`;
+    static get pinchEvent(){
+      return true;
+    }
+  
+    pinchCallback(detail){
+      this.innerText =`rotate: -${detail.angle}deg`;
+    }
+    
+    spinCallback(detail){
+      this.innerText ="spin: " + JSON.stringify(detail);      
+    }
   }
-}
-customElements.define("pinch-block", PinchBlock);
-```                                                                   
-1. Adding the functional mixin `PinchGesture(HTMLElement)`. 
-PinchBlock elements will now dispatch pinch events when pressed with two fingers.
+  customElements.define("spinning-top", SpinningTop);
+  
+  const spinner = document.querySelector("spinning-top");
+  spinner.addEventListener("pinch", () => spinner.style.transform = `rotate(${angle}deg)`);
+  spinner.addEventListener("spin", () => {
+    spinner.style.transitionDuration = `5s`;
+    spinner.style.transform = `rotate(${angle}deg)`;
+  });
+</script>
+```
 
 ## Speed calculations
 Speed can be calculated as (can be applied to width, height, diagonal, angle):
@@ -130,3 +125,4 @@ function speed(nowLength, thenLength, now, then) {
 
 #### References
 * zingTouch
+* todo, find reference that browsers does not have any default actions for two finger gestures.
