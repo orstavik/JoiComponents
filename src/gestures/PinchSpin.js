@@ -33,22 +33,22 @@ function makeDetail(touchevent) {
  * and touchend events into a series of pinch and spin events.
  * The PinchGesture mixin only reacts when only two fingers are used.
  * If three fingers touches the screen, the EventRecording is cancelled.
- * 
+ *
  * PinchGesture can be used for two finger gestures such as:
  *  - pinch
  *  - expand
  *  - rotate
  *  - two-finger drag
- * 
+ *
  * If both the two fingers are removed from the screen while in motion,
  * a spin-event is triggered. The spin event resembles the fling event.
- * 
+ *
  * PinchGesture has the following *optional* reactive callback methods:
  *  - pinchstartCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle})
  *  - pinchCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle})
  *  - pinchendCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle}) [1]
  *  - spinCallback({touchevent, diagonal, width, height, angle, duration})
- * 
+ *
  * PinchGesture has the following StaticSettings:
  *  - pinchEvent: true => mixin will also dispatch the following events
  *     - pinchstart:  {touchevent, x1, y1, x2, y2, diagonal, width, height, angle}
@@ -104,13 +104,13 @@ export const PinchGesture = function (Base) {
       const length = e.targetTouches.length;
       if (length > 2)
         return this[end](e);
-      if (length === 1){
+      if (length === 1) {
         this[oneHit] = true;
         return;
       }
-      if(length !== 2)
+      if (length !== 2)
         throw new Error("omg?! how many fingers??");
-      if(!this[oneHit])                                         //first finger was not pressed on the element, so this second touch is part of something bigger.
+      if (!this[oneHit])                                         //first finger was not pressed on the element, so this second touch is part of something bigger.
         return;
       e.preventDefault();                                       //block defaultAction
       const body = document.querySelector("body");              //block touchAction
@@ -144,7 +144,7 @@ export const PinchGesture = function (Base) {
       const body = document.querySelector("body");              //retreat touchAction
       body.style.touchAction = this[cachedTouchAction];         //retreat touchAction
       this[cachedTouchAction] = undefined;                      //retreat touchAction
-      const detail = this[recordedEventDetails][this[recordedEventDetails].length-1];
+      const detail = Object.assign({}, this[recordedEventDetails][this[recordedEventDetails].length - 1]);
       detail.touchevent = e;
       this[recordedEventDetails] = undefined;
       this.pinchendCallback && this.pinchendCallback(detail);
