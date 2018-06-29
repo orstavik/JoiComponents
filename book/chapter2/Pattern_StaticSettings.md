@@ -39,6 +39,9 @@ This is both efficient in terms of memory, as the same value will not be multipl
 and creates a more transparent structure as the developer knows that all instances of an element
 will share the same settings.
 
+> ATT!! Do **NOT** change the StaticSetting runtime. 
+Mixin developers expect that StaticSettings never change.
+
 ## Example: `LongpressSettingsMixin`
 
 When implementing a `longpress` gesture mixin, we might likely need to control:

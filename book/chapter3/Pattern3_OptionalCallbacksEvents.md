@@ -31,7 +31,7 @@ is that the custom element will not be alerted if it implements
 costly functional mixins that it does not use.
 So, remember to *remove functional mixins with optional callbacks when they are no longer in use*.
 
-To implement optional events we use a boolean StaticSetting.
+To implement optional events we use a boolean [StaticSetting](../chapter2/Pattern_StaticSettings.md).
 
 ## Example: `LongpressMixin`
 
@@ -84,9 +84,11 @@ function LongpressMixin (Base){
 1. Before we call the `this.longpressCallback(duration)` reactive callback method,
 we check that it exists (ie. that the custom element has implemented such a method).
 If it does not exist, no method will be called back.
-2. Before the event is dispatched, we check the value of the static property `longpressEvent`.
+2. Before the event is dispatched, we check the value of the static property `this.constructor.longpressEvent`.
 3. When the value of a StaticSetting is false by default, 
-no static property needs to be implemented in the mixin (as non-existing, undefined property is falsy).
+no static property needs to be implemented in the mixin
+(as non-existing, undefined property is falsy).
+Otherwise, to create a default value, implement a version of the static property in the mixin.
 
 `LongpressMixin` can now be used in other elements like this:
 ```html

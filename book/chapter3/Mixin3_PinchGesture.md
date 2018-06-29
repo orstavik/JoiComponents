@@ -63,13 +63,12 @@ finger 1 and 2, where start position was the position of finger 1 and 2 at pinch
 The *OptionalCallback* methods' names and argument 
 correspond exactly to the *OptionalEvent* name and detail. 
 
-`PinchGesture` does not need to implement an extensive InvadeAndRetreat strategy as 
-browsers do not attribute any default actions to two-finger gestures.
+`PinchGesture` implement an extensive [InvadeAndRetreat!](Pattern2_InvadeAndRetreat.md) strategy 
+to block default actions in the browsers such as "pinch-to-zoom".
 
 ## Example: SpinningTop
 
 ```html
-
 <style>
   spinning-top {
     border-radius: 60%;
