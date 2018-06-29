@@ -167,6 +167,7 @@ export const PinchGesture = function (Base) {
         return;
       const detail = Object.assign({}, this[recordedEventDetails][this[recordedEventDetails].length - 1]);
       detail.touchevent = event;
+      detail.duration = settings.spinDuration;
       detail.xFactor = Math.abs(spinStart.width / detail.width);
       detail.yFactor = Math.abs(spinStart.height / detail.height);
       detail.diagonalFactor = Math.abs(spinStart.diagonal / detail.diagonal);
