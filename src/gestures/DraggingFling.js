@@ -23,6 +23,7 @@ const end = Symbol("end");
 const cancel = Symbol("cancel");
 
 const cachedTouchAction = Symbol("cachedTouchAction");
+const cachedUserSelect = Symbol("cachedUserSelect");
 const cachedEvents = Symbol("cachedEvents");
 const active = Symbol("active");
 
@@ -118,6 +119,7 @@ export const DraggingFling = function (Base) {
 
       this[cachedEvents] = undefined;
       this[cachedTouchAction] = undefined;  //block touchAction
+      this[cachedUserSelect] = undefined;   //block userSelection
       this[active] = 0;                     //0 = inactive, 1 = mouse, 2 = touch
     }
 
@@ -131,8 +133,9 @@ export const DraggingFling = function (Base) {
     }
 
     /**
-     * By default it is only event
-     * @returns {number} 0 = event+callback, 1 = only event, -1 = only callback
+     * todo it might be faster to implement it, so that the prototype chain is not searched for too long?
+     * By default false and no draggingEvent, override this static method and return true to add events.
+     * @returns {boolean} true to make the custom element dispatch dragging and fling events
      */
     // static get draggingEvent() {
     //   return false;
@@ -140,7 +143,9 @@ export const DraggingFling = function (Base) {
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
-      this.style.touchAction = "none";                          //block touchAction
+      // todo Unsure if I should block these actions or not..
+      // this.style.touchAction = "none";                          //block touchAction
+      // this.style.userSelect = "none";                           //block userSelect
       this.addEventListener("selectstart", this[selectListener]);
       this.addEventListener("touchstart", this[touchStartListener]);
       this.addEventListener("mousedown", this[mouseStartListener]);
@@ -155,7 +160,7 @@ export const DraggingFling = function (Base) {
 
     [mouseStart](event) {
       if (this[active])                   //this will be a second touch or button press
-        return this[touchStopListener](event, true);
+        return this[mouseStop](event, true);
       this[active] = 1;
       event.preventDefault();                                   //block defaultAction
       window.addEventListener("mousemove", this[mouseMoveListener]);
@@ -165,12 +170,14 @@ export const DraggingFling = function (Base) {
 
     [touchStart](event) {
       if (this[active])                   //this will be a second touch or button press
-        return this[touchStopListener](event, true);
+        return this[touchStop](event, true);
       this[active] = 2;
       event.preventDefault();                                   //block defaultAction
-      const body = document.querySelector("body");              //block touchAction
+      const body = document.querySelector("body");              //block
       this[cachedTouchAction] = body.style.touchAction;         //block touchAction
       body.style.touchAction = "none";                          //block touchAction
+      this[cachedUserSelect] = body.style.userSelect;           //block userSelect
+      body.style.userSelect = "none";                           //block userSelect
       window.addEventListener("touchmove", this[touchMoveListener]);
       window.addEventListener("touchend", this[touchStopListener]);
       window.addEventListener("touchcancel", this[touchStopListener]);
@@ -183,27 +190,33 @@ export const DraggingFling = function (Base) {
       this.constructor.draggingEvent && this.dispatchEvent(new CustomEvent("draggingstart", {bubbles: true, detail}));
     }
 
-    [mouseStop](e, cancel) {
+    [mouseStop](e, abort) {
       e.preventDefault();                                       //block defaultAction
       window.removeEventListener("mousemove", this[mouseMoveListener]);
       window.removeEventListener("mouseup", this[mouseStopListener]);
-      cancel ?
-        this[cancel]({event: e}) :
+      if (abort) {
+        this[cancel]({event: e})
+      } else {
         this[stop]({event: e, x: e.x, y: e.y});
+      }
     }
 
-    [touchStop](e, cancel) {
+    [touchStop](e, abort) {
       e.preventDefault();                                       //block defaultAction
-      const body = document.querySelector("body");              //retreat touchAction
+      const body = document.querySelector("body");              //retreat
       body.style.touchAction = this[cachedTouchAction];         //retreat touchAction
       this[cachedTouchAction] = undefined;                      //retreat touchAction
+      body.style.userSelect = this[cachedUserSelect];           //retreat userSelect
+      this[cachedUserSelect] = undefined;                       //retreat userSelect
       window.removeEventListener("touchmove", this[touchMoveListener]);
       window.removeEventListener("touchend", this[touchStopListener]);
       window.removeEventListener("touchcancel", this[touchStopListener]);
-      const lastMoveDetail = this[cachedEvents][this[cachedEvents].length - 1];
-      cancel ?
-        this[cancel]({event: e}) :
+      if (abort) {
+        this[cancel]({event: e})
+      } else {
+        const lastMoveDetail = this[cachedEvents][this[cachedEvents].length - 1];
         this[stop]({event: e, x: lastMoveDetail.x, y: lastMoveDetail.y});
+      }
     }
 
     [stop](detail) {
