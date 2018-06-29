@@ -51,14 +51,14 @@ finger 1 and 2, where start position was the position of finger 1 and 2 at pinch
  - `pinchstartCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle})`
  - `pinchCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle})`
  - `pinchendCallback({touchevent})`
- - `spinCallback({touchevent, diagonal, width, height, angle, duration})`
+ - `spinCallback({touchevent, diagonal, width, height, angle, duration, xFactor, yFactor, diagonalFactor, rotation})`
 
 `PinchGesture` has the following StaticSetting for an *OptionalEvent*:
  - pinchEvent: true => mixin will also dispatch the following events
     - pinchstart:  {touchevent, x1, y1, x2, y2, diagonal, width, height, angle}
     - pinch:       {touchevent, x1, y1, x2, y2, diagonal, width, height, angle}
     - pinchend:    {touchevent}
-    - spin:        {touchevent, diagonal, width, height, angle, duration}
+    - spin:        {touchevent, diagonal, width, height, angle, duration, xFactor, yFactor, diagonalFactor, rotation}
 
 The *OptionalCallback* methods' names and argument 
 correspond exactly to the *OptionalEvent* name and detail. 
@@ -70,11 +70,10 @@ to block default actions in the browsers such as "pinch-to-zoom".
 
 ```html
 <style>
-  body {
-    padding: 100px;
-  }
   spinning-top {
-    display: block;
+    display: inline-block;
+    width: 100px;
+    height: 100px;
     border-radius: 60%;
     border-width: 20px;
     border-style: solid;
@@ -89,42 +88,41 @@ to block default actions in the browsers such as "pinch-to-zoom".
 <spinning-top></spinning-top>
 
 <script type="module">
-  import {PinchGesture} from "./PinchSpin.js";
-  
+  import {PinchGesture} from "../../src/gestures/PinchSpin.js";
+
   class SpinningTop extends PinchGesture(HTMLElement) { //[1]
-  
-    static get pinchEvent(){
+
+    static get pinchEvent() {
       return true;
     }
-  
-    pinchCallback(detail){
-      this.innerText ="angle: " + detail.angle;
+
+    pinchCallback(detail) {
+      this.innerText = "angle: " + detail.angle.toFixed(3);
     }
-    
-    spinCallback(detail){
-      this.innerText ="spin: " + detail.rotation;      
+
+    spinCallback(detail) {
+      this.innerText = "spin: " + detail.rotation.toFixed(3);
     }
   }
+
   customElements.define("spinning-top", SpinningTop);
-  
+
   const spinner = document.querySelector("spinning-top");
   let startAngle = undefined;
-  
-  spinner.addEventListener("pinchstart", (e) => {startAngle = e.detail.angle});
+
+  spinner.addEventListener("pinchstart", (e) => {
+    const prevSpinAngle = (spinner.style.transform ? parseFloat(spinner.style.transform.substring(7)) : 0);
+    startAngle = prevSpinAngle - e.detail.angle;
+  });
   spinner.addEventListener("pinch", (e) => {
-    // e.detail.xFactor, e.detail.yFactor;
-    const lastRotate = spinner.style.transform ? parseFloat(spinner.style.transform.substring(7)) : 0;
-    spinner.style.transform = `rotate(${lastRotate + e.detail.angle - startAngle}deg)`;  
+    spinner.style.transform = `rotate(${e.detail.angle - startAngle}deg)`;
   });
-  
-  spinner.addEventListener("spin", () => {
+
+  spinner.addEventListener("spin", (e) => {
     spinner.style.transition = "10s";
-    spinner.style.transform = `rotate(-${detail.angle * 5}deg)`;
-    const lastRotate = spinner.style.transform ? parseFloat(spinner.style.transform.substring(7)) : 0;
-    spinner.style.transform = `rotate(${lastRotate + e.detail.rotation - startAngle}deg)`;
+    const prevSpinAngle = spinner.style.transform ? parseFloat(spinner.style.transform.substring(7)) : 0;
+    spinner.style.transform = `rotate(${prevSpinAngle + (e.detail.rotation * 5)}deg)`;
   });
-  
-  
 </script>
 ```
 
