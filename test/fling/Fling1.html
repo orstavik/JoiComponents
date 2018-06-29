@@ -27,11 +27,11 @@
 
 <script type="module">
 
-  import {DragFlingGesture} from "../../src/gestures/DragFling.js";
+  import {DragFlingGesture} from "../../src/gestures/DraggingFling.js";
 
   class FlingBallCB extends DragFlingGesture(HTMLElement) {
 
-    static get dragFlingEventOrCallback(){
+    static get draggingEvent(){
       return -1;
     }
 

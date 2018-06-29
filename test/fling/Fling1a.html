@@ -53,7 +53,7 @@
 
 <script type="module">
 
-  import {DragFlingGesture} from "../../src/gestures/DragFling.js";
+  import {DragFlingGesture} from "../../src/gestures/DraggingFling.js";
 
   class FlingBallE extends DragFlingGesture(HTMLElement) {
 
@@ -68,7 +68,7 @@
       this._cachedUserSelect = undefined;
     }
 
-    static get dragFlingEventOrCallback() {
+    static get draggingEvent() {
       return 1;
     }
 
@@ -138,7 +138,7 @@
       this._cachedUserSelect = undefined;
     }
 
-    static get dragFlingEventOrCallback() {
+    static get draggingEvent() {
       return 0;
     }
 
@@ -226,7 +226,7 @@
       this._flingListener = e => this._onFling(e);
     }
 
-    static get dragFlingEventOrCallback() {
+    static get draggingEvent() {
       return -1;
     }
 

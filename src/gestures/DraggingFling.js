@@ -36,7 +36,8 @@ function flingAngle(x = 0, y = 0) {
 }
 
 //todo remove the startDetail??
-function makeDetail(event, x, y, startDetail) {
+function makeDetail(lastDetail, startDetail) {
+  const event = lastDetail.event, x = lastDetail.x, y = lastDetail.y;
   const distX = x - startDetail.x;
   const distY = y - startDetail.y;
   const distDiag = Math.sqrt(distX * distX + distY * distY);
@@ -210,35 +211,31 @@ export const DragFlingGesture = function (Base) {
       this.constructor.draggingEvent && this.dispatchEvent(new CustomEvent("draggingend", {bubbles: true, detail}));
     }
 
-    [mouseMove](e) {
-      e.preventDefault();                                       //block defaultAction
-      this[move](e, e.x, e.y);
+    [mouseMove](event) {
+      event.preventDefault();                                       //block defaultAction
+      this[move]({event, x: event.x, y: event.y});
     }
 
-    [touchMove](e) {
-      e.preventDefault();                                       //block defaultAction
-      this[move](e, e.targetTouches[0].pageX, e.targetTouches[0].pageY);
+    [touchMove](event) {
+      event.preventDefault();                                       //block defaultAction
+      this[move]({event, x: event.targetTouches[0].pageX, y: event.targetTouches[0].pageY});
     }
 
-    [move](event, x, y) {
+    [move](detail) {
       const prevDetail = this[cachedEvents][this[cachedEvents].length - 1];
-      const detail = makeDetail(event, x, y, prevDetail);
+      detail = makeDetail(detail, prevDetail);
       this[cachedEvents].push(detail);
       this.draggingCallback && this.draggingCallback(detail);
       this.constructor.draggingEvent && this.dispatchEvent(new CustomEvent("dragging", {bubbles: true, detail}));
     }
 
     [fling](detail) {
-      const e = detail.event;
-      const x = detail.x;
-      const y = detail.y;
       const settings = this.constructor.flingSettings;
-      let endTime = e.timeStamp;
-      const flingTime = endTime - settings.minDuration;
+      const flingTime = detail.event.timeStamp - settings.minDuration;
       const flingStart = findLastEventOlderThan(this[cachedEvents], flingTime);
       if (!flingStart)
         return;
-      detail = makeDetail(e, x, y, flingStart);
+      detail = makeDetail(detail, flingStart);
       if (detail.distDiag < settings.minDistance)
         return;
       detail.angle = flingAngle(detail.distX, detail.distY);
