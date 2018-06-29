@@ -1,6 +1,6 @@
-import {DragFlingGesture} from "../../src/gestures/DraggingFling.js";
+import {DraggingFling} from "../../src/gestures/DraggingFling.js";
 
-describe('DragFlingGesture', function () {
+describe('DraggingFling', function () {
 
   const flingAngle = function flingAngle(x = 0, y = 0) {
     return ((Math.atan2(y, -x) * 180 / Math.PI)+270)%360;

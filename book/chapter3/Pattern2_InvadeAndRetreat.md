@@ -131,7 +131,7 @@ This essentially resembles the setPointerCapture functionality of `pointerevents
 As this example shows, this pattern leaves a fairly big code footprint in a web component.
 But, this pattern easily combines with EventComposition and IsolatedFunctionalMixin.
 To create excellent GestureMixins, such as the ones in 
-[Chapter 5 Gesture mixins](Mixin1_DragFlingGesture.md).
+[Chapter 5 Gesture mixins](Mixin1_DraggingFlingGesture.md).
 
 The pattern InvadeAndRetreat handles [conflicting gestures](Discussion_conflicting_gestures.md).
 

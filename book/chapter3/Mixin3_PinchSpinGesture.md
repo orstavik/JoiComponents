@@ -9,7 +9,7 @@
  - spin (used to trigger animations)
  (The `spin` callback/event is triggered if two fingers are removed from the screen while in motion/
  the pinch ends abruptly.
- See also `fling` in [DragFlingGesture](Mixin1_DragFlingGesture.md)).
+ See also `fling` in [DragFlingGesture](Mixin1_DraggingFlingGesture.md)).
  
 `PinchGesture` records a sequence of two-finger events 
 (cf. [EventRecording](Pattern1_EventRecording.md)):

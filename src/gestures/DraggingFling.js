@@ -40,11 +40,10 @@ function flingAngle(x = 0, y = 0) {
 
 //todo remove the startDetail??
 function extendDetail(lastDetail, startDetail) {
-  const event = lastDetail.event, x = lastDetail.x, y = lastDetail.y;
-  const distX = x - startDetail.x;
-  const distY = y - startDetail.y;
+  const distX = lastDetail.x - startDetail.x;
+  const distY = lastDetail.y - startDetail.y;
   const distDiag = Math.sqrt(distX * distX + distY * distY);
-  const durationMs = event.timeStamp - startDetail.event.timeStamp;
+  const durationMs = lastDetail.event.timeStamp - startDetail.event.timeStamp;
   return Object.assign({distX, distY, distDiag, durationMs}, lastDetail);
 }
 
@@ -100,9 +99,9 @@ Events Touch and mouse have different properties and to solve this problem, it w
 * down/south: 180
 * left/west:  270
  * @param Base
- * @returns {DragFlingGesture}
+ * @returns {DraggingFling}
  */
-export const DragFlingGesture = function (Base) {
+export const DraggingFling = function (Base) {
   return class extends Base {
 
     constructor() {

@@ -53,9 +53,9 @@
 
 <script type="module">
 
-  import {DragFlingGesture} from "../../src/gestures/DraggingFling.js";
+  import {DraggingFling} from "../../src/gestures/DraggingFling.js";
 
-  class FlingBallE extends DragFlingGesture(HTMLElement) {
+  class FlingBallE extends DraggingFling(HTMLElement) {
 
     constructor() {
       super();
@@ -125,7 +125,7 @@
     }
   }
 
-  class FlingBallCBE extends DragFlingGesture(HTMLElement) {
+  class FlingBallCBE extends DraggingFling(HTMLElement) {
 
     constructor() {
       super();
@@ -215,7 +215,7 @@
     }
   }
 
-  class FlingBallCB extends DragFlingGesture(HTMLElement) {
+  class FlingBallCB extends DraggingFling(HTMLElement) {
 
     constructor() {
       super();

@@ -170,6 +170,6 @@ all the way to the top. This is app-specific events.
 
 A more generic use-case would be to translate a series of other events that no browser, 
 or only a few browsers, support into a dependable event. 
-[DragFlingGesture](Mixin1_DragFlingGesture.md) is a good example of such an event. 
+[DragFlingGesture](Mixin1_DraggingFlingGesture.md) is a good example of such an event. 
 Establishing such generic use-case FunctionalEvent patterns or mixins should most likely be 
 setup as FunctionalMixins.

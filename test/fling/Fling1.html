@@ -27,9 +27,9 @@
 
 <script type="module">
 
-  import {DragFlingGesture} from "../../src/gestures/DraggingFling.js";
+  import {DraggingFling} from "../../src/gestures/DraggingFling.js";
 
-  class FlingBallCB extends DragFlingGesture(HTMLElement) {
+  class FlingBallCB extends DraggingFling(HTMLElement) {
 
     static get draggingEvent(){
       return -1;
