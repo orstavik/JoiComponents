@@ -20,6 +20,7 @@ const fling = Symbol("fling");
 const move = Symbol("move");
 const eventAndOrCallback = Symbol("callbackAndOrEvent");
 
+const cachedTouchAction = Symbol("cachedTouchAction");
 const cachedEvents = Symbol("cachedEvents");
 const active = Symbol("active");
 const activeEventOrCallback = Symbol("activeEventOrCallback");
@@ -115,6 +116,7 @@ export const DragFlingGesture = function (Base) {
       this[mouseStopListener] = e => this[mouseStop](e);
 
       this[cachedEvents] = undefined;
+      this[cachedTouchAction] = undefined;                      //block touchAction
       this[active] = 0;       //0 = inactive, 1 = mouse, 2 = touch
       this[activeEventOrCallback] = 0; //caches the result of static get dragFlingEventOrCallback() for each event sequence
     }
@@ -138,6 +140,7 @@ export const DragFlingGesture = function (Base) {
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
+      this.style.touchAction = "none";                          //block touchAction
       this.addEventListener("selectstart", this[selectListener]);
       this.addEventListener("touchstart", this[touchStartListener]);
       this.addEventListener("mousedown", this[mouseStartListener]);
@@ -154,6 +157,7 @@ export const DragFlingGesture = function (Base) {
       if (this[active] === 2)
         return;
       this[active] = 1;
+      e.preventDefault();                                       //block defaultAction
       this[activeEventOrCallback] = this.constructor.dragFlingEventOrCallback;
       window.addEventListener("mousemove", this[mouseMoveListener]);
       window.addEventListener("mouseup", this[mouseStopListener]);
@@ -166,9 +170,13 @@ export const DragFlingGesture = function (Base) {
     [touchStart](e) {
       if (this[active] === 1)
         return;
-      if (this[active] === 2)   //this will be a second touch
+      if (this[active] === 2)                                   //this will be a second touch
         return this[touchStopListener]();
       this[active] = 2;
+      e.preventDefault();                                       //block defaultAction
+      const body = document.querySelector("body");              //block touchAction
+      this[cachedTouchAction] = body.style.touchAction;         //block touchAction
+      body.style.touchAction = "none";                          //block touchAction
       this[activeEventOrCallback] = this.constructor.dragFlingEventOrCallback;
       window.addEventListener("touchmove", this[touchMoveListener]);
       window.addEventListener("touchend", this[touchStopListener]);
@@ -179,6 +187,7 @@ export const DragFlingGesture = function (Base) {
     }
 
     [mouseStop](e) {
+      e.preventDefault();                                       //block defaultAction
       this[fling](e, e.x, e.y);
       this[eventAndOrCallback]("draggingend", {event: e, x: e.x, y: e.y});
 
@@ -190,6 +199,10 @@ export const DragFlingGesture = function (Base) {
     }
 
     [touchStop](e) {
+      e.preventDefault();                                       //block defaultAction
+      const body = document.querySelector("body");              //retreat touchAction
+      body.style.touchAction = this[cachedTouchAction];         //retreat touchAction
+      this[cachedTouchAction] = undefined;                      //retreat touchAction
       const lastMoveDetail = this[cachedEvents][this[cachedEvents].length-1];
       const detail = {event: e, x: lastMoveDetail.x, y: lastMoveDetail.y};
       this[fling](detail.event, detail.x, detail.y);
@@ -204,10 +217,12 @@ export const DragFlingGesture = function (Base) {
     }
 
     [mouseMove](e) {
+      e.preventDefault();                                       //block defaultAction
       this[move](e, e.x, e.y);
     }
 
     [touchMove](e) {
+      e.preventDefault();                                       //block defaultAction
       this[move](e, e.targetTouches[0].pageX, e.targetTouches[0].pageY);
     }
 

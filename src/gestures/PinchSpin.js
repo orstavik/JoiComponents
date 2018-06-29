@@ -69,7 +69,7 @@ export const PinchGesture = function (Base) {
     constructor() {
       super();
       this[recordedEventDetails] = undefined;
-      this[cachedTouchAction] = undefined;
+      this[cachedTouchAction] = undefined;                      //block touchAction
       this[oneHit] = false;
 
       this[startListener] = (e) => this[start](e);
