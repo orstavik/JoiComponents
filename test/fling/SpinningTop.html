@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+<script src="https://hammerjs.github.io/dist/hammer.js"></script>
+<script src="//cdn.rawgit.com/hammerjs/touchemulator/0.0.2/touch-emulator.js"></script>
+<script> TouchEmulator(); </script>
+
+<style>
+  body {
+    padding: 100px;
+  }
+  spinning-top {
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+    border-radius: 60%;
+    border-width: 20px;
+    border-style: solid;
+    border-bottom-color: red;
+    border-top-color: green;
+    border-left-color: yellow;
+    border-right-color: blue;
+    background-color: pink;
+  }
+</style>
+
+<spinning-top></spinning-top>
+
+<script type="module">
+  import {PinchGesture} from "../../src/gestures/PinchSpin.js";
+
+  class SpinningTop extends PinchGesture(HTMLElement) { //[1]
+
+    static get pinchEvent() {
+      return true;
+    }
+
+    pinchCallback(detail) {
+      this.innerText = "angle: " + detail.angle.toFixed(3);
+    }
+
+    spinCallback(detail) {
+      this.innerText = "spin: " + detail.rotation.toFixed(3);
+    }
+  }
+
+  customElements.define("spinning-top", SpinningTop);
+
+  const spinner = document.querySelector("spinning-top");
+  let startAngle = undefined;
+
+  spinner.addEventListener("pinchstart", (e) => {
+    const prevSpinAngle = (spinner.style.transform ? parseFloat(spinner.style.transform.substring(7)) : 0);
+    startAngle = prevSpinAngle - e.detail.angle;
+  });
+  spinner.addEventListener("pinch", (e) => {
+    spinner.style.transform = `rotate(${e.detail.angle - startAngle}deg)`;
+  });
+
+  spinner.addEventListener("spin", (e) => {
+    spinner.style.transition = "10s";
+    const prevSpinAngle = spinner.style.transform ? parseFloat(spinner.style.transform.substring(7)) : 0;
+    spinner.style.transform = `rotate(${prevSpinAngle + (e.detail.rotation * 5)}deg)`;
+  });
+
+
+</script>
+</body>
+</html>

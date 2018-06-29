@@ -70,7 +70,11 @@ to block default actions in the browsers such as "pinch-to-zoom".
 
 ```html
 <style>
+  body {
+    padding: 100px;
+  }
   spinning-top {
+    display: block;
     border-radius: 60%;
     border-width: 20px;
     border-style: solid;
@@ -94,21 +98,33 @@ to block default actions in the browsers such as "pinch-to-zoom".
     }
   
     pinchCallback(detail){
-      this.innerText =`rotate: -${detail.angle}deg`;
+      this.innerText ="angle: " + detail.angle;
     }
     
     spinCallback(detail){
-      this.innerText ="spin: " + JSON.stringify(detail);      
+      this.innerText ="spin: " + detail.rotation;      
     }
   }
   customElements.define("spinning-top", SpinningTop);
   
   const spinner = document.querySelector("spinning-top");
-  spinner.addEventListener("pinch", () => spinner.style.transform = `rotate(${angle}deg)`);
-  spinner.addEventListener("spin", () => {
-    spinner.style.transitionDuration = `5s`;
-    spinner.style.transform = `rotate(${angle}deg)`;
+  let startAngle = undefined;
+  
+  spinner.addEventListener("pinchstart", (e) => {startAngle = e.detail.angle});
+  spinner.addEventListener("pinch", (e) => {
+    // e.detail.xFactor, e.detail.yFactor;
+    const lastRotate = spinner.style.transform ? parseFloat(spinner.style.transform.substring(7)) : 0;
+    spinner.style.transform = `rotate(${lastRotate + e.detail.angle - startAngle}deg)`;  
   });
+  
+  spinner.addEventListener("spin", () => {
+    spinner.style.transition = "10s";
+    spinner.style.transform = `rotate(-${detail.angle * 5}deg)`;
+    const lastRotate = spinner.style.transform ? parseFloat(spinner.style.transform.substring(7)) : 0;
+    spinner.style.transform = `rotate(${lastRotate + e.detail.rotation - startAngle}deg)`;
+  });
+  
+  
 </script>
 ```
 

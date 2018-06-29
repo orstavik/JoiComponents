@@ -28,7 +28,7 @@ The following mixins are directly available via rawgit.com and unpkg.com:
 * [StaticSlotchangeMixin.js](src/StaticSlotchangeMixin.js)
 
 **Gestures:**
-* [gestures/DragFling.js](src/gestures/DragFling.js)
+* [gestures/DraggingFling.js](src/gestures/DraggingFling.js)
 * [gestures/PinchSpin.js](src/gestures/PinchSpin.js)
 * [gestures/Swipe.js](src/gestures/Swipe.js)
 
@@ -76,9 +76,9 @@ Example of complete links:
 1. [OptionalCallbacksEvents](book/chapter3/Pattern3_OptionalCallbacksEvents.md)
 2. [Discussion: conflicting gestures](book/chapter3/Problem_conflicting_gestures.md)
 3. [InvadeAndRetreat!](book/chapter3/Pattern5_InvadeAndRetreat.md)
-4. [DragFlingMixin](book/chapter3/Mixin1_DragFlingGesture.md) (PointerGesture)
+4. [DragFlingMixin](book/chapter3/Mixin1_DraggingFlingGesture.md) (PointerGesture)
 5. [SwipeFlingMixin](book/chapter3/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-6. [PinchGesture](book/chapter3/Mixin3_PinchGesture.md) (TwoFingerGesture)
+6. [PinchGesture](book/chapter3/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
 
 ## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)

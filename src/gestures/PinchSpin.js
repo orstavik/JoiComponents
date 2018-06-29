@@ -4,6 +4,7 @@ const endListener = Symbol("touchEndListener");
 const start = Symbol("touchStart");
 const move = Symbol("touchMove");
 const end = Symbol("touchEnd");
+const spin = Symbol("spin");
 
 const recordedEventDetails = Symbol("recordedEventDetails");
 const cachedTouchAction = Symbol("cachedTouchAction");
@@ -11,6 +12,14 @@ const oneHit = Symbol("firstTouchIsAHit");
 
 function calcAngle(x, y) {
   return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
+}
+
+function findLastEventOlderThan(events, timeTest) {
+  for (let i = events.length - 1; i >= 0; i--) {
+    if (events[i].touchevent.timeStamp < timeTest)
+      return events[i];
+  }
+  return null;
 }
 
 function makeDetail(touchevent) {
@@ -85,9 +94,9 @@ export const PinchGesture = function (Base) {
     //   return false;
     // }
 
-    // static get spinDuration() {
-    //   return 50;    //to max: we need probably a smaller number here than on fling..
-    // }
+    static get spinSettings() {
+      return {spinMotion: 50, spinDuration: 100};
+    }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
@@ -135,8 +144,6 @@ export const PinchGesture = function (Base) {
 
     [end](e) {
       e.preventDefault();                                       //block defaultAction
-      //todo add the fling calculations for spin both rotation, pinch and doubledrag
-      //todo we use this[recordedEventDetails] to calculate spin on rotation and scalefling for scaling
       window.removeEventListener("touchmove", this[moveListener]);
       window.removeEventListener("touchend", this[endListener]);
       window.removeEventListener("touchcancel", this[endListener]);
@@ -146,9 +153,29 @@ export const PinchGesture = function (Base) {
       this[cachedTouchAction] = undefined;                      //retreat touchAction
       const detail = Object.assign({}, this[recordedEventDetails][this[recordedEventDetails].length - 1]);
       detail.touchevent = e;
+      this[spin](e);
       this[recordedEventDetails] = undefined;
       this.pinchendCallback && this.pinchendCallback(detail);
       this.constructor.pinchEvent && this.dispatchEvent(new CustomEvent("pinchend", {bubbles: true, detail}));
+    }
+
+    [spin](event) {
+      const settings = this.constructor.spinSettings;
+      const spinTime = event.timeStamp - settings.spinDuration;
+      const spinStart = findLastEventOlderThan(this[recordedEventDetails], spinTime);
+      if (!spinStart)
+        return;
+      const detail = Object.assign({}, this[recordedEventDetails][this[recordedEventDetails].length - 1]);
+      detail.touchevent = event;
+      detail.xFactor = Math.abs(spinStart.width / detail.width);
+      detail.yFactor = Math.abs(spinStart.height / detail.height);
+      detail.diagonalFactor = Math.abs(spinStart.diagonal / detail.diagonal);
+      detail.rotation = Math.abs(spinStart.angle - detail.angle);
+      let lastspinMotion = Math.abs(detail.x1 - spinStart.x1) + (detail.y1 - spinStart.y1); //the sum of the distance of the start and end positions of finger 1 and 2
+      if (lastspinMotion < settings.spinMotion)
+        return;
+      this.spinCallback && this.spinCallback(detail);
+      this.constructor.pinchEvent && this.dispatchEvent(new CustomEvent("spin", {bubbles: true, detail}));
     }
   }
 };
