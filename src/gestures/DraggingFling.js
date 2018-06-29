@@ -20,6 +20,7 @@ const fling = Symbol("fling");
 const start = Symbol("start");
 const move = Symbol("move");
 const end = Symbol("end");
+const cancel = Symbol("cancel");
 
 const cachedTouchAction = Symbol("cachedTouchAction");
 const cachedEvents = Symbol("cachedEvents");
@@ -38,13 +39,13 @@ function flingAngle(x = 0, y = 0) {
 }
 
 //todo remove the startDetail??
-function makeDetail(lastDetail, startDetail) {
+function extendDetail(lastDetail, startDetail) {
   const event = lastDetail.event, x = lastDetail.x, y = lastDetail.y;
   const distX = x - startDetail.x;
   const distY = y - startDetail.y;
   const distDiag = Math.sqrt(distX * distX + distY * distY);
   const durationMs = event.timeStamp - startDetail.event.timeStamp;
-  return {event, x, y, distX, distY, distDiag, durationMs};
+  return Object.assign({distX, distY, distDiag, durationMs}, lastDetail);
 }
 
 /*
@@ -155,7 +156,7 @@ export const DragFlingGesture = function (Base) {
 
     [mouseStart](event) {
       if (this[active])                   //this will be a second touch or button press
-        return this[touchStopListener]();
+        return this[touchStopListener](event, true);
       this[active] = 1;
       event.preventDefault();                                   //block defaultAction
       window.addEventListener("mousemove", this[mouseMoveListener]);
@@ -165,7 +166,7 @@ export const DragFlingGesture = function (Base) {
 
     [touchStart](event) {
       if (this[active])                   //this will be a second touch or button press
-        return this[touchStopListener]();
+        return this[touchStopListener](event, true);
       this[active] = 2;
       event.preventDefault();                                   //block defaultAction
       const body = document.querySelector("body");              //block touchAction
@@ -183,14 +184,16 @@ export const DragFlingGesture = function (Base) {
       this.constructor.draggingEvent && this.dispatchEvent(new CustomEvent("draggingstart", {bubbles: true, detail}));
     }
 
-    [mouseStop](e) {
+    [mouseStop](e, cancel) {
       e.preventDefault();                                       //block defaultAction
       window.removeEventListener("mousemove", this[mouseMoveListener]);
       window.removeEventListener("mouseup", this[mouseStopListener]);
-      this[stop]({event: e, x: e.x, y: e.y});
+      cancel ?
+        this[cancel]({event: e}) :
+        this[stop]({event: e, x: e.x, y: e.y});
     }
 
-    [touchStop](e) {
+    [touchStop](e, cancel) {
       e.preventDefault();                                       //block defaultAction
       const body = document.querySelector("body");              //retreat touchAction
       body.style.touchAction = this[cachedTouchAction];         //retreat touchAction
@@ -199,7 +202,9 @@ export const DragFlingGesture = function (Base) {
       window.removeEventListener("touchend", this[touchStopListener]);
       window.removeEventListener("touchcancel", this[touchStopListener]);
       const lastMoveDetail = this[cachedEvents][this[cachedEvents].length - 1];
-      this[stop]({event: e, x: lastMoveDetail.x, y: lastMoveDetail.y});
+      cancel ?
+        this[cancel]({event: e}) :
+        this[stop]({event: e, x: lastMoveDetail.x, y: lastMoveDetail.y});
     }
 
     [stop](detail) {
@@ -208,6 +213,13 @@ export const DragFlingGesture = function (Base) {
       this[cachedEvents] = undefined;
       this.draggingendCallback && this.draggingendCallback(detail);
       this.constructor.draggingEvent && this.dispatchEvent(new CustomEvent("draggingend", {bubbles: true, detail}));
+    }
+
+    [cancel](detail) {
+      this[active] = 0;
+      this[cachedEvents] = undefined;
+      this.draggingcancelCallback && this.draggingcancelCallback(detail);
+      this.constructor.draggingEvent && this.dispatchEvent(new CustomEvent("draggingcancel", {bubbles: true, detail}));
     }
 
     [mouseMove](event) {
@@ -222,7 +234,7 @@ export const DragFlingGesture = function (Base) {
 
     [move](detail) {
       const prevDetail = this[cachedEvents][this[cachedEvents].length - 1];
-      detail = makeDetail(detail, prevDetail);
+      detail = extendDetail(detail, prevDetail);
       this[cachedEvents].push(detail);
       this.draggingCallback && this.draggingCallback(detail);
       this.constructor.draggingEvent && this.dispatchEvent(new CustomEvent("dragging", {bubbles: true, detail}));
@@ -234,7 +246,7 @@ export const DragFlingGesture = function (Base) {
       const flingStart = findLastEventOlderThan(this[cachedEvents], flingTime);
       if (!flingStart)
         return;
-      detail = makeDetail(detail, flingStart);
+      detail = extendDetail(detail, flingStart);
       if (detail.distDiag < settings.minDistance)
         return;
       detail.angle = flingAngle(detail.distX, detail.distY);
