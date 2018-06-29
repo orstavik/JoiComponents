@@ -7,7 +7,6 @@ const end = Symbol("touchEnd");
 
 const recordedEventDetails = Symbol("recordedEventDetails");
 const cachedTouchAction = Symbol("cachedTouchAction");
-const addEvent = Symbol("addEvent");
 
 function calcAngle(x, y) {
   return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
@@ -46,16 +45,18 @@ function makeDetail(touchevent) {
  * PinchGesture has the following *optional* reactive callback methods:
  *  - pinchstartCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle})
  *  - pinchCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle})
- *  - pinchendCallback({touchevent})
+ *  - pinchendCallback({touchevent, x1, y1, x2, y2, diagonal, width, height, angle}) [1]
  *  - spinCallback({touchevent, diagonal, width, height, angle, duration})
  * 
  * PinchGesture has the following StaticSettings:
  *  - pinchEvent: true => mixin will also dispatch the following events
  *     - pinchstart:  {touchevent, x1, y1, x2, y2, diagonal, width, height, angle}
  *     - pinch:       {touchevent, x1, y1, x2, y2, diagonal, width, height, angle}
- *     - pinchend:    {touchevent}
+ *     - pinchend:    {touchevent, x1, y1, x2, y2, diagonal, width, height, angle} [1]
  *     - spin:        {touchevent, diagonal, width, height, angle, duration}
- * 
+ *
+ * [1] pinchend coordinates are copied from the last successful pinch.
+ *
  * @param Base
  * @returns {PinchGesture}
  */
@@ -69,7 +70,6 @@ export const PinchGesture = function (Base) {
       this[startListener] = (e) => this[start](e);
       this[moveListener] = (e) => this[move](e);
       this[endListener] = (e) => this[end](e);
-      this[addEvent] = false;
     }
 
     /**
@@ -107,11 +107,10 @@ export const PinchGesture = function (Base) {
       window.addEventListener("touchmove", this[moveListener]);
       window.addEventListener("touchend", this[endListener]);
       window.addEventListener("touchcancel", this[endListener]);
-      this[addEvent] = this.constructor.pinchEvent;
       const detail = makeDetail(e);
       this[recordedEventDetails] = [detail];
       this.pinchstartCallback && this.pinchstartCallback(detail);
-      this[addEvent] && this.dispatchEvent(new CustomEvent("pinchstart", {bubbles: true, detail}));
+      this.constructor.pinchEvent && this.dispatchEvent(new CustomEvent("pinchstart", {bubbles: true, detail}));
     }
 
     [move](e) {
@@ -119,7 +118,7 @@ export const PinchGesture = function (Base) {
       const detail = makeDetail(e);
       this[recordedEventDetails].push(detail);
       this.pinchCallback && this.pinchCallback(detail);
-      this[addEvent] && this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, detail}));
+      this.constructor.pinchEvent && this.dispatchEvent(new CustomEvent("pinch", {bubbles: true, detail}));
     }
 
     [end](e) {
@@ -132,10 +131,11 @@ export const PinchGesture = function (Base) {
       //const body = document.querySelector("body");
       // body.style.touchAction = this[cachedTouchAction];                       //max1
       // this[cachedTouchAction] = undefined;
+      const detail = this[recordedEventDetails][this[recordedEventDetails].length-1];
+      detail.touchevent = e;
       this[recordedEventDetails] = undefined;
-      const detail = {touchevent: e};
       this.pinchendCallback && this.pinchendCallback(detail);
-      this[addEvent] && this.dispatchEvent(new CustomEvent("pinchend", {bubbles: true, detail}));
+      this.constructor.pinchEvent && this.dispatchEvent(new CustomEvent("pinchend", {bubbles: true, detail}));
     }
   }
 };
