@@ -66,36 +66,45 @@ But it doesn't in order to avoid to polyfill pointerevents in Safari.
 
 ## Example: DraggingBlock
 
-```javascript
-import {DraggingFling} from "https://rawgit.com/orstavik/JoiComponents/master/src/gestures/DraggingFling.js";
-
-class DraggingBlock extends DraggingFling(HTMLElement) {                   //[1]
-
-  constructor(){
-    super();
-    this._onDraggingListener = e => this._onDragging(e);      
+```html
+<style>
+  dragging-block {
+    display: block;
+    position: fixed;
+    top: 100px;
+    left: 100px;
+    width: 50px;
+    height: 50px;
+    background: orange;
   }
+</style>
 
-  connectedCallback(){
-    super.connectedCallback();
-    this.style.display = "block"; 
-    this.style.position = "fixed"; 
-    this.style.left = "30px";                
-    this.style.top = "30px";
-    this.addEventListener("dragging", this._onDraggingListener);              //[2]
-  }                                                                           
-                                                                              
-  disconnectedCallback(){                                                     
-    this.removeEventListener("dragging", this._onDraggingListener);           //[2]   
-  }
+<dragging-block></dragging-block>
+
+<script type="module">
+  import {DraggingFling} from "https://rawgit.com/orstavik/JoiComponents/master/src/gestures/DraggingFling.js";
   
-  _onDragging(e){
-    this.style.left = (parseFloat(this.style.left) + e.detail.distX) + "px";  //[3]
-    this.style.top = (parseFloat(this.style.top) + e.detail.distY) + "px";    //[3]
+  class DraggingBlock extends DraggingFling(HTMLElement) {                   //[1]
+  
+    static get draggingEvent(){
+      return true;
+    }
+    
+    draggingCallback(detail){
+      this.innerText = "x: " + detail.distX + ", y: " + detail.distY;  //[3] 
+    }
   }
-}
-customElements.define("dragging-block", DraggingBlock);
+  customElements.define("dragging-block", DraggingBlock);
+
+  const block = document.querySelector("dragging-block");
+  block.addEventListener("dragging", (e) => {
+    block.style.left = (parseFloat(block.style.left) + e.detail.distX) + "px";  //[3]
+    block.style.top = (parseFloat(block.style.top) + e.detail.distY) + "px";    //[3]
+  });
+
+</script>
 ```                                                                   
+todo add and writeup the numbers in the example.
 1. Adding the functional mixin `DraggingFling(HTMLElement)`. 
 DraggingBlock elements will now dispatch dragging events when dragged.
 2. Adds the listener for `dragging` event when the element connects to the DOM.
