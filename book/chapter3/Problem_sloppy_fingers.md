@@ -8,7 +8,7 @@ in quick succession instead of all at the same time.
 In addition, a third problem is that sensors of touch devices can be too coarse to 
 distinguish between individual touches in some situations.
 
-In this chapter I will present these problems and ways to solve them.
+This chapter presents these problems and how to address them.
 
 ## Problem 1: Sloppy fingers
 
