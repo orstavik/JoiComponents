@@ -6,7 +6,7 @@ attribute listed in `observedAttributes` is instantiated or changes.
 To register an attribute in `observedAttributes` list, 
 the name of the attribute must be added as a string to the 
 returned array from the native function `static get observedAttributes()`.
-For more about `static get observedAttributes()`, see the [StaticSettings pattern](Pattern_StaticSettings.md).
+For more about `static get observedAttributes()`, see the [StaticSettings pattern](../chapter1b_HowToMakeMixins/Pattern3_StaticSettings.md).
 
 ## Example SayMyName
 ```html
