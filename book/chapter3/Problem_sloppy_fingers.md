@@ -49,18 +49,19 @@ This triggers *two* sequential initiating `touchstart` events, one for each fing
 However, next time the user's fingers might be more in sync, and both fingers are registered simultaneously.
 This triggers only *one* single initiating `touchstart` event.
 
-The **basic solution** to this problem is to listen for all `touchstart` events and simply ignore any 
+To solve this problem we can listen for all `touchstart` events and simply ignore any 
 such event that does not list *only* the required touches. 
 But, this solution has two consequences:
 1. The start of the gesture is registered when the second finger touches the sensor, and not the first.
 2. The application might wish to ignore and/or differentiate between sequential `touchstart` events 
 depending on the delay between the initiating `touchstart` events.
 
-When implementing a multi-finger gesture in a mixin, the basic solution provides enough detail.
-If the element/app needs more precise timing,
-then the element can simply listen for the latest (or all) `touchstart` (or `touchend`) event directly. 
-This will provide the necessary timestamps needed as data or as input to filter gesture 
-based on the delay between initiating events.
+In a general, multi-finger mixin, this solution provides enough detail.
+But, if the element/app needs more precise timing,
+the element implementing such a mixin should itself also listen to and record `touchstart` and `touchend` events. 
+This will provide the mixin with the more precise time data and the ability to filter out the by 
+`cancel()`-ing the particular gesture.
+The gesture mixin therefore needs a method `cancelGestureName()` in order to tackle problems with stuttering touchstarts.
 
 ## Problem 3: Sloppy sensors
 
