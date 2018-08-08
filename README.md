@@ -56,29 +56,38 @@ Example of complete links:
 8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
 <!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
 
+## Chapter 1b: How to make mixins
+1. [Reactive method](book/chapter1b_HowToMakeMixins/Pattern1_ReactiveMethod.md)
+2. [Isolated functional mixin](book/chapter1b_HowToMakeMixins/Pattern2_FunctionalMixin.md)
+3. [StaticSetting](book/chapter1b_HowToMakeMixins/Pattern3_StaticSettings.md)
+4. [EventRecording](book/chapter1b_HowToMakeMixins/Pattern4_EventRecording.md)
+5. [DebounceCallbacks](book/chapter1b_HowToMakeMixins/Pattern5_DebounceCallbacks.md)
+6. [OptionalCallbacksEvents](book/chapter1b_HowToMakeMixins/Pattern6_OptionalCallbacksEvents.md)
+7. [MixinPrivateAndGlobal](book/chapter1b_HowToMakeMixins/Pattern7_MixinPrivateAndGlobal.md)
+8. [Discussion: isolate FunctionalMixins](book/chapter1b_HowToMakeMixins/Discussion_IsolatedFunctionalMixin.md)
+<!--9. [MixinPrivateAndGlobal](book/chapter1b_HowToMakeMixins/PatternY_second-level-function-mixin.md)-->
+
 ## Chapter 2a: Lifecycle callbacks
-1. [Intro: native callbacks](book/chapter2/Intro_native_lifecycle_hooks.md)
-2. [.firstConnectedCallback()](book/chapter2/Mixin4_FirstConnectedMixin.md)
-3. [.firstOpportunityCallback()](book/chapter2/Mixin6_FirstOpportunityMixin.md)
+1. [Intro: native callbacks](book/chapter2a_basicMixins_LifeCycle/Intro_native_lifecycle_hooks.md)
+2. [.firstConnectedCallback()](book/chapter2a_basicMixins_LifeCycle/Mixin4_FirstConnectedMixin.md)
+3. [.firstOpportunityCallback()](book/chapter2a_basicMixins_LifeCycle/chapterSetup/Mixin6_FirstOpportunityMixin.md)
+4. [.enterViewCallback()](book/chapter2a_basicMixins_LifeCycle/Mixin5_EnterViewMixin.md)
 
 ## Chapter 2b: Event callbacks
-1. [.attributeChangedCallback()](book/chapter2/HowTo_attributeChangedCallback.md)
-2. [StaticSetting](book/chapter2/Pattern_StaticSettings.md)
-3. [Reactive method](book/chapter2/Pattern1_ReactiveMethod.md)
-4. [Isolated functional mixin](book/chapter2/Pattern2_FunctionalMixin.md)
-5. [.slotchangedCallback()](book/chapter2/Mixin1_SlotchangeMixin.md)
-6. [.resizeCallback()](book/chapter2/Mixin2_ResizeMixin.md)
-7. [.enterViewCallback()](book/chapter2/Mixin5_EnterViewMixin.md)
-8. [Discussion: isolate FunctionalMixins](book/chapter2/Discussion_IsolatedFunctionalMixin.md)
+1. [.attributeChangedCallback()](book/chapter2b_basicMixins_whileConnected/HowTo_attributeChangedCallback.md)
+5. [.slotchangedCallback()](book/chapter2b_basicMixins_whileConnected/Mixin1_SlotchangeMixin.md)
+6. [.resizeCallback()](book/chapter2b_basicMixins_whileConnected/Mixin2_ResizeMixin.md)
 
 ## Chapter 3: Gestures
-1. [EventRecording](book/chapter3/Pattern1_EventRecording.md)
-1. [OptionalCallbacksEvents](book/chapter3/Pattern3_OptionalCallbacksEvents.md)
-2. [Discussion: conflicting gestures](book/chapter3/Problem_conflicting_gestures.md)
-3. [InvadeAndRetreat!](book/chapter3/Pattern5_InvadeAndRetreat.md)
-4. [DragFlingMixin](book/chapter3/Mixin1_DraggingFlingGesture.md) (PointerGesture)
-5. [SwipeFlingMixin](book/chapter3/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-6. [PinchGesture](book/chapter3/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
+1. [Sloppy fingers](book/chapter3_gestures/Problem1_sloppy_fingers.md)
+2. [Gesture stuttering](book/chapter3_gestures/Problem2_gesture_stuttering.md)
+3. [Touch makes mouse](book/chapter3_gestures/Problem3_touch_the_mouse.md)
+4. [Conflicting gestures](book/chapter3_gestures/Problem4_conflicting_gestures.md)
+5. [InvadeAndRetreat!](book/chapter3_gestures/Pattern5_InvadeAndRetreat.md)
+6. [Coarse sensors](book/chapter3_gestures/Problem5_coarse_sensors.md)
+7. [DragFlingMixin](book/chapter3_gestures/Mixin1_DraggingFlingGesture.md) (PointerGesture)
+8. [SwipeFlingMixin](book/chapter3_gestures/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
+9. [PinchGesture](book/chapter3_gestures/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
 
 ## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)

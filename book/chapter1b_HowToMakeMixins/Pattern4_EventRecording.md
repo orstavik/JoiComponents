@@ -116,7 +116,7 @@ In addition, some event translation require:
 4. complex processing of the event data coming in and/or going out, and/or
 5. extensive testing.
 
-If so, apply the EventRecording pattern as a [FunctionalMixin](../chapter2/Pattern2_FunctionalMixin.md).
+If so, apply the EventRecording pattern as a [FunctionalMixin](Pattern2_FunctionalMixin.md).
 
 ## Problems with EventRecording
 At first sight the pattern seem overly complex and heavy handed. 
@@ -170,6 +170,6 @@ all the way to the top. This is app-specific events.
 
 A more generic use-case would be to translate a series of other events that no browser, 
 or only a few browsers, support into a dependable event. 
-[DragFlingGesture](Mixin1_DraggingFlingGesture.md) is a good example of such an event. 
+[DragFlingGesture](../chapter3_gestures/Mixin1_DraggingFlingGesture.md) is a good example of such an event. 
 Establishing such generic use-case FunctionalEvent patterns or mixins should most likely be 
 setup as FunctionalMixins.

@@ -57,6 +57,9 @@ const triggerCallback = function(n, cb){
 }
 ```
 
+Once debouncing is activated, all callbacks must be debounced (including gestureStart and gestureEnd). 
+If not, the order of the callbacks will not be ensured.
+
 ## Alternative solution: Debouncing callbacks every setTimeout ms or every n-th time
 
 Other strategies to debounce callbacks might be to rely on setTimeout or simply using the count of callbacks.

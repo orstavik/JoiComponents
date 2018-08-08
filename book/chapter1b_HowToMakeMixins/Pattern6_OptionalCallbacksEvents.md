@@ -31,7 +31,7 @@ is that the custom element will not be alerted if it implements
 costly functional mixins that it does not use.
 So, remember to *remove functional mixins with optional callbacks when they are no longer in use*.
 
-To implement optional events we use a boolean [StaticSetting](../chapter2/Pattern_StaticSettings.md).
+To implement optional events we use a boolean [StaticSetting](Pattern3_StaticSettings.md).
 
 ## Example: `LongpressMixin`
 
@@ -167,6 +167,16 @@ a) create listener function objects in the `constructor()`,
 b) add listener in `connectedCallback()`, and
 c) remove listeners in `disconnectedCallback()` for *all such events*.
 Managing these event listeners creates a lot of boilerplate in the custom element using the mixin.
+
+## Todo Event dispatch, manually or explicit in callback?
+
+in mixin: 
++ can be shorter code, if multiple callbacks then need to be implemented just to dispatch an event.
++ slightly faster, as the need to invoke a callback method might be avoided.
+- makes the mixin bigger
+- makes it harder to selectively debounce.
++ a user might forget to implement gestureStart and gestureEnd etc.
+- slows down the code for the callback only. 
 
 ## References
  * dunno
