@@ -9,7 +9,7 @@ The `constructor()` of custom element classes is not as simple as it might seem.
 There are three important, implied contextual bindings to the constructor of custom elements:
 
 1. Attributes can neither be safely read nor safely set in the `constructor()`
-   (cf. [Problem: Attributes In Constructor](Problem_attributesInConstructor.md).
+   (cf. [Problem: Attributes In Constructor](Problem1_attributesInConstructor.md).
    This means that a second `setupCallback()` should be set up.
 
 2. `this.attachShadow({mode: "open"});` should always be called in the `constructor()`.

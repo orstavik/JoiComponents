@@ -68,14 +68,14 @@ Example of complete links:
 <!--9. [MixinPrivateAndGlobal](book/chapter1b_HowToMakeMixins/PatternY_second-level-function-mixin.md)-->
 
 ## Chapter 2a: Lifecycle callbacks
-1. lifecycle overview [Intro: native callbacks](book/chapter2a_basicMixins_LifeCycle/Intro_native_lifecycle_hooks.md)
-2. [Problem: attributes in constructor](book/chapter2a_basicMixins_LifeCycle/chapter2c/Problem_attributesInConstructor.md)
+1. [Intro: element lifecycle](book/chapter2a_basicMixins_LifeCycle/chapter2c/Intro_element_lifecycle.md)
+2. [Problem: attributes in constructor](book/chapter2a_basicMixins_LifeCycle/chapter2c/Problem1_attributesInConstructor.md)
 3. [HowTo `constructor()`](book/chapter2a_basicMixins_LifeCycle/chapter2c/HowTo_constructor.md)
 4. [When to setup](book/chapter2a_basicMixins_LifeCycle/chapter2c/Problem2_setupElement.md)
-5. Immediate setup
-6. Delayed setup
-7. In advance setup
-8. unloadCallback
+5. [Setup: immediate](book/chapter2a_basicMixins_LifeCycle/chapter2c/setup_immediate.md)
+6. [Setup: delayed] 
+7. [setup: in advance]
+8. [unloadCallback()]
 
 old chapters
 1. [Intro: native callbacks](book/chapter2a_basicMixins_LifeCycle/Intro_native_lifecycle_hooks.md)
@@ -87,6 +87,7 @@ old chapters
 1. [.attributeChangedCallback()](book/chapter2b_basicMixins_whileConnected/HowTo_attributeChangedCallback.md)
 2. [.slotchangedCallback()](book/chapter2b_basicMixins_whileConnected/Mixin1_SlotchangeMixin.md)
 3. [.resizeCallback()](book/chapter2b_basicMixins_whileConnected/Mixin2_ResizeMixin.md)
+4. .hashChangedCallback()
 <!-- 4. liefi-->
 
 ## Chapter 3: Gestures
