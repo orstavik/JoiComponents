@@ -178,9 +178,15 @@ From this example we see that setting attributes in the constructor:
 ## Conclusion: setupCallback() is needed
 
 As the 3 examples above show, it is not possible to set default attributes in the constructor of custom elements.
-We therefore need a "second" `constructor()` to setup the element, and 
-we call this method `setupCallback()`. 
-In the next chapter we look at how, when and why to trigger `setupCallback()`.
+We therefore need a "second" `constructor()` to setup the element.
+This is a little bit disappointing. From the outset it feels.. wrong.
+But. Once the dust settles, having a one-two constructor is not all that bad.
+And, every cloud has a silver lining. The second constructor is not only a necessary evil. 
+It is also an opportunity.
+
+In the next chapters, we will look more at this second constructor that we call `setupCallback()`.
+These chapters look at how, when and why to trigger `setupCallback()`, and 
+they show how we can either minimize the burden of the `setupCallback()` or maximize its abilities.
 
 ## Opinion: Why HTML attributes?
 HTML attributes is the only means to describe the state of an HTML element that 
