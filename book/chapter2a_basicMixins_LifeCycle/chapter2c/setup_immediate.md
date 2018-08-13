@@ -1,7 +1,7 @@
 # Setup: Immediate
 
 > TLDR: trigger `setupCallback()` *immediately before* the `connectedCallback()` is executed.
-> Add `this.isSetup || ((this.isSetup = true) && this.setupCallback());`
+> Add `this.isSetup || (this.setupCallback(), this.isSetup = true);`
 > at the *very* beginning of `connectedCallback()`.
 
 When an element is created and immediately added to the DOM, 
@@ -94,7 +94,7 @@ of the `connectedCallback()`. Here is an example:
 class MyElement extends HTMLElement {
   
   connectedCallback(){
-    this.isSetup ||((this.isSetup = true)&&this.setupCallback());    //[1]
+    this.isSetup || (this.setupCallback(), this.isSetup = true);     //[1]
     //super.connectedCallback();                                     //[2]
     console.log("running connectedCallback");
   }
@@ -131,7 +131,7 @@ The above solution can also be implemented as a mixin.
 const SetupFirstConnected = function(Base){
   return class SetupFirstConnected extends Base {
     connectedCallback(){
-      this.isSetup ||((this.isSetup = true)&&this.setupCallback());
+      this.isSetup || (this.setupCallback(), this.isSetup = true);
       super.connectedCallback && super.connectedCallback();
     }
   }
