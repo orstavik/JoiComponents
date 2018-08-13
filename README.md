@@ -74,7 +74,7 @@ Example of complete links:
 4. [When to setup](book/chapter2a_basicMixins_LifeCycle/chapter2c/Problem2_setupElement.md)
 5. [Setup: immediate](book/chapter2a_basicMixins_LifeCycle/chapter2c/setup_immediate.md)
 6. [setup: in advance](book/chapter2a_basicMixins_LifeCycle/chapter2c/setup_in_advance.md)
-7. [Setup: delayed] 
+7. [Setup: delayed](book/chapter2a_basicMixins_LifeCycle/chapter2c/setup_delay.md)
 8. [unloadCallback()]
 
 old chapters
