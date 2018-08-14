@@ -1,5 +1,22 @@
 # Setup: In advance
 
+## Set up 3: In advance 
+
+You create your element. 
+1. The setupMethod will be triggered by `connectedCallback` at the latest.
+2. you have the `triggerSetupCallback(ms)` that will either add the element to a rAF que with the ms priority,
+or you can trigger it immediately yourself using `triggerSetupCallback()` inside an event callback.
+
+* if you use only `setupCallback`, you don't get the ability that the setupMethod will be triggered by `connectedCallback` at the latest.  
+
+> the triggers for finding idle time, are similar for the in advance and not-yet. 
+In advance can 
+
+
+
+
+
+
 > TLDR: place a call to `setupCallback()` as an event listener or in a task que.
 > Make sure `setupCallback()` is still always called before `connectedCallback()` 
 > but never twice.

@@ -1,5 +1,49 @@
 # Setup: Delay
 
+But, because we decide when to call `setupCallback()`, 
+we can also decide when By since the timing of an element's setup, setup of elements can both be *delayed* 
+and done *in advance*. By *delaying* setup of non-critical elements, an app can increase the performance of 
+critical elements at times when the browser is low on resources (f.x. when the page is loaded).
+By setting up elements *in advance*, an app can increase its performance at a later critical moment when
+for example UI interaction is taxing the browser's resources hard.
+When the `setupCallback()` is either delayed or done in advance, the triggering mechanism 
+of the callback method becomes both more complex and resource intensive.
+In such cases the use of a mixin to trigger `setupCallback()` is strongly recommended.
+
+## Setup 2: not-yet
+
+
+, but we wish to delay the element setup to allow for:
+   * quicker rendering and/or 
+   * prioritize user interaction or other tasks.
+
+ 
+Delay the setup and connectedCallback of an element. This is a little more complex. 
+Remember that the setup can only recursively delay the setup of shadowDOM children, 
+not lightDOM child elements, thus the benefit of delaying setup is therefore limited.
+But, if the constructor has set the shadowRoot, and the shadowRoot has no slot, 
+then the constructor of the lightDOM children elements will run, but not(!) their connectedCallback(!!).
+So this should in theory work ok as a means to hide other tasks in lightDOM elements as long as 
+their code is triggered by connectedCallback and not constructor!
+
+Here, there is a myriad of event triggers that can be used. FirstInView, on DOMContentLoaded, on idleTime,
+on setTimeout, on RAF.
+
+The question is whether or not this should be moved into a mixin, or whether or not this should be done from outside.
+
+I think that it probably should be done from the outside.
+a) We have the ability of adding a staticSetting for using triggers built into the mixin.
+b) we can use functions from the mixin that puts them into different ques.
+c) we can do it all manually from the outside.
+
+If c) manually, we can't harmonize for the user across browsers.
+The best solution is then probably b) static functions..
+
+
+
+
+
+
 > TLDR: delay both `setupCallback()` and `connectedCallback()` of an element.
 > 1. abort `connectedCallback()` in the custom element if `.isSetup` has not been performed.
 > 2. Que an async call to `setupCallback()` to respond to an event or task que.

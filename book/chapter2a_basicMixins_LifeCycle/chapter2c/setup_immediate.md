@@ -1,5 +1,36 @@
 # Setup: Immediate
 
+To set up a simple **`setupCallback()`** can be done in this single(!) line of code added 
+at the *very* beginning of `connectedCallback()`:
+```javascript
+connectedCallback(){
+  this.isSetup || (this.isSetup = true, this.setupCallback());
+  super.connectedCallback();
+  //do your other stuff here
+}
+```
+This single line of code will trigger a custom lifecycle callback method 
+on the element called `setupCallback()` *once*, immediately before the element is connected to the DOM
+for the first time.
+
+## Setup 1: immediately
+
+Simple. But cannot be called in sync from the `constructor()`.
+
+If the constructor tries to call 
+`Promise.resolve(()=> this.setupCallback());`
+the attributes will not have appeared/or it will already be connected?
+
+If the constructor tries to call 
+`setTimeout(()=>this.setupCallback(), 0)`
+the attributes will not have appeared/or it will already be connected?
+
+Therefore it must be called in sync with `connectedCallback()` directly prior to it.
+
+
+
+
+
 > TLDR: trigger `setupCallback()` *immediately before* the `connectedCallback()` is executed.
 > Add `this.isSetup || (this.setupCallback(), this.isSetup = true);`
 > at the *very* beginning of `connectedCallback()`.

@@ -12,7 +12,9 @@ When you make a new custom element definition, it `extends HTMLElement`, and
 you want your custom element to be constructable in all these four ways.
 
 But. There is a problem. An invisible constraint.
-You are not allowed to set attribute values in the constructor of `HTMLElement`. Sometimes. 
+Sometimes you are not allowed to set attribute values in the constructor of `HTMLElement`.
+Here we will go through some examples describing this problem, and 
+then at the end of the chapter discuss some of the consequences of this problem.
 
 ## Example 1: Attributes in constructor when parsing HTML.
 ```html
@@ -177,11 +179,11 @@ From this example we see that setting attributes in the constructor:
 
 ## Conclusion: setupCallback() is needed
 
-As the 3 examples above show, it is not possible to set default attributes in the constructor of custom elements.
+As examples 1 and 3 above show, a custom element cannot read attributes or set default attribute values 
+in the constructor safely.
 We therefore need a "second" `constructor()` to setup the element.
 This is a little bit disappointing. From the outset it feels.. wrong.
-But. Once the dust settles, having a one-two constructor is not all that bad.
-And, every cloud has a silver lining. The second constructor is not only a necessary evil. 
+But, every cloud has a silver lining. The second constructor is not only a necessary evil. 
 It is also an opportunity.
 
 In the next chapters, we will look more at this second constructor that we call `setupCallback()`.
@@ -212,4 +214,17 @@ and *not* as object properties.
 In my opinion.
 
 ## References
-* 
+ * todo
+ 
+ <!--
+ Therefore, if your custom element needs to add or organize its attributes at creation-time, 
+ and you only have the `constructor()` and `.connectedCallback()` to choose from,
+ you must organize your elements every time the element is connected to the DOM.
+ But, an element can be connected and reconnected multiple times during its lifecycle.
+ And these times are likely to be performance sensitive, 
+ as elements can often be attached to the DOM as part of a bigger branch. 
+ Hence, it is less than ideal to do more work than strictly necessary at `connectedCallback()`.
+ So, If you only need to set up your attributes once, 
+ you would like to have a callback hook that is triggered sometime *after* the 
+ `constructor()` but *before* the `connectedCallback()`: `firstConnectedCallback()`.
+ -->
