@@ -1,127 +1,213 @@
 # Setup: In advance
 
-## Set up 3: In advance 
+> TLDR: Create elements with the immediate setupCallback punchline, 
+> style them as `display:none`, and add them to the DOM when the browser is idle.
+> Later, when you plan to use them, just change the `display` property.
 
-You create your element. 
-1. The setupMethod will be triggered by `connectedCallback` at the latest.
-2. you have the `triggerSetupCallback(ms)` that will either add the element to a rAF que with the ms priority,
-or you can trigger it immediately yourself using `triggerSetupCallback()` inside an event callback.
+The problem and pattern described in this chapter is not isolated to custom elements,
+but applies to all DOM node types. 
+It is added in this chapter however to describe means to both prepare and delay
+custom elements, to complete the picture.
 
-* if you use only `setupCallback`, you don't get the ability that the setupMethod will be triggered by `connectedCallback` at the latest.  
+## Problem: construct, setup and connect new elements to the DOM during a critical period
 
-> the triggers for finding idle time, are similar for the in advance and not-yet. 
-In advance can 
+There are some "critical periods" during the running of an app. For example:
+ * A user interacts with the page, triggering events such as `touchmove`.
+ * A server alerts the page of new updates and messages.
 
+During such "critical periods" the user is very attuned and sensitive to the apps performance. 
+Unfortunately, during such critical periods, the browser also has the most work:
+`touchmove` events are fired at the app like from a machine gun, and/or
+servers dump big blocks of raw data that the browser is just expected to process and present immediately.
+And so, if processing of events or data are too heavy during critical periods,
+the task will cause jank, ie. overburden the browser causing it to miss frames or halt 
+when you least want it.
 
+And, to both *construct, setup and connect* new elements to the DOM is a heavy task.
+Creating new elements can be labor intensive in JS, 
+but in addition the new elements cause the browser to calculate style, layout and paint 
+when they get connected to the DOM.
+So, the developer is faced with a dilemma:
+What should I do when I need to add a new element to the DOM (a heavy task) 
+during a critical period (when I want to avoid heavy tasks)? 
 
+## Pattern: add new DOM elements in advance with `display: none`.
 
+Often, a "critical period" comes after an "idle period" for the browser.
+To avoid *constructing, setting up and connecting* new elements to the DOM during a critical period,
+the developer can instead *construct, set up, **hide**, and connect* the element in advance, 
+during the idle period, and then when needed simply **show** the element.
 
-
-> TLDR: place a call to `setupCallback()` as an event listener or in a task que.
-> Make sure `setupCallback()` is still always called before `connectedCallback()` 
-> but never twice.
-
-## Problem: How to prepare element setup ahead of critical tasks?
-
-Sometimes during the running of an app, heavy tasks might cause the app to lag.
-These tasks might be triggered by user events such as `touchmove` or 
-system events such as database updates.
-These tasks often occurs when app responsiveness is critical, 
-such as during user interaction or live updates from the server.
-
-The prime "time thief" in many such tasks is the JS setup and connection to the DOM
-and the ensuing layout, style and paint calculations the browser needs to do in response to setup and DOM connection. 
-But, often, the browser may have spare resources and extra time in advance of such tasks,
-and thus as developers the solution to such a problem is to prepare element setup ahead of a critical task.
-So how best to achieve this?
-
-## Pattern: make new DOM elements outside the viewport
-
-To just trigger the `setupCallback()` of an element in advance is likely not going to do you much good.
-The most resource intensive processing occurs when the new elements are added to the DOM 
-as this trigger the calculation of both CSS styles and layout of the new elements.
 So, in order to prepare elements in advance, you likely desire to:
+0. construct the element,
 1. trigger `setupCallback()`,
 2. connected the new elements to the DOM,
 3. calculate CSS style,
-4. calculate layout of the elements, but
-5. avoid triggering paint as this might cause the screen to flicker. (todo, check the validity of this problem??)
+4. (maybe) calculate layout of the elements, but
+5. avoid triggering paint as this might cause the screen to flicker. 
+(todo, check the validity of this problem??)
 
-This is an "old" problem with a simple, existing solution.
-
-1. To setup an element up to and including layout calculation,
-the new element is created and placed in the DOM *outside* the viewport.
-As the element is placed in the DOM, the browsers *must* calculate the CSS styles and the layout of 
-the new elements in order to assess whether or not it needs to paint it on the screen.
-But, as the new elements are positioned outside of the viewport, browsers (todo check this??) 
-will not trigger a new paint (and with it potential flickering on the screen) as nothing 
-inside the viewport has changed.
-
-2. After the element has been prepared, when it is needed, it is not added, but instead *moved* in the DOM.
-The closer the element is its final form in both position, DOM placement and style, the more of the 
-previous style and layout calculations the browser can reuse.
-
-3. The task of preparing elements can be added when the browser has idle capacity,
-cf. `requestIdleCallback()`. 
-
-
-## Example: PreppedElement
-
-```html
-<style>
-#outside {
-  position: fixed;
-  bottom: 0;
-  right: 0;
+This example illustrates the pattern:
+```javascript
+ class MyEl extends HTMLElement {
+  constructor(){
+    super();
+    console.log("start");
+  }
+  connectedCallback(){
+    this.isSetup || (this.setupCallback(), this.isSetup = true);
+    console.log("connected");
+  }
+  setupCallback(){
+    this.attachShadow({mode:"open"});
+    this.shadowRoot.innerHTML = "I am visible";
+    console.log("setup");
+  }
 }
-
-framed {
-  width: 100px;
-  height: 162px;
-  border: 10px solid black;
-  border-bottom-width: 14px;
-}
-</style>
-<div id="outside"></div>                       <!--[1]-->
-
-<script>
-function makeMyElement(id){                      //[2]
-  const img = document.createElement("img");
-  img.src = "https://google.com/logo.png";
-  img.id = id;
-  img.classList.add("framed");
-  return img;
-}
-
-function prepareMyElement(id){                   
-  document.querySelector("#outside").appendChild(makeMyElement(id));
-}
-
-function reuseMyElement(preppedID){
-  let el;
-  if (preppedID) 
-    el = document.querySelector("#outside > #" + preppedID);
-  else 
-    el = makeMyElement("unprepared123");
-  document.querySelector("body").appendChild(el);  
-}
-
-let prepped;
-setTimeout(function(){prepped = prepareMyElement("prepare123");}, 2000);
-setTimeout(function(){reuseMyElement(prepped)}, 3000);
-</script>
+customElements.define("my-el", MyEl);
+const el = document.createElement("my-el");
+el.style.display = "none";
+document.querySelector("body").appendChild(el); 
+//start
+//connected
+//setup
+setTimeout(() => {
+  el.style.display = "inline"; 
+//"I am visible" appears on the screen after 3000ms 
+}, 3000);
 ```
 
-1. First the place of prepping the elements are set up. 
-This is styled to always be outside of the viewport in the app.
-2. You make a function that will:
-    1. produce the elements you need to add to the DOM,
-    2. make and add such elements to the DOM in advance,
-    3. move elements from preparation area to its final destination, 
-    or make a new element if no prepared elements exists.
-3. que the prepElement function when it is suitable 
-4. add the prepped element, or a new element if no prepped element is available, 
-where and when you need it.
+## Alternative 1: only construct and setup elements in advance 
+
+When elements are added to the DOM, even when they are styled `display: none`,
+event listeners are added and active.
+If you do not want or need to activate event listeners, 
+you can simply create elements without attaching them:
+
+```javascript
+ class MyEl2 extends HTMLElement {
+  constructor(){
+    super();
+    console.log("start");
+  }
+  connectedCallback(){
+    this.isSetup || (this.setupCallback(), this.isSetup = true);
+    console.log("connected");
+  }
+  setupCallback(){
+    this.attachShadow({mode:"open"});
+    this.shadowRoot.innerHTML = "I am visible";
+    console.log("setup");
+  }
+}
+customElements.define("my-el", MyEl2);
+const el = document.createElement("my-el");
+el.setupCallback();
+//start
+//setup
+setTimeout(() => {
+  document.querySelector("body").appendChild(el);
+  //connected
+  //"I am visible" appears on the screen after 3000ms 
+}, 3000);
+```
+
+## Alternative 2: construct, setup, connect and calculate layout of elements in advance 
+
+When elements are added to the DOM with `display: none`,
+their layout is not calculated.
+If you need to calculate layout in advance, use `visibility: hidden` instead of `visibility: hidden`.
+
+```javascript
+class MyEl3 extends HTMLElement {
+  constructor(){
+    super();
+    console.log("start");
+  }
+  connectedCallback(){
+    this.isSetup || (this.setupCallback(), this.isSetup = true);
+    console.log("connected");
+  }
+  setupCallback(){
+    this.attachShadow({mode:"open"});
+    this.shadowRoot.innerHTML = "I am visible";
+    console.log("setup");
+  }
+}
+customElements.define("my-el", MyEl3);
+const el = document.createElement("my-el");
+el.style.visibility = "hidden";
+document.querySelector("body").appendChild(el); 
+//start
+//connected
+//setup
+setTimeout(() => {
+  el.style.visibility = "visible"; 
+//"I am visible" appears on the screen after 3000ms 
+}, 3000);
+```
+
+## `requestIdleCallback()`
+Use `requestIdleCallback()` or some other method to find a suitable time to prep elements.
+Prepping elements for later consumption will not do you much good if the element is prepped
+during another critical period.
+
+```javascript
+class MyEl3 extends HTMLElement {
+  constructor(){
+    super();
+    console.log("start");
+  }
+  connectedCallback(){
+    this.isSetup || (this.setupCallback(), this.isSetup = true);
+    console.log("connected");
+  }
+  setupCallback(){
+    this.attachShadow({mode:"open"});
+    this.shadowRoot.innerHTML = "I am visible";
+    console.log("setup");
+  }
+}
+customElements.define("my-el", MyEl3);
+
+//step 1: que an inAdvance element
+let el;
+let inAdvance = requestIdleCallback(() => {
+  el = document.createElement("my-el");
+  el.style.visibility = "hidden";
+  document.querySelector("body").appendChild(el);
+});
+
+//step 2: use the inAdvance element, or if not yet ready, cancel the inAdvance action and just make one when you need it
+setTimeout(() => {
+  if (el) {
+    el.style.visibility = "visible";
+  } else {
+    cancelIdleCallback(inAdvance);
+    el = document.createElement("my-el");
+    document.querySelector("body").appendChild(el);
+  }
+//"I am visible" appears on the screen after 3000ms 
+}, 3000);
+```
+## Discussion
+
+Which event, que or callback you use to setup your elements inAdvance depend on your app.
+But the basic principles for timing remains the same: 
+1. you need to find a trigger or que that lets you know when the browser has idle resources, or 
+at least some mechanism to identify that your browser is not in a critical period.
+`requestIdleCallback()` is best suited for this.
+2. you must identify whether or not you need to prepare css and layout calculation.
+If it does not matter if your elements are already connected to the DOM, then 
+wait to connect them to the DOM until you use the elements.
+If it is enough to pre-calculate style, use `display: none`.
+If you need to pre-calculate as much as possible, use `opacity: 0`.
+3. when you use your element:
+   1. If the element has been prepared, attach it to the DOM or un-hide it.
+   2. If the element is not already prepared, 
+   make a new one instead and **remember to cancel the queued inAdvance setup**!
+
+These principles are general and apply to custom and native HTML elements alike.
 
 ## Reference
  * MDN requestIdleCallback()
