@@ -116,7 +116,7 @@ setTimeout(() => {
 
 When elements are added to the DOM with `display: none`,
 their layout is not calculated.
-If you need to calculate layout in advance, use `visibility: hidden` instead of `visibility: hidden`.
+If you need to calculate layout in advance, use `visibility: hidden` instead of `display: none`.
 
 ```javascript
 class MyEl3 extends HTMLElement {
@@ -208,6 +208,8 @@ If you need to pre-calculate as much as possible, use `opacity: 0`.
    make a new one instead and **remember to cancel the queued inAdvance setup**!
 
 These principles are general and apply to custom and native HTML elements alike.
+By setting up elements *in advance*, an app can increase its performance 
+at a later critical moment tasks relating to UI interaction is taxing the browser's resources hard.
 
 ## Reference
  * MDN requestIdleCallback()

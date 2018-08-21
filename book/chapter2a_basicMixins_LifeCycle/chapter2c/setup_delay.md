@@ -1,211 +1,172 @@
-# Setup: Delay
+# Setup: Delayed/postponed
 
-But, because we decide when to call `setupCallback()`, 
-we can also decide when By since the timing of an element's setup, setup of elements can both be *delayed* 
-and done *in advance*. By *delaying* setup of non-critical elements, an app can increase the performance of 
-critical elements at times when the browser is low on resources (f.x. when the page is loaded).
-By setting up elements *in advance*, an app can increase its performance at a later critical moment when
-for example UI interaction is taxing the browser's resources hard.
-When the `setupCallback()` is either delayed or done in advance, the triggering mechanism 
-of the callback method becomes both more complex and resource intensive.
-In such cases the use of a mixin to trigger `setupCallback()` is strongly recommended.
+> Postpone: *post* "after" + *ponere* "put, place"
+> 
+> Delay: *de-* "away, from" + *laier* "leave, let"
+> 
+> Defer: *de-* "down, away" + *ferre* "to carry"
 
-## Setup 2: not-yet
+This problem only concerns the construction of HTML elements from parsing the main HTML document.
+Delaying the construction of elements via JS and from the parser via `innerHTML`
+is simply done by directly postponing the JS function that creates the elements instead.
 
-
-, but we wish to delay the element setup to allow for:
-   * quicker rendering and/or 
-   * prioritize user interaction or other tasks.
-
- 
-Delay the setup and connectedCallback of an element. This is a little more complex. 
-Remember that the setup can only recursively delay the setup of shadowDOM children, 
-not lightDOM child elements, thus the benefit of delaying setup is therefore limited.
-But, if the constructor has set the shadowRoot, and the shadowRoot has no slot, 
-then the constructor of the lightDOM children elements will run, but not(!) their connectedCallback(!!).
-So this should in theory work ok as a means to hide other tasks in lightDOM elements as long as 
-their code is triggered by connectedCallback and not constructor!
-
-Here, there is a myriad of event triggers that can be used. FirstInView, on DOMContentLoaded, on idleTime,
-on setTimeout, on RAF.
-
-The question is whether or not this should be moved into a mixin, or whether or not this should be done from outside.
-
-I think that it probably should be done from the outside.
-a) We have the ability of adding a staticSetting for using triggers built into the mixin.
-b) we can use functions from the mixin that puts them into different ques.
-c) we can do it all manually from the outside.
-
-If c) manually, we can't harmonize for the user across browsers.
-The best solution is then probably b) static functions..
-
-
-
-
-
-
-> TLDR: delay both `setupCallback()` and `connectedCallback()` of an element.
-> 1. abort `connectedCallback()` in the custom element if `.isSetup` has not been performed.
-> 2. Que an async call to `setupCallback()` to respond to an event or task que.
-> 3. when the `setupCallback()` is run, also rerun `connectedCallback()` 
->    if the delayed element is added to the DOM.
-> Add support for `delay-setup` as HTML attribute and support for the element 
-
-## Example: AboveBelowTheFold
+## Problem: display above the fold content asap.
 
 ```html
-<style>
-  above-the-fold {
-    background: green;
-    width: 100vw;
-    height: 100vh;
-  }
-  below-the-fold {
-    background: red;
-    width: 100vw;
-    height: 100vh;
-  }
-</style>
-
-<above-the-fold>
-  <div>You see me immediately</div>
-</above-the-fold>
+<div style="width: 100vw; height: 100vh;">                                  
+  You see me immediately                               
+</div>
 
 <below-the-fold>
-  <div>You must scroll to see me</div>
+  You must scroll to see me
 </below-the-fold>
+```
+
+The above example is a very small HMTL document with two elements.
+First, the `<div>` fills the entire screen.
+Second, a custom element `<below-the-fold>` that the user must scroll down to see.
+The problem: we want to free up resources (CPU and memory) 
+in the browser so that it will make and display the first and critical `<div>`
+as soon possible.
+
+But it is difficult to promote or actively prioritize some HTML elements.
+Instead, we must try to do the opposite: demote and delay non-critical content.
+By delaying content below the fold, 
+we let the browser concentrate on the critical content above the fold.
+
+## Problem 2: How to delay content below the fold?
+
+To delay a HTML element, we want to:
+1. avoid calculating style, layout nor render the element, 
+   to enable the browser to quicker paint the critical elements above;
+2. avoid calculating style, layout nor render any of the *children* elements either,
+   for the same reason;
+3. not trigger the `connectedCallback()` methods of neither the root nor children elements,
+   as these methods might cause both heavy network and computing processes.
+
+A couple of HTML element types has means to delay it:
+ * The `<script>` element's *defer* and *async* enable the developer to flag scripts to 
+   be delayed/postponed: `<script defer src="myScript.js">`.
+ * Using a [JS `onload` punchline](https://www.filamentgroup.com/lab/async-css.html), 
+   activation of stylesheets can be delayed within the tag:
+   `<link rel="preload" href="myStyle.css" onload="this.rel = 'stylesheet'">`.
+   (The browser automatically does similar steps like this to delay images, audio and video.)
+
+However. Both of the mechanisms above *connects the defered/preloaded elements to the DOM immediately*.
+And. Neither the `defer` nor `preload` attributes are available for normal and custom HTML elements.
+And. Due to these HTML attributes semantics, these attributes would not apply to children of an element.
+Thus. Custom elements and the bulk of HTML elements have no such attributes or direct
+use of attributes that can delay/postpone/defer them and their children directly.
+
+## Anti-patterns: delay elements using CSS or shadowDOM
+
+Traditional tricks such as marking an element with the style `display: none` or `visibility: hidden`
+or the HTML attribute `hidden`, will:
+ * yes, hide the element and its children from view 
+ (except descendants of a `visibility: hidden` element that is marked `visibility: visible`);
+ * yes, in the case of `display: none` free the browser from calculating layout; but 
+ * no, always trigger the `connectedCallback()` methods of both the root and children elements.
+
+Another trick, to put children elements inside a custom element with a shadowDOM and 
+then delay adding a `<slot>` element in that shadowDOM will:
+ * yes, hide the children elements from view 
+   (although I am not sure how much of the style and layout work the browser will delay); but
+ * no, still trigger the `connectedCallback()` methods of both the root and children elements.
+
+Only one alternative remains...
+
+## Pattern: `replaceChild(template.content, template)`
+
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) says it perfectly:
+
+    The HTML Content Template (<template>) element is a mechanism for holding client-side
+    content that is not to be rendered when a page is loaded but may subsequently be 
+    instantiated during runtime using JavaScript.
+    
+    Think of a template as a content fragment that is being stored for subsequent use 
+    in the document. While the parser does process the contents of the <template> element 
+    while loading the page, it does so only to ensure that those contents are valid; 
+    the element's contents are not rendered, however. 
+
+By wrapping an HTML element, and its siblings and children if needed, 
+inside a `<template>` element, the browser will:
+ * yes, perform no style, layout nor rendering calculations; and
+ * yes(!), NOT connect any of the elements inside the template to the DOM!
+
+Then, when needed, the template element can then be replaced with its own `content`.
+In our example, the pattern looks like this:
+
+```html
+<div style="width: 100vw; height: 100vh;">                                  
+  You see me immediately                               
+</div>
+
+<template id="templateTrick">                             <!--[1]-->
+  <below-the-fold>
+    You must scroll to see me
+  </below-the-fold>
+</template>                                               <!--[1]-->
+<script>                                                    //[2]
+  setTimeout(()=>{                                          //[3]
+    const c = document.querySelector("#templateTrick");     //[4]
+    document.body.replaceChild(c.content, c);               //[4]
+  }, 3000);                                                 
+</script>                                                 <!--[2]-->
+```
+1. The non-critical content `<below-the-fold>` is wrapped in a template.
+2. A script is added that::
+3. at some later point will
+4. replace the template wrapper DOM node with its own `.content`.
+
+## Extra tip: `block`-style the template node
+
+To avoid having content jump **down**, which can frustrate the user,
+style the `<template>` node as a block that is big enough.
+Depending on:
+1. the duration of the delay,
+2. the content added,
+3. how dynamic this content is,
+4. what type of content below (or above) is shifted
+
+can affect how you wish to reserve space.
+But, a general tip is that content jumping up into view is likely to be better
+perceived by the user than content in view (that the user is looking at trying to read) 
+jumping down out of view (thus "escaping" the users hunt for information).
+
+Below is the same example above, extended with the `block`-style tip, 
+and with a custom element implementation to illustrate when the children elements
+of the `<template>` node are connected to the DOM.
+```html
+<div style="width: 100vw; height: 100vh;">
+  You see me immediately
+</div>
+<template id="templateTrick" style="display: block; height: 100vh">
+  <below-the-fold style="display: block; height: 100vh">You must scroll to see me</below-the-fold>
+</template>
+<div>
+  You will start reading me if you scroll before 3s
+</div>
+<script>
+  setTimeout(()=>{
+    const c = document.querySelector("#templateTrick");
+    document.body.replaceChild(c.content, c);
+  }, 3000);
+</script>
 
 <script>
-const btf = document.createElement("below-the-fold");
-btf.innerHTML ="<div>you must scroll to see me too</div>";
-//btf.delaySetupUntil("idle");
-btf.setAttribute("delay-setup", "idle");
-//btf.setupCallback();
-document.appendChild(btf);    //triggers connectedCallback, which is aborted as the element is delayed
+  class BelowTheFold extends HTMLElement { 
+    connectedCallback(){
+      console.log("connecting below-the-fold");
+    }
+  }
+  customElements.define("below-the-fold", BelowTheFold); 
 </script>
 ```
 
-The first div on the page is "above the fold", shown immediately when the page is loaded. 
-The second div is below the fold, and to see it, one must scroll.
- 
-## Solution 1: pure functions
-
-This solution is not so bad. It makes for a couple of simple methods, and 
-a pattern for invoking these methods in setupCallback().
-The head of the implementation of connectedCallback() becomes a bit complex,
-and to make an element delayable, you must add an attribute to the actual elements you want to delay,
-but the complexity of delaying logic can more or less be hidden inside imported pure functions.
-
-You basically import a function and put 2 lines of code in the head of your `connectedCallback()`:
-```
-import {delaySetupIdle} from "https://rawgit.com/orstavik/joicomponents/src/DelayedSetup.js";
-...
-
-connectedCallback(){
-  if (delaySetupIdle(this)) return;                            //[1] check the delaySetup func
-  this.isSetup || (this.setupCallback(), this.isSetup = true); //[2] the immediate setup
-  super.connectedCallback && super.connectedCallback();        //[3] function mixin requirement
-  ...
-}
-```
-The whole code looks like this:
- 
-```javascript
-function reinvokeSetup(el){
-  el.isDelayed = false;
-  if (el.isConnected) 
-    return el.connectedCallback();
-  el.isSetup || (el.setupCallback(), el.isSetup = true);  
-}
-                                                                                   
-//returns true if the element is delayed
-export function delaySetupIdle(el){
-  if (el.isSetup)
-    return false;
-  if (el.isDelayed !== undefined)
-    return el.isDelayed;
-  el.isDelayed = el.hasAttribute("delay-setup-idle");
-  if (el.isDelayed)
-    requestIdleCallback(()=> reinvokeSetup(el));
-  return el.isDelayed;
-}
-
-class MyEl extends HTMLElement{
-                                                                                        
-  connectedCallback(){
-    if (delaySetupIdle(this)) return;                                 //[1]
-    this.isSetup || (this.setupCallback(), this.isSetup = true);      //[2]
-    super.connectedCallback && super.connectedCallback(); //if you need, do super.connectedCallback here
-    //do your element connected stuff here
-  }
-  
-  setupCallback(){
-    //do your element setup stuff here
-  }
-}
-```
-
-## Anti-pattern: DelayableSetupMixin
-To delay setup as a mixin is a bad solution.
-As super.connectedCallback() cannot abort the execution of connectedCallback(),
-to achieve such behavior, DelayableSetupMixin.connectedCallback() must throw an Error.
-This Error must must in turn be caught and processed by the connectedCallback implementing 
-custom element.
-This produces more code and a more convoluted and complex process, as can be seen in the example below.
-
-```javascript
-//returns true if the element is delayed
-function delaySetupIdle(el){
-  if (el.isSetup)
-    return false;
-  if (el.isDelayed !== undefined)
-    return el.isDelayed;
-  el.isDelayed = el.hasAttribute("delay-setup-idle");
-  if (el.isDelayed)
-    requestIdleCallback(()=> reinvokeSetup(el));
-  return el.isDelayed;
-}
-
-
-export function DelayableSetupMixin(Base){
-  return class DelayableSetupMixin extends Base {
-    connectedCallback(){
-      if (delaySetupIdle(this)) throw new Error("setup is delayed");
-      this.isSetup || (this.setupCallback(), this.isSetup = true);
-      super.connectedCallback && super.connectedCallback(); //if you need, do super.connectedCallback here
-    }
-    
-    triggerDelayedSetupCallback(){
-      this.isDelayed = false;
-      if (this.isConnected) 
-        return this.connectedCallback();
-      this.isSetup || (this.setupCallback(), this.isSetup = true);  
-    }
-  }
-};
-
-class MyEl extends DelayableSetupMixin(HTMLElement){
-                                                                                        
-  connectedCallback(){
-    try{                                                     //ugly starts
-      super.connectedCallback && super.connectedCallback();
-    } catch(err){
-      if(err.message === "setup is delayed")
-        return;
-      throw err;
-    }                                                        //ugly ends
-    //do your element connected stuff here
-  }
-  
-  setupCallback(){
-    //do your element setup stuff here
-  }
-}
-```
-
-
 ## Reference
- * MDN requestIdleCallback()
- * try to find documentation that it is smart to place the "preparation area" in the same document, 
- so as to avoid document adoptation.
 
+* [delay `<link rel="stylesheet">`](https://www.filamentgroup.com/lab/async-css.html)
+* [delay `<script>`](https://bitsofco.de/async-vs-defer/)
+* [Etymologi: "delay"](https://www.etymonline.com/word/delay)
+* [Etymologi: "postpone"](https://www.etymonline.com/word/postpone)
+* [MDN: `<template>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template)

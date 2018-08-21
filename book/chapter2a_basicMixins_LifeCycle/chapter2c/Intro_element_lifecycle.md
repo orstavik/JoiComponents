@@ -38,7 +38,7 @@ To address these two moments we need to add some additional resources to the cus
    You can read more about `setupCallback()` in:
    * [Problem: when to setup elements](Problem2_setupElement.md)
    * [Setup: immediately](setup_immediate.md)
-   * [Setup: delay](setup_delay.md)
+   * [Setup: delay](../chapterSetup/setup_delay_old.md)
    * [Setup: in advance](setup_in_advance.md)
 2. `UnloadDisconnectsMixin`, a mixin that ensures that if the user closes the browser or tab, 
    `disconnectedCallback()` is triggered. 
