@@ -2,10 +2,39 @@
 
 > TLDR: **You cannot set default HTML attributes values in your custom elements' `constructor`.**
 
+## What's the point of HTML attributes?
+
+HTML attributes are useful since they can be accessed from both HTML, CSS and JS.
+HTML attributes can be set in HTML template directly.
+HTML attrbiutes and their value can be used to toggle CSS rules.
+And in JS `.getAttribute`, `.setAttribute` and `.attributeChangedCallback` can be used to
+update and respond to attribute values. 
+
+Sure. HTML attributes has its limitations. HTML attributes are string values only.
+And if you store too much or complex data in your HTML attributes, you obfuscate your HTML template.
+Therefore, in some situations we store data concerning an element's state as regular JS object properties.
+JS object properties can hold other primitive datatypes and bigger objects.
+
+But. Regular JS object properties cannot be directly accessed from neither HTML nor CSS.
+So, if you store some part of the state of an HTML element as a regular property,
+then if that state change needs to be reflected in the view or set from the HTML side,
+then that property needs to be translated or marshalled into an underlying attribute.
+The complexity, redundancy and processing associated with such translation and marshalling is
+something we in general would like to avoid.
+
+Therefore:
+ * if the state of the HTML element might be settable from HTML template or read from CSS in a future use-case, 
+ * and the drawbacks of storing the state as a string are not too big (ie. big data value or structure), 
+ * then HTML attributes should be used to store the state information.
+
+HTML attributes is the default property structure of HTML elements/DOM nodes.
+
+## Different ways to create an `HTMLElement`?
+
 Browsers can create new `HTMLElement` instances in four ways. 
 1. constructor: `var el = new MyHTMLElement();` (JS).
 2. `document.createElement`: `var el = document.createElement("my-element");` (JS).
-3. By parsing HTML text using `el.innerHTML = "<my-element></my-element>";` (JS).
+3. By parsing HTML text using `innerHTML`: `el.innerHTML = "<my-element></my-element>";` (JS).
 4. By parsing HTML text when loading the html document `<my-element></my-element>` (HTML).
 
 When you make a new custom element definition, it `extends HTMLElement`, and 
@@ -13,8 +42,7 @@ you want your custom element to be constructable in all these four ways.
 
 But. There is a problem. An invisible constraint.
 Sometimes you are not allowed to set attribute values in the constructor of `HTMLElement`.
-Here we will go through some examples describing this problem, and 
-then at the end of the chapter discuss some of the consequences of this problem.
+Here we will go through some examples to pinpoint this problem.
 
 ## Example 1: Attributes in constructor when parsing HTML.
 ```html
@@ -179,39 +207,15 @@ From this example we see that setting attributes in the constructor:
 
 ## Conclusion: setupCallback() is needed
 
-As examples 1 and 3 above show, a custom element cannot read attributes or set default attribute values 
-in the constructor safely.
+As the failing examples in 1 and 3 above show, 
+a custom element cannot safely read or set default attribute values in the constructor.
 We therefore need a "second" `constructor()` to setup the element.
 This is a little bit disappointing. From the outset it feels.. wrong.
-But, every cloud has a silver lining. The second constructor is not only a necessary evil. 
-It is also an opportunity.
+The problem is, as long as the normal `constructor()` of HTML element does not know of its attributes,
+then there is no better way forward.
 
-In the next chapters, we will look more at this second constructor that we call `setupCallback()`.
-These chapters look at how, when and why to trigger `setupCallback()`, and 
-they show how we can either minimize the burden of the `setupCallback()` or maximize its abilities.
-
-## Opinion: Why HTML attributes?
-HTML attributes is the only means to describe the state of an HTML element that 
-are accessible and readable from both HTML, CSS and JS. 
-HTML attributes has its limitations. HTML attributes are string values only.
-And if you store too much or complex data in your HTML attributes,
-you obfuscate your HTML template.
-
-Therefore, in some situations you would like to store data concerning an element's state as 
-properties on its JS object. 
-This gives you the ability to store other primitive datatypes and bigger objects.
-This is often necessary and needed.
-
-But, since regular object properties are not accessible from neither HTML nor CSS,
-if the view (CSS) or page structure (HTML) needs to reflect changes in the state of the element,
-the JS object properties must somehow be translated into attributes for this to take effect.
-If this state data can be stored directly as an attribute, that both removes the redundant data *and*
-removes the need for any state translation from JS to HTML/CSS.
-Thus, if the state data is suitable for string description, and is not clearly irrelevant from an
-HTML/CSS vantage point, state data for custom elements should be housed directly as HTML attributes 
-and *not* as object properties. 
-
-In my opinion.
+In the next chapter, we look in detail at *when* we want to setup elements.
+Then, we look at how we can implement a second constructor as `setupCallback()`.
 
 ## References
  * todo

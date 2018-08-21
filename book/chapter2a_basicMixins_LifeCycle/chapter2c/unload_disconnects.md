@@ -17,7 +17,7 @@ As thousands of users/browsers behave in this manner,
 the uninformed server starts hoarding memory and sockets for users that are no longer there,
 slowing or blocking the service for active users.
  
-![todo: give credit to the graphic creator](https://preview.ibb.co/nHqPyz/Corel_DRAW_X7_Graphic.png)
+![Why close db connections](https://preview.ibb.co/nHqPyz/Corel_DRAW_X7_Graphic.png)
 
 ## Problem 2: please tell me how it ends!
 
@@ -26,7 +26,7 @@ For a good app a successful ending is also important. For example:
  * A reading app needs to preserve a user's last known reading position.
    When the reading app knows your last position, it can give you smooth beginning when you return.
  * A web shop needs to know when their users leave.
-   If some products or pages always triggers their customers to leave abruptly,
+   If some products or pages always trigger their customers to leave abruptly,
    you might want to consider updating the product pictures, prices and/or page template. 
 
 ## Pattern: start-and-end-of-*session* callbacks
@@ -43,25 +43,25 @@ JS does not provide a destructor since it uses automatic garbage collection.
 
 However, JS and `HTMLElement` provides another start-and-end-of-*session* callback pair:
 `connectedCallback()` and `disconnectedCallback()`.
-`connectedCallback()` and `disconnectedCallback()` frames a session 
-around the period an object is connected to the DOM, not around the life of an object.
+This pair frames their session around the period an object is connected to the DOM, 
+not around the life of an object.
 This works fine for higher order tasks such as closing database connections and 
 registering the end of user interaction;
-As long as we can match the session we need to monitor
+as long as we can match the session we need to monitor
 with a set of start-and-end-of-*session* callbacks,
 it does not matter if the session is bound to an object's life or 
-while an object is connected-to-the-DOM. 
+an object-connected-to-DOM-period. 
 
-## Problem 3: Closing the browser does not trigger disconnectedCallback()
+## Problem 3: Closing the browser does not trigger `disconnectedCallback()`
 In order to remove and delete an HTMLElement that is connected to the DOM in a running app,
 that element must always first be disconnected from the DOM, thus triggering `disconnectedCallback()`.
 But, there is one way the user can end a session *while* an element is connected to the DOM 
 *without* triggering `disconnectedCallback()`: **closing the browser (tab)**.
 
-When the user closes a tab or browser (or other whole document), 
+When the user closes a tab or browser (or other document), 
 he destroys an entire DOM of connected elements.
 But destroying the whole DOM in this way does not trigger `disconnectedCallback()`.
-This is a loophole.
+And this is a loophole.
 If we intend `connectedCallback()` and `disconnectedCallback()` to function as 
 non-leaky start-and-end-of-*session* callbacks for app purposes such as closing server connections, 
 we must close this loophole.
@@ -75,7 +75,7 @@ without one of two things occuring:
 
 Therefore, to close the loophole, we simply need to add an event listener for the `unload` event
 that calls an element's `disconnectedCallback()`.
-This way, in both instances, an element's `disconnectedCallback()` should always be called 
+This way, in both instances, an element's `disconnectedCallback()` should always be called. 
 
 ```javascript
 class UnloadElement extends HTMLElement {
@@ -98,6 +98,7 @@ To make this simpler to reuse and more efficient across several elements and cus
 we can set this up as a shared mixin.
 
 ```javascript
+//todo check how to handle multiple documents in the same tab, ie. iframes being closed
 var disconnectUs = new WeakSet();
 
 document.addEventListener("unload", function(){

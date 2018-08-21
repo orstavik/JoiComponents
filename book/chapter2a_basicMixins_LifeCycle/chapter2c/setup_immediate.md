@@ -15,12 +15,11 @@ This gives us two alternatives for triggering a `setupCallback()`:
 1. queued *after* the constructor has run *and* the HTML template attributes has been set, or
 2. triggered *immediately before* the `connectedCallback()` is executed.
 
-Alternative 1 fails, while 2 works. But why is that?
+We try both alternatives.
 
 ## Anti-pattern: Trigger `setupCallback()` immediately from the `constructor()`
 
-First, we try some examples of triggering `setupCallback()` from the `constructor()` 
-using the micro-task que:
+First, a `setupCallback()` could be queued from the `constructor()` in the micro-task que:
 
 ```html
 <script>
@@ -74,12 +73,11 @@ customElements.define("my-element", MyElement);
 <my-element html-attribute="yes"></my-element>
 ```
 
-As this example shows, the setupCallback is now correctly executed *after* the attributes has been set,
+As this example shows, `setupCallback()` is now correctly executed *after* the attributes has been set,
 but now also *after* the element has been connected to the DOM, which is too late.
 
-These two ques are our best bet.
-There are no other task ques or events or callbacks (except `connectedCallback()`)
-that can trigger `setupCallback()` *after* HTML attributes has been set and *before* 
+No other task ques or events or callbacks (except `connectedCallback()`)
+will trigger `setupCallback()` *after* HTML attributes has been set and *before* 
 `connectedCallback()` has been executed (without delaying `connectedCallback()`).
 Triggering `setupCallback()` immediately from the `constructor()` therefore fails.
 
@@ -97,11 +95,13 @@ connectedCallback() {
   //do your other stuff here
 }
 ```
-This approach uses what I here call a "punchline": 
-one or two lines of dense, minified code
-that is intended to be cut and pasted directly into the code.
-Granted, it is rarely very funny, but it is meant to pack a punch, do more and 
-have a lot more thought behind it than a normal line of code would.  
+This approach uses a "punchline".
+A punchline is one or two lines of dense, minified code.
+Punchlines are designed to be directly copied into the code, 
+not used via function calls or class extensions.
+Although rarely funny, a punchline should "pack a punch" and 
+do more than you would expect of a regular line of code.
+
 Below is the same code punchline written with more familiar punctuation and comments:
 ```javascript
 connectedCallback() {
@@ -220,7 +220,7 @@ this context that setupCallback will be run at the *very* beginning can be guara
 Third. **delayed setupCallback needs the punchline approach**.
 This will be explained in a later chapter.
 
-Forth. **Documented**. 
+Fourth. **Documented**. 
 The hallmark of too clever code is lack of documentation. This is not the case here.
 On the contrary. This single line is made with intent. 
 It is backed by several hundred lines of documentation describing the problem it solves, 
