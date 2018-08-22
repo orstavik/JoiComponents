@@ -31,14 +31,15 @@ HTML attributes is the default property structure of HTML elements/DOM nodes.
 
 ## Different ways to create an `HTMLElement`?
 
-Browsers can create new `HTMLElement` instances in four ways. 
+Browsers can create new `HTMLElement` instances in five ways. 
 1. constructor: `var el = new MyHTMLElement();` (JS).
 2. `document.createElement`: `var el = document.createElement("my-element");` (JS).
 3. By parsing HTML text using `innerHTML`: `el.innerHTML = "<my-element></my-element>";` (JS).
 4. By parsing HTML text when loading the html document `<my-element></my-element>` (HTML).
+5. By cloning an element: `.cloneNode(deep)` (JS).
 
 When you make a new custom element definition, it `extends HTMLElement`, and 
-you want your custom element to be constructable in all these four ways.
+you want your custom element to be constructable in all five ways.
 
 But. There is a problem. An invisible constraint.
 Sometimes you are not allowed to set attribute values in the constructor of `HTMLElement`.
@@ -216,6 +217,8 @@ then there is no better way forward.
 
 In the next chapter, we look in detail at *when* we want to setup elements.
 Then, we look at how we can implement a second constructor as `setupCallback()`.
+In this chapter, we also look at the problem of constructing elements from `.cloneNode(deep)`
+and how to solve it.
 
 ## References
  * todo

@@ -34,14 +34,16 @@ during a critical period (when I want to avoid heavy tasks)?
 ## TODO Pattern: 
 
 1. make a template,
+1b. Add a function that triggers setupCallback() on the elements in the template.
 
 Trigger only the `constructor()` of all the DOM elements.
 2. clone the template,
 to make a custom entity
+(cloneNode will trigger setupCallback if the element being cloned isSetup).
 3. add and hide template clone in the DOM,
-   this will trigger setupCallback(), connectedCallback() and style and maybe layout
-4. Alternative to 3. Run a recursive function that triggers setupCallback() on an element 
-   and all its children.
+   this will trigger setupCallback(), if needed, connectedCallback() and style and maybe layout calculation
+4. Alternative to 3. Run a recursive function that triggers setupCallback() in advance on an element 
+   and all its children. todo put this method into the mixin??
 
 ## Pattern: add new DOM elements in advance with `visibility: hidden` or `display: none`.
 

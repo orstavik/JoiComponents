@@ -13,27 +13,13 @@ There are three important, implied contextual bindings to the constructor of cus
    This means that a second `setupCallback()` should be set up.
 
 2. `this.attachShadow({mode: "open"});` should always be called in the `constructor()`.
-   But, `this.shadowRoot` should be populated later, preferably in `setupCallback()`.
-   The reason is that the **lightDOM children** of an element with a `.shadowRoot` are not directly
-   connected to the DOM.
-   Instead, the lightDOM children of elements with a `.shadowRoot` can only be **slotted** into the DOM.
-   This means that while the element's `.shadowRoot` remains without a `<slot>` element,
-   **none of the children will be connected**. 
-
-   Thus, by initializing a `.shadowRoot`, but not populating it,
-   the `connectedCallback()` (and for example `setupCallback()`) of all children elements *can be delayed*.
-   Both shadowDOM and lightDOM children(!).
-   To delay the setup of non-critical elements are useful to free up resources for critical elements and behavior 
-   (cf. ["above and below the fold"](Problem2_setupElement.md)).
+   If the `shadowDOM` should evaluate some (startup) attributes in order to decide its structure,
+   then `this.shadowRoot` should be populated later in `setupCallback()`.
 
 3. Event listener objects should be recycled when an element disconnects and connects again to the DOM.
    Custom elements can therefor create event listener objects in the `constructor()` and 
-   then subsequently add and remove these event listeners when the element connects and disconnects to the DOM.
-
-   However, it is slightly better to create event listener objects in `setupCallback()` than in `constructor()`.
-   Although not very resource demanding, if the element is delayed, it is better to also delay the creation 
-   of event listener objects.
-                                                          
+   then subsequently add/remove the same event listener objects when the element connects/disconnects to the DOM.
+                                                       
 4. All other known properties and types should be initialized in the constructor so that the type 
    definition of the class remains as static as possible.
 

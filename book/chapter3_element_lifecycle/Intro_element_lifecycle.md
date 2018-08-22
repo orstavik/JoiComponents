@@ -37,12 +37,12 @@ To address these two moments we need to add some additional resources to the cus
 1. `setupCallback()`, a custom life cycle callback.
    You can read more about `setupCallback()` in:
    * [Problem: when to setup elements](Problem2_setupElement.md)
-   * [Mixin: setup](setup_immediate.md)
-   * [Pattern: delay setup](setup_delay.md)
-   * [Pattern: setup in advance](setup_in_advance.md)
+   * [Mixin: setup](Mixin_setup.md)
+   * [Pattern: setup in advance](Pattern1_setup_in_advance.md)
+   * [Pattern: delay setup](Pattern2_delay_setup.md)
 2. `UnloadDisconnectsMixin`, a mixin that ensures that if the user closes the browser or tab, 
    `disconnectedCallback()` is triggered. 
-   See [Mixin: UnloadDisconnects](unload_disconnects.md).
+   See [Mixin: UnloadDisconnects](Mixin_unload_disconnects.md).
 
 To properly understand this lifecycle, I recommend that you start with the problems
 [Problem: attributes in `constructor()`](Problem1_attributesInConstructor.md) and

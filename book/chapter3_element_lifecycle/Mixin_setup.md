@@ -166,7 +166,6 @@ function SetupMixin(Base){
     }
   }
 }
-//todo untested
 ```
  * Calls to `super.connectedCallback();` must be placed after the `isSetup` check.
    Although mixins that rely on the element calling `super.connectedCallback();` should be
@@ -176,7 +175,7 @@ function SetupMixin(Base){
 
 ### Example: FirstConnected using SetupMixin
 ```html
---<script>
+<script>
 const isSet = Symbol("isSet");
 
 function SetupMixin(Base){
@@ -225,7 +224,121 @@ customElements.define("my-element", MyElement);
 
 <my-element html-attribute="yes"></my-element>
 ```
+## Problem: `.cloneNode(deep)`
+
+But, what happens if we clone such an element? 
+Will the cloned element contain the properties, shadowDOM, event listeners etc. 
+if these properties are set up in `setupCallback()` instead of in the `constructor()`?
+
+The short answer is no, as the example below illustrates 
+(this example uses the punchline for brevity):
+```html
+<script>
+class MyElement extends HTMLElement {
+  
+  constructor(){
+    super();
+    this.attachShadow({mode: "open"});
+    this.shadowRoot.innerHTML = "constructor<br>";
+  }
+  
+  setupCallback(){                                                            
+    this.shadowRoot.innerHTML += "setup: " + this.getAttribute("html-attribute") + "<br>";
+  }
+  
+  connectedCallback(){
+    this.isSetup || (this.setupCallback(), this.isSetup = true);
+    this.shadowRoot.innerHTML += "connected <br>";
+  }
+}
+customElements.define("my-element", MyElement);
+</script>
+
+<my-element html-attribute="yes"></my-element>
+<hr>
+<script>
+  const clone = document.querySelector("my-element").cloneNode(true);
+  document.appendChild(clone);
+  console.log(clone.getAttribute("html-attribute"));
+</script>
+```
+As this example illustrates, `.cloneNode()` of custom elements simply runs the `constructor()` again.
+However, the `HTMLElement.cloneNode()` can be overridden in the mixin. 
+This yields the following structure:
+
+```html
+<script>
+class MyElement extends HTMLElement {
+  
+  constructor(){
+    super();
+    this.attachShadow({mode: "open"});
+    this.shadowRoot.innerHTML = "constructor<br>";
+  }
+  
+  setupCallback(){                                                            
+    this.shadowRoot.innerHTML += "setup: " + this.getAttribute("html-attribute") + "<br>";
+  }
+  
+  cloneNode(deep){
+    const clone = super.cloneNode(deep);
+    this.isSetup && (clone.setupCallback(), clone.isSetup = true);
+    return clone;
+  }
+  
+  connectedCallback(){
+    this.isSetup || (this.setupCallback(), this.isSetup = true);
+    this.shadowRoot.innerHTML += "connected <br>";
+  }
+}
+customElements.define("my-element", MyElement);
+</script>
+
+<my-element html-attribute="yes"></my-element>
+<hr>
+<script>
+  const clone = document.querySelector("my-element").cloneNode(true);
+  document.appendChild(clone);
+  console.log(clone.getAttribute("html-attribute"));
+</script>
+```
+This modified example returns a clone that isSetup if the custom element 
+extending SetupMixin also isSetup.
+And adding the overriding element to SetupMixin looks like this:
+
+```javascript
+const isSet = Symbol("isSet");
+
+function SetupMixin(Base){
+  return class SetupMixin extends Base {
+    constructor(){
+      super();
+      this[isSet] = false;
+    }
+    get isSetup(){
+      return this[isSet];
+    }
+    set isSetup(bool){
+      if (this[isSet] || bool !== true)
+        throw new Error("SetupMixin: .isSetup property should only be changed once and only to true.");
+      this[isSet] = true;
+    }
+    cloneNode(deep){
+      const clone = super.cloneNode(deep);
+      this.isSetup && (clone.setupCallback(), clone.isSetup = true);
+      return clone;
+    }
+    connectedCallback(){
+      this.isSetup || (this.setupCallback(), this.isSetup = true);
+      super.connectedCallback && super.connectedCallback();         //[*]
+    }
+  }
+}
+//todo untested
+```
 
 ## Reference
+ * todo make unit tests
+ * MDN cloneNode and spec that says that custom elements trigger their JS .cloneNode(deep) when cloned. 
  * todo find documentation on Polymer .ready() and 
    similar second constructors / setup steps in other frameworks
