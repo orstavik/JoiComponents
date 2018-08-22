@@ -4,18 +4,21 @@
 
 "The web component design patterns" is a set of recipes for developing simple and reusable web components. 
 This book does not rely on any framework: all patterns are intended to run natively on any browser 
-that supports the whatwg HTML spec for web components and vanilla es6. 
+that supports web components and vanilla es6. 
 However, although different frameworks might require a different mode of implementation, 
 most of the patterns described here should be relevant for developers using other frameworks.
 
-WC patterns consists of two types of recipes:
-* patterns that explain how to build web components and
-* isolated functional mixins that both explain and implement a few key, frequent use-cases.
+WC patterns consists of the following types of recipes:
+* problem descriptions that detail and frame frequent issues and use-cases,
+* patterns that explain how to solve these problems and build web components,
+* isolated functional mixins that implement some of these patterns,
+* and punchlines and other resources that implements other patterns needed to make a complete app.
 
 The isolated functional mixins presented do **not** make a framework. 
 In fact, it is the ambition with this book that you no longer need a framework to build
 scalable, manageable, simple, yet powerful web apps. Modern browsers now has all the power you desire.
-Hence, every mixin strives for no other dependencies than itself and the (polyfilled) platform. 
+Hence, every mixin and resource strives for no other dependencies than itself and 
+the (polyfilled) platform. 
 
 The following mixins are directly available via rawgit.com and unpkg.com:
 
@@ -33,6 +36,7 @@ The following mixins are directly available via rawgit.com and unpkg.com:
 * [gestures/Swipe.js](src/gestures/Swipe.js)
 
 **Other resources:**
+* [setupCallback punchline]()
 * [polyfill-loader.js](src/polyfill-loader.js)
 * [flattenNodes.js](src/flattenNodes.js)
 
@@ -56,59 +60,59 @@ Example of complete links:
 8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
 <!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
 
-## Chapter 1b: How to make mixins
-1. [Reactive method](book/chapter1b_HowToMakeMixins/Pattern1_ReactiveMethod.md)
-2. [Isolated functional mixin](book/chapter1b_HowToMakeMixins/Pattern2_FunctionalMixin.md)
-3. [StaticSetting](book/chapter1b_HowToMakeMixins/Pattern3_StaticSettings.md)
-4. [EventRecording](book/chapter1b_HowToMakeMixins/Pattern4_EventRecording.md)
-5. [DebounceCallbacks](book/chapter1b_HowToMakeMixins/Pattern5_DebounceCallbacks.md)
-6. [OptionalCallbacksEvents](book/chapter1b_HowToMakeMixins/Pattern6_OptionalCallbacksEvents.md)
-7. [MixinPrivateAndGlobal](book/chapter1b_HowToMakeMixins/Pattern7_MixinPrivateAndGlobal.md)
-8. [Discussion: isolate FunctionalMixins](book/chapter1b_HowToMakeMixins/Discussion_IsolatedFunctionalMixin.md)
+## Chapter 2: How to make mixins
+1. [Reactive method](book/chapter2_HowToMakeMixins/Pattern1_ReactiveMethod.md)
+2. [Isolated functional mixin](book/chapter2_HowToMakeMixins/Pattern2_FunctionalMixin.md)
+3. [StaticSetting](book/chapter2_HowToMakeMixins/Pattern3_StaticSettings.md)
+4. [EventRecording](book/chapter2_HowToMakeMixins/Pattern4_EventRecording.md)
+5. [DebounceCallbacks](book/chapter2_HowToMakeMixins/Pattern5_DebounceCallbacks.md)
+6. [OptionalCallbacksEvents](book/chapter2_HowToMakeMixins/Pattern6_OptionalCallbacksEvents.md)
+7. [MixinPrivateAndGlobal](book/chapter2_HowToMakeMixins/Pattern7_MixinPrivateAndGlobal.md)
+8. [Discussion: isolate FunctionalMixins](book/chapter2_HowToMakeMixins/Discussion_IsolatedFunctionalMixin.md)
 <!--9. [MixinPrivateAndGlobal](book/chapter1b_HowToMakeMixins/PatternY_second-level-function-mixin.md)-->
 
-## Chapter 2a: Lifecycle callbacks
-1. [Intro: element lifecycle](book/chapter2a_basicMixins_LifeCycle/chapter2c/Intro_element_lifecycle.md)
-2. [Problem: attributes in constructor](book/chapter2a_basicMixins_LifeCycle/chapter2c/Problem1_attributesInConstructor.md)
-3. [HowTo `constructor()`](book/chapter2a_basicMixins_LifeCycle/chapter2c/HowTo_constructor.md)
-4. [When to setup](book/chapter2a_basicMixins_LifeCycle/chapter2c/Problem2_setupElement.md)
-5. [Setup: immediate](book/chapter2a_basicMixins_LifeCycle/chapter2c/setup_immediate.md)
-6. [setup: in advance](book/chapter2a_basicMixins_LifeCycle/chapter2c/setup_in_advance.md)
-7. [Setup: delayed](book/chapter2a_basicMixins_LifeCycle/chapter2c/setup_delay.md)
-8. [unloadCallback()]
+## Chapter 3: Lifecycle callbacks
+1. [Intro: element lifecycle](book/chapter3_element_lifecycle/Intro_element_lifecycle.md)
+2. [Problem: attributes in constructor](book/chapter3_element_lifecycle/Problem1_attributesInConstructor.md)
+3. [Problem: When to setup](book/chapter3_element_lifecycle/Problem2_setupElement.md)
+4. [HowTo `constructor()`](book/chapter3_element_lifecycle/HowTo_constructor.md)
+5. [Mixin: Setup](book/chapter3_element_lifecycle/Mixin_setup.md)
+6. [Pattern: Setup in advance](book/chapter3_element_lifecycle/Pattern1_setup_in_advance.md)
+7. [Pattern: delay setup](book/chapter3_element_lifecycle/Pattern2_delay_setup.md)
+8. [Mixin: UnloadDisconnects](book/chapter3_element_lifecycle/Mixin_unload_disconnects.md)
 
 old chapters
-1. [Intro: native callbacks](book/chapter2a_basicMixins_LifeCycle/Intro_native_lifecycle_hooks.md)
-2. [.firstConnectedCallback()](book/chapter2a_basicMixins_LifeCycle/Mixin4_FirstConnectedMixin.md)
-3. [.firstOpportunityCallback()](book/chapter2a_basicMixins_LifeCycle/chapterSetup/Mixin6_FirstOpportunityMixin.md)
-4. [.enterViewCallback()](book/chapter2a_basicMixins_LifeCycle/Mixin5_EnterViewMixin.md)
+1. [Intro: native callbacks](trash/book/Intro_native_lifecycle_hooks.md)
+2. [.firstConnectedCallback()](trash/book/Mixin4_FirstConnectedMixin.md)
+3. [.firstOpportunityCallback()](trash/book/chapterSetup/Mixin6_FirstOpportunityMixin.md)
+4. [.enterViewCallback()](book/chapter4_basicMixins_whileConnected/Mixin5_EnterViewMixin.md)
 
 ## Chapter 2b: Event callbacks
-1. [.attributeChangedCallback()](book/chapter2b_basicMixins_whileConnected/HowTo_attributeChangedCallback.md)
-2. [.slotchangedCallback()](book/chapter2b_basicMixins_whileConnected/Mixin1_SlotchangeMixin.md)
-3. [.resizeCallback()](book/chapter2b_basicMixins_whileConnected/Mixin2_ResizeMixin.md)
+1. [.attributeChangedCallback()](book/chapter4_basicMixins_whileConnected/HowTo_attributeChangedCallback.md)
+2. [.slotchangedCallback()](book/chapter4_basicMixins_whileConnected/Mixin1_SlotchangeMixin.md)
+3. [.resizeCallback()](book/chapter4_basicMixins_whileConnected/Mixin2_ResizeMixin.md)
 4. .hashChangedCallback()
 <!-- 4. liefi-->
 
 ## Chapter 3: Gestures
-1. [Sloppy fingers](book/chapter3_gestures/Problem1_sloppy_fingers.md)
-2. [Gesture stuttering](book/chapter3_gestures/Problem2_gesture_stuttering.md)
-3. [Touch makes mouse](book/chapter3_gestures/Problem3_touch_the_mouse.md)
-4. [Conflicting gestures](book/chapter3_gestures/Problem4_conflicting_gestures.md)
-5. [InvadeAndRetreat!](book/chapter3_gestures/Pattern5_InvadeAndRetreat.md)
-6. [Coarse sensors](book/chapter3_gestures/Problem5_coarse_sensors.md)
-7. [DragFlingMixin](book/chapter3_gestures/Mixin1_DraggingFlingGesture.md) (PointerGesture)
-8. [SwipeFlingMixin](book/chapter3_gestures/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-9. [PinchGesture](book/chapter3_gestures/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
+1. [Sloppy fingers](book/chapter5_gestures/Problem1_sloppy_fingers.md)
+2. [Gesture stuttering](book/chapter5_gestures/Problem2_gesture_stuttering.md)
+3. [Touch makes mouse](book/chapter5_gestures/Problem3_touch_the_mouse.md)
+4. [Conflicting gestures](book/chapter5_gestures/Problem4_conflicting_gestures.md)
+5. [InvadeAndRetreat!](book/chapter5_gestures/Pattern5_InvadeAndRetreat.md)
+6. [Coarse sensors](book/chapter5_gestures/Problem5_coarse_sensors.md)
+7. [DragFlingMixin](book/chapter5_gestures/Mixin1_DraggingFlingGesture.md) (PointerGesture)
+8. [SwipeFlingMixin](book/chapter5_gestures/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
+9. [PinchGesture](book/chapter5_gestures/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
 
 ## Chapter 4: Patterns for HTML Composition
-1. [Introduction: HTML is list](book/chapter4/Intro_HTML-Lists.md)
-2. [FosterParentChild (`<ul-li>`)](book/chapter4/Pattern1_FosterParentChild.md)
-3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter4/Pattern2_HelicopterParentChild.md)
-4. [CulDeSacElements (`<img>`)](book/chapter4/Pattern3_CulDeSacElements.md)
-5. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter4/Pattern4_MiniMe.md)
-6. [Pattern: JSONAttributes](book/chapter4/Pattern_jsonAttributes.md)
-7. [Discussion: HTML composition](book/chapter4/Discussion_HTML_composition.md)
+1. [Introduction: HTML is list](book/chapter6_html_comp/Intro_HTML-Lists.md)
+2. [FosterParentChild (`<ul-li>`)](book/chapter6_html_comp/Pattern1_FosterParentChild.md)
+3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter6_html_comp/Pattern2_HelicopterParentChild.md)
+4. [CulDeSacElements (`<img>`)](book/chapter6_html_comp/Pattern3_CulDeSacElements.md)
+5. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter6_html_comp/Pattern4_MiniMe.md)
+6. [Pattern: JSONAttributes](book/chapter6_html_comp/Pattern_jsonAttributes.md)
+7. [Discussion: HTML composition](book/chapter6_html_comp/Discussion_HTML_composition.md)
 
 
 <!--
@@ -128,12 +132,12 @@ Z. Sibling based ordered list.
 -->
 
 ## Chapter 5: Style                                   
-1. [`this.style` is not my style](book/chapter5/Pattern1_this_style_is_not_my_style.md) 
-2. [`:host()` with `<style>`](book/chapter5/Pattern2_host_with_style.md) 
-3. [CSS variables](book/chapter5/Pattern3_css_variables.md) 
-4. [Compound elements, replace CSS pseudo elements](book/chapter5/Pattern4_css_pseudo_elements.md) 
-5. [ResponsiveLayout, extend CSS media queries](book/chapter5/Pattern5_ResponsiveLayout.md)
-6. [Discussion about CSS pseudo elements and CSS media queries](book/chapter5/Discussion_mediaqueries_pseudoelements.md) 
+1. [`this.style` is not my style](book/chapter7_style/Pattern1_this_style_is_not_my_style.md) 
+2. [`:host()` with `<style>`](book/chapter7_style/Pattern2_host_with_style.md) 
+3. [CSS variables](book/chapter7_style/Pattern3_css_variables.md) 
+4. [Compound elements, replace CSS pseudo elements](book/chapter7_style/Pattern4_css_pseudo_elements.md) 
+5. [ResponsiveLayout, extend CSS media queries](book/chapter7_style/Pattern5_ResponsiveLayout.md)
+6. [Discussion about CSS pseudo elements and CSS media queries](book/chapter7_style/Discussion_mediaqueries_pseudoelements.md) 
 <!---
 7. Discussion. Coherence and style
 * How to handle app-wide styling. Local coherence (cohesion), thematic coherence, global coherence.
@@ -152,17 +156,17 @@ you can instead of changing each element, change the css paths that attribute st
 This is not for beginners. This is not necessarily a good pattern. But it is a pattern.
 -->
 ## Chapter 6: How to polyfill web components?
-1. [Introduction: What's a polyfill?](book/chapter6/Intro_Polyfills.md)
-2. [FeatureDetection](book/chapter6/Pattern1_FeatureDetection.md)
-3. [Dynamically loading scripts](book/chapter6/Pattern2_LoadScript.md)
-4. [FeatureDetectAndPolyfill](book/chapter6/Pattern3_FeatureDetectAndPolyfill.md)
-5. [Batch calls to customElements polyfill](book/chapter6/Pattern4_BatchCustomElementUpgrades.md)
-6. [QueAndRecallFunctions](book/chapter6/Pattern5_QueAndRecallFunctions.md)
-7. [SuperFun](book/chapter6/Pattern6_SuperFun.md)
-8. [Polyfill loader](book/chapter6/Pattern7_PolyfillLoader.md)
-9. [Polyfill loader generator](book/chapter6/Pattern8_PolyfillLoaderGenerator.md)
-10. [Sync vs async polyfills](book/chapter6/Discussion_sync_vs_async_polyfilling.md)
-11. [Webcomponentsjs](book/chapter6/Pattern9_webcomponentsjsCousin.md)
+1. [Introduction: What's a polyfill?](book/chapter9_polyfill/Intro_Polyfills.md)
+2. [FeatureDetection](book/chapter9_polyfill/Pattern1_FeatureDetection.md)
+3. [Dynamically loading scripts](book/chapter9_polyfill/Pattern2_LoadScript.md)
+4. [FeatureDetectAndPolyfill](book/chapter9_polyfill/Pattern3_FeatureDetectAndPolyfill.md)
+5. [Batch calls to customElements polyfill](book/chapter9_polyfill/Pattern4_BatchCustomElementUpgrades.md)
+6. [QueAndRecallFunctions](book/chapter9_polyfill/Pattern5_QueAndRecallFunctions.md)
+7. [SuperFun](book/chapter9_polyfill/Pattern6_SuperFun.md)
+8. [Polyfill loader](book/chapter9_polyfill/Pattern7_PolyfillLoader.md)
+9. [Polyfill loader generator](book/chapter9_polyfill/Pattern8_PolyfillLoaderGenerator.md)
+10. [Sync vs async polyfills](book/chapter9_polyfill/Discussion_sync_vs_async_polyfilling.md)
+11. [Webcomponentsjs](book/chapter9_polyfill/Pattern9_webcomponentsjsCousin.md)
 <!---
 5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
 explain that custom elements with content in the lightDom should be considered app-specific components.
@@ -223,4 +227,41 @@ Once familiar with the makeup of web components, it is my contention that you no
 Web components is enough. They provide a great means both to organize and stabilize your own work and 
 collaborate with others. It might not be perfect. And it needs to be polyfilled in old browsers. 
 But it will still provides you with the only, cleanest and simplest API for making native HTML+JS+CSS modules.
+-->
+
+<!--
+## Discussion: Is this a framework?
+The resources presented in this book solves most of the problems that other frameworks solve.
+You can therefore compare the content of this book with the content of other frameworks.
+
+However, all the mixins and punchline and other resources in this book are **isolated**.
+They do not depend on each other, they have no cross dependencies.
+This means that you can use them one by one, and import them one by one.
+
+One major difference between this books and other frameworks is that it does not extend the HTML template.
+If you want, you can combine the resources in this book with a template library such as 
+hyperHTML or lit-html.
+However, in my experience, using such complex templates inside the shadowDOM of a custom element 
+more often than not ends up as a temporary meassure.
+As the complexity inside a custom element with a big and functionaly complex template grows,
+the need to split the element up pushes the developer to also split up and de-functionalize the template.
+Sure, syntactic sugar such as simple databinding and/or simple binding of event listeners might persist, 
+but when the template shrinks, the benefit of using a template engine over plain HTML and JS decreases.
+In my opinion, the scales hinges on making web components reusable as in *composeable*.
+And this problem I feel is solved with the right mix of isolated functional mixins that produce 
+reactive callbacks, and in use, these mixins removes the need and desire for extending the HTML template.
+
+This book also strives for 100% transparency.
+In addition to web components v.1 standard and es6, this book aims to explain all the important 
+problems and all the relevant design decisions made in the framework.
+Complete transparency. A no FUD framework. 
+If the resources you use in addition to the platform does something you do not understand, or 
+has made a design choice you do not understand, the goal is that you in this book will find
+a description of all the problems this resource needs to address, the patterns used to solve them,
+demos of these patterns *and* the code itself so that you can undertand it *fully* yourself and
+write your own alternative solution or fix the existing solution yourself.
+
+The value in this book is therefore foremost the problem and pattern descriptions.
+These descriptions illustrate a journey you can take in order to make a framework (in this manner).
+
 -->
