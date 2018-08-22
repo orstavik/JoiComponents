@@ -1,6 +1,6 @@
 # Problem: No attributes can be set in `constructor` of `HTMLElement` subclasses
 
-> TLDR: **You cannot set default HTML attributes values in your custom elements' `constructor`.**
+> TLDR: You cannot set default HTML attributes values in your custom elements' `constructor`.
 
 ## What's the point of HTML attributes?
 
@@ -206,7 +206,7 @@ From this example we see that setting attributes in the constructor:
 * **works** when we create custom elements using `new`, but
 * **fails** when we create custom elements using `document.createElement`.
 
-## Conclusion: setupCallback() is needed
+## Discussion: setupCallback() is needed
 
 As the failing examples in 1 and 3 above show, 
 a custom element cannot safely read or set default attribute values in the constructor.
@@ -214,6 +214,22 @@ We therefore need a "second" `constructor()` to setup the element.
 This is a little bit disappointing. From the outset it feels.. wrong.
 The problem is, as long as the normal `constructor()` of HTML element does not know of its attributes,
 then there is no better way forward.
+
+There are alternative paths that will not be discussed in this chapter.
+The basic alternative is to only react to HTML attributes from the `attributeChangedCallback`.
+But this has the following drawback: If you create an element with a default shadowDOM, and 
+then change the elements in that shadowDOM based on HTML attributes specified in the template,
+the browser can "accidentally" paint the first, default shadowDOM before it gets time to update it
+based on the HTML attribute. This will cause flickering.
+
+Another alternative is to split out and control the rendering of the element, ie. create a
+`.renderCallback()` akin to Reacts .render().
+However, in order for the timing of this .render() method to be controlled, the initial rendering 
+in the constructor needs to ensure that the .render isn't called before the initial attributes are set.
+This will likely be done by queing the .render() in requestAnimationFrame or some similar que to
+ensure that the browser will have had time to update the attributes before .render is called.
+The drawback of this approach can be seen in the 
+["Anti-pattern: Trigger `setupCallback()` immediately from the `constructor()`" in chapter "Mixin: setup"](Mixin_setup.md).
 
 In the next chapter, we look in detail at *when* we want to setup elements.
 Then, we look at how we can implement a second constructor as `setupCallback()`.
