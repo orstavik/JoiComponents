@@ -76,9 +76,9 @@ but now also *after* the element has been connected to the DOM, which is too lat
 
 No other task ques or events can trigger `setupCallback()`
  * *after* HTML attributes has been set and 
- * *before* `connectedCallback()` has been executed.
+ * *before* `connectedCallback()` is triggered.
 
-Triggering `setupCallback()` immediately from the `constructor()` therefore fails.
+Calling `setupCallback()` immediately from the `constructor()` therefore fails.
 
 ## Pattern: trigger `setupCallback()` immediately *before* the very first `connectedCallback()`
 
@@ -93,7 +93,7 @@ connectedCallback() {
     this.setupCallback(); //so that the setupCallback() is only called once, the first time
     this.isSetup = true;  //set this.isSetup to true, 
   }
-  //super.connectedCallback();
+  //super.connectedCallback();      //if you need to call super.connectedCallback(), do so after this.setupCallback()
   //do your other stuff here
 }
 ```
@@ -167,11 +167,12 @@ function SetupMixin(Base){
   }
 }
 ```
- * Calls to `super.connectedCallback();` must be placed after the `isSetup` check.
-   Although mixins that rely on the element calling `super.connectedCallback();` should be
-   isolated from any dependencies from the elements being set up (and thus probably would remain unaffected),
+ * The call to `super.connectedCallback()` should be made after the call to `this.setupCallback()`.
+   Although mixins that rely on the element calling `super.connectedCallback()` should be
+   isolated from any dependencies from element set up procedures 
+   (and thus probably would remain unaffected),
    placing the invocation of `setupCallback()` at the very beginning of `connectedCallback()`
-   clearly depict the sequence of the two lifecycle callbacks.
+   clearly depict the sequence of the two lifecycle callbacks and its special role.
 
 ### Example: FirstConnected using SetupMixin
 ```html
@@ -224,14 +225,14 @@ customElements.define("my-element", MyElement);
 
 <my-element html-attribute="yes"></my-element>
 ```
+
 ## Problem: `.cloneNode(deep)`
 
-But, what happens if we clone such an element? 
+What happens if we clone such an element? 
 Will the cloned element contain the properties, shadowDOM, event listeners etc. 
 if these properties are set up in `setupCallback()` instead of in the `constructor()`?
 
-The short answer is no, as the example below illustrates 
-(this example uses the punchline for brevity):
+The answer is no. The example below illustrates this:
 ```html
 <script>
 class MyElement extends HTMLElement {
@@ -262,9 +263,11 @@ customElements.define("my-element", MyElement);
   console.log(clone.getAttribute("html-attribute"));
 </script>
 ```
-As this example illustrates, `.cloneNode()` of custom elements simply runs the `constructor()` again.
-However, the `HTMLElement.cloneNode()` can be overridden in the mixin. 
-This yields the following structure:
+Basically, the `.cloneNode()` of a custom elements simply runs the `constructor()` and 
+adds the attributes and lightDOM children.
+However, the `HTMLElement.cloneNode()` can be overridden in the mixin.
+Overriding the `.cloneNode()` method and adding a call to the clone's `setupCallback()`
+if the origin element has been set up, yields the following, successful setup of clones:
 
 ```html
 <script>
@@ -298,8 +301,8 @@ customElements.define("my-element", MyElement);
 <hr>
 <script>
   const clone = document.querySelector("my-element").cloneNode(true);
-  document.appendChild(clone);
-  console.log(clone.getAttribute("html-attribute"));
+  console.log(clone.getAttribute("html-attribute"));  //yes
+  console.log(clone.shadowRoot.innerHTML);            //includes both a, b and c
 </script>
 ```
 This modified example returns a clone that isSetup if the custom element 
@@ -334,11 +337,11 @@ function SetupMixin(Base){
     }
   }
 }
-//todo untested
 ```
 
 ## Reference
  * todo make unit tests
- * MDN cloneNode and spec that says that custom elements trigger their JS .cloneNode(deep) when cloned. 
+ * [MDN: cloneNode](https://developer.mozilla.org/en-US/docs/Web/API/Node/cloneNode)
+ * todo find in spec that says that custom elements trigger their JS .cloneNode(deep) when cloned. 
  * todo find documentation on Polymer .ready() and 
    similar second constructors / setup steps in other frameworks
