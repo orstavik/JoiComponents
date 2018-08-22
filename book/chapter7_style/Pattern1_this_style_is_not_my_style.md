@@ -1,6 +1,6 @@
 # Pattern: `this.style` is not *my* style
 
-The first thing a web component can do is to style itself.
+A web component can style itself.
 All HTML elements have their own default style.
 `<span>` elements are `display: inline` by default, `<div>` elements are `display: block`.
 `<b>` elements have `font-weight: bold` by default, `<li>` elements have a pseudo element `::before {content: bullet}` 
@@ -14,7 +14,8 @@ There are two ways to set the default style of a component:
 2. adding a `<style>` tag to the shadowRoot of an element with `:host()` rules.
 
 The problem with the 1. approach, is that default style added under `this.style`
-will come into conflict with the style attribute of a the element in its context of use.
+will come into conflict with the style attribute of the host node, 
+ie. the custom style added to the element in its context of use.
 That means that you either must check to make sure you are not overwriting any style rules
 set in that context by the element tag author, or be prepared to have your authors styles 
 be overwritten by the element's default style. 

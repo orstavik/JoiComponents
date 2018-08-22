@@ -73,6 +73,10 @@ a select set of established pathways.
 ### Webcomponent rudeness: the `DocumentReaching` anti-pattern
 
 TODO rename DirectTamperingWithAnotherDOM DOM-Tampering
+
+!!TODO anti-pattern is to use this.style, this.innerHTML, this.innerText, this.classList etc.
+Instead use this.shadowRoot.!!
+
 Aside from these established pathways, 
 altering, passing data or querying inside the scope of another document is an anti-pattern: 
 DocumentReaching.

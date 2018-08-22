@@ -118,8 +118,7 @@ Adding the `slotchange` listener, caching the assigned nodes, and checking the a
 to cancel redundant callbacks is adding code and complexity to our web components.
 To encapsulate this complexity we can create a Mixin that we can reuse across elements.
 There are two ways to do so, and you can read more about them in
-[SlotchangeMixin](../chapter2/Mixin1_SlotchangeMixin.md) and 
-[SlotchangeMixin](../chapter2/Old_Mixin2_SlotchangeMixin.md).
+[SlotchangeMixin](../chapter4_basicMixins_whileConnected/Mixin1_SlotchangeMixin.md).
 
 ## Example: IfOnly
 

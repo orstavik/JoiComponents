@@ -12,14 +12,14 @@
  See also `fling` in [DragFlingGesture](Mixin1_DraggingFlingGesture.md)).
  
 `PinchGesture` records a sequence of two-finger events 
-(cf. [EventRecording](../chapter1b_HowToMakeMixins/Pattern4_EventRecording.md)):
+(cf. [EventRecording](../chapter2_HowToMakeMixins/Pattern4_EventRecording.md)):
  * `touchstart`, 
  * `touchmove`, 
  * `touchend`, and 
  * `touchcancel`. 
 
 And turns them into a series of *optional* callbacks 
-(cf. [OptionalCallbacksEvents](../chapter1b_HowToMakeMixins/Pattern6_OptionalCallbacksEvents.md)):
+(cf. [OptionalCallbacksEvents](../chapter2_HowToMakeMixins/Pattern6_OptionalCallbacksEvents.md)):
  * `pinchstartCallback()`, 
  * `pinchCallback()`, 
  * `pinchendCallback()`, 
@@ -30,8 +30,8 @@ The `pinchstart`, `pinch`, `pinchend` timeline correspond to
 
 ## Implementation details
 
-The `PinchGesture` is built using the [EventRecording](../chapter1b_HowToMakeMixins/Pattern4_EventRecording.md) and 
-[FunctionalMixin](../chapter1b_HowToMakeMixins/Pattern2_FunctionalMixin.md) patterns. 
+The `PinchGesture` is built using the [EventRecording](../chapter2_HowToMakeMixins/Pattern4_EventRecording.md) and 
+[FunctionalMixin](../chapter2_HowToMakeMixins/Pattern2_FunctionalMixin.md) patterns. 
 
 The `PinchGesture` mixin only reacts when *two* fingers are used.
 If only one finger is touching the screen, the `PinchGesture` remains inactive.
@@ -41,7 +41,7 @@ the event recording is cancelled.
 
 `spin` is triggered when one or both fingers have moved more 
 than a minimum `spinMotion`(px) for more than minimum `spinDuration`(ms).
-Both `spinMotion` and `spinDuration` are implemented as [StaticSettings](../chapter1b_HowToMakeMixins/Pattern3_StaticSettings.md).
+Both `spinMotion` and `spinDuration` are implemented as [StaticSettings](../chapter2_HowToMakeMixins/Pattern3_StaticSettings.md).
 The default value of `spinMotion` is `50`(px), and
 the default value of `spinDuration` is `50`(ms).
 `spinMotion` is calculated as the sum of the distance of the start and end positions of

@@ -1,8 +1,8 @@
 # Setup: In advance
 
-> TLDR: Create elements with the immediate setupCallback punchline, 
-> style them as `display:none`, and add them to the DOM when the browser is idle.
-> Later, when you plan to use them, just change the `display` property.
+> TLDR: Create elements with the SetupMixin, and 
+> add them to a template or directly in the DOM using `visibility: hidden` when the browser is idle.
+> Later, when you need them, clone them into the DOM or change the `visibility` property.
 
 The problem and pattern described in this chapter is not isolated to custom elements,
 but applies to all DOM node types. 
@@ -29,69 +29,91 @@ but in addition the new elements cause the browser to calculate style, layout an
 when they get connected to the DOM.
 So, the developer is faced with a dilemma:
 What should I do when I need to add a new element to the DOM (a heavy task) 
-during a critical period (when I want to avoid heavy tasks)? 
+during a critical period (when I want to avoid heavy tasks)?
 
-## Pattern: add new DOM elements in advance with `display: none`.
+## TODO Pattern: 
 
-Often, a "critical period" comes after an "idle period" for the browser.
+1. make a template,
+
+Trigger only the `constructor()` of all the DOM elements.
+2. clone the template,
+to make a custom entity
+3. add and hide template clone in the DOM,
+   this will trigger setupCallback(), connectedCallback() and style and maybe layout
+4. Alternative to 3. Run a recursive function that triggers setupCallback() on an element 
+   and all its children.
+
+## Pattern: add new DOM elements in advance with `visibility: hidden` or `display: none`.
+
+Sometimes, a "critical period" comes after an "idle period" for the browser.
 To avoid *constructing, setting up and connecting* new elements to the DOM during a critical period,
 the developer can instead *construct, set up, **hide**, and connect* the element in advance, 
 during the idle period, and then when needed simply **show** the element.
 
-So, in order to prepare elements in advance, you likely desire to:
+So, in order to fully prepare an element in advance, you desire to:
 0. construct the element,
-1. trigger `setupCallback()`,
-2. connected the new elements to the DOM,
-3. calculate CSS style,
-4. (maybe) calculate layout of the elements, but
+1. trigger `setupCallback()`
+2. and `connectedCallback()` by connecting the new elements to the DOM,
+3. make the browser calculate CSS style and
+4. layout of the element (*), but
 5. avoid triggering paint as this might cause the screen to flicker. 
-(todo, check the validity of this problem??)
 
-This example illustrates the pattern:
+Layout will be calculated when the element is hidden using `visibility: hidden`.
+Layout will *not* be calculated when the element is hidden using `display: none`.
+The example below illustrates this pattern.
+
 ```javascript
- class MyEl extends HTMLElement {
+import {SetupMixin} from "https://rawgit.com/orstavik/JoiComponents/master/src/SetupMixin.js";
+
+class MyEl3 extends SetupMixin(HTMLElement) {
   constructor(){
     super();
     console.log("start");
-  }
-  connectedCallback(){
-    this.isSetup || (this.setupCallback(), this.isSetup = true);
-    console.log("connected");
   }
   setupCallback(){
     this.attachShadow({mode:"open"});
     this.shadowRoot.innerHTML = "I am visible";
     console.log("setup");
   }
+  connectedCallback(){
+    super.connectedCallback();
+    console.log("connected");
+  }
 }
-customElements.define("my-el", MyEl);
+customElements.define("my-el", MyEl3);
 const el = document.createElement("my-el");
-el.style.display = "none";
-document.querySelector("body").appendChild(el); 
 //start
-//connected
+el.style.visibility = "hidden"; //or, if you don't want to calculate layout: el.style.display = "none"; 
+document.querySelector("body").appendChild(el); 
 //setup
+//connected
 setTimeout(() => {
-  el.style.display = "inline"; 
+  el.style.visibility = "visible"; //or el.style.display = "unset"/"block"/"inline";
 //"I am visible" appears on the screen after 3000ms 
 }, 3000);
 ```
 
-## Alternative 1: only construct and setup elements in advance 
+## Alternative: Prepare new elements by only triggering setupCallback() 
 
-When elements are added to the DOM, even when they are styled `display: none`,
-event listeners are added and active.
-If you do not want or need to activate event listeners, 
-you can simply create elements without attaching them:
+If you only need to prepare the `setupCallback()` you can do so directly 
+without adding the element to the DOM.
+The benefit of this approach is that it can avoid triggering `connectedCallback()`
+and style and layout calculation, if this is something you wish to avoid.
+The drawback of this approach is that triggering `setupCallback()` on a parent will not
+automatically trigger `setupCallback()` on its lightDOM nor shadowDOM children.
+If you need to do so, this must be done in addition.
+Therefore, this should be considered an alternative approach, not your main option.
 
 ```javascript
- class MyEl2 extends HTMLElement {
+import {SetupMixin} from "https://rawgit.com/orstavik/JoiComponents/master/src/SetupMixin.js";
+
+class MyEl2 extends SetupMixin(HTMLElement) {
   constructor(){
     super();
     console.log("start");
   }
   connectedCallback(){
-    this.isSetup || (this.setupCallback(), this.isSetup = true);
+    super.connectedCallback();
     console.log("connected");
   }
   setupCallback(){
@@ -102,48 +124,14 @@ you can simply create elements without attaching them:
 }
 customElements.define("my-el", MyEl2);
 const el = document.createElement("my-el");
-el.setupCallback();
 //start
+el.setupCallback();
 //setup
+el.isSetup = true;
 setTimeout(() => {
   document.querySelector("body").appendChild(el);
   //connected
   //"I am visible" appears on the screen after 3000ms 
-}, 3000);
-```
-
-## Alternative 2: construct, setup, connect and calculate layout of elements in advance 
-
-When elements are added to the DOM with `display: none`,
-their layout is not calculated.
-If you need to calculate layout in advance, use `visibility: hidden` instead of `display: none`.
-
-```javascript
-class MyEl3 extends HTMLElement {
-  constructor(){
-    super();
-    console.log("start");
-  }
-  connectedCallback(){
-    this.isSetup || (this.setupCallback(), this.isSetup = true);
-    console.log("connected");
-  }
-  setupCallback(){
-    this.attachShadow({mode:"open"});
-    this.shadowRoot.innerHTML = "I am visible";
-    console.log("setup");
-  }
-}
-customElements.define("my-el", MyEl3);
-const el = document.createElement("my-el");
-el.style.visibility = "hidden";
-document.querySelector("body").appendChild(el); 
-//start
-//connected
-//setup
-setTimeout(() => {
-  el.style.visibility = "visible"; 
-//"I am visible" appears on the screen after 3000ms 
 }, 3000);
 ```
 
@@ -194,10 +182,10 @@ setTimeout(() => {
 
 Which event, que or callback you use to setup your elements inAdvance depend on your app.
 But the basic principles for timing remains the same: 
-1. you need to find a trigger or que that lets you know when the browser has idle resources, or 
-at least some mechanism to identify that your browser is not in a critical period.
-`requestIdleCallback()` is best suited for this.
-2. you must identify whether or not you need to prepare css and layout calculation.
+1. find a trigger or que that lets you know when the browser has idle resources, or 
+at least some mechanism to identify that your browser is not in a critical period, 
+cf. `requestIdleCallback()`.
+2. identify whether or not you need to prepare css and layout calculation.
 If it does not matter if your elements are already connected to the DOM, then 
 wait to connect them to the DOM until you use the elements.
 If it is enough to pre-calculate style, use `display: none`.

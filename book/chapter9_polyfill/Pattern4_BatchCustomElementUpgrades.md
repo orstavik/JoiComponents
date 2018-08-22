@@ -194,7 +194,28 @@ that you can use to create custom polyfill-loaders for different polyfills.
 * [customElements polyfill](https://github.com/webcomponents/webcomponentsjs/customElements).
 * [webcomponents-loader.js](https://github.com/webcomponents/webcomponentsjs/).
 
-
+## Todo
+simplify. Make 3 methods:
+```javascript
+polyfill.customElements.restart = function(){
+  if(window.customElements && customElements.polyfillWrapFlushCallback){
+    customElements.polyfillWrapFlushCallback(function(flush){flush();});
+    customElements.upgrade(document);                                     
+  }
+};
+polyfill.customElements.pause = function() {
+  if(window.customElements && customElements.polyfillWrapFlushCallback)
+    customElements.polyfillWrapFlushCallback(function(){});
+};
+polyfill.customElements.pauseWhileLoading = function() {
+  if(window.customElements && customElements.polyfillWrapFlushCallback && document.readyState === "loading"){
+    customElements.polyfillWrapFlushCallback(function(){});
+    document.addEventListener("DOMContentLoaded", function(){polyfill.customElements.restart();});
+  }
+};
+```
+* add them on a global polyfill object.
+* add them 
 <!--
 TODO Exemplify "flickering layout" problems of slow customElements:
 1. Lets say you have a web page with 10 different custom elements.

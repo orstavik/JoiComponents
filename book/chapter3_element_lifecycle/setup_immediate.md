@@ -132,7 +132,7 @@ customElements.define("first-connected", FirstConnected);
 the element is marked as having been setup.
 
 ## Mixin: SetupMixin
-This solution can also be minified and implemented as a single [punchline](../../chapter1b_HowToMakeMixins/PatternX_punchline.md).
+This solution can also be minified and implemented as a single [punchline](../chapter2_HowToMakeMixins/PatternX_punchline.md).
 ```javascript
 connectedCallback() {
   this.isSetup || (this.isSetup = true, this.setupCallback());
@@ -157,7 +157,7 @@ function SetupMixin(Base){
     }
     set isSetup(bool){
       if (this[isSet] || bool !== true)
-        throw new Error("SetupMixin: .isSetup property should only be changed by the SetupMixin and to true.");
+        throw new Error("SetupMixin: .isSetup property should only be changed once and only to true.");
       this[isSet] = true;
     }
     connectedCallback(){

@@ -1,6 +1,116 @@
-# Mixin: FirstOpportunity
+# Problem: SetupTrafficJam       
 
-There are two problems with `FirstConnectedMixin`.
+The development of the custom element constructor and the setup traffic jam issues.
+
+Problem 1:
+-> we cannot work with attributes in the constructor. 
+The element must be `upgraded` before we can work with the attributes.
+This does not particularly apply to shadowRoot, it is functional? Test this. 
+I think this can just be skipped.
+
+-> solution 1a, that does not solve 2, add a setTimeout0 to this.setupCallback.
+This will allow elements to be added to the DOM. But, it will flood the setTimeout
+with many potentially heavy operations that will make the browser laggy.
+So, this solves problem 1, but makes a setupTrafficJam.
+
+-> solution 1b, that does not solve 2, is that simply firstConnectedCallback()?
+yes. If everything is connected to the DOM straight away, which it usually is, 
+then this will fix the problem with the upgrade must happen before, but 
+it will not fix the problem with speed and lag.
+So, this solves problem 1, but makes a setupTrafficJam.
+
+Problem 2 setupTrafficJam:
+-> if we have a lot of work, all this work will be needed to be done before the browser can render
+or do other work.
+This is bad.. This means that if we have many heavy operations, our page will be delayed.
+
+Solution 2a:
+-> that is to put all the setupCallback() in an async que system, 
+that will run when the browser has spare capacity.
+This should simply be called asyncSetupCallback()? or? yes.
+
+The que has to be managed, so that elements that are not connected 
+is done after elements that are connected.
+Maybe this should also be manually controllable? That is baad.. it will be very complex.
+
+This is a big job on where and when to do `setup` in a custom element:
+1. the constructor, 
+2. connectedCallback, 
+3. firstConnectedCallback,
+4. asyncSetupCallback,
+5. enterViewCallback().
+
+Solution 2b: 
+enterViewCallback(). This works well when we also want to reduce the network traffic.
+
+`ImmediateSetupMixin` fixes the problem of doing work on 
+attributes not within the constructor itself.
+
+```javascript
+function ImmediateSetupMixin(Base) {
+   return class ImmediateSetupMixin extends Base {
+     constructor(){
+       super();
+       Promise.resolve().then(function(){this.setupCallback()}.bind(this));
+     }
+   }
+ }
+```
+But this can create our setup traffic jam at startup
+
+
+## Example: TenPages
+
+get an argument from the query in the location bar and use that to specify which setupMixin to use.
+Switch between 
+setup=immediate
+setup=firstConnected
+setup=firstOpportunity
+
+while the page is loading, the background is red. when the page has finished loading, the page is green.
+How do I do this? I add the background: red at startup.
+Then, I add a setTimeout(goGreen, 0)? This will signify when the browser has time to do something else? Yes, that sounds good.
+
+```html
+<my-page id="a"></my-page>
+<my-page id="b"></my-page>
+<my-page id="c"></my-page>
+<my-page id="d"></my-page>
+<my-page id="e"></my-page>
+<my-page id="f"></my-page>
+<my-page id="g"></my-page>
+<my-page id="h"></my-page>
+<my-page id="i"></my-page>
+<my-page id="j"></my-page>
+
+<script >
+class MyCounter extends SetupMixin(HTMLElement){
+  
+  setupCallback(){
+    let sum = 0;
+    for (var i = 0; i < 1e6; i++)
+      sum += i;
+    this.attachShadow({mode: "open"});
+    this.shadowRoot.innerHTML = src;
+  }
+}
+class MyPage extends SetupMixin(HTMLElement){
+  setupCallback(){
+    let src = "";
+    for (var i = 0; i < 100; i++)
+      src += "<my-counter></my-counter>";
+    this.attachShadow({mode: "open"});
+    this.shadowRoot.innerHTML = src;
+  }
+}
+
+customElements.define("my-counter", MyCounter);
+customElements.define("my-page", MyPage);
+
+</script>
+```
+
+
 
 ## Problem 1: setup traffic jams
 A main point of `firstConnectedCallback()` is to avoid a big setup-traffic-jam at startup. 
@@ -192,6 +302,14 @@ function FirstOpportunityMixin(Base) {
   }
 }
 ```
+
+TODO:
+Add a setupCallback() that is not triggered by the connectedCallback()?
+An whenReadyCallback(). So that things do not need to block the rendering of the element, but 
+can be added, and then put to life afterwards.
+Or, do I want this to be done in setupCallback(). 
+Have setupCallback() not trigger on connectedCallback()?
+Or have this in a staticSetting??
 
 Todo: 
 1. the main problem here is too much `if`-checking.

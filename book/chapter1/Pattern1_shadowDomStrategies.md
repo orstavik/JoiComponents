@@ -1,8 +1,8 @@
 # Pattern: shadowDOMStrategies
 
-When? Commonly, the shadowDOM is set up in the `constructor()`.
+The shadowDOM is initiated in the `constructor()` and setup in `setupCallback()`.
 
-How? There are three main strategies to create a shadowDom:
+There are three main strategies to create a shadowDom:
 1. **Basic strategy** 
 2. **Template strategy**
 3. Template literals **Engine strategy**
