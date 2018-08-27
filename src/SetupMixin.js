@@ -1,27 +1,46 @@
 const isSet = Symbol("isSet");
+const triggerSetup = Symbol("triggerSetup");
+const triggerAttributes = Symbol("triggerAttributes");
 
-function SetupMixin(Base){
+export function SetupMixin(Base) {
   return class SetupMixin extends Base {
-    constructor(){
+    constructor() {
       super();
       this[isSet] = false;
     }
-    get isSetup(){
+
+    get isSetup() {
       return this[isSet];
     }
-    set isSetup(bool){
+
+    set isSetup(bool) {
       if (this[isSet] || bool !== true)
         throw new Error("SetupMixin: .isSetup property should only be changed by the SetupMixin and to true.");
       this[isSet] = true;
     }
-    cloneNode(deep){
-      const clone = super.cloneNode(deep);
-      this.isSetup && (clone.setupCallback(), clone.isSetup = true);
-      return clone;
-    }
-    connectedCallback(){
-      this.isSetup || (this.setupCallback(), this.isSetup = true);
+
+    connectedCallback() {
+      this.isSetup || this[triggerSetup]();
       super.connectedCallback && super.connectedCallback();         //[*]
+    }
+
+    [triggerSetup]() {
+      this.setupCallback();
+      this.isSetup = true;
+      this[triggerAttributes]();
+    }
+
+    [triggerAttributes]() {
+      const obsAtts = Object.getPrototypeOf(this).constructor.observedAttributes;
+      if (!obsAtts) return;
+      for (let att of obsAtts) {
+        if (this.hasAttribute(att))
+          this.attributeChangedCallback(att, null, this.getAttribute(att));
+      }
     }
   }
 }
+
+//ATT!! Remember to add
+//attributeChangedCallback(name, old, nevv){
+// if(!this.isSetup)return;                     //add this line only at the very beginning of this function. If you implement this method.
