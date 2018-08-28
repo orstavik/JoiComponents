@@ -2,6 +2,8 @@
 
 > TLDR: `SetupMixin` triggers `setupCallback()` *immediately before* `connectedCallback()`.
 > The `.isSetup` property is added to the element, and set to true once the element is set up.
+> The `SetupMixin` will also re-trigger all `attributeChangedCallback()`, 
+> so remember to abort premature `attributeChangedCallback()` if this method is implemented.
 
 When an element is created and immediately added to the DOM, 
 the element must be setup:
@@ -12,6 +14,7 @@ the element must be setup:
 This gives us two alternatives for triggering a `setupCallback()`:
 1. queued *after* the constructor has run *and* the HTML template attributes has been set, or
 2. triggered *immediately before* the `connectedCallback()` is executed.
+3. todo obviously `attributeChangedCallback()`
 
 We try both alternatives.
 

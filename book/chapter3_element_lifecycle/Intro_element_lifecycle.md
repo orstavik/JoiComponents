@@ -36,7 +36,7 @@ native callback:
 To address these two moments we need to add some additional resources to the custom element:
 1. `setupCallback()`, a custom life cycle callback.
    You can read more about `setupCallback()` in:
-   * [Problem: when to setup elements](Problem2_setupElement.md)
+   * [Problem: when to setup elements](Problem3_setupElement.md)
    * [Mixin: setup](Mixin_setup.md)
    * [Pattern: setup in advance](Pattern1_setup_in_advance.md)
    * [Pattern: delay setup](Pattern2_delay_setup.md)
@@ -46,7 +46,7 @@ To address these two moments we need to add some additional resources to the cus
 
 To properly understand this lifecycle, I recommend that you start with the problems
 [Problem: attributes in `constructor()`](Problem1_attributesInConstructor.md) and
-[Problem: when to setup an element](Problem2_setupElement.md).
+[Problem: when to setup an element](Problem3_setupElement.md).
 Then look at the different patterns for invoking `setupCallback()` and 
 then finally see `UnloadDisconnects`, the simplest of them all.
 

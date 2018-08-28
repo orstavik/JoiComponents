@@ -11,7 +11,9 @@ And in JS `.getAttribute`, `.setAttribute` and `.attributeChangedCallback` can b
 update and respond to attribute values. 
 
 Sure. HTML attributes has its limitations. HTML attributes are string values only.
-And if you store too much or complex data in your HTML attributes, you obfuscate your HTML template.
+You can try to use JSON. But not all objects can be JSONified.
+And if you store too much or complex JSON data in your HTML attributes, 
+your HTML template in devtools become obfuscated.
 Therefore, in some situations we store data concerning an element's state as regular JS object properties.
 JS object properties can hold other primitive datatypes and bigger objects.
 
@@ -22,12 +24,12 @@ then that property needs to be translated or marshalled into an underlying attri
 The complexity, redundancy and processing associated with such translation and marshalling is
 something we in general would like to avoid.
 
-Therefore:
+To summarize:
  * if the state of the HTML element might be settable from HTML template or read from CSS in a future use-case, 
  * and the drawbacks of storing the state as a string are not too big (ie. big data value or structure), 
  * then HTML attributes should be used to store the state information.
 
-HTML attributes is the default property structure of HTML elements/DOM nodes.
+HTML attributes is the default state marker of HTML elements/DOM nodes.
 
 ## Different ways to create an `HTMLElement`?
 
