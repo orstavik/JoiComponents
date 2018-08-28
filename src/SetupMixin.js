@@ -2,6 +2,15 @@ const isSet = Symbol("isSet");
 const triggerSetup = Symbol("triggerSetup");
 const triggerAttributes = Symbol("triggerAttributes");
 
+export function setupInAdvance(el) {
+  if (el.setupCallback) {
+    el[triggerSetup]();
+    el.shadowRoot && setupInAdvance(el.shadowRoot);
+  }
+  for (let c of el.children)
+    setupInAdvance(c);
+}
+
 export function SetupMixin(Base) {
   return class SetupMixin extends Base {
     constructor() {

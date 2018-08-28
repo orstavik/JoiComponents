@@ -1,4 +1,4 @@
-import {SetupMixin} from "../../src/SetupMixin.js";
+import {SetupMixin, setupInAdvance} from "../../src/SetupMixin.js";
 
 describe('SetupMixin', function () {
 
@@ -244,3 +244,104 @@ describe('SetupMixin.construction runs setupCallback and attributeChanged only a
 
   //todo to test main document parser on load with template and without template in an iframe
 });
+
+describe('setupInAdvance()', function () {
+
+  const SetupElement = class SetupElement extends SetupMixin(HTMLElement) {
+    static get observedAttributes() {
+      return ["one"]
+    }
+
+    constructor() {
+      super();
+      this.test = "_Constructor";
+    }
+
+    setupCallback() {
+      this.test += "_Setup";
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (!this.isSetup) return;
+      this.test += "_Attribute_" + name + oldValue + newValue;
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      this.test += "_Connected";
+    }
+  };
+  customElements.define("setup-in-advance", SetupElement);
+
+  it("simple", function () {
+    const el = new SetupElement();
+    el.setAttribute("one", "two");
+    el.setAttribute("a", "b");
+    expect(el.test).to.be.equal("_Constructor");
+    setupInAdvance(el);
+    expect(el.test).to.be.equal("_Constructor_Setup_Attribute_onenulltwo");
+  });
+
+  it("simple child", function () {
+    const el = new SetupElement();
+    el.setAttribute("one", "two");
+    el.setAttribute("a", "b");
+    const div = document.createElement("div");
+    div.appendChild(el);
+    expect(el.test).to.be.equal("_Constructor");
+    setupInAdvance(div);
+    expect(el.test).to.be.equal("_Constructor_Setup_Attribute_onenulltwo");
+  });
+
+  it("parent 0 attributes, child 2 attributes/1 observedAttribute", function () {
+    const el = new SetupElement();
+    el.setAttribute("one", "two");
+    el.setAttribute("a", "b");
+    const outer = new SetupElement();
+    outer.appendChild(el);
+    expect(outer.test).to.be.equal("_Constructor");
+    expect(el.test).to.be.equal("_Constructor");
+    setupInAdvance(outer);
+    expect(el.test).to.be.equal("_Constructor_Setup_Attribute_onenulltwo");
+    expect(outer.test).to.be.equal("_Constructor_Setup");
+  });
+
+  it("el with shadow with a div with a setup-in-advance child", function () {
+    const WithElInShadow = class WithElInShadow extends SetupMixin(HTMLElement){
+      static get observedAttributes(){
+        return ["three"];
+      }
+
+      constructor(){
+        super();
+        this.attachShadow({mode: "open"});
+        this.test = "_C";
+      }
+      setupCallback(){
+        this.test += "_S";
+        this.shadowRoot.innerHTML = "<div><setup-in-advance x='y' one='inside'></setup-in-advance></div>";
+      }
+      attributeChangedCallback(name, oldValue, newValue) {
+        if (!this.isSetup) return;
+        this.test += "_A_" + name + oldValue + newValue;
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.test += "_C2";
+      }
+    };
+    customElements.define("setup-with-shadow", WithElInShadow);
+
+    const el = new WithElInShadow();
+    el.setAttribute("three", "four");
+    el.setAttribute("a", "b");
+    expect(el.test).to.be.equal("_C");
+    expect(el.test.shadowRoot).to.be.equal(undefined);
+    setupInAdvance(el);
+    expect(el.test).to.be.equal("_C_S_A_threenullfour");
+    expect(el.shadowRoot.children[0].children[0].test).to.be.equal("_Constructor_Setup_Attribute_onenullinside");
+  });
+
+});
+
