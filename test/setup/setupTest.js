@@ -343,5 +343,26 @@ describe('setupInAdvance()', function () {
     expect(el.shadowRoot.children[0].children[0].test).to.be.equal("_Constructor_Setup_Attribute_onenullinside");
   });
 
+  it("fail when run twice", function () {
+    const el = new SetupElement();
+    el.setAttribute("one", "two");
+    el.setAttribute("a", "b");
+    expect(el.test).to.be.equal("_Constructor");
+    setupInAdvance(el);
+    expect(el.test).to.be.equal("_Constructor_Setup_Attribute_onenulltwo");
+    expect(()=>setupInAdvance(el)).to.throw("SetupMixin: .isSetup property should only be changed by the SetupMixin and to true.");
+  });
+
+  it("fail when already setup up due to connection", function () {
+    const el = new SetupElement();
+    el.setAttribute("one", "two");
+    el.setAttribute("a", "b");
+    expect(el.test).to.be.equal("_Constructor");
+    document.querySelector("body").appendChild(el);
+    expect(el.test).to.be.equal("_Constructor_Setup_Attribute_onenulltwo_Connected");
+    document.querySelector("body").removeChild(el);
+    expect(()=>setupInAdvance(el)).to.throw("SetupMixin: .isSetup property should only be changed by the SetupMixin and to true.");
+  });
+
 });
 
