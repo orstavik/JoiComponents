@@ -5,7 +5,7 @@
 > Native callbacks can be called irregularly.
 > `unload` does not trigger `disconnectedCallback()` automatically.
 
-![lifecycle illustration](lifecycle.jpg)
+![lifecycle illustration](Lifecycle_raw.jpg)
 
 ## `constructor()`
 
@@ -67,6 +67,9 @@ This will trigger `disconnectedCallback()`.
 However, when the browser "unloads", the browser does not trigger `disconnectedCallback()`.
 The `unload` event is triggered when the browser itself or a tab or iframe in the browser is closed.
 The [Mixin: UnloadDisconnects](todo);
+
+![lifecycle with JOI mixins illustration](Lifecycle_joi.jpg)
+
 
 ## References
 

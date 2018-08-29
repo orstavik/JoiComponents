@@ -77,20 +77,14 @@ Example of complete links:
 3. [Pattern: delay setup](book/chapter3_lifecycle/Pattern2_temp_templ.md)
 4. [Mixin: UnloadDisconnects](book/chapter3_lifecycle/Mixin_unload_disconnects.md)
 
-old chapters
-1. [Intro: native callbacks](trash/book/Intro_native_lifecycle_hooks.md)
-2. [.firstConnectedCallback()](trash/book/Mixin4_FirstConnectedMixin.md)
-3. [.firstOpportunityCallback()](trash/book/chapterSetup/Mixin6_FirstOpportunityMixin.md)
-4. [.enterViewCallback()](book/chapter4_basicMixins_whileConnected/Mixin5_EnterViewMixin.md)
-
-## Chapter 2b: Event callbacks
+## Chapter 4: Event callbacks
 1. [.attributeChangedCallback()](book/chapter4_basicMixins_whileConnected/HowTo_attributeChangedCallback.md)
 2. [.slotchangedCallback()](book/chapter4_basicMixins_whileConnected/Mixin1_SlotchangeMixin.md)
 3. [.resizeCallback()](book/chapter4_basicMixins_whileConnected/Mixin2_ResizeMixin.md)
 4. .hashChangedCallback()
 <!-- 4. liefi-->
 
-## Chapter 3: Gestures
+## Chapter 5: Gestures
 1. [Sloppy fingers](book/chapter5_gestures/Problem1_sloppy_fingers.md)
 2. [Gesture stuttering](book/chapter5_gestures/Problem2_gesture_stuttering.md)
 3. [Touch makes mouse](book/chapter5_gestures/Problem3_touch_the_mouse.md)
