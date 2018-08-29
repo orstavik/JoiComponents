@@ -1,12 +1,7 @@
-# Setup: Delayed/postponed
+# Pattern: TemporaryTemplate
 
-> Postpone: *post* "after" + *ponere* "put, place"
-> 
-> Delay: *de-* "away, from" + *laier* "leave, let"
-> 
-> Defer: *de-* "down, away" + *ferre* "to carry"
-
-This problem only concerns the construction of HTML elements from parsing the main HTML document.
+The TemporaryTemplate pattern describe how we can delay the construction of HTML elements 
+parsed from the main HTML document.
 Delaying the construction of elements via JS and from the parser via `innerHTML`
 is simply done by directly postponing the JS function that creates the elements instead.
 
@@ -26,56 +21,28 @@ The above example is a very small HMTL document with two elements.
 First, the `<div>` fills the entire screen.
 Second, a custom element `<below-the-fold>` that the user must scroll down to see.
 The problem: we want to free up resources (CPU and memory) 
-in the browser so that it will make and display the first and critical `<div>`
+in the browser so that it will construct and display the first and critical `<div>`
 as soon possible.
 
-But it is difficult to promote or actively prioritize some HTML elements.
-Instead, we must try to do the opposite: demote and delay non-critical content.
+But, we have no means to promote or actively prioritize some HTML elements.
+Instead, we must try to do the opposite: demote/delay non-critical content.
 By delaying content below the fold, 
 we let the browser concentrate on the critical content above the fold.
-
-## Problem 2: How to delay content below the fold?
 
 To delay a HTML element, we want to:
 1. avoid calculating style, layout nor render the element, 
    to enable the browser to quicker paint the critical elements above;
 2. avoid calculating style, layout nor render any of the *children* elements either,
    for the same reason;
-3. not trigger the `connectedCallback()` methods of neither the root nor children elements,
+3. run as little as possible of the functionality in the 
+   1. `constructor()`, 
+   2. initial `attributeChangedCallback()` and 
+   3. `connectedCallback()` methods 
+   
+   of neither the root nor children elements,
    as these methods might cause both heavy network and computing processes.
 
-A couple of HTML element types has means to delay it:
- * The `<script>` element's *defer* and *async* enable the developer to flag scripts to 
-   be delayed/postponed: `<script defer src="myScript.js">`.
- * Using a [JS `onload` punchline](https://www.filamentgroup.com/lab/async-css.html), 
-   activation of stylesheets can be delayed within the tag:
-   `<link rel="preload" href="myStyle.css" onload="this.rel = 'stylesheet'">`.
-   (The browser automatically does similar steps like this to delay images, audio and video.)
-
-However. Both of the mechanisms above *connects the defered/preloaded elements to the DOM immediately*.
-And. Neither the `defer` nor `preload` attributes are available for normal and custom HTML elements.
-And. Due to these HTML attributes semantics, these attributes would not apply to children of an element.
-Thus. Custom elements and the bulk of HTML elements have no such attributes or direct
-use of attributes that can delay/postpone/defer them and their children directly.
-
-## Anti-patterns: delay elements using CSS or shadowDOM
-
-Traditional tricks such as marking an element with the style `display: none` or `visibility: hidden`
-or the HTML attribute `hidden`, will:
- * yes, hide the element and its children from view 
- (except descendants of a `visibility: hidden` element that is marked `visibility: visible`);
- * yes, in the case of `display: none` free the browser from calculating layout; but 
- * no, always trigger the `connectedCallback()` methods of both the root and children elements.
-
-Another trick, to put children elements inside a custom element with a shadowDOM and 
-then delay adding a `<slot>` element in that shadowDOM will:
- * yes, hide the children elements from view 
-   (although I am not sure how much of the style and layout work the browser will delay); but
- * no, still trigger the `connectedCallback()` methods of both the root and children elements.
-
-Only one alternative remains...
-
-## Pattern: `replaceChild(template.content, template)`
+## Pattern: TemporaryTemplate
 
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) says it perfectly:
 
@@ -88,27 +55,29 @@ Only one alternative remains...
     while loading the page, it does so only to ensure that those contents are valid; 
     the element's contents are not rendered, however. 
 
-By wrapping an HTML element, and its siblings and children if needed, 
-inside a `<template>` element, the browser will:
- * yes, perform no style, layout nor rendering calculations; and
- * yes(!), NOT connect any of the elements inside the template to the DOM!
+By wrapping a group of HTML elements inside a `<template>` element, 
+the browser will on the elements *inside* the template:
+ * ONLY run the `super` constructor (of `HTMLElement`), and 
+ * NOT run any custom element's `constructor()` (weird, right?!), 
+ * NOT trigger the custom element's (observed) `attributeChangedCallback()`, 
+ * NOT connect any *inside* elements to the DOM and trigger their `connectedCallback()`, and
+ * NOT perform any style, layout calculations or paint job for those inside elements.
 
-Then, when needed, the template element can then be replaced with its own `content`.
-In our example, the pattern looks like this:
+Then, when needed, the template element can replace itself with its own `content`.
 
 ```html
 <div style="width: 100vw; height: 100vh;">                                  
   You see me immediately                               
 </div>
 
-<template id="templateTrick">                             <!--[1]-->
+<template id="temporaryTemplate">                             <!--[1]-->
   <below-the-fold>
     You must scroll to see me
   </below-the-fold>
 </template>                                               <!--[1]-->
 <script>                                                    //[2]
   setTimeout(()=>{                                          //[3]
-    const c = document.querySelector("#templateTrick");     //[4]
+    const c = document.querySelector("#temporaryTemplate");     //[4]
     document.body.replaceChild(c.content, c);               //[4]
   }, 3000);                                                 
 </script>                                                 <!--[2]-->
@@ -140,7 +109,7 @@ of the `<template>` node are connected to the DOM.
 <div style="width: 100vw; height: 100vh;">
   You see me immediately
 </div>
-<template id="templateTrick" style="display: block; height: 100vh">
+<template id="temporaryTemplate" style="display: block; height: 100vh">
   <below-the-fold style="display: block; height: 100vh">You must scroll to see me</below-the-fold>
 </template>
 <div>
@@ -148,7 +117,7 @@ of the `<template>` node are connected to the DOM.
 </div>
 <script>
   setTimeout(()=>{
-    const c = document.querySelector("#templateTrick");
+    const c = document.querySelector("#temporaryTemplate");
     document.body.replaceChild(c.content, c);
   }, 3000);
 </script>
@@ -163,10 +132,37 @@ of the `<template>` node are connected to the DOM.
 </script>
 ```
 
+## Comments: other delaying strategies
+
+A couple of HTML element types has other means to delay it:
+ * The `<script>` element's *defer* and *async* enable the developer to flag scripts to 
+   be delayed/postponed: `<script defer src="myScript.js">`.
+ * Using a [JS `onload` punchline](https://www.filamentgroup.com/lab/async-css.html), 
+   activation of stylesheets can be delayed within the tag:
+   `<link rel="preload" href="myStyle.css" onload="this.rel = 'stylesheet'">`.
+   (The browser automatically does similar steps like this to delay images, audio and video.)
+
+However. Both of the mechanisms above *connects the defered/preloaded elements to the DOM immediately*.
+Neither the `defer` nor `preload` attributes are available for normal and custom HTML elements.
+Due to these HTML attributes semantics, these attributes would not apply to children of an element.
+
+## Anti-patterns: delay elements using CSS or shadowDOM
+
+Traditional tricks such as marking an element with the style `display: none` or `visibility: hidden`
+or the HTML attribute `hidden`, will:
+ * yes, hide the element and its children from view 
+ (except descendants of `visibility: hidden` elements that are marked `visibility: visible`);
+ * yes, in the case of `display: none` free the browser from calculating layout; but 
+ * no, always trigger the `connectedCallback()` methods of both the root and children elements.
+
+Another trick, to put children elements inside a custom element with a shadowDOM and 
+then delay adding a `<slot>` element in that shadowDOM will:
+ * yes, hide the children elements from view 
+   (although I am not sure how much of the style and layout work the browser will delay); but
+ * no, still trigger the `connectedCallback()` methods of both the root and children elements.
+
 ## Reference
 
 * [delay `<link rel="stylesheet">`](https://www.filamentgroup.com/lab/async-css.html)
 * [delay `<script>`](https://bitsofco.de/async-vs-defer/)
-* [Etymologi: "delay"](https://www.etymonline.com/word/delay)
-* [Etymologi: "postpone"](https://www.etymonline.com/word/postpone)
 * [MDN: `<template>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template)

@@ -72,14 +72,10 @@ Example of complete links:
 <!--9. [MixinPrivateAndGlobal](book/chapter1b_HowToMakeMixins/PatternY_second-level-function-mixin.md)-->
 
 ## Chapter 3: Lifecycle callbacks
-1. [Intro: element lifecycle](book/chapter3_element_lifecycle/Intro_element_lifecycle.md)
-2. [Problem: attributes in constructor](book/chapter3_element_lifecycle/Problem1_attributesInConstructor.md)
-3. [Problem: When to setup](book/chapter3_element_lifecycle/Problem2_setupElement.md)
-4. [HowTo `constructor()`](book/chapter3_element_lifecycle/HowTo_constructor.md)
-5. [Mixin: Setup](book/chapter3_element_lifecycle/Mixin_setup.md)
-6. [Pattern: Setup in advance](book/chapter3_element_lifecycle/Pattern1_setup_in_advance.md)
-7. [Pattern: delay setup](book/chapter3_element_lifecycle/Pattern2_delay_setup.md)
-8. [Mixin: UnloadDisconnects](book/chapter3_element_lifecycle/Mixin_unload_disconnects.md)
+1. [Intro: element lifecycle](book/chapter3_lifecycle/Intro_element_lifecycle.md)
+2. [Pattern: setupCallback()](book/chapter3_lifecycle/Pattern_init_attr.md)
+3. [Pattern: delay setup](book/chapter3_lifecycle/Pattern2_temp_templ.md)
+4. [Mixin: UnloadDisconnects](book/chapter3_lifecycle/Mixin_unload_disconnects.md)
 
 old chapters
 1. [Intro: native callbacks](trash/book/Intro_native_lifecycle_hooks.md)
