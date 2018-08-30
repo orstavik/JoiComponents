@@ -1,30 +1,32 @@
-# Pattern: `setupCallback()`
+# Pattern: InitialAttributes
 
 ## Why HTML attributes?
 
-HTML attributes can be *accessed directly from both HTML, CSS and JS*.
+**HTML attributes are directly accessible from both HTML, CSS and JS**.
 In HTML template, HTML attributes can be set in the element start tag.
 HTML attributes values can be used to toggle CSS rules.
 And in JS `.getAttribute`, `.setAttribute` and `.attributeChangedCallback` 
 update and respond to changing attribute values.
 
-Sure, HTML attributes has its limitations. HTML attributes are string values only.
+But. HTML attributes also has its limitations. HTML attributes are string values only.
 You can try to use JSON. But not all objects can be stringified.
 And if you store too much or complex JSON data in your HTML attributes, 
 your HTML template become obfuscated.
-Therefore, data objects that either has a complex structure or lots of content
-are often better kept as regular JS object properties rather than as an HTML attribute.
+Therefore, data objects that has either *complex structure* or *lots of data*
+are often better kept as regular object properties rather than as an HTML attribute.
 
-But still. Regular object properties cannot be directly accessed from neither HTML nor CSS.
+Still. Regular object properties cannot be directly accessed from neither HTML nor CSS.
 So, if you store some part of the state of an HTML element as a regular property,
-then if that state change needs to be reflected in the view (CSS) or controllable in HTML template,
-then that property must also be reflected as an HTML attribute.
-So if the state marker potentially might need to be controlled (set) from HTML template or be
-reflected in the style, then you want that state marker stored as an HTML attribute.
+and that state change needs to be reflected in the view (CSS) or controllable from template (HTML),
+then that property must also be mirrored as an HTML attribute.
+Such mirroring is inherently problematic, creating redundancy issues and race conditions.
+Therefore, if the state marker either needs to be set from HTML template or affect the style, 
+then you want that state marker stored as an HTML attribute.
 
 My advice is:
- * store state markers in custom elements as HTML attributes by default
- * use object properties when the data is either too big or too complex to be stored as text.
+ * store state markers in custom elements as HTML attributes strings by default, and
+ * fallback to regular object properties only when you really need to because 
+ the data is un-string-able, too big or too complex.
 
 ## Problem: No attribute access in `constructor()`
 
@@ -32,8 +34,8 @@ The `constructor()` of `HTMLElement` subclasses is in principle called *before*
 the attributes are registered with the element.
 Therefore, if we try to get hold of an attribute set in the HTML template in the constructor,
 it has no value.
-Additionally, if we try to set an attribute value in the constructor 
-of `HTMLElement` subclasses, the browser will throw an error:
+Furthermore, if we try to set an attribute value in the constructor of `HTMLElement` subclasses, 
+the browser will throw an error:
 
 ```html
 <script>
@@ -69,9 +71,14 @@ you would like to have access to those attributes *before* you setup your elemen
 
 2. Sometimes, it is a better principle to "fill in" a default attribute value, and let the user
 override that value if they want.
-The value in itself might be descriptive and to describe it as "void" seen from the outside is misleading.
-And having the value accessible makes the inner workings of the element simpler.
+   1. The attribute value in itself might be informative,
+      and to implicitly describe that value as "void" is misleading seen from the outside.
+   2. Having the value accessible makes the inner workings of the element simpler.
+      The custom element might have states that always would require some version of the state marker set.
+      `undefined` might be the state of the attribute, but 
+      what the attribute represents internally in the element's code can never be `undefined`.
 
+## Example: A impractical and misleading RainBow
 The `RainBow` example below illustrate the need for both the conditions above.
 
 ```html
@@ -120,29 +127,31 @@ The `RainBow` example below illustrate the need for both the conditions above.
 <rain-bow colors="ggr"></rain-bow>
 ```
 
-## Pattern: `setupCallback()`
+## Pattern: InitialAttributes
 
-> Caveat: This pattern is only needed if we want to set default attribute values, or 
-> if changes to an elements attributes causes heavy changes to the elements composition.
-> If none of these conditions are fulfilled, you do not need a `setupCallback()`.
+> Caveat: Most elements do not need this pattern.
+> The InitialAttributes pattern is *only* needed when the element needs to:
+> 1. set initial attribute values, or
+> 2. make initial setup based on initial values.
 
-To get access to an element's attributes during setup, we establish a custom lifecycle `setupCallback()`.
-We define that `setupCallback()` is triggered:
- * only once
- * as soon as possible *after* `constructor()`
- * and *before* both `attributeChangedCallback()` or `connectedCallback()`, whichever comes first.
+To get access to an element's attributes during construction, 
+we establish a custom lifecycle `initialAttributesCallback()`.
+We define `initialAttributesCallback()` as triggered:
+ * *only once*
+ * as soon as possible *after* the `constructor()`
+ * and *before* either `attributeChangedCallback()` or `connectedCallback()`, whichever comes first.
  
-A simple implementation of such a callback looks like this:
+A naive implementation of such a callback looks like this:
 ```javascript
   class SetupElement extends HTMLElement {
     constructor(){
       super();
       this.isSetup = false;
-      this._setupTrigger = requestAnimationFrame(()=> this.setupCallback());
+      this._setupTrigger = requestAnimationFrame(()=> this.initialAttributesCallback());
     }
     attributeChangedCallback(name, oldValue, newValue){
       if(!this.isSetup) {
-        this.setupCallback();
+        this.initialAttributesCallback();
         cancelAnimationFrame(this._setupTrigger);
         this._setupTrigger = undefined;
         this.isSetup = true;
@@ -151,80 +160,106 @@ A simple implementation of such a callback looks like this:
     }
     connectedCallback(){
       if(!this.isSetup) {
-        this.setupCallback();
+        this.initialAttributesCallback();
         cancelAnimationFrame(this._setupTrigger);
         this._setupTrigger = undefined;
         this.isSetup = true;
       } 
       //do your thing      
     }
-    setupCallback(){
+    initialAttributesCallback(){
       //setup here
+      //for example, populate the shadowDOM based only on initial attribute settings
     }
   }
 ```
-The SetupElement above adds a custom lifecycle callback `setupCallback()`.
-`setupCallback()` is added to be run in the next `requestAnimationFrame`.
+The SetupElement above adds a custom lifecycle callback `initialAttributesCallback()`.
+`initialAttributesCallback()` is added to be run in the next `requestAnimationFrame`.
 If either `attributeChangedCallback()` or `connectedCallback()` is run before
-that time, they will trigger `setupCallback()`.
+that time, they will trigger `initialAttributesCallback()`.
 A property `isSetup` is used to ensure that setup only runs once. 
 
-## Mixin: `SetupMixin`
+## Mixin: `InitialAttributesMixin`
 
-The `setupCallback()` can also be implemented in a `SetupMixin`.
-The `SetupMixin` can hide many of the details and also run a single que 
-for the `setupCallback()`s, 
-so that if elements are constructed from within a `requestAnimationFrame` they 
-are not postponed until the next frame:
+The `initialAttributesCallback()` can also be implemented in a `InitialAttributesMixin`.
+The benefit of implementing the callback as a mixin is that it hides the details.
+> ATT!! `InitialAttributesMixin` requires calling *both* 
+`super.connectedCallback` *and* `super.attributeChangedCallback()` in the custom element.
+ 
+```javascript
+const isSet = Symbol("isSet");
+const trigger = Symbol("trigger");
+export function InitialAttributesMixin(Base){
+  return class InitialAttributesMixin extends Base {
+    constructor(){
+      super();
+      this[isSet] = false;
+      this[trigger] = requestAnimationFrame(()=> this[isSet] || this.doInit(true));
+    }
+    attributeChangedCallback(name, oldValue, newValue){
+      super.attributeChangedCallback && super.attributeChangedCallback(name, oldValue, newValue);
+      this[isSet] || this.doInit();
+    }
+    connectedCallback(){
+      super.connectedCallback && super.connectedCallback();
+      this[isSet] || this.doInit();
+    }
+    doInit(fromRaf){
+      if (!fromRaf) cancelAnimationFrame(this[trigger]);
+      this.initialAttributesCallback();
+      this[isSet] = true;
+    }
+  }
+}
+```
 
-> Att!! This Mixin requires calling *both* 
-> `super.connectedCallback` *and* `super.attributeChangedCallback()`.
+The simple implementation above is good, but it has one drawback.
+If one `initialAttributesCallback()`s adds triggers to other `initialAttributesCallback()`s,
+the added `initialAttributesCallback()`s will run in the *next* `requestAnimationFrame`.
+To solve this issue, a shared que is set up `initialAttributesCallback()` triggers.
 
 ```javascript
-let raf = 0;
+let que = [];
+let active = false;
+
 function runQue(){
-  while (toBeSetup.length){
-    let el = toBeSetup.shift();
-    el.setupCallback();
-    el[isSet] = true;      
+  for(let i = 0; i < que.length; i++){
+    let el = que[i];
+    el[isSet] || (el[isSet] = true, el.initialAttributesCallback());
   }
-  raf = 0;
+  que = [];
+  active = false;
 }
 
-const toBeSetup = [];
-function addToQue(el) {
-  toBeSetup.push(el);
-  raf || (raf = requestAnimationFrame(runQue));
-}
-function runEarly(el){
-  el.setupCallback();
-  el[isSet] = true;      
-  const index = toBeSetup.indexOf(el);
-  if (index > -1)
-    toBeSetup.splice(index, 1);
+function addToQue(el){
+  que.push(el);
+  if (active)
+    return;
+  active = true;
+  requestAnimationFrame(runQue);
 }
 
 const isSet = Symbol("isSet");
-function SetupMixin(Base){
-  return class SetupMixin extends Base {
+const trigger = Symbol("trigger");
+export function InitialAttributesMixin(Base){
+  return class InitialAttributesMixin extends Base {
     constructor(){
       super();
       this[isSet] = false;
       addToQue(this);
     }
     attributeChangedCallback(name, oldValue, newValue){
-      super.attributeChangedCallback && super.attributeChangedCallback(name, oldValue, newValue); 
-      this[isSet] || runEarly(this)();
+      super.attributeChangedCallback && super.attributeChangedCallback(name, oldValue, newValue);
+      this[isSet] || (this[isSet] = true, this.initialAttributesCallback());
     }
     connectedCallback(){
-      super.connectedCallback && super.connectedCallback(); 
-      this[isSet] || runEarly(this)();
+      super.connectedCallback && super.connectedCallback();
+      this[isSet] || (this[isSet] = true, this.initialAttributesCallback());
     }
   }
-}
-```
+}```
 
-## Example: `RainBow` with `SetupMixin`
+## Example: `RainBow` with `InitialAttributesMixin`
 
 ```html
 <script>
@@ -240,7 +275,7 @@ function SetupMixin(Base){
     }
   }
 
-  class RainBow extends SetupMixin(HTMLElement) {
+  class RainBow extends InitialAttributesMixin(HTMLElement) {
 
     static get observedAttributes(){
       return ["colors"];
@@ -251,7 +286,7 @@ function SetupMixin(Base){
       this.attachShadow({mode: "open"});
     }
 
-    setupCallback(){
+    initialAttributesCallback(){
       this.hasAttribute("colors") || this.setAttribute("colors", "roygbiv");
       let res = "-";
       for (let c of this.getAttribute("colors").split("").reverse()){
@@ -264,7 +299,7 @@ function SetupMixin(Base){
     attributeChangedCallback(name, oldValue, newValue){
       super.attributeChangedCallback(name, oldValue, newValue); 
       if (name === "colors") 
-        this.setupCallback(); 
+        this.initialAttributesCallback(); 
     } 
 
 //    connectedCallback(){
