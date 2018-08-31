@@ -37,12 +37,38 @@ This can be used to delay the construction of elements with the [Pattern: tempor
 ## native callbacks
 
 Some **callbacks** already exist on the `HTMLElement` class. 
-These callbacks are triggered synchronously when they occur, ie. irregularly.
-The most important are:
-* `attributeChangedCallback()`
-* `connectedCallback()`
-* `disconnectedCallback()`
+These callbacks are triggered synchronously when they occur, ie. irregularly:
+1. `connectedCallback()` and `disconnectedCallback()`
+2. [`attributeChangedCallback()`](HowTo_attributeChangedCallback.md)
+3. `adoptedCallback()`
 
+## mixin callbacks
+
+There are two key lifecycle moments that are not natively supported by callbacks.
+
+### `slotchangeCallback()` 
+
+LightDOM children elements of the host node are important.
+Custom elements can show children as part of their content, either:
+* directly, if the custom element does not hold a shadowDOM, or 
+* via `<slot>` elements within a shadowDOM.
+   
+LightDOM children can also function as input parameter such as the `<source>` children of
+`<audio>` and `<video>`.
+
+LightDOM children can be dynamically styled using the CSS selector `::slotted()`.
+But, there are limits to what can be styled in CSS. 
+And when children elements are used as input parameters, the element should respond to such changes.
+Thus, changes in the number or type of child elements might require a reaction, an update of the shadowDOM or
+actions towards the children elements added (cf. [HelicopterParentChild](../chapter6_html_comp/Pattern2_HelicopterParentChild.md)).
+
+This lifecycle event can be understood as **changes to slottables, ie. the list of flattened children nodes**.
+Natively, this event is supported by the `slotchange` event, 
+but this event is very cumbersome to manage and cannot be used by custom elements without a shadowDOM.
+So, SlotchangeMixin captures any **changes to slottables, ie. the list of flattened children nodes**,
+regardless of origin, and provides a simple `slotchangeCallback(slotname, newValue, oldValue)` reactive method.
+
+### `initialAttributesCallback()`
 When constructing elements via the HTML parser, there is one important issue with the native callbacks.
 The HTML parser in the browser automatically creates elements when it parses the main HTML document or 
 when it is invoked using `.innerHTML`.
@@ -51,25 +77,31 @@ then the parser must also trigger one or more `attributeChangedCallback()`s.
 (`.cloneNode` will also automatically trigger `attributeChangedCallback()` if necessary.)
 The parser must also connect the elements to the DOM, thus automatically triggering `connectedCallback()`
 (unless `.innerHTML` is performed on a disconnected element).
-In practice, this means that there is no fixed sequence of these three callbacks 
-when constructing an element, and that you as a developer must anticipate that
-the browser will automatically trigger any one of these callback combinations when constructing an element:
+In practice, this means that there is no fixed sequence of these three callbacks when constructing an element.
+Therefore, the developer must anticipate that the browser can automatically trigger any one of these callback 
+combinations when constructing an element:
  * `constructor()`
  * `constructor()` + `connectedCallback()`
  * `constructor()` + `attributeChangedCallback()`
  * `constructor()` + `attributeChangedCallback()` + `connectedCallback()`
+
+To address the issues that follow this multitude of setup combinations, 
+a custom callback `initialAttributesCallback()` setup via [`InitialAttributesMixin`](Mixin2_InitialAttributes.md). 
 
 ## end of life
 
 To delete and remove an elements and all its components from the browsers memory,
 the element must be disconnected from the DOM and all strong object references to the element must be removed.
 This will trigger `disconnectedCallback()`.
-However, when the browser "unloads", the browser does not trigger `disconnectedCallback()`.
+
+However, when the browser "unloads" and in a sense "disconnects" the entire DOM, 
+the browser does not trigger `disconnectedCallback()` on the connected elements.
 The `unload` event is triggered when the browser itself or a tab or iframe in the browser is closed.
-The [Mixin: UnloadDisconnects](todo);
+Most often this is not a problem, there is no needs to for example remove event listeners 
+(the most common `disconnectedCallback()` task) when the browser closes a tab.
+But, sometimes, the element might need to perform actions before the tab closes.
+These use-cases and their solution are presented in [Mixin: UnloadDisconnects](Mixin3_unload_disconnects.md).
 
 ![lifecycle with JOI mixins illustration](Lifecycle_joi.jpg)
 
-
 ## References
-

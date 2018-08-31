@@ -1,7 +1,7 @@
 # How to `.attributeChangedCallback()`
 
 `attributeChangedCallback` is a callback method that is triggered every time an 
-attribute listed in `observedAttributes` is instantiated or changes. 
+attribute listed in `observedAttributes` is instantiated or changes.
 
 To register an attribute in `observedAttributes` list, 
 the name of the attribute must be added as a string to the 
@@ -67,7 +67,7 @@ After this callback, the browser presents `your name is: the Terrible, Ivan`.
 Or rather, why not trigger an `attributeChangedCallback(...)` for all attributes, always?
 
 When you make a custom element, you most often need only observe a few custom attributes.
-But, HTML elements has many attributes. Some of these attributes such as `style` 
+But, HTML elements has many attributes. Some of these attributes such as `style` and `class` 
 can change value quite often. So, if all attribute changes of custom elements 
 would trigger a JS callback, the browser would slow down.
                                                         
@@ -76,6 +76,17 @@ for all the attribute changes which the custom element do not care about.
 By making the developer specify which attributes should 
 trigger `attributeChangedCallback` in `static get observedAttributes()`,
 the browser can *ignore* all changes to other attributes.
+
+## When is `attributeChangedCallback(...)` triggered?
+
+`attributeChangedCallback(...)` is triggered immediately, synchronously.
+But, as with other [custom element reactions](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-element-reactions),
+`.attributeChangedCallback()` can be 'grouped' and run at the end *within* functions 
+that manipulate DOM for several elements at the same time.
+Examples of such functions are `.cloneNode`, `.innerHTML` and `.appendChild`/`.removeChild`. 
+When these functions run they affect a whole group of children/elements within a single call.
+*Within* such functions, `.attributeChangedCallback()`, `connectedCallback()` etc. for several children
+can be grouped together.
 
 ## Comment on JS parameter order 
 There is one minor flaw with the `attributeChangedCallback(...)` standard:
