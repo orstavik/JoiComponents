@@ -29,3 +29,6 @@
    Alternative: set HTML attributes instead of CSS classes on the element. 
    HTML attributes are intended as an element state conveyor between the inside and outside of HTML elements.
    
+4. "TypeError: Illegal constructor"
+   
+   You forgot to add customElements.define() of your new subclass of HTMLElement.

@@ -1,7 +1,7 @@
-import {ChildrenChangedMixin} from "https://unpkg.com/children-changed-callback@1.1.0/src/ChildrenChangedMixin.js";
-import {SizeChangedMixin} from "https://cdn.rawgit.com/orstavik/JoiComponents/master/src/SizeChangedMixin.js";
+import {SlotchangeMixin, flattenedChildren} from "../src/SlotchangeMixin.js";
+import {ResizeMixin} from "https://cdn.rawgit.com/orstavik/JoiComponents/master/src/ResizeMixin.js";
 
-export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) {
+export class WcBook extends ResizeMixin(SlotchangeMixin(HTMLElement)) {
   constructor() {
     super();
     this.attachShadow({mode: "open"});
@@ -64,14 +64,14 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
     this.addEventListener("new-chapter", this._newChapterListener);
   }
 
-  sizeChangedCallback({width, height}) {
+  resizeCallback({width, height}) {
     const w = width > 1000 ? "large" : "small";
     this.setAttribute("size", w);
   }
 
   getChapters() {
     let result = [];
-    let chapters = this.getVisibleChildren().filter((c) => c instanceof WcChapter);
+    let chapters = flattenedChildren(this).filter((c) => c instanceof WcChapter);
     for (let i = 0; i < chapters.length; i++) {
       let c = chapters[i];
       result = result.concat(c.getChapters([i+1]));
@@ -89,7 +89,7 @@ export class WcBook extends SizeChangedMixin(ChildrenChangedMixin(HTMLElement)) 
   }
 }
 
-export class WcChapter extends ChildrenChangedMixin(HTMLElement) {
+export class WcChapter extends SlotchangeMixin(HTMLElement) {
   constructor() {
     super();
     this.attachShadow({mode: "open"});
@@ -105,7 +105,7 @@ export class WcChapter extends ChildrenChangedMixin(HTMLElement) {
   getChapters(pos) {
     this.id = "chapter_" +pos.join(".");
     let result = [[pos, this.getAttribute("title")]];
-    const childChapters = this.getVisibleChildren().filter(c => c instanceof WcChapter);
+    const childChapters = flattenedChildren(this).filter(c => c instanceof WcChapter);
     for (let i = 0; i < childChapters.length; i++) {
       let child = childChapters[i];
       result = result.concat(child.getChapters(pos.concat([i+1])));

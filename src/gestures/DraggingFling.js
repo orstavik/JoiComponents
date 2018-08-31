@@ -39,6 +39,9 @@ function flingAngle(x = 0, y = 0) {
   return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
 }
 
+//todo add debouncer staticSetting, true by default??, and debounce
+//todo add check that verifies that targetTouches.length === touches.length
+
 //todo remove the startDetail??
 function extendDetail(lastDetail, startDetail) {
   const distX = lastDetail.x - startDetail.x;

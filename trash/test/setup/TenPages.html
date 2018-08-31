@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+  <my-page id="a" delay="100"></my-page>
+  <my-page id="b" delay="100"></my-page>
+  <my-page id="c" delay="100"></my-page>
+  <my-page id="d" delay="100"></my-page>
+  <my-page id="e" delay="100"></my-page>
+
+  <script src="../../../src/SetupMixin.js"></script>
+
+  <script src="MyPageAndMyDelay.js"></script>
+  <style>
+    my-page {
+      float: left;
+      background: lightgreen;
+      width: 200px;
+      height: 200px;
+    }
+    my-page:nth-child(even) {
+      background: green;
+    }
+  </style>
+<p>TTST = timeToSetTimeout</p>
+<h1>Web app TTST: </h1>
+<script>
+  window.startTime = performance.now();
+  setTimeout(() => document.querySelector("h1").innerText += performance.now() - window.startTime, 0);
+</script>
+
+<div id="menu">
+  <h3>Menu</h3>
+  <div id="_f">add page f</div>
+  <div id="_g">add page g</div>
+  <div id="_h">add page h</div>
+  <div id="_i">add page i</div>
+  <div id="_j">add page j</div>
+  <hr>
+</div>
+<div id="pages">
+  <my-page id="a" delay="100"></my-page>
+  <my-page id="b" delay="100"></my-page>
+  <my-page id="c" delay="100"></my-page>
+  <my-page id="d" delay="100"></my-page>
+  <my-page id="e" delay="100"></my-page>
+</div>
+
+<script>
+  function addPage(id) {
+    id = id.substr(1);
+    let myPage = document.createElement("my-page");
+    myPage.id = id;
+    myPage.setAttribute("delay", "200");
+    document.querySelector("#pages").appendChild(myPage);
+  }
+
+  document.querySelector("#menu").addEventListener("click", (e) => addPage(e.currentTarget.id));
+  setTimeout(() => document.querySelector("#_f").click(), 2000);
+</script>
+
+</body>
+</html>

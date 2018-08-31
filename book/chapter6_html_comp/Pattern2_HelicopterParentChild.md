@@ -29,7 +29,7 @@ The HelicopterParentChild pattern usefulness increases with:
 ## Example 1: custom OL + LI
 In this example we look at a HelicopterParent that needs to *change one or more children elements based on 
 their position in the group*.
-When making the HelicopterParent element, I use the [SlotchangeMixin](../chapter4_basicMixins_whileConnected/Old_Mixin2_SlotchangeMixin.md) to 
+When making the HelicopterParent element, I use the [SlotchangeMixin](../../trash/book/Old_Mixin2_SlotchangeMixin.md) to 
 a) simplify the act of listening for dynamic changes to the DOM, and 
 b) process slotted items on par with normal items.
 

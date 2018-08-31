@@ -2,7 +2,6 @@
 
 > TLDR; In the `HTMLElement.constructor()`:
 > 1. do not access HTML attributes 
-> 2. initialize `.shadowRoot`, but do not populate it and
 > 3. set up event listener objects
 
 The `constructor()` of custom element classes is not as simple as it might seem.

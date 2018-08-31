@@ -81,7 +81,9 @@ export const ResizeMixin = function (Base) {
      * Override this method to do actions when children changes.
      * @param rect
      */
-    //todo change signature to simple resizeCallback(width, height)
+    //todo change signature to simple resizeCallback(width, height, oldWidth, oldHeight) ??
+    //todo ResizeObserver returns a rect, but that is unnecessary complex. Not much, but just that little bit.
+    //todo also, if I have the old values cached, I should return that here so that the user don't have to.
     // resizeCallback(rect = {width: 0, height: 0}) {
     //   if (super.resizeCallback) super.resizeCallback(rect);
     // }

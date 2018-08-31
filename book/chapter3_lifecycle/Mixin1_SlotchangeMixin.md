@@ -38,24 +38,27 @@ But. There is a problem with `StaticSlotchangedMixin`.
 * If the content of the custom element's `shadowRoot` is altered,
 * **while** the custom element is **connected** to the DOM,
 * so as to **add or remove a `<slot>` element** under `this.shadowRoot`,
-* then a custom method **`this.updateSlotListeners()` must be called** on 
-the custom element,
+* then a custom method **`this.updateSlotListeners()` must be called**,
 * so that the `StaticSlotchangedMixin` can attach new event listeners for `slotchange` events,
 * and remove unnecessary event listeners.
-* `updateSlotListeners()` will trigger a `slotchangedCallback()` for any new `<slot>`,
+* `this.updateSlotListeners()` will trigger a `slotchangedCallback()` for any new `<slot>`,
 * and this is also necessary for the custom element to be able to continue to 
 listen for future `slotchange` events in its shadowDOM.
 
-> ATT!! if you alter the shadowDOM and forget to call `updateSlotListeners()`, 
+> ATT!! if you alter the shadowDOM and forget to call `this.updateSlotListeners()`, 
 StaticSlotchangeMixin can fail without warning.
 
 **If only..** the `slotchange` event bubbled like the specification says.
 If so, the `slotchange` event listener could be attached to the `this.shadowRoot`,
 which would remain constant, and `this.updateSlotListeners()` would not be needed.
 But, the reality is that `slotchange` does not bubble in neither Chrome nor Safari. 
-So we must continue to listen for `<slot>` node directly and `updateSlotListeners()`.
+So we must continue to listen for `<slot>` node directly and call `this.updateSlotListeners()`.
 
-Or.. we could employ a different strategy to observe `slotchange` events. Enter `SlotchangeMixin`.
+Furthermore. `slotchange` event also only functions for elements that has a shadowDOM.
+If you want to use custom elements without a shadowDOM, and still monitor its (flattened) children,
+`slotchange` is useless.
+
+So.. could we employ a different strategy to observe `slotchange` events?
 
 ## `SlotchangeMixin`
 [`SlotchangeMixin`](../../src/SlotchangeMixin.js) 
@@ -139,5 +142,3 @@ use the first argument `slotName` of the callback method.
  
 ## Acknowledgments
 Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
-
-TODO: Add StaticSetting `excludeSlot(){ return ["slotNameToBeExcluded", "excludeMeTo"];}`?

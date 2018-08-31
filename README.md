@@ -73,13 +73,13 @@ Example of complete links:
 
 ## Chapter 3: Lifecycle callbacks
 1. [Intro: element lifecycle](book/chapter3_lifecycle/Intro_element_lifecycle.md)
-2. [Pattern: setupCallback()](book/chapter3_lifecycle/Pattern_init_attr.md)
-3. [Pattern: delay setup](book/chapter3_lifecycle/Pattern2_temp_templ.md)
-4. [Mixin: UnloadDisconnects](book/chapter3_lifecycle/Mixin_unload_disconnects.md)
+2. [Pattern: setupCallback()](book/chapter3_lifecycle/Mixin2_InitialAttributes.md)
+3. [Pattern: delay setup](book/chapter3_lifecycle/Pattern1_TemporaryTemplate.md)
+4. [Mixin: UnloadDisconnects](book/chapter3_lifecycle/Mixin3_unload_disconnects.md)
 
 ## Chapter 4: Event callbacks
-1. [.attributeChangedCallback()](book/chapter4_basicMixins_whileConnected/HowTo_attributeChangedCallback.md)
-2. [.slotchangedCallback()](book/chapter4_basicMixins_whileConnected/Mixin1_SlotchangeMixin.md)
+1. [.attributeChangedCallback()](book/chapter3_lifecycle/HowTo_attributeChangedCallback.md)
+2. [.slotchangedCallback()](book/chapter3_lifecycle/Mixin1_SlotchangeMixin.md)
 3. [.resizeCallback()](book/chapter4_basicMixins_whileConnected/Mixin2_ResizeMixin.md)
 4. .hashChangedCallback()
 <!-- 4. liefi-->

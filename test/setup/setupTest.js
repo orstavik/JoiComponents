@@ -18,7 +18,10 @@ describe('SetupMixin', function () {
     window.onerror = undefined;
     // Mocha.process.removeListener("uncaughtException");
 
-    const SetupElement = SetupMixin(HTMLElement);
+    const SetupElement = class X extends SetupMixin(HTMLElement){
+      // setupCallback(){
+      // }
+    };
     customElements.define("setup-connect-to-dom-without-callback-fails", SetupElement);
     const el = new SetupElement();
     const globError = function (err) {
@@ -33,7 +36,7 @@ describe('SetupMixin', function () {
     document.querySelector("body").appendChild(el);
   });
 
-  it("call setupCallback() and set isSetup correctly", function () {
+  it("manually calling setupCallback() and set isSetup", function () {
     const SetupElement = class SetupElement extends SetupMixin(HTMLElement) {
       setupCallback() {
         this.setupValue = 123;
@@ -55,9 +58,7 @@ describe('SetupMixin', function () {
     const el = new SetupElement();
     expect(el.isSetup).to.be.equal(false);
     el.isSetup = true;
-    expect(function () {
-      el.isSetup = true
-    }).to.throw("SetupMixin: .isSetup property should only be changed by the SetupMixin and to true.");
+    expect(() => el.isSetup = true).to.throw("SetupMixin: .isSetup property should only be changed by the SetupMixin and to true.");
   });
 
   it("setting isSetup non-true gives error", function () {
@@ -106,11 +107,11 @@ describe('SetupMixin', function () {
     expect(el.isConnected).to.be.equal(true);
     expect(el.isSetup).to.be.equal(true);
     document.querySelector("body").removeChild(el);
-    expect(el.isSetup).to.be.equal(true);
     expect(el.isConnected).to.be.equal(false);
+    expect(el.isSetup).to.be.equal(true);
   });
 
-  it("constructor before setupCallback before connectedCallback", function (done) {
+  it("constructor before setupCallback before the body of connectedCallback", function (done) {
     let state = "constructor";
     const SetupElement = class SetupElement extends SetupMixin(HTMLElement) {
       constructor() {
@@ -138,11 +139,12 @@ describe('SetupMixin', function () {
 });
 
 
-describe('SetupMixin.construction runs setupCallback and attributeChanged only after first connected', function () {
+describe('SetupMixin construction runs setupCallback and attributeChanged only after first connected', function () {
 
   const SetupElement = class SetupElement extends SetupMixin(HTMLElement) {
+
     static get observedAttributes() {
-      return ["one"]
+      return ["one"];
     }
 
     constructor() {
@@ -155,7 +157,7 @@ describe('SetupMixin.construction runs setupCallback and attributeChanged only a
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-      if (!this.isSetup) return;
+      if (!this.isSetup) return;    //abort premature attributeChangedCallback
       this.test += "_Attribute_" + name + oldValue + newValue;
     }
 
@@ -168,6 +170,7 @@ describe('SetupMixin.construction runs setupCallback and attributeChanged only a
 
   it("new", function () {
     const el = new SetupElement();
+    el.setAttribute("one", "nonono");
     el.setAttribute("one", "two");
     el.setAttribute("a", "b");
     expect(el.test).to.be.equal("_Constructor");
@@ -178,6 +181,7 @@ describe('SetupMixin.construction runs setupCallback and attributeChanged only a
 
   it("document.createElement", function () {
     const el = document.createElement("setup-construct");
+    el.setAttribute("one", "nonono");
     el.setAttribute("one", "two");
     el.setAttribute("a", "b");
     expect(el.test).to.be.equal("_Constructor");
@@ -189,6 +193,7 @@ describe('SetupMixin.construction runs setupCallback and attributeChanged only a
   it("cloneNode(false) on element", function () {
     const orig = new SetupElement();
     const el = orig.cloneNode(false);
+    el.setAttribute("one", "nonono");
     el.setAttribute("one", "two");
     el.setAttribute("a", "b");
     expect(el.test).to.be.equal("_Constructor");
@@ -202,6 +207,7 @@ describe('SetupMixin.construction runs setupCallback and attributeChanged only a
     const div = document.createElement("div");
     div.appendChild(orig);
     const el = div.cloneNode(true).children[0];
+    el.setAttribute("one", "nonono");
     el.setAttribute("one", "two");
     el.setAttribute("a", "b");
     expect(el.test).to.be.equal("_Constructor");
@@ -212,7 +218,7 @@ describe('SetupMixin.construction runs setupCallback and attributeChanged only a
 
   it("innerHTML on an unconnected element", function () {
     const div = document.createElement("div");
-    div.innerHTML = "<setup-construct one='two' a='b'></setup-construct>";
+    div.innerHTML = "<setup-construct one='two' one='nonono' a='b'></setup-construct>";    //the second attribute is considered redundant and skipped
     const el = div.children[0];
     expect(el.test).to.be.equal("_Constructor");
     document.querySelector("body").appendChild(el);
@@ -220,16 +226,29 @@ describe('SetupMixin.construction runs setupCallback and attributeChanged only a
     document.querySelector("body").removeChild(el);
   });
 
-  it("innerHTML on a connected <template> element ", function () {
+  it("innerHTML on a connected <template> element DOES NOT trigger constructor 1", function () {
     const div = document.createElement("div");
     document.querySelector("body").appendChild(div);
     div.innerHTML = "<template><setup-construct one='two' a='b'></setup-construct></template>";
     const el = div.children[0].content.children[0];
-    assert(el.test === undefined);
+    expect(el.test).to.be.equal(undefined);
     // assert(el.test === "_Constructor"); //todo not sure why constructor is not run when it is a template element. Is it always, or just sometimes?? check the spec.
     document.querySelector("body").appendChild(el);
     expect(el.test).to.be.equal("_Constructor_Setup_Attribute_onenulltwo_Connected");
     document.querySelector("body").removeChild(el);
+    document.querySelector("body").removeChild(div);
+  });
+
+  it("innerHTML on a connected <template> element DOES NOT trigger constructor 2", function () {
+    const div = document.createElement("div");
+    document.querySelector("body").appendChild(div);
+    div.innerHTML = "<template><setup-construct one='two' a='b'></setup-construct></template>";
+    const el = div.children[0].content.children[0];
+    expect(el.test).to.be.equal(undefined);
+    // assert(el.test === "_Constructor"); //todo not sure why constructor is not run when it is a template element. Is it always, or just sometimes?? check the spec.
+    const div2 = document.createElement("div");
+    div2.appendChild(el);
+    expect(el.test).to.be.equal(undefined);
     document.querySelector("body").removeChild(div);
   });
 
@@ -365,4 +384,3 @@ describe('setupInAdvance()', function () {
   });
 
 });
-

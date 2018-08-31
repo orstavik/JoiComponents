@@ -10,6 +10,9 @@ Punchlines are most commonly used for regex queries.
 But the method of extending and reusing code by punchlining components 
 can also be highly beneficial. 
 
+punchline for making the method wait a specified duration
+`for(let start = performance.now(); performance.now() < start + 2000;); //occupies the main thread for 2000ms` 
+
 ## Discussion: When to use a punchline, and when to use a mixin?
 
 There are complexity issues when using both mixins and punchlines.
