@@ -26,6 +26,75 @@ function liefiCallback(online, timeSinceLastConnection, varianceOf5LastPolls) {
 }
 ```
 
+## Mixin: LieFi
+
+The LieFiMixin remembers how long it was since the last connection. 
+If the connection changes more often than once per 5 seconds, 
+then it will not alert the user that it is connected, but that it has a weak connection.
+
+The LieFiMixin also actively polls a micro network resource every 10seconds
+to see if it can get it if the network is reportedly on.
+How best to do this I don't know.
+
+```javascript
+const objs = [];
+
+function triggerCallbacks(msg){
+  for(let obj of objs){                    
+    if (obj.isConnected)
+      obj.onlineOfflineCallback(msg);
+  }
+}
+
+const gettingOn = [];
+
+if (window.isOnline)
+  gettingOn.push(performance.now());
+
+function con(){
+  gettingOn.push(performance.now());
+  if (gettingOn.length === 1)
+    triggerCallbacks("on");
+  let last = gettingOn[gettingOn.length-1];
+  let secondToLast = gettingOn[gettingOn.length-2];
+  if ((last-secondToLast)<5000)
+    triggerCallbacks("flaky network");
+  else
+    triggerCallbacks("on");
+}
+
+function disCon(){
+  for(let obj of objs){
+    if (obj.isConnected)
+      obj.onlineOfflineCallback();
+  }
+}
+
+function pollNetwork(){
+  //try to get a very small network resource. 
+  // If it takes more than 10 seconds, then alert the callback that it takes too long.
+  //  triggerCallbacks("liefi network" + duration);
+}
+
+window.addEventListener("online", con);
+window.addEventListener("offline", discon);
+window.setInterval(pollNetwork, 10000);
+
+function LieFiMixin(Base){
+  return class LieFiMixin extends Base {
+    
+    connectedCallback(){
+      super.connectedCallback && super.connectedCallback();
+      objs.push(this);
+    }                     
+    disconnectedCallback(){
+      super.connectedCallback && super.connectedCallback();
+      objs.remove(this); //todo does not exist of course
+    }
+  };
+}
+```
+
 
 The liefiCallback(online, timeSinceLastConnection, varianceOf5LastPolls) tells the element:
  * triggers every time the internal liefi online value changes
