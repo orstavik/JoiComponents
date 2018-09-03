@@ -68,8 +68,8 @@ Example of complete links:
 5. [DebounceCallbacks](book/chapter2_HowToMakeMixins/Pattern5_DebounceCallbacks.md)
 6. [OptionalCallbacksEvents](book/chapter2_HowToMakeMixins/Pattern6_OptionalCallbacksEvents.md)
 7. [PrivateSymobl](book/chapter2_HowToMakeMixins/Pattern7_PrivateSymbols.md)
+8. [MixinSingletons](book/chapter2_HowToMakeMixins/Pattern8_MixinSingletons.md)
 8. [Discussion: isolate FunctionalMixins](book/chapter2_HowToMakeMixins/Discussion_IsolatedFunctionalMixin.md)
-<!--9. [MixinGlobals](book/chapter2_HowToMakeMixins/Pattern8_MixinGlobals.md)-->
 
 ## Chapter 3: Lifecycle callbacks
 1. [Intro: element lifecycle](book/chapter3_lifecycle/Intro_element_lifecycle.md)
