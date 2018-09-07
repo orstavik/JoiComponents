@@ -1,7 +1,7 @@
 # Mixin: Slotchange
 
-The `SlotChangedMixin` adds a reactive method `.slotchangedCallback()` to the custom element.
-The `.slotchangedCallback()` method is triggered every time:
+The `SlotChangeMixin` adds a reactive method `.slotchangeCallback()` to the custom element.
+The `.slotchangeCallback()` method is triggered every time:
 * the element connects to the DOM for the first time, and then when
 * the `.assignedNodes()` of one of the slot elements in the shadowDOM of the element changes.
 
@@ -22,61 +22,56 @@ The signature of the callback is `.slotchangedCallback(slotName, newAssignedNode
 This means that HTML comments and text nodes, not just element nodes, are included in the lists.
 
 There are two approaches to implement `SlotchangeMixin`: 
-`StaticSlotchangeMixin` and `SlotchangeMixin`.
+`ShadowSlotchangeMixin` and `SlotchangeMixin`.
 
-## `StaticSlotchangeMixin`
-[`StaticSlotchangeMixin`](../../src/StaticSlotchangeMixin.js) 
-implements a strategy that listens for `slotchange` events inside 
-the shadowDOM only, the most intuitive approach.
-At `connectedCallback()`-time, the `StaticSlotchangeMixin` will discover any `<slot>`
-elements inside it, add `slotchange` event listeners on those `<slot>` elements and trigger 
-a `slotchangedCallback(...)` for each `slotName` at `firstConnectedCallback()`-time and thereafter 
-whenever the `.assignedNodes()` of one of those `<slot>`s changes.
+## `ShadowSlotchangeMixin`
+[`ShadowSlotchangeMixin`](../../src/ShadowSlotchangeMixin.js) is the most intuitive approach.
+`ShadowSlotchangeMixin` listens for `slotchange` events inside the shadowDOM.
+When `isConnected` the `StaticSlotchangeMixin` will:
+ * add `slotchange` event listeners on the `.shadowRoot` property,
+ * and `triggerInitialSlotchange()` to ensure that the initial `slotchange` event 
+currently missing in Safari is compensated.
 
-### Problem: `this.updateSlotListeners()`
-But. There is a problem with `StaticSlotchangedMixin`.
-* If the content of the custom element's `shadowRoot` is altered,
-* **while** the custom element is **connected** to the DOM,
-* so as to **add or remove a `<slot>` element** under `this.shadowRoot`,
-* then a custom method **`this.updateSlotListeners()` must be called**,
-* so that the `StaticSlotchangedMixin` can attach new event listeners for `slotchange` events,
-* and remove unnecessary event listeners.
-* `this.updateSlotListeners()` will trigger a `slotchangedCallback()` for any new `<slot>`,
-* and this is also necessary for the custom element to be able to continue to 
-listen for future `slotchange` events in its shadowDOM.
+`StaticSlotchangeMixin` caches the assigned nodes for each `slotchangeCallback()`
+so that no duplicate calls to the `slotchangeCallback()` will occur.
 
-> ATT!! if you alter the shadowDOM and forget to call `this.updateSlotListeners()`, 
-StaticSlotchangeMixin can fail without warning.
+The main problem with `ShadowSlotchangeMixin` is that it assumes the presence of `.shadowRoot`
+and one or more `<slot>` elements. 
+But, there are several scenarios where `.shadowRoot` or `<slot>` element is not available:
+1. the `.shadowRoot` is attached in "closed" mode (cf. [Closed shadowRoot](../chapter1/HowTo_closed_shadowRoot.md)),
+2. the custom element does not include a `.shadowRoot` or `<slot>` element,
+but would still like to be notified of slottable children changes, or
+3. the custom element is temporarily removing its `.shadowRoot` or `<slot>` element for some reason.
 
-**If only..** the `slotchange` event bubbled like the specification says.
-If so, the `slotchange` event listener could be attached to the `this.shadowRoot`,
-which would remain constant, and `this.updateSlotListeners()` would not be needed.
-But, the reality is that `slotchange` does not bubble in neither Chrome nor Safari. 
-So we must continue to listen for `<slot>` node directly and call `this.updateSlotListeners()`.
+If the custom element at any point gets connected or disconnected to the DOM while it 
+does not have a `.shadowRoot` property, `ShadowSlotchangeMixin` will throw an Error.
 
-Furthermore. `slotchange` event also only functions for elements that has a shadowDOM.
-If you want to use custom elements without a shadowDOM, and still monitor its (flattened) children,
-`slotchange` is useless.
-
-So.. could we employ a different strategy to observe `slotchange` events?
-
+If your custom element has a constant, "open" `.shadowRoot`, 
+`ShadowSlotchangeMixin` is the way to go.
+ 
 ## `SlotchangeMixin`
 [`SlotchangeMixin`](../../src/SlotchangeMixin.js) 
 implements a different strategy to observe `slotchange` events.
-Instead of attaching event listeners for `slotchange` events on the `<slot>` elements 
-inside the `shadowRoot`, `SlotchangeMixin` instead **observes the `childNodes` of the
-`host` node** in the lightDOM using `MutationObserver`. `SlotchangeMixin` then categorizes 
-these nodes by `slot`-attributes,
+Instead of attaching event listeners for `slotchange` events on the `.shadowRoot`, 
+`SlotchangeMixin` uses `MutationObserver` to **observe the `childNodes` of the `host` node**.
+`SlotchangeMixin` then categorizes these nodes by `slot`-attributes,
 and then in addition attaches `slotchange` listeners to any chained `<slot>` element child nodes
 of its `host` element. Phu.. Its a mouthful.
 
-However, although the implementation is a little less intuitive, 
-both `SlotchangeMixin` and `StaticSlotchangeMixin` function identically. 
-Except for one, beautiful little difference: `SlotchangeMixin` is dynamic! 
-Since the `host` node remains constant while the custom element is connected to the DOM,
-the `MutationObserver` that listens for changes in its childNodes *never needs to be updated*.
-And so the custom element who extends `SlotchangeMixin` can change and update its
-`shadowRoot` and its `<slot>` elements without ever needing to worry about `this.updateSlotListeners()`.
+However, although the implementation is a lot less intuitive, 
+both `SlotchangeMixin` and `ShadowSlotchangeMixin` function similarly. 
+Except for one small, but beautiful little difference: 
+`SlotchangeMixin` tackles a missing `.shadowRoot`! 
+                                         
+## Difference between `slotchangeCallback()` and `slotchange`
+There is one remaining difference between `slotchangeCallback()` and `slotchange`.
+If you remove a `<slot>` node from the shadowDom, and then add a new (or the same)
+`<slot>` node with the same `name` attribute to the shadowDom again at a later point,
+and the nodes that was assigned to the removed slot node equals the nodes that is assigned to the new slot node,
+then a new `slotchange` event should be triggered, but due to the caching of values, the `slotchangeCallback()`
+will not trigger.
+When the initial slotchange event is added to Safari and thus removing the need to cache `slotchange` values,
+then caching can be removed in `slotchangeCallback()` and these two differences harmonized.
 
 ## Example: `<red-frame>` using `SlotchangeMixin`
 
