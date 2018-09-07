@@ -12,55 +12,84 @@ function testElementNodeListTagAndID(nodes, ar) {
 
 describe('SlotchangeMixin', function () {
 
-  it("extend HTMLElement class and make an element", function () {
-    const ChildrenChangedElement = SlotchangeMixin(HTMLElement);
-    customElements.define("must-use-custom-elements-define-to-enable-constructor", ChildrenChangedElement);
-    const el = new ChildrenChangedElement();
-    expect(el.constructor.name).to.be.equal("SlotchangeMixin");
-  });
+  class Slot1 extends SlotchangeMixin(HTMLElement) {
+    slotchangedCallback(slotName, newChildren, oldChildren) {
+      this.testValue = {slotName, newChildren, oldChildren};
+    }
+  }
 
-  it("subclass SlotchangeMixin", function () {
-    const SubclassChildrenChangedElement = class SubclassChildrenChanged extends SlotchangeMixin(HTMLElement) {
-      test() {
-        return "abc";
-      }
-    };
-    customElements.define("subclass-children-changed", SubclassChildrenChangedElement);
-    const el = new SubclassChildrenChangedElement();
-    expect(el.constructor.name).to.be.equal("SubclassChildrenChanged");
-    expect(el.test()).to.be.equal("abc");
-  });
+  class SlotWrapper extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+          <test-one>
+            <slot></slot>
+          </test-one>`;
+    }
+  }
 
-  it("subclass SlotchangeMixin anonymous", function () {
-    const SubclassChildrenChangedElement = class extends SlotchangeMixin(HTMLElement) {
-      test() {
-        return "abc";
-      }
-    };
-    customElements.define("subclass-children-changed-element", SubclassChildrenChangedElement);
-    const el = new SubclassChildrenChangedElement();
-    expect(el.constructor.name).to.be.equal("SubclassChildrenChangedElement");
-    expect(el.test()).to.be.equal("abc");
+  class ChainedSlotsGrandpaError extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+          <test-one>
+            <div>
+              <slot></slot>
+            </div>
+          </test-one>`;
+    }
+  }
+
+  customElements.define("chained-slot-error", ChainedSlotsGrandpaError);
+  customElements.define("chained-slot", SlotWrapper);
+  customElements.define("test-one", Slot1);
+
+  it("extend HTMLElement class correctly and make an element", function () {
+    const el = new Slot1();
+    let proto = el.constructor;
+    expect(proto.name).to.be.equal("Slot1");
+    proto = Object.getPrototypeOf(proto);
+    expect(proto.name).to.be.equal("SlotchangeMixin");
+    proto = Object.getPrototypeOf(proto);
+    expect(proto.name).to.be.equal("HTMLElement");
   });
 
   it("SlotchangeMixin add DIV imperative and trigger slotchangedCallback", function (done) {
-    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
-      slotchangedCallback(slotName, newChildren, oldChildren) {
-        expect(slotName).to.be.equal("");
-        expect(newChildren.length).to.be.equal(1);
-        expect(newChildren[0].nodeName).to.be.equal("DIV");
-        expect(oldChildren).to.be.equal(undefined);
-        done();
-      }
-    };
-    customElements.define("children-changed-div-added", Subclass);
-    const el = new Subclass();
+    const el = new Slot1();
     el.appendChild(document.createElement("div"));
     document.querySelector("body").appendChild(el);
-    Promise.resolve().then(() => document.querySelector("body").removeChild(el));
+    //MutationObserver (is the same true for slotchange Event??)is not triggered immediately,
+    //but is added to the end of the microtask que.
+    //Therefor, the check of tests must be added after it in the micro task que.
+    Promise.resolve().then(() => {
+      expect(el.testValue.slotName).to.be.equal("");
+      expect(el.testValue.newChildren.length).to.be.equal(1);
+      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
+      expect(el.testValue.oldChildren).to.be.equal(undefined);
+      document.querySelector("body").removeChild(el);
+      done();
+    });
   });
 
-  // WRONG TEST.. 
+  it("Unassigned slots are ignored", function (done) {
+    const el = new Slot1();
+    el.appendChild(document.createElement("div"));
+    el.appendChild(document.createElement("slot"));
+    document.querySelector("body").appendChild(el);
+    Promise.resolve().then(() => {
+      expect(el.testValue.slotName).to.be.equal("");
+      expect(el.testValue.oldChildren).to.be.equal(undefined);
+      expect(el.testValue.newChildren.length).to.be.equal(1);
+      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
+      document.querySelector("body").removeChild(el);
+      done();
+    });
+  });
+
+
+  // add this test for ShadowSlotchangeMixin
   // it("SlotchangeMixin add SLOT imperative and trigger slotchangedCallback", function (done) {
   //   const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
   //     slotchangedCallback(slot, newChildren, oldChildren) {
@@ -77,210 +106,100 @@ describe('SlotchangeMixin', function () {
   //   Promise.resolve().then(()=> document.querySelector("body").removeChild(el));
   // });
 
-  it("SlotchangeMixin added DIV and then SLOT imperative and trigger slotchangedCallback", function (done) {
-    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
-      slotchangedCallback(slotName, newChildren, oldChildren) {
-        expect(slotName).to.be.equal("");
-        expect(oldChildren).to.be.equal(undefined);
-        expect(newChildren.length).to.be.equal(1);
-        expect(newChildren[0].nodeName).to.be.equal("DIV");
-        done();
-      }
-    };
-    customElements.define("children-changed-div-and-slot-added", Subclass);
-    const el = new Subclass();
+  it("chained slot test", function (done) {
+    const el = new SlotWrapper();
+    const inner = el.shadowRoot.children[0];
     el.appendChild(document.createElement("div"));
-    el.appendChild(document.createElement("slot"));
-    document.querySelector("body").appendChild(el);
-    Promise.resolve().then(() => document.querySelector("body").removeChild(el));
-  });
-
-  it("SlotchangeMixin added DIV and then SLOT imperative and trigger slotchangedCallback, mutation observer called between each invocation.", function (done) {
-    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
-      slotchangedCallback(slotName, newChildren, oldChildren) {
-        expect(slotName).to.be.equal("");
-        expect(oldChildren).to.be.equal(undefined);
-        expect(newChildren.length).to.be.equal(1);
-        expect(newChildren[0].nodeName).to.be.equal("DIV");
-        done();
-      }
-    };
-    customElements.define("children-changed-div-added-wait-and-then-slot-added", Subclass);
-    const el = new Subclass();
-    el.appendChild(document.createElement("div"));
-    el.appendChild(document.createElement("slot"));
-    document.querySelector("body").appendChild(el);
-    Promise.resolve().then(() => document.querySelector("body").removeChild(el));
-  });
-
-  it("The super inner-outer-slot test 2", function (done) {
-
-    const InnerElementThatObserveChildren = class extends SlotchangeMixin(HTMLElement) {
-
-      slotchangedCallback(slotName, newChildren, oldChildren) {
-        expect(oldChildren).to.be.equal(undefined);
-        expect(newChildren.length).to.be.equal(3);
-        expect(newChildren[1].nodeName).to.be.equal("DIV");
-        done();
-      }
-    };
-    customElements.define("inner-component", InnerElementThatObserveChildren);
-
-    const OuterElementThatSlotsStuff = class extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
-          <inner-component>
-            <slot></slot>
-          </inner-component>`;
-      }
-    };
-    customElements.define("outer-component", OuterElementThatSlotsStuff);
-
-    const el = new OuterElementThatSlotsStuff();
-    //things are not slotted until something is added to the DOM
-    document.querySelector("body").appendChild(el);
-    el.appendChild(document.createElement("div"));
-    Promise.resolve().then(() => document.querySelector("body").removeChild(el));
+    document.querySelector("body").appendChild(el);         //things are not slotted until something is added to the DOM
+    Promise.resolve().then(() => {
+      expect(inner.testValue.oldChildren).to.be.equal(undefined);
+      expect(inner.testValue.newChildren.length).to.be.equal(3);
+      expect(inner.testValue.newChildren[1].nodeName).to.be.equal("DIV");
+      document.querySelector("body").removeChild(el);
+      done();
+    });
   });
 
   it("not listening for slotChange on slots that are not a direct child", function (done) {
-
-    const InnerElementThatObserveChildren = class extends SlotchangeMixin(HTMLElement) {
-
-      slotchangedCallback(slotName, newChildren, oldChildren) {
-        expect(oldChildren).to.be.equal(undefined);
-        expect(newChildren.length).to.be.equal(3);
-        expect(newChildren[1].nodeName).to.be.equal("DIV");
-        done();
-      }
-    };
-    customElements.define("inner-listener", InnerElementThatObserveChildren);
-
-    const OuterElementThatSlotsStuff = class extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
-          <inner-listener>
-            <div>
-              <slot></slot>
-            </div>
-          </inner-listener>`;
-      }
-    };
-    customElements.define("outer-with-grandchild-slot", OuterElementThatSlotsStuff);
-
-    const el = new OuterElementThatSlotsStuff();
+    const el = new ChainedSlotsGrandpaError();
+    const inner = el.shadowRoot.children[0];
     document.querySelector("body").appendChild(el);
     el.appendChild(document.createElement("p"));
-    Promise.resolve().then(() => document.querySelector("body").removeChild(el));
+    Promise.resolve().then(() => {
+      expect(inner.testValue.oldChildren).to.be.equal(undefined);
+      expect(inner.testValue.newChildren.length).to.be.equal(3);
+      expect(inner.testValue.newChildren[1].nodeName).to.be.equal("DIV");
+      document.querySelector("body").removeChild(el);
+      done();
+    });
   });
 
-  it("slotName === ''", function (done) {
-
-    let counter = 0;
-
-    const InnerElementIsSlot = class extends SlotchangeMixin(HTMLElement) {
-
-      slotchangedCallback(slotName, newChildren, oldChildren) {
-        if (counter === 0) {
-          expect(oldChildren).to.be.equal(undefined);
-          expect(newChildren.length).to.be.equal(2);
-          expect(slotName).to.be.equal("");
-          counter++;
-          return;
-        }
-        if (counter === 1) {
-          expect(oldChildren.length).to.be.equal(2);
-          expect(newChildren.length).to.be.equal(3);
-          expect(newChildren[1].nodeName).to.be.equal("P");
-          expect(slotName).to.be.equal("");
-          done();
-        }
-      }
-    };
-    customElements.define("inner-is-slot", InnerElementIsSlot);
-
-    const OuterElementIsSlot = class extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
-          <inner-is-slot>
-            <slot></slot>
-          </inner-is-slot>`;
-      }
-    };
-    customElements.define("outer-is-slot", OuterElementIsSlot);
-
-    const el = new OuterElementIsSlot();
+  it("two slotchange calls", function (done) {
+    const el = new SlotWrapper();
+    const inner = el.shadowRoot.children[0];
+    // debugger;
     document.querySelector("body").appendChild(el);
     Promise.resolve().then(() => {
+      expect(inner.testValue.oldChildren).to.be.equal(undefined);
+      expect(inner.testValue.newChildren.length).to.be.equal(2);
+      expect(inner.testValue.slotName).to.be.equal("");
       el.appendChild(document.createElement("p"));
       Promise.resolve().then(() => {
+        expect(inner.testValue.oldChildren.length).to.be.equal(2);
+        expect(inner.testValue.newChildren.length).to.be.equal(3);
+        expect(inner.testValue.newChildren[1].nodeName).to.be.equal("P");
+        expect(inner.testValue.slotName).to.be.equal("");
         document.querySelector("body").removeChild(el);
+        done();
       });
     });
   });
 
-  it("connected-disconnected-connected. slotchangedCallback only triggered when connected + MutationObserver only called once when micro task queued.", function (done) {
-    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
-
-      slotchangedCallback(slotName, newChildren, oldChildren) {
-        expect(oldChildren).to.be.equal(undefined);
-        expect(newChildren.length).to.be.equal(3);
-        expect(newChildren[0].nodeName).to.be.equal("DIV");
-        expect(newChildren[1].nodeName).to.be.equal("DIV");
-        expect(newChildren[2].nodeName).to.be.equal("DIV");
-        done();
-      }
-    };
-    customElements.define("connected-disconnected-connected", Subclass);
-    const el = new Subclass();
+  it("connected-disconnected-connected. slotchangedCallback only triggered while connected + MutationObserver only called once when micro task queued.", function (done) {
+    const el = new Slot1();
     el.appendChild(document.createElement("div"));    //is not triggered.
-    document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
+    document.querySelector("body").appendChild(el);   //slotchange event is flagged
     document.querySelector("body").removeChild(el);   //disconnect
     el.appendChild(document.createElement("div"));    //is not triggered.
     el.appendChild(document.createElement("div"));    //is not triggered.
     document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
-    Promise.resolve().then(() => document.querySelector("body").removeChild(el));
+    Promise.resolve().then(() => {
+      expect(el.testValue.oldChildren).to.be.equal(undefined);
+      expect(el.testValue.newChildren.length).to.be.equal(3);
+      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
+      expect(el.testValue.newChildren[1].nodeName).to.be.equal("DIV");
+      expect(el.testValue.newChildren[2].nodeName).to.be.equal("DIV");
+      document.querySelector("body").removeChild(el);
+      done();
+    });
   });
 
   it("connected-wait-disconnected-connected. slotchangedCallback only triggered when connected.", function (done) {
-    let counter = 0;
-
-    const Subclass = class Subclass extends SlotchangeMixin(HTMLElement) {
-
-      slotchangedCallback(slotName, newChildren, oldChildren) {
-        if (counter === 0) {
-          expect(oldChildren).to.be.equal(undefined);
-          expect(newChildren.length).to.be.equal(1);
-          expect(newChildren[0].nodeName).to.be.equal("DIV");
-          counter++;
-          return;
-        }
-        if (counter === 1) {
-          expect(oldChildren.length).to.be.equal(1);
-          expect(newChildren.length).to.be.equal(3);
-          expect(newChildren[0].nodeName).to.be.equal("DIV");
-          expect(newChildren[1].nodeName).to.be.equal("DIV");
-          expect(newChildren[2].nodeName).to.be.equal("DIV");
-          done();
-        }
-      }
-    };
-    customElements.define("connected-settimeout-disconnected-connected", Subclass);
-    const el = new Subclass();
+    const el = new Slot1();
     el.appendChild(document.createElement("div"));    //is not triggered.
     document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
-    Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
+    Promise.resolve().then(() => {
+      expect(el.testValue.oldChildren).to.be.equal(undefined);
+      expect(el.testValue.newChildren.length).to.be.equal(1);
+      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
+      document.querySelector("body").removeChild(el);     //disconnect
+    });
     setTimeout(() => {
       el.appendChild(document.createElement("div"));    //is not triggered.
       el.appendChild(document.createElement("div"));    //is not triggered.
       document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
-      Promise.resolve().then(() => document.querySelector("body").removeChild(el));   //disconnect
+      expect(el.testValue.oldChildren).to.be.equal(undefined);
+      expect(el.testValue.newChildren.length).to.be.equal(1);
+      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
+      Promise.resolve().then(() => {
+        expect(el.testValue.oldChildren.length).to.be.equal(1);
+        expect(el.testValue.newChildren.length).to.be.equal(3);
+        expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
+        expect(el.testValue.newChildren[1].nodeName).to.be.equal("DIV");
+        expect(el.testValue.newChildren[2].nodeName).to.be.equal("DIV");
+        document.querySelector("body").removeChild(el);   //disconnect
+        done();
+      });
     }, 50);
   });
 
