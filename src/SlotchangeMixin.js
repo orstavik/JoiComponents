@@ -35,15 +35,15 @@ const hostChildrenChanged = Symbol("hostChildrenChanged");
 const addSlotListeners = Symbol("addSlotListeners");
 const removeSlotListeners = Symbol("removeSlotListeners");
 const hostChildrenSlots = Symbol("hostChildrenSlots");
-const triggerSingleSlotchangedCallback = Symbol("triggerSingleSlotchangedCallback");
-const triggerAllSlotchangedCallbacks = Symbol("triggerAllSlotchangedCallbacks");
+const triggerSingleSlotchangeCallback = Symbol("triggerSingleSlotchangeCallback");
+const triggerAllSlotchangeCallbacks = Symbol("triggerAllSlotchangeCallbacks");
 const triggerCallback = Symbol("triggerCallback");
 const map = Symbol("map");
 const notFlatMap = Symbol("notFlatMap");
 const flatMap = Symbol("flatMap");
 
 /**
- * SlotchangedMixin adds a reactive lifecycle hook .slotchangedCallback(...) to its subclasses.
+ * SlotchangeMixin adds a reactive lifecycle hook .slotchangedCallback(...) to its subclasses.
  * This lifecycle hook is triggered every time a potentially assignable node for the element changes.
  * .slotchangedCallback(...) triggers manually every time the element is attached to the DOM and
  * whenever the a slotchange event would occur inside it.
@@ -72,7 +72,7 @@ export const SlotchangeMixin = function (Base) {
     constructor() {
       super();
       this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());
-      this[slotchangeListener] = (e) => this[triggerSingleSlotchangedCallback](e.currentTarget.name);
+      this[slotchangeListener] = (e) => this[triggerSingleSlotchangeCallback](e.currentTarget.name);
       this[map] = {};
       this[hostChildrenSlots] = [];
       this[notFlatMap] = {};
@@ -105,14 +105,14 @@ export const SlotchangeMixin = function (Base) {
       this[hostChildrenSlots] = [];
     }
 
-    [triggerAllSlotchangedCallbacks]() {
+    [triggerAllSlotchangeCallbacks]() {
       let newFlatMap = flattenMap(this[notFlatMap]);
       for (let slotName in newFlatMap)
         this[triggerCallback](slotName, newFlatMap[slotName], this[flatMap][slotName]);
       this[flatMap] = newFlatMap;
     }
 
-    [triggerSingleSlotchangedCallback](slotName) {
+    [triggerSingleSlotchangeCallback](slotName) {
       let newFlatNodeList = flattenNodes(this[notFlatMap][slotName]);
       this[triggerCallback](slotName, newFlatNodeList, this[flatMap][slotName]);
       this[flatMap][slotName] = newFlatNodeList;
@@ -129,7 +129,7 @@ export const SlotchangeMixin = function (Base) {
       this[removeSlotListeners]();
       this[addSlotListeners]();
       this[notFlatMap] = nodeListToMap(this.childNodes, "slot");
-      Promise.resolve().then(() => this[triggerAllSlotchangedCallbacks]());
+      Promise.resolve().then(() => this[triggerAllSlotchangeCallbacks]());
       //Above is the extra trigger needed to fix the missing initial-`slotchange`-event in Safari.
       //We can await this in the microtask que, so that normal slotchange events in Chrome is triggered normally.
       //However, if we don't do this, the calls could be batched, making the Mixin slightly more efficient.
