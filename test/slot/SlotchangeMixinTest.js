@@ -1,20 +1,11 @@
 import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
 
-function testElementNodeListTagAndID(nodes, ar) {
-  let tagIds = nodes.map(n => {
-    if (n.tagName)
-      return n.tagName.toLowerCase() + (n.id ? "#" + n.id : "");
-    else
-      return "text";
-  });
-  expect(tagIds).to.deep.equal(ar);
-}
-
 describe('SlotchangeMixin', function () {
 
   class Slot1 extends SlotchangeMixin(HTMLElement) {
     slotchangedCallback(slotName, newChildren, oldChildren) {
-      this.testValue = {slotName, newChildren, oldChildren};
+      this.testValue = this.testValue || [];
+      this.testValue.push({slotName, newChildren, oldChildren});
     }
   }
 
@@ -64,10 +55,10 @@ describe('SlotchangeMixin', function () {
     //but is added to the end of the microtask que.
     //Therefor, the check of tests must be added after it in the micro task que.
     Promise.resolve().then(() => {
-      expect(el.testValue.slotName).to.be.equal("");
-      expect(el.testValue.newChildren.length).to.be.equal(1);
-      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
-      expect(el.testValue.oldChildren).to.be.equal(undefined);
+      expect(el.testValue[0].slotName).to.be.equal("");
+      expect(el.testValue[0].newChildren.length).to.be.equal(1);
+      expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
+      expect(el.testValue[0].oldChildren).to.be.equal(undefined);
       document.querySelector("body").removeChild(el);
       done();
     });
@@ -79,10 +70,10 @@ describe('SlotchangeMixin', function () {
     el.appendChild(document.createElement("slot"));
     document.querySelector("body").appendChild(el);
     Promise.resolve().then(() => {
-      expect(el.testValue.slotName).to.be.equal("");
-      expect(el.testValue.oldChildren).to.be.equal(undefined);
-      expect(el.testValue.newChildren.length).to.be.equal(1);
-      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
+      expect(el.testValue[0].slotName).to.be.equal("");
+      expect(el.testValue[0].oldChildren).to.be.equal(undefined);
+      expect(el.testValue[0].newChildren.length).to.be.equal(1);
+      expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
       document.querySelector("body").removeChild(el);
       done();
     });
@@ -112,9 +103,9 @@ describe('SlotchangeMixin', function () {
     el.appendChild(document.createElement("div"));
     document.querySelector("body").appendChild(el);         //things are not slotted until something is added to the DOM
     Promise.resolve().then(() => {
-      expect(inner.testValue.oldChildren).to.be.equal(undefined);
-      expect(inner.testValue.newChildren.length).to.be.equal(3);
-      expect(inner.testValue.newChildren[1].nodeName).to.be.equal("DIV");
+      expect(inner.testValue[0].oldChildren).to.be.equal(undefined);
+      expect(inner.testValue[0].newChildren.length).to.be.equal(3);
+      expect(inner.testValue[0].newChildren[1].nodeName).to.be.equal("DIV");
       document.querySelector("body").removeChild(el);
       done();
     });
@@ -126,9 +117,9 @@ describe('SlotchangeMixin', function () {
     document.querySelector("body").appendChild(el);
     el.appendChild(document.createElement("p"));
     Promise.resolve().then(() => {
-      expect(inner.testValue.oldChildren).to.be.equal(undefined);
-      expect(inner.testValue.newChildren.length).to.be.equal(3);
-      expect(inner.testValue.newChildren[1].nodeName).to.be.equal("DIV");
+      expect(inner.testValue[0].oldChildren).to.be.equal(undefined);
+      expect(inner.testValue[0].newChildren.length).to.be.equal(3);
+      expect(inner.testValue[0].newChildren[1].nodeName).to.be.equal("DIV");
       document.querySelector("body").removeChild(el);
       done();
     });
@@ -137,18 +128,17 @@ describe('SlotchangeMixin', function () {
   it("two slotchange calls", function (done) {
     const el = new SlotWrapper();
     const inner = el.shadowRoot.children[0];
-    // debugger;
     document.querySelector("body").appendChild(el);
     Promise.resolve().then(() => {
-      expect(inner.testValue.oldChildren).to.be.equal(undefined);
-      expect(inner.testValue.newChildren.length).to.be.equal(2);
-      expect(inner.testValue.slotName).to.be.equal("");
+      expect(inner.testValue[0].oldChildren).to.be.equal(undefined);
+      expect(inner.testValue[0].newChildren.length).to.be.equal(2);
+      expect(inner.testValue[0].slotName).to.be.equal("");
       el.appendChild(document.createElement("p"));
       Promise.resolve().then(() => {
-        expect(inner.testValue.oldChildren.length).to.be.equal(2);
-        expect(inner.testValue.newChildren.length).to.be.equal(3);
-        expect(inner.testValue.newChildren[1].nodeName).to.be.equal("P");
-        expect(inner.testValue.slotName).to.be.equal("");
+        expect(inner.testValue[1].oldChildren.length).to.be.equal(2);
+        expect(inner.testValue[1].newChildren.length).to.be.equal(3);
+        expect(inner.testValue[1].newChildren[1].nodeName).to.be.equal("P");
+        expect(inner.testValue[1].slotName).to.be.equal("");
         document.querySelector("body").removeChild(el);
         done();
       });
@@ -164,11 +154,11 @@ describe('SlotchangeMixin', function () {
     el.appendChild(document.createElement("div"));    //is not triggered.
     document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
     Promise.resolve().then(() => {
-      expect(el.testValue.oldChildren).to.be.equal(undefined);
-      expect(el.testValue.newChildren.length).to.be.equal(3);
-      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
-      expect(el.testValue.newChildren[1].nodeName).to.be.equal("DIV");
-      expect(el.testValue.newChildren[2].nodeName).to.be.equal("DIV");
+      expect(el.testValue[0].oldChildren).to.be.equal(undefined);
+      expect(el.testValue[0].newChildren.length).to.be.equal(3);
+      expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
+      expect(el.testValue[0].newChildren[1].nodeName).to.be.equal("DIV");
+      expect(el.testValue[0].newChildren[2].nodeName).to.be.equal("DIV");
       document.querySelector("body").removeChild(el);
       done();
     });
@@ -179,24 +169,24 @@ describe('SlotchangeMixin', function () {
     el.appendChild(document.createElement("div"));    //is not triggered.
     document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
     Promise.resolve().then(() => {
-      expect(el.testValue.oldChildren).to.be.equal(undefined);
-      expect(el.testValue.newChildren.length).to.be.equal(1);
-      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
+      expect(el.testValue[0].oldChildren).to.be.equal(undefined);
+      expect(el.testValue[0].newChildren.length).to.be.equal(1);
+      expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
       document.querySelector("body").removeChild(el);     //disconnect
     });
     setTimeout(() => {
       el.appendChild(document.createElement("div"));    //is not triggered.
       el.appendChild(document.createElement("div"));    //is not triggered.
       document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
-      expect(el.testValue.oldChildren).to.be.equal(undefined);
-      expect(el.testValue.newChildren.length).to.be.equal(1);
-      expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
+      expect(el.testValue[0].oldChildren).to.be.equal(undefined);
+      expect(el.testValue[0].newChildren.length).to.be.equal(1);
+      expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
       Promise.resolve().then(() => {
-        expect(el.testValue.oldChildren.length).to.be.equal(1);
-        expect(el.testValue.newChildren.length).to.be.equal(3);
-        expect(el.testValue.newChildren[0].nodeName).to.be.equal("DIV");
-        expect(el.testValue.newChildren[1].nodeName).to.be.equal("DIV");
-        expect(el.testValue.newChildren[2].nodeName).to.be.equal("DIV");
+        expect(el.testValue[1].oldChildren.length).to.be.equal(1);
+        expect(el.testValue[1].newChildren.length).to.be.equal(3);
+        expect(el.testValue[1].newChildren[0].nodeName).to.be.equal("DIV");
+        expect(el.testValue[1].newChildren[1].nodeName).to.be.equal("DIV");
+        expect(el.testValue[1].newChildren[2].nodeName).to.be.equal("DIV");
         document.querySelector("body").removeChild(el);   //disconnect
         done();
       });
@@ -205,15 +195,17 @@ describe('SlotchangeMixin', function () {
 
   it("blue-frame.", function (done) {
 
-    var counter = 0;
+    const snippet = document.createElement("template");
+    snippet.innerHTML = `
+       <blue-frame>
+         <img>
+         <span slot="label">Picture of the ocean</span>
+       </blue-frame>
+    `;
 
-    class BlueFrame extends SlotchangeMixin(HTMLElement) {
-
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML =
-          `<style>
+    const blueFrameTempl = document.createElement("template");
+    blueFrameTempl.innerHTML =
+      `<style>
           :host {
             display: inline-block;                                  
             border: 10px solid blue;
@@ -238,31 +230,10 @@ describe('SlotchangeMixin', function () {
           <div id="sold"></div>
         </passe-partout>
         `;
-      }
 
-      slotchangedCallback(slot, newNodes, oldNodes) {
-        counter++;
-        if (slot === "") {
-          expect(oldNodes).to.be.equal(undefined);
-          testElementNodeListTagAndID(newNodes, ["img"]);
-        } else if (slot === "label") {
-          expect(oldNodes).to.be.equal(undefined);
-          testElementNodeListTagAndID(newNodes, ["span"]);
-        } else {
-          assert(false);
-        }
-        if (counter === 4)
-          done();
-      }
-    }
-
-    class PassePartout extends SlotchangeMixin(HTMLElement) {
-
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML =
-          `<style>
+    const passePartout = document.createElement("template");
+    passePartout.innerHTML =
+      `<style>
           :host {
             display: inline-block;
             position: relative;                                  
@@ -278,40 +249,72 @@ describe('SlotchangeMixin', function () {
           <slot name="label"></slot>
         </div>
         `;
+
+    class BlueFrame extends SlotchangeMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.appendChild(blueFrameTempl.content);
       }
 
-      slotchangedCallback(slot, newNodes, oldNodes) {
-        counter++;
-        if (slot === "") {
-          expect(oldNodes).to.be.equal(undefined);
-          testElementNodeListTagAndID(newNodes, ["text", "text", "img", "text", "div#sold", "text"]);
-        } else if (slot === "label") {
-          expect(oldNodes).to.be.equal(undefined);
-          testElementNodeListTagAndID(newNodes, ["span"]);
-        } else {
-          assert(false);
-        }
-        if (counter === 4)
-          done();
+      slotchangedCallback(slotName, newChildren, oldChildren) {
+        this.testValue = this.testValue || [];
+        this.testValue.push({slotName, newChildren, oldChildren});
+      }
+    }
+
+    class PassePartout extends SlotchangeMixin(HTMLElement) {
+
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.appendChild(passePartout.content);
+      }
+
+      slotchangedCallback(slotName, newChildren, oldChildren) {
+        this.testValue = this.testValue || [];
+        this.testValue.push({slotName, newChildren, oldChildren});
       }
     }
 
     customElements.define("passe-partout", PassePartout);
     customElements.define("blue-frame", BlueFrame);
 
-    /*
-    <blue-frame sold>
-      <img>
-      <span slot="label">Picture of the ocean</span>
-    </blue-frame>
-    */
-    const el = new BlueFrame();
-    el.appendChild(document.createElement("img"));    //is not triggered.
-    let span = document.createElement("span");
-    span.setAttribute("slot", "label");
-    span.innerText = "Picture of the ocean";
-    el.appendChild(span);                             //is not triggered.
-    document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
+    function testElementNodeListTagAndID(nodes, ar) {
+      let tagIds = nodes.map(n => {
+        if (n.tagName)
+          return n.tagName.toLowerCase() + (n.id ? "#" + n.id : "");
+        else
+          return "text";
+      });
+      expect(tagIds).to.deep.equal(ar);
+    }
+
+    document.querySelector("body").appendChild(snippet.content);   //slotchangedCallback triggered on connect
+    const allElements = document.querySelector("body").children;
+    const blue = allElements[allElements.length-1];
+    const passe = blue.shadowRoot.children[1];
+    Promise.resolve().then(() => {
+      expect(blue.testValue.length).to.be.equal(2);
+      expect(blue.testValue[0].slotName).to.be.equal("");
+      expect(blue.testValue[0].oldChildren).to.be.equal(undefined);
+      testElementNodeListTagAndID(blue.testValue[0].newChildren, ['text', 'img', 'text', 'text']);
+      expect(blue.testValue[1].slotName).to.be.equal("label");
+      expect(blue.testValue[1].oldChildren).to.be.equal(undefined);
+      testElementNodeListTagAndID(blue.testValue[1].newChildren, ["span"]);
+
+      expect(passe.testValue.length).to.be.equal(2);
+      expect(passe.testValue[1].slotName).to.be.equal("");
+      expect(passe.testValue[1].oldChildren).to.be.equal(undefined);
+      testElementNodeListTagAndID(passe.testValue[1].newChildren, ["text", "text","text", "img", "text", "text","text","div#sold", "text"]);
+      expect(passe.testValue[0].slotName).to.be.equal("label");
+      expect(passe.testValue[0].oldChildren).to.be.equal(undefined);
+      testElementNodeListTagAndID(passe.testValue[0].newChildren, ["span"]);
+
+      document.querySelector("body").removeChild(blue);   //slotchangedCallback triggered on connect
+      done();
+    });
   });
 
   //todo verify that eventListeners are removed when disconnected.
