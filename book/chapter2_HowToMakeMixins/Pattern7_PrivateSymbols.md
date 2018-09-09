@@ -109,6 +109,29 @@ function PrivateSymbolMixin(Base) {
 }
 ```
 
+## Securely hidden?
+
+The PrivateSymbol pattern is not safe from reflection using the method `Object.getOwnPropertySymbols`:
+
+```javascript
+var A = {};
+var B = Symbol("B");
+A[B] = "not really that secret after all";
+var symbols = Object.getOwnPropertySymbols(A);
+var b = symbols[0];
+alert(A[b]);      //"not really that secret after all"
+```
+Therefor, *if* another JS resource on the outside of an element 
+*really desires* to read and write to PrivateSymbol properties or methods in the mixin,
+they can do it.
+
+In general, this is OK. 
+The PrivateSymbol pattern intends to prevent accidental conflicts and signal encapsulation;
+the PrivateSymbol pattern is not a security nor encryption mechanism.
+If you need even stronger encapsulation, 
+see [accessor pattern](https://medium.com/@weberino/you-can-create-truly-private-properties-in-js-without-es6-7d770f55fbc3).
+
 ## References
  * https://hacks.mozilla.org/2015/06/es6-in-depth-symbols/
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
+ * https://medium.com/@weberino/you-can-create-truly-private-properties-in-js-without-es6-7d770f55fbc3
