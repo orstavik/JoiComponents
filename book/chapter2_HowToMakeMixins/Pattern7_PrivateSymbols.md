@@ -109,6 +109,110 @@ function PrivateSymbolMixin(Base) {
 }
 ```
 
+## Anti-pattern: PrivateSymbol methods
+
+When developing mixins, they look and feel very much like a class.
+But, they are not.
+Every time you `extend` a mixin, you will not only create a new sub class of that mixin,
+but *also* a new super class object created and returned from the mixin function.
+Here is an example:
+
+```javascript
+const testValue1 = Symbol("testValue1");
+const testValue2 = Symbol("testValue2");
+const testMethod = Symbol("testMethod");
+
+function myMixin(Base) {
+  return class MyMixinInstance extends Base {
+    constructor(){
+      super();
+      this[testValue1] = ["apples", "oranges", "bananas"];
+      this[testValue2] = undefined;
+    }
+    
+    connectedCallback(){
+      Base.connectedCallback && Base.connectedCallback();
+      this[testMethod]();
+    }
+
+    [testMethod](){
+      this[testValue2] = this[testValue1].join(" + ");
+    }
+  };
+}
+
+class AElement extends myMixin(HTMLElement){}
+class BElement extends myMixin(HTMLElement){}
+
+customElements.define("a-element", AElement);
+customElements.define("b-element", BElement);
+
+let aParentClass = Object.getPrototypeOf(AElement);
+let bParentClass = Object.getPrototypeOf(BElement);
+let aGrandParentClass = Object.getPrototypeOf(aParentClass);
+let bGrandParentClass = Object.getPrototypeOf(bParentClass);
+
+HTMLElement === aGrandParentClass === bGrandParentClass; //the base for the mixin is in this example the exact same class, although it need not be.
+aParentClass !== bParentClass; //because the mixin is a method that will create a new class object
+aParentClass.name === bParentClass.name === "MyMixinInstance"; //but the mixin class has the same name
+AElement !== BElement;      //of course
+aParentClass[testMethod] !== aParentClass[testMethod];  //since the two classes are different, the methods on the classes are also different.
+```
+
+In the example above, two different classes are created for `MyMixinInstance`, 
+even though they get the same Base and turn out exactly similar.
+Thinking about it, this makes sense as the mixin is a function that creates a 
+new class instance every time, and not a singular class in itself.
+
+The consequence of this is that you essentially will end up with a new class
+object for every time the mixin is used to define a class.
+This also means that you would like to make as much of the functionality, ie. methods,
+mixin general to save memory.
+The example above illustrates the solution to this problem
+
+
+```javascript
+const testValue1 = Symbol("testValue1");
+const testValue2 = Symbol("testValue2");
+const testMethod = Symbol("testMethod");
+
+function testMethod(thiz){
+  thiz[testValue2] = thiz[testValue1].join(" + ");
+}
+
+function myMixin(Base) {
+  return class MyMixinInstance extends Base {
+    constructor(){
+      super();
+      this[testValue1] = ["apples", "oranges", "bananas"];
+      this[testValue2] = undefined;
+    }
+    
+    connectedCallback(){
+      Base.connectedCallback && Base.connectedCallback();
+      testMethod(this);
+    }
+  };
+}
+
+class AElement extends myMixin(HTMLElement){}
+class BElement extends myMixin(HTMLElement){}
+
+customElements.define("a-element", AElement);
+customElements.define("b-element", BElement);
+
+let aParentClass = Object.getPrototypeOf(AElement);
+let bParentClass = Object.getPrototypeOf(BElement);
+let aGrandParentClass = Object.getPrototypeOf(aParentClass);
+let bGrandParentClass = Object.getPrototypeOf(bParentClass);
+
+HTMLElement === aGrandParentClass === bGrandParentClass; //the base for the mixin is in this example the exact same class, although it need not be.
+aParentClass !== bParentClass; //because the mixin is a method that will create a new class object
+aParentClass.name === bParentClass.name === "MyMixinInstance"; //but the mixin class has the same name
+AElement !== BElement;      //of course
+testMethod === testMethod;  //of course, since now we call the same external method from connectedCallback
+```
+
 ## Securely hidden?
 
 The PrivateSymbol pattern is not safe from reflection using the method `Object.getOwnPropertySymbols`:
