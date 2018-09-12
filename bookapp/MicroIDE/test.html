@@ -4,7 +4,8 @@
 <script type="module">
   import {TabsTabs, TabTab} from "./TabTabs.js";
   import {CodeRunner} from "./CodeRunner.js";
-  import {CodeFile, MicroCodeEditor, CodeMirrorBox} from "./CodeExample2.js";
+  import {CodeFile, CodeMirrorBox} from "./CodeExample2.js";
+  import {MicroCodeEditor} from "./MicroIDE.js";
 
   customElements.define("tabs-tabs", TabsTabs);
   customElements.define("tab-tab", TabTab);
@@ -15,7 +16,11 @@
 </script>
 
 <micro-editor>
-  <code-file fallback-filename="file.html">something&aring;</code-file>
-  <code-file fallback-filename="file2.js">console.log("omg ivar");</code-file>
+  <code-file fallback-filename="file.html">
+      something&aring;
+  </code-file>
+  <code-file fallback-filename="file2.js">
+        console.log("omg ivar");
+  </code-file>
 </micro-editor>
 
