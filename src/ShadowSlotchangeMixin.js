@@ -6,6 +6,8 @@
 
 import {flattenNodes} from "./flattenNodes.js";
 
+const firstConnected = new WeakSet();
+
 const slotchangeListener = Symbol("slotchangeListener");
 const triggerSlotchangeCB = Symbol("triggerSlotchangeCB");
 const slots = Symbol("slots");
@@ -27,6 +29,9 @@ export function ShadowSlotchangeMixin(Base) {
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
+      if (firstConnected.has(this))
+        return;
+      firstConnected.add(this);
       this.shadowRoot.addEventListener("slotchange", this[slotchangeListener]);
       const slots = this.shadowRoot.querySelector("slot");
       if (!slots) return;
@@ -34,10 +39,10 @@ export function ShadowSlotchangeMixin(Base) {
         this[triggerSlotchangeCB](slot);
     }
 
-    disconnectedCallback() {
-      if (super.disconnectedCallback) super.disconnectedCallback();
-      this.shadowRoot.removeEventListener("slotchange", this[slotchangeListener]);
-    }
+    // disconnectedCallback() {
+    //   if (super.disconnectedCallback) super.disconnectedCallback();
+    //   this.shadowRoot.removeEventListener("slotchange", this[slotchangeListener]);
+    // }
 
     [triggerSlotchangeCB](slot) {
       let newAssigned = flattenNodes(slot.assignedNodes());

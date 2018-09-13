@@ -32,7 +32,7 @@ export function StaticSlotchangeMixin(Base) {
       super();
       this[slotchangeListener] = (e) => this[triggerSlotchangeCB](e.currentTarget);
       this[slots] = [];
-      this[assigneds] = {};
+      this[assigneds] = new WeakMap();
     }
 
     connectedCallback() {
@@ -82,15 +82,12 @@ export function StaticSlotchangeMixin(Base) {
     }
 
     [triggerSlotchangeCB](slot) {
-      let slotName = slot.getAttribute("name");
       let newAssigned = flattenNodes(slot.assignedNodes());
-      let oldAssigned = this[assigneds][slotName];
+      let oldAssigned = this[assigneds].get(slot);
       if (arrayEquals(oldAssigned, newAssigned))
         return;
-      this[assigneds][slotName] = newAssigned;
-      //todo change the signature to use slotname, and not slot element as the first argument
-      //todo think about this question
+      this[assigneds].set(slot, newAssigned);
       this.slotchangedCallback(slot.name, newAssigned, oldAssigned);
     }
   }
-};
+}

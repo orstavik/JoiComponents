@@ -5,11 +5,11 @@
  */
 import {flattenNodes} from "./flattenNodes.js";
 
-function nodeListToMap(nodes, attr){
+function mapNodesByAttributeValue(nodes, attributeName){
   var res = {};
   for (var i = 0; i < nodes.length; i++) {
     var n = nodes[i];
-    var name = n.getAttribute ? (n.getAttribute(attr) || ""): "";
+    var name = n.getAttribute ? (n.getAttribute(attributeName) || ""): "";
     (res[name] || (res[name] = [])).push(n);
   }
   return res;
@@ -51,11 +51,9 @@ const flatMap = Symbol("flatMap");
  * it will trigger regardless.
  *
  * .slotchangedCallback(slotname, newAssignedNodes, oldAssignedNodes) is triggered every time:
- *  1) the element is connected to the DOM and
- *  2) whenever the slotted content of an element changes.
- *
- * .slotchangedCallback(slotname, newAssignedNodes, oldAssignedNodes) is never triggered
- * when the content of newAssignedNodes and oldAssignedNodes are equal.
+ *  1) the element is connected to the DOM,
+ *  2) whenever the slotted content of an element changes, but
+ *  3) except when the content of newAssignedNodes and oldAssignedNodes are equal.
  *
  * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
  * a) Detachment: SlotchangeMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
@@ -63,6 +61,9 @@ const flatMap = Symbol("flatMap");
  *
  * @param Base class that extends HTMLElement
  * @returns {SlotchangeMixin} class that extends HTMLElement
+ *
+ * todo when the childListChanges, I need a WeakMap that hold references to the previous values.
+ * todo This map is setup so that it is triggered created the first time the element is connected, but to the content
  */
 export const SlotchangeMixin = function (Base) {
   return class SlotchangeMixin extends Base {
@@ -128,7 +129,7 @@ export const SlotchangeMixin = function (Base) {
         return;
       this[removeSlotListeners]();
       this[addSlotListeners]();
-      this[notFlatMap] = nodeListToMap(this.childNodes, "slot");
+      this[notFlatMap] = mapNodesByAttributeValue(this.childNodes, "slot");
       Promise.resolve().then(() => this[triggerAllSlotchangeCallbacks]());
       //Above is the extra trigger needed to fix the missing initial-`slotchange`-event in Safari.
       //We can await this in the microtask que, so that normal slotchange events in Chrome is triggered normally.
