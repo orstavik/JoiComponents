@@ -34,8 +34,8 @@ function arrayEquals(a, b) {
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
-export function ShadowSlotchangeMixin(Base) {
-  return class ShadowSlotchangeMixin extends Base {
+export function DeepShadowSlotchangeMixin(Base) {
+  return class DeepShadowSlotchangeMixin extends Base {
 
     constructor() {
       super();
@@ -50,39 +50,41 @@ export function ShadowSlotchangeMixin(Base) {
       this[isInit] || (this[isInit] = true, this[init]());
     }
 
-    [init](){
+    [init]() {
       this.shadowRoot.addEventListener("slotchange", e => this[primarySlotchange](e.target));
-      this.triggerSlotchangeManually();
+      Promise.resolve().then(() => {
+        const slots = this.shadowRoot.querySelectorAll("slot");
+        if (!slots)
+          return;
+        for (let i = 0; i < slots.length; i++)
+          this[primarySlotchange](slots[i]);
+      });
     }
 
-    //todo check if this must be added if a slot is added dynamically in Safari
-    triggerSlotchangeManually() {
-      const slots = this.shadowRoot.querySelectorAll("slot");
-      if (slots) {
-        for (let i = 0; i < slots.length; i++) {
-          this[primarySlotchange](slots[i]);
-        }
-      }
+    //todo I think this method needs to be called after adding a slot in the shadowDOM because
+    //todo Safari does not trigger an initial slotchange event
+    triggerSlotchangeCallback(slot) {
+      Promise.resolve().then(() => this[primarySlotchange](slot));
     }
 
     [primarySlotchange](slot) {
       const result = flattenNodes(slot.assignedNodes());
       let newAssigned = result.result;
       let oldAssigned = this[slotToAssigned].get(slot);
-      if(!arrayEquals(oldAssigned, newAssigned)){
+      if (!arrayEquals(oldAssigned, newAssigned)) {
         this[slotToAssigned].set(slot, newAssigned);
         this.slotchangedCallback(slot.name, newAssigned, oldAssigned);
       }
       let newSlots = result.slots;
-      let oldSlots = this[slotToChainedSlots].get(slot);
-      if (!arrayEquals(oldAssigned, newAssigned)){
+      let oldSlots = this[slotToChainedSlots].get(slot) || [];
+      if (!arrayEquals(oldAssigned, newAssigned)) {
         this[slotToChainedSlots].set(slot, newSlots);
         const secondaryListener = this[getSecondaryListener](slot);
         this[addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots);
       }
     }
 
-    [addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots){
+    [addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots) {
       const addedSlots = newSlots.filter(slot => oldSlots.indexOf(slot) < 0);
       for (let added of addedSlots)
         added.addEventListener("slotchange", secondaryListener);
@@ -91,7 +93,7 @@ export function ShadowSlotchangeMixin(Base) {
         removed.removeEventListener("slotchange", secondaryListener);
     }
 
-    [getSecondaryListener](slot){
+    [getSecondaryListener](slot) {
       let listener = this[slotToSecondaryListeners].get(slot);
       if (listener)
         return listener;
