@@ -20,15 +20,15 @@ function pushAllAssigned(nodes, result, slots) {
 }
 
 const slotToAssigned = Symbol("slotToAssigned");
-const slotToChainedSlots = Symbol("slotToChainedSlots");
-const slotToSecondaryListeners = Symbol("slotToSecondaryListeners");
+// const slotToChainedSlots = Symbol("slotToChainedSlots");
+// const slotToSecondaryListeners = Symbol("slotToSecondaryListeners");
 
 const isInit = Symbol("isInit");
 const init = Symbol("init");
 
 const primarySlotchange = Symbol("primarySlotchange");
-const getSecondaryListener = Symbol("getSecondaryListener");
-const addAndRemoveSecondaryListeners = Symbol("updateSecondaryListeners");
+// const getSecondaryListener = Symbol("getSecondaryListener");
+// const addAndRemoveSecondaryListeners = Symbol("updateSecondaryListeners");
 
 function arrayEquals(a, b) {
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
@@ -40,9 +40,11 @@ export function DeepShadowSlotchangeMixin(Base) {
     constructor() {
       super();
       this[isInit] = false;
-      this[slotToSecondaryListeners] = new WeakMap();
+
+      this.hasBeenProcessed = new WeakSet();
+      // this[slotToSecondaryListeners] = new WeakMap();
       this[slotToAssigned] = new WeakMap();
-      this[slotToChainedSlots] = new WeakMap();
+      // this[slotToChainedSlots] = new WeakMap();
     }
 
     connectedCallback() {
@@ -51,11 +53,32 @@ export function DeepShadowSlotchangeMixin(Base) {
     }
 
     [init]() {
-      this.shadowRoot.addEventListener("slotchange", e => this[primarySlotchange](e.target));
+      this.shadowRoot.addEventListener("slotchange", e => {
+        //todo chained slots trigger "the same" slotchange events multiple times for their grand parents in Chrome.
+        //todo to filter this bug, you need to ensure that the only slotchange event you listen for, are
+        //todo the slotchange events that is coming from within the shadowRoot.
+
+        //todo but this does NOT happen when you have only a single parent.
+        //todo this behavior is confusing!!
+
+        //todo the solution. Find the slot which has this.shadowRoot as its getRootNode()
+        //
+
+        const mySlot = e.path.find(n => n.tagName === "SLOT" && n.getRootNode() === this.shadowRoot);
+        if (this.hasBeenProcessed.has(mySlot))
+          return;
+        this.hasBeenProcessed.add(mySlot);
+        Promise.resolve().then(() => {
+          this.hasBeenProcessed.delete(mySlot);
+        });
+        this[primarySlotchange](mySlot);
+      });
       Promise.resolve().then(() => {
         const slots = this.shadowRoot.querySelectorAll("slot");
         if (!slots)
           return;
+        if (this[slotToAssigned].has(slots[0]))           //abort operation if browser has
+          return;                                         //already run slotchange event (correctly)
         for (let i = 0; i < slots.length; i++)
           this[primarySlotchange](slots[i]);
       });
@@ -68,38 +91,41 @@ export function DeepShadowSlotchangeMixin(Base) {
     }
 
     [primarySlotchange](slot) {
-      const result = flattenNodes(slot.assignedNodes());
+      // if (slot.parentNode !== this.shadowRoot)
+      //   debugger;
+      const assignedNodes = slot.assignedNodes();
+      const result = flattenNodes(assignedNodes);
       let newAssigned = result.result;
       let oldAssigned = this[slotToAssigned].get(slot);
       if (!arrayEquals(oldAssigned, newAssigned)) {
         this[slotToAssigned].set(slot, newAssigned);
         this.slotchangedCallback(slot.name, newAssigned, oldAssigned);
       }
-      let newSlots = result.slots;
-      let oldSlots = this[slotToChainedSlots].get(slot) || [];
-      if (!arrayEquals(oldAssigned, newAssigned)) {
-        this[slotToChainedSlots].set(slot, newSlots);
-        const secondaryListener = this[getSecondaryListener](slot);
-        this[addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots);
-      }
+      // let newSlots = result.slots;
+      // let oldSlots = this[slotToChainedSlots].get(slot) || [];
+      // if (!arrayEquals(oldAssigned, newAssigned)) {
+      //   this[slotToChainedSlots].set(slot, newSlots);
+      //   const secondaryListener = this[getSecondaryListener](slot);
+      //   this[addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots);
+      // }
     }
 
-    [addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots) {
-      const addedSlots = newSlots.filter(slot => oldSlots.indexOf(slot) < 0);
-      for (let added of addedSlots)
-        added.addEventListener("slotchange", secondaryListener);
-      const removedSlots = oldSlots.filter(slot => newSlots.indexOf(slot) < 0);
-      for (let removed of removedSlots)
-        removed.removeEventListener("slotchange", secondaryListener);
-    }
-
-    [getSecondaryListener](slot) {
-      let listener = this[slotToSecondaryListeners].get(slot);
-      if (listener)
-        return listener;
-      listener = ev => this[primarySlotchange](slot);
-      this[slotToSecondaryListeners].set(slot, listener);
-      return listener;
-    }
+    // [addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots) {
+    //   const addedSlots = newSlots.filter(slot => oldSlots.indexOf(slot) < 0);
+    //   for (let added of addedSlots)
+    //     added.addEventListener("slotchange", secondaryListener);
+    //   const removedSlots = oldSlots.filter(slot => newSlots.indexOf(slot) < 0);
+    //   for (let removed of removedSlots)
+    //     removed.removeEventListener("slotchange", secondaryListener);
+    // }
+    //
+    // [getSecondaryListener](slot) {
+    //   let listener = this[slotToSecondaryListeners].get(slot);
+    //   if (listener)
+    //     return listener;
+    //   listener = ev => this[primarySlotchange](slot);
+    //   this[slotToSecondaryListeners].set(slot, listener);
+    //   return listener;
+    // }
   }
 }

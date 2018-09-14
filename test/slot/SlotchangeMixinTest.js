@@ -1,7 +1,7 @@
 const runSlotchangeMixinTest = function (SlotchangeMixin) {
   describe(SlotchangeMixin.name, function () {
 
-    const innerSlot = SlotchangeMixin.name.toLowerCase() + "-test-one";
+    const name = SlotchangeMixin.name.toLowerCase();
 
     class Slot1 extends SlotchangeMixin(HTMLElement) {
       constructor() {
@@ -21,9 +21,25 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
         super();
         this.attachShadow({mode: "open"});
         this.shadowRoot.innerHTML = `
-          <${innerSlot}>
+          <${name}-test-one>
             <slot></slot>
-          </${innerSlot}>`;
+          </${name}-test-one>`;
+      }
+    }
+
+    class GrandpaSlot extends SlotchangeMixin(HTMLElement) {
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `
+          <${name}-chained-slot>
+            <slot></slot>
+          </${name}-chained-slot>`;
+      }
+
+      slotchangedCallback(slotName, newChildren, oldChildren) {
+        this.testValue = this.testValue || [];
+        this.testValue.push({slotName, newChildren, oldChildren});
       }
     }
 
@@ -32,17 +48,18 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
         super();
         this.attachShadow({mode: "open"});
         this.shadowRoot.innerHTML = `
-          <${innerSlot}>
+          <${name}-test-one>
             <div>
               <slot></slot>
             </div>
-          </${innerSlot}>`;
+          </${name}-test-one>`;
       }
     }
 
-    customElements.define(SlotchangeMixin.name.toLowerCase() + "-chained-slot-error", ChainedSlotsGrandpaError);
-    customElements.define(SlotchangeMixin.name.toLowerCase() + "-chained-slot", SlotWrapper);
-    customElements.define(innerSlot, Slot1);
+    customElements.define(name + "-chained-slot-error", ChainedSlotsGrandpaError);
+    customElements.define(name + "-grandpa-slot", GrandpaSlot);
+    customElements.define(name + "-chained-slot", SlotWrapper);
+    customElements.define(name + "-test-one", Slot1);
 
     it("extend HTMLElement class correctly and make an element", function () {
       const el = new Slot1();
@@ -185,9 +202,6 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
         el.appendChild(document.createElement("div"));    //slotchangedCallback will be checked at end of microtasks
         el.appendChild(document.createElement("div"));
         document.querySelector("body").appendChild(el);   //todo unnecessary
-        expect(el.testValue[0].oldChildren).to.be.equal(undefined);
-        expect(el.testValue[0].newChildren.length).to.be.equal(1);
-        expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
         Promise.resolve().then(() => {
           expect(el.testValue[1].oldChildren).to.be.equal(el.testValue[0].newChildren);
           expect(el.testValue[1].newChildren.length).to.be.equal(3);
@@ -199,11 +213,28 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
         });
       }, 50);
     });
+
+    it("Grandpa-slot-test. Simple.", function (done) {
+      const el = new GrandpaSlot();
+      const grandChild = el.shadowRoot.children[0].shadowRoot.children[0];
+      // debugger;
+      el.appendChild(document.createElement("div"));    //slotchangedCallback added to the microque
+      document.querySelector("body").appendChild(el);   //todo i shouldn't need to connect the child for this thing to activate, I only need that for Safari??
+      Promise.resolve().then(() => {
+        expect(el.testValue[0].oldChildren).to.be.equal(undefined);
+        expect(el.testValue[0].newChildren.length).to.be.equal(1);
+        expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
+        expect(grandChild.testValue[0].newChildren.length).to.be.equal(5);
+        expect(grandChild.testValue[0].newChildren[2].nodeName).to.be.equal("DIV");
+        document.querySelector("body").removeChild(el);
+        done();
+      });
+    });
   });
 };
 import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
 import {DeepShadowSlotchangeMixin} from "../../src/DeepShadowSlotchangeMixin.js";
 
 
-runSlotchangeMixinTest(SlotchangeMixin);
+// runSlotchangeMixinTest(SlotchangeMixin);
 runSlotchangeMixinTest(DeepShadowSlotchangeMixin);
