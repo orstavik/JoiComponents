@@ -233,8 +233,8 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
   });
 };
 import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
-import {DeepShadowSlotchangeMixin} from "../../src/DeepShadowSlotchangeMixin.js";
+import {ShadowSlotchangeMixin} from "../../src/ShadowSlotchangeMixin.js";
 
 
-// runSlotchangeMixinTest(SlotchangeMixin);
-runSlotchangeMixinTest(DeepShadowSlotchangeMixin);
+runSlotchangeMixinTest(SlotchangeMixin);
+runSlotchangeMixinTest(ShadowSlotchangeMixin);
