@@ -19,11 +19,16 @@ function pushAllAssigned(nodes, result, slots) {
   return {result, slots};
 }
 
-const slotchangeListener = Symbol("slotchangeListener");
-const triggerSlotchangeCB = Symbol("triggerSlotchangeCB");
-const slots = Symbol("slots");
-const assigneds = Symbol("assigneds");
-const assignedSlots = Symbol("assignedSlots");
+const slotToAssigned = Symbol("slotToAssigned");
+const slotToChainedSlots = Symbol("slotToChainedSlots");
+const slotToSecondaryListeners = Symbol("slotToSecondaryListeners");
+
+const isInit = Symbol("isInit");
+const init = Symbol("init");
+
+const primarySlotchange = Symbol("primarySlotchange");
+const getSecondaryListener = Symbol("getSecondaryListener");
+const addAndRemoveSecondaryListeners = Symbol("updateSecondaryListeners");
 
 function arrayEquals(a, b) {
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
@@ -34,58 +39,64 @@ export function ShadowSlotchangeMixin(Base) {
 
     constructor() {
       super();
-      this[slotchangeListener] = (e) => this[triggerSlotchangeCB](e.target);
-      this[assigneds] = new WeakMap();
-      this[assignedSlots] = new WeakMap();
-      this.slotListeners = new WeakMap();
+      this[isInit] = false;
+      this[slotToSecondaryListeners] = new WeakMap();
+      this[slotToAssigned] = new WeakMap();
+      this[slotToChainedSlots] = new WeakMap();
     }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
-      this.firstSlotchangeTriggered || (this.firstSlotchangeTriggered = true, this.triggerSlotchangeManually());
-      this.shadowRoot.addEventListener("slotchange", this[slotchangeListener]);
+      this[isInit] || (this[isInit] = true, this[init]());
     }
 
+    [init](){
+      this.shadowRoot.addEventListener("slotchange", e => this[primarySlotchange](e.target));
+      this.triggerSlotchangeManually();
+    }
+
+    //todo check if this must be added if a slot is added dynamically in Safari
     triggerSlotchangeManually() {
       const slots = this.shadowRoot.querySelectorAll("slot");
       if (slots) {
         for (let i = 0; i < slots.length; i++) {
-          this[triggerSlotchangeCB](slots[i]);
+          this[primarySlotchange](slots[i]);
         }
       }
     }
 
-    [triggerSlotchangeCB](slot) {
+    [primarySlotchange](slot) {
       const result = flattenNodes(slot.assignedNodes());
       let newAssigned = result.result;
-      let oldAssigned = this[assigneds].get(slot);
+      let oldAssigned = this[slotToAssigned].get(slot);
       if(!arrayEquals(oldAssigned, newAssigned)){
-        this[assigneds].set(slot, newAssigned);
+        this[slotToAssigned].set(slot, newAssigned);
         this.slotchangedCallback(slot.name, newAssigned, oldAssigned);
       }
       let newSlots = result.slots;
-      let oldSlots = this[assignedSlots].get(slot);
+      let oldSlots = this[slotToChainedSlots].get(slot);
       if (!arrayEquals(oldAssigned, newAssigned)){
-        this[assignedSlots].set(slot, newSlots);
-        this.updateSecondarySlotListeners(slot, newSlots, oldSlots);
+        this[slotToChainedSlots].set(slot, newSlots);
+        const secondaryListener = this[getSecondaryListener](slot);
+        this[addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots);
       }
     }
 
-    updateSecondarySlotListeners(slot, newSlots, oldSlots){
+    [addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots){
       const addedSlots = newSlots.filter(slot => oldSlots.indexOf(slot) < 0);
+      for (let added of addedSlots)
+        added.addEventListener("slotchange", secondaryListener);
       const removedSlots = oldSlots.filter(slot => newSlots.indexOf(slot) < 0);
       for (let removed of removedSlots)
-        removed.removeEventListener("slotchange", this.getSlotListener(slot));
-      for (let added of addedSlots)
-        added.addEventListener("slotchange", this.getSlotListener(slot));
+        removed.removeEventListener("slotchange", secondaryListener);
     }
 
-    getSlotListener(slot){
-      let listener = this.slotListeners.get(slot);
+    [getSecondaryListener](slot){
+      let listener = this[slotToSecondaryListeners].get(slot);
       if (listener)
         return listener;
-      listener = (ev) => this[triggerSlotchangeCB](slot);
-      this.slotListeners.set(slot, listener);
+      listener = ev => this[primarySlotchange](slot);
+      this[slotToSecondaryListeners].set(slot, listener);
       return listener;
     }
   }
