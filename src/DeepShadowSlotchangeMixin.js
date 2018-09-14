@@ -3,32 +3,13 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
-function flattenNodes(nodes) {
-  return pushAllAssigned(nodes, [], []);
-}
-
-function pushAllAssigned(nodes, result, slots) {
-  for (let i = 0; i < nodes.length; i++) {
-    let n = nodes[i];
-    if (n.tagName === "SLOT") {  //if(node instanceof HTMLSlotElement) does not work in polyfill.
-      pushAllAssigned(n.assignedNodes(), result, slots);
-      slots.push(n)
-    } else
-      result.push(n);
-  }
-  return {result, slots};
-}
-
-const slotToAssigned = Symbol("slotToAssigned");
-// const slotToChainedSlots = Symbol("slotToChainedSlots");
-// const slotToSecondaryListeners = Symbol("slotToSecondaryListeners");
+import {flattenNodes} from "./flattenNodes.js";
 
 const isInit = Symbol("isInit");
 const init = Symbol("init");
-
 const primarySlotchange = Symbol("primarySlotchange");
-// const getSecondaryListener = Symbol("getSecondaryListener");
-// const addAndRemoveSecondaryListeners = Symbol("updateSecondaryListeners");
+const slotToAssigned = Symbol("slotToAssigned");
+const isProcessed = Symbol("slotToAssigned");
 
 function arrayEquals(a, b) {
   return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
@@ -40,11 +21,8 @@ export function DeepShadowSlotchangeMixin(Base) {
     constructor() {
       super();
       this[isInit] = false;
-
-      this.hasBeenProcessed = new WeakSet();
-      // this[slotToSecondaryListeners] = new WeakMap();
+      this[isProcessed] = new WeakSet();
       this[slotToAssigned] = new WeakMap();
-      // this[slotToChainedSlots] = new WeakMap();
     }
 
     connectedCallback() {
@@ -65,11 +43,11 @@ export function DeepShadowSlotchangeMixin(Base) {
         //
 
         const mySlot = e.path.find(n => n.tagName === "SLOT" && n.getRootNode() === this.shadowRoot);
-        if (this.hasBeenProcessed.has(mySlot))
+        if (this[isProcessed].has(mySlot))
           return;
-        this.hasBeenProcessed.add(mySlot);
+        this[isProcessed].add(mySlot);
         Promise.resolve().then(() => {
-          this.hasBeenProcessed.delete(mySlot);
+          this[isProcessed].delete(mySlot);
         });
         this[primarySlotchange](mySlot);
       });
@@ -91,41 +69,12 @@ export function DeepShadowSlotchangeMixin(Base) {
     }
 
     [primarySlotchange](slot) {
-      // if (slot.parentNode !== this.shadowRoot)
-      //   debugger;
-      const assignedNodes = slot.assignedNodes();
-      const result = flattenNodes(assignedNodes);
-      let newAssigned = result.result;
+      let newAssigned = flattenNodes(slot.assignedNodes());
       let oldAssigned = this[slotToAssigned].get(slot);
       if (!arrayEquals(oldAssigned, newAssigned)) {
         this[slotToAssigned].set(slot, newAssigned);
         this.slotchangedCallback(slot.name, newAssigned, oldAssigned);
       }
-      // let newSlots = result.slots;
-      // let oldSlots = this[slotToChainedSlots].get(slot) || [];
-      // if (!arrayEquals(oldAssigned, newAssigned)) {
-      //   this[slotToChainedSlots].set(slot, newSlots);
-      //   const secondaryListener = this[getSecondaryListener](slot);
-      //   this[addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots);
-      // }
     }
-
-    // [addAndRemoveSecondaryListeners](secondaryListener, newSlots, oldSlots) {
-    //   const addedSlots = newSlots.filter(slot => oldSlots.indexOf(slot) < 0);
-    //   for (let added of addedSlots)
-    //     added.addEventListener("slotchange", secondaryListener);
-    //   const removedSlots = oldSlots.filter(slot => newSlots.indexOf(slot) < 0);
-    //   for (let removed of removedSlots)
-    //     removed.removeEventListener("slotchange", secondaryListener);
-    // }
-    //
-    // [getSecondaryListener](slot) {
-    //   let listener = this[slotToSecondaryListeners].get(slot);
-    //   if (listener)
-    //     return listener;
-    //   listener = ev => this[primarySlotchange](slot);
-    //   this[slotToSecondaryListeners].set(slot, listener);
-    //   return listener;
-    // }
   }
 }
