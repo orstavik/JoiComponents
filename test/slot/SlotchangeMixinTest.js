@@ -7,6 +7,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = "<slot></slot>";
       }
 
       slotchangedCallback(slotName, newChildren, oldChildren) {
@@ -170,25 +171,25 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       });
     });
 
-    it("connected-wait-disconnected-connected. slotchangedCallback only triggered when connected.", function (done) {
+    it("connected-wait-disconnected-connected.", function (done) {
       const el = new Slot1();
-      el.appendChild(document.createElement("div"));    //is not triggered.
-      document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
+      el.appendChild(document.createElement("div"));    //slotchangedCallback added to the microque
+      document.querySelector("body").appendChild(el);   //todo i shouldn't need to connect the child for this thing to activate, I only need that for Safari??
       Promise.resolve().then(() => {
         expect(el.testValue[0].oldChildren).to.be.equal(undefined);
         expect(el.testValue[0].newChildren.length).to.be.equal(1);
         expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
-        document.querySelector("body").removeChild(el);     //disconnect
+        document.querySelector("body").removeChild(el);
       });
       setTimeout(() => {
-        el.appendChild(document.createElement("div"));    //is not triggered.
-        el.appendChild(document.createElement("div"));    //is not triggered.
-        document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
+        el.appendChild(document.createElement("div"));    //slotchangedCallback will be checked at end of microtasks
+        el.appendChild(document.createElement("div"));
+        document.querySelector("body").appendChild(el);   //todo unnecessary
         expect(el.testValue[0].oldChildren).to.be.equal(undefined);
         expect(el.testValue[0].newChildren.length).to.be.equal(1);
         expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
         Promise.resolve().then(() => {
-          expect(el.testValue[1].oldChildren.length).to.be.equal(1);
+          expect(el.testValue[1].oldChildren).to.be.equal(el.testValue[0].newChildren);
           expect(el.testValue[1].newChildren.length).to.be.equal(3);
           expect(el.testValue[1].newChildren[0].nodeName).to.be.equal("DIV");
           expect(el.testValue[1].newChildren[1].nodeName).to.be.equal("DIV");
@@ -201,8 +202,8 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
   });
 };
 import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
-// import {ShadowSlotchangeMixin} from "../../src/ShadowSlotchangeMixin.js";
+import {DeepShadowSlotchangeMixin} from "../../src/DeepShadowSlotchangeMixin.js";
 
 
 runSlotchangeMixinTest(SlotchangeMixin);
-// runSlotchangeMixinTest(ShadowSlotchangeMixin);
+runSlotchangeMixinTest(DeepShadowSlotchangeMixin);
