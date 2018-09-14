@@ -43,6 +43,22 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       }
     }
 
+    class GrandGrandSlot extends SlotchangeMixin(HTMLElement) {
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.innerHTML = `
+          <${name}-grandpa-slot>
+            <slot></slot>
+          </${name}-grandpa-slot>`;
+      }
+
+      slotchangedCallback(slotName, newChildren, oldChildren) {
+        this.testValue = this.testValue || [];
+        this.testValue.push({slotName, newChildren, oldChildren});
+      }
+    }
+
     class ChainedSlotsGrandpaError extends HTMLElement {
       constructor() {
         super();
@@ -57,6 +73,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
     }
 
     customElements.define(name + "-chained-slot-error", ChainedSlotsGrandpaError);
+    customElements.define(name + "-grand-grand-slot", GrandGrandSlot);
     customElements.define(name + "-grandpa-slot", GrandpaSlot);
     customElements.define(name + "-chained-slot", SlotWrapper);
     customElements.define(name + "-test-one", Slot1);
@@ -169,7 +186,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       });
     });
 
-    it("connected-disconnected-connected. slotchangedCallback only triggered while connected + MutationObserver only called once when micro task queued.", function (done) {
+    it("connected-disconnected-connected. + MutationObserver only called once when micro task queued.", function (done) {
       const el = new Slot1();
       el.appendChild(document.createElement("div"));    //is not triggered.
       document.querySelector("body").appendChild(el);   //slotchange event is flagged
@@ -217,7 +234,6 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
     it("Grandpa-slot-test. Simple.", function (done) {
       const el = new GrandpaSlot();
       const grandChild = el.shadowRoot.children[0].shadowRoot.children[0];
-      // debugger;
       el.appendChild(document.createElement("div"));    //slotchangedCallback added to the microque
       document.querySelector("body").appendChild(el);   //todo i shouldn't need to connect the child for this thing to activate, I only need that for Safari??
       Promise.resolve().then(() => {
@@ -230,11 +246,30 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
         done();
       });
     });
+
+    it("GrandGrand-slot-test. Simple.", function (done) {
+      const el = new GrandGrandSlot();
+      const child = el.shadowRoot.children[0];
+      const grandGrandChild = el.shadowRoot.children[0].shadowRoot.children[0].shadowRoot.children[0];
+      el.appendChild(document.createElement("div"));    //slotchangedCallback added to the microque
+      document.querySelector("body").appendChild(el);   //todo i shouldn't need to connect the child for this thing to activate, I only need that for Safari??
+      Promise.resolve().then(() => {
+        expect(el.testValue[0].oldChildren).to.be.equal(undefined);
+        expect(el.testValue[0].newChildren.length).to.be.equal(1);
+        expect(el.testValue[0].newChildren[0].nodeName).to.be.equal("DIV");
+        expect(child.testValue[0].newChildren.length).to.be.equal(3);
+        expect(child.testValue[0].newChildren[1].nodeName).to.be.equal("DIV");
+        expect(grandGrandChild.testValue[0].newChildren.length).to.be.equal(7);
+        expect(grandGrandChild.testValue[0].newChildren[3].nodeName).to.be.equal("DIV");
+        document.querySelector("body").removeChild(el);
+        done();
+      });
+    });
   });
 };
 import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
 import {ShadowSlotchangeMixin} from "../../src/ShadowSlotchangeMixin.js";
 
 
-runSlotchangeMixinTest(SlotchangeMixin);
 runSlotchangeMixinTest(ShadowSlotchangeMixin);
+runSlotchangeMixinTest(SlotchangeMixin);
