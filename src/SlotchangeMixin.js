@@ -15,32 +15,16 @@ function mapNodesByAttributeValue(nodes, attributeName){
   return res;
 }
 
-function flattenMap(nodeMap){
-  var res = {};
-  var keys = Object.keys(nodeMap);
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    res[key] = flattenNodes(nodeMap[key]);
-  }
-  return res;
+function flattenMap(notFlat){
+  var flat = {};
+  for (let key in notFlat)
+    flat[key] = flattenNodes(notFlat[key]);
+  return flat;
 }
 
 function arrayEquals(a, b) {
   return b && a && a.length === b.length && a.every((v, i) => v === b[i]);
 }
-
-const hostChildrenObserver = Symbol("hostChildrenObserver");
-const slotchangeListener = Symbol("slotChangedListener");
-const hostChildrenChanged = Symbol("hostChildrenChanged");
-const addSlotListeners = Symbol("addSlotListeners");
-const removeSlotListeners = Symbol("removeSlotListeners");
-const hostChildrenSlots = Symbol("hostChildrenSlots");
-const triggerSingleSlotchangeCallback = Symbol("triggerSingleSlotchangeCallback");
-const triggerAllSlotchangeCallbacks = Symbol("triggerAllSlotchangeCallbacks");
-const triggerCallback = Symbol("triggerCallback");
-const map = Symbol("map");
-const notFlatMap = Symbol("notFlatMap");
-const flatMap = Symbol("flatMap");
 
 /**
  * SlotchangeMixin adds a reactive lifecycle hook .slotchangedCallback(...) to its subclasses.
@@ -65,6 +49,26 @@ const flatMap = Symbol("flatMap");
  * todo when the childListChanges, I need a WeakMap that hold references to the previous values.
  * todo This map is setup so that it is triggered created the first time the element is connected, but to the content
  */
+function onlyOncePerMicroTaskCycle(register, key) {
+  if (register.has(key))
+    return false;
+  register.add(key);
+  Promise.resolve().then(() => {
+    register.delete(key);
+  });
+  return true;
+}
+
+const hostChildrenChanged = Symbol("hostChildrenChanged");
+const chainedSlotchangeEvent = Symbol("chainedSlotchangeEvent");
+const triggerAllSlotchangeCallbacks = Symbol("triggerAllSlotchangeCallbacks");
+const triggerCallback = Symbol("triggerCallback");
+const notFlatMap = Symbol("notFlatMap");
+const flatMap = Symbol("flatMap");
+const microTaskRegister = Symbol("microTaskRegister");
+const isInit = Symbol("isInit");
+const init = Symbol("init");
+
 export const SlotchangeMixin = function (Base) {
   return class SlotchangeMixin extends Base {
 
@@ -72,48 +76,34 @@ export const SlotchangeMixin = function (Base) {
 
     constructor() {
       super();
-      this[hostChildrenObserver] = new MutationObserver(() => this[hostChildrenChanged]());
-      this[slotchangeListener] = (e) => this[triggerSingleSlotchangeCallback](e.currentTarget.name);
-      this[map] = {};
-      this[hostChildrenSlots] = [];
-      this[notFlatMap] = {};
+      this[isInit] = false;
+      this[notFlatMap] = null;
       this[flatMap] = {};
+      this[microTaskRegister] = new WeakSet();
     }
 
-    connectedCallback() {
-      if (super.connectedCallback) super.connectedCallback();
-      this[hostChildrenObserver].observe(this, {childList: true});
-      this[hostChildrenChanged]();
+    connectedCallback(){
+      super.connectedCallback && super.connectedCallback();
+      this[isInit] || (this[init]() ,this[isInit]=true);
     }
 
-    disconnectedCallback() {
-      if (super.disconnectedCallback) super.disconnectedCallback();
-      this[removeSlotListeners]();
-      this[hostChildrenObserver].disconnect();
+    [init](){
+      const mo = new MutationObserver(() => this[hostChildrenChanged]());
+      mo.observe(this, {childList: true});
+      Promise.resolve().then(()=> this[hostChildrenChanged]());
+      this.addEventListener("slotchange", e => this[chainedSlotchangeEvent](e));
     }
 
-    [addSlotListeners]() {
-      this[hostChildrenSlots] = [].filter.call(this.children, function (c) {
-        return c.tagName === "SLOT";
-      });
-      for (let i = 0; i < this[hostChildrenSlots].length; i++)
-        this[hostChildrenSlots][i].addEventListener("slotchange", this[slotchangeListener]);
-    }
-
-    [removeSlotListeners]() {
-      for (let i = 0; i < this[hostChildrenSlots].length; i++)
-        this[hostChildrenSlots][i].removeEventListener("slotchange", this[slotchangeListener]);
-      this[hostChildrenSlots] = [];
-    }
-
-    [triggerAllSlotchangeCallbacks]() {
-      let newFlatMap = flattenMap(this[notFlatMap]);
-      for (let slotName in newFlatMap)
-        this[triggerCallback](slotName, newFlatMap[slotName], this[flatMap][slotName]);
-      this[flatMap] = newFlatMap;
-    }
-
-    [triggerSingleSlotchangeCallback](slotName) {
+    [chainedSlotchangeEvent](e) {
+      //slotchange from chained slot triggered before the observer has run its childrenChangedAlgorithm. Just skip it, the hostChildren will regardlessly run the same logic.
+      if (!this[notFlatMap])
+        return;
+      const slot = e.path.find(n => n.tagName === "SLOT" && n.parentNode === this);
+      if (!slot)    //a slotchange event of a grandchild in the lightdom, not for me
+        return;
+      if (!onlyOncePerMicroTaskCycle(this[microTaskRegister], slot))
+        return;
+      const slotName = slot.getAttribute("slot") || "";      // todo test for this use of slotnames to guide the slot assigning
       let newFlatNodeList = flattenNodes(this[notFlatMap][slotName]);
       this[triggerCallback](slotName, newFlatNodeList, this[flatMap][slotName]);
       this[flatMap][slotName] = newFlatNodeList;
@@ -125,15 +115,12 @@ export const SlotchangeMixin = function (Base) {
     }
 
     [hostChildrenChanged]() {
-      if (!this.isConnected)            //if the element is first connected and then disconnected again before the JS stack empties.
-        return;
-      this[removeSlotListeners]();
-      this[addSlotListeners]();
       this[notFlatMap] = mapNodesByAttributeValue(this.childNodes, "slot");
-      Promise.resolve().then(() => this[triggerAllSlotchangeCallbacks]());
-      //Above is the extra trigger needed to fix the missing initial-`slotchange`-event in Safari.
-      //We can await this in the microtask que, so that normal slotchange events in Chrome is triggered normally.
-      //However, if we don't do this, the calls could be batched, making the Mixin slightly more efficient.
+      let newFlatMap = flattenMap(this[notFlatMap]);
+      for (let slotName in newFlatMap)
+        this[triggerCallback](slotName, newFlatMap[slotName], this[flatMap][slotName]);
+      this[flatMap] = newFlatMap;
     }
   }
 };
+// [registered observers hold weak references/are automatically garbagecollected](https://dom.spec.whatwg.org/#garbage-collection)

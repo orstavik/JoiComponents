@@ -143,13 +143,15 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       const inner = el.shadowRoot.children[0];
       el.appendChild(document.createElement("div"));
       document.querySelector("body").appendChild(el);         //things are not slotted until something is added to the DOM
-      Promise.resolve().then(() => {
+      setTimeout(() => {
+      // Promise.resolve().then(() => {
         expect(inner.testValue[0].oldChildren).to.be.equal(undefined);
         expect(inner.testValue[0].newChildren.length).to.be.equal(3);
         expect(inner.testValue[0].newChildren[1].nodeName).to.be.equal("DIV");
         document.querySelector("body").removeChild(el);
         done();
-      });
+      // });
+      }, 50);
     });
 
     it("not listening for slotChange on slots that are not a direct child", function (done) {
@@ -269,7 +271,6 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
 };
 import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
 import {ShadowSlotchangeMixin} from "../../src/ShadowSlotchangeMixin.js";
-
 
 runSlotchangeMixinTest(ShadowSlotchangeMixin);
 runSlotchangeMixinTest(SlotchangeMixin);

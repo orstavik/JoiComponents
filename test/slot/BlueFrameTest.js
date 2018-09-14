@@ -113,12 +113,12 @@ describe("Blue-frame", function () {
       testElementNodeListTagAndID(blue.testValue[1].newChildren, ["span"]);
 
       expect(passe.testValue.length).to.be.equal(2);
-      expect(passe.testValue[1].slotName).to.be.equal("");
-      expect(passe.testValue[1].oldChildren).to.be.equal(undefined);
-      testElementNodeListTagAndID(passe.testValue[1].newChildren, ["text", "text", "text", "img", "text", "text", "text", "div#sold", "text"]);
-      expect(passe.testValue[0].slotName).to.be.equal("label");
+      expect(passe.testValue[0].slotName).to.be.equal("");
       expect(passe.testValue[0].oldChildren).to.be.equal(undefined);
-      testElementNodeListTagAndID(passe.testValue[0].newChildren, ["span"]);
+      testElementNodeListTagAndID(passe.testValue[0].newChildren, ["text", "text", "text", "img", "text", "text", "text", "div#sold", "text"]);
+      expect(passe.testValue[1].slotName).to.be.equal("label");
+      expect(passe.testValue[1].oldChildren).to.be.equal(undefined);
+      testElementNodeListTagAndID(passe.testValue[1].newChildren, ["span"]);
 
       document.querySelector("body").removeChild(blue);   //slotchangedCallback triggered on connect
       done();
