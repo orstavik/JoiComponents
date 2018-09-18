@@ -51,7 +51,7 @@ let rafID = 0;
 
 function poll(el){
   observedElements.add(el);
-  if (observedElements.length === 1)
+  if (observedElements.size === 1)
     rafID = requestAnimationFrame(checkStyles);
 }
 
@@ -60,7 +60,7 @@ function stopPoll(el){
 }
 
 function checkStyles(){
-  if (observedElements.length === 0)
+  if (observedElements.size === 0)
     return cancelAnimationFrame(rafID);
   for (let el of observedElements)
     el[evaluateStyle](getComputedStyle(el));
