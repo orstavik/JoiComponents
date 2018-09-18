@@ -49,17 +49,17 @@ const cachedStyles = Symbol("cachedStyles");
 const observedElements = new Set();
 let rafID = 0;
 
-function poll(el){
+function poll(el) {
   observedElements.add(el);
   if (observedElements.size === 1)
     rafID = requestAnimationFrame(checkStyles);
 }
 
-function stopPoll(el){
+function stopPoll(el) {
   observedElements.delete(el);
 }
 
-function checkStyles(){
+function checkStyles() {
   if (observedElements.size === 0)
     return cancelAnimationFrame(rafID);
   for (let el of observedElements)
@@ -70,43 +70,38 @@ function checkStyles(){
 export function StyleChangedMixin(Base) {
   return class StyleChangedMixin extends Base {
 
-    constructor(){
+    constructor() {
       super();
-      this[cachedStyles] = null;
+      this[cachedStyles] = {};
     }
 
-    connectedCallback(){
+    connectedCallback() {
       super.connectedCallback && super.connectedCallback();
       poll(this);
     }
 
-    disconnectedCallback(){
+    disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
       stopPoll(this);
     }
 
-    stopStyleCheck(){
+    stopStyleCheck() {
       stopPoll(this);
     }
 
-    startStyleCheck(){
+    startStyleCheck() {
       poll(this);
     }
 
-    [evaluateStyle](newStyle){
-      this[cachedStyles] = this.getChangedProperties(this.constructor.observedStyles, this[cachedStyles], newStyle);
-      for (let change of this[cachedStyles]) {
-        if (change.newValue !== change.oldValue)
-          this.styleChangedCallback(change.name, change.newValue, change.oldValue);
+    [evaluateStyle](newStyle) {
+      for (let prop of this.constructor.observedStyles){
+        const newValue = newStyle.getPropertyValue(prop).trim();
+        const oldValue = this[cachedStyles][prop];
+        if (newValue !== oldValue){
+          this[cachedStyles][prop] = newValue;
+          this.styleChangedCallback(prop, newValue, oldValue);
+        }
       }
-    }
-
-    getChangedProperties(observedProperties, oldStyles, newStyles){
-      return observedProperties.map(prop => {return {
-        name: prop,
-        newValue: newStyles.getPropertyValue(prop).trim(),
-        oldValue: oldStyles ? oldStyles[prop] : undefined
-      }});
     }
   };
 }
