@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<style>
+  test-flag {
+    --color-palette: red orange yellow;
+  }
+</style>
+
+<test-flag>
+  <div id="first"></div>
+</test-flag>
+
+<script type="module">
+  import {StyleChangedMixin} from "../../src/StyleChangedMixin.js";
+
+  class TestFlag extends StyleChangedMixin(HTMLElement) {
+
+    static get observedStyles() {
+      return ["--color-palette"];
+    }
+
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML =
+        `<div id='one'>_</div>
+        <div id='two'>_</div>
+        <div id='three'>_</div>`;
+      this._divs = this.shadowRoot.querySelectorAll("div");
+    }
+
+    styleChangedCallback(name, newValue, oldValue) {
+      if (name === "--color-palette") {
+        const colors = newValue.split(" ");
+        for (let i = 0; i < colors.length; i++)
+          this._divs[i].style.background = colors[i];
+      }
+    }
+  }
+
+  customElements.define("test-flag", TestFlag);
+
+  setTimeout(() => {
+    document.querySelector("test-flag").style.setProperty("--color-palette", "blue green grey");
+  }, 1000);
+</script>
+</body>
+</html>

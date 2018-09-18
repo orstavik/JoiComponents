@@ -70,10 +70,6 @@ function checkStyles(){
 export function StyleChangedMixin(Base) {
   return class StyleChangedMixin extends Base {
 
-    static get observedStyles(){
-      return [""];
-    }
-
     constructor(){
       super();
       this[cachedStyles] = null;
@@ -98,7 +94,7 @@ export function StyleChangedMixin(Base) {
     }
 
     [evaluateStyle](newStyle){
-      this[cachedStyles] = this.getChangedProperties(Object.getPrototypeOf(this).observedStyles, this[cachedStyles], newStyle);
+      this[cachedStyles] = this.getChangedProperties(this.constructor.observedStyles, this[cachedStyles], newStyle);
       for (let change of this[cachedStyles]) {
         if (change.newValue !== change.oldValue)
           this.styleChangedCallback(change.name, change.newValue, change.oldValue);
@@ -108,7 +104,7 @@ export function StyleChangedMixin(Base) {
     getChangedProperties(observedProperties, oldStyles, newStyles){
       return observedProperties.map(prop => {return {
         name: prop,
-        newValue: newStyles[prop],
+        newValue: newStyles.getPropertyValue(prop).trim(),
         oldValue: oldStyles ? oldStyles[prop] : undefined
       }});
     }
