@@ -115,7 +115,7 @@ class LongPressOne extends LongPressMixin(HTMLElement){                         
 class LongPressTwo extends LongPressMixin(HTMLElement){
   
   static get longpressSettings(){
-    const defaultSettings = Object.getPrototypeOf(this).staticSettingName;       //[5]
+    const defaultSettings = Object.getPrototypeOf(this).longpressSettings;       //[5]
     return Object.assign(defaultSettings, {minDuration: 200});                   //[6]
     // return {minDuration: 200, maxMovement: 20};
   }                                                   
