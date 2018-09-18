@@ -96,7 +96,7 @@ export function StyleChangedMixin(Base) {
     [evaluateStyle](newStyle) {
       for (let prop of this.constructor.observedStyles){
         const newValue = newStyle.getPropertyValue(prop).trim();
-        const oldValue = this[cachedStyles][prop];
+        const oldValue = this[cachedStyles][prop] || "";
         if (newValue !== oldValue){
           this[cachedStyles][prop] = newValue;
           this.styleChangedCallback(prop, newValue, oldValue);

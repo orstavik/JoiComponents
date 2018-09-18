@@ -5,7 +5,7 @@ const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => 
 class StyleCallback extends StyleChangedMixin(HTMLElement) {
 
   static get observedStyles() {
-    return ["--custom-css-prop-1"];
+    return ["--custom-css-prop-1", "--custom-css-prop-2"];
   }
 
   styleChangedCallback(name, newValue, oldValue) {
@@ -60,7 +60,7 @@ describe('StyleChangedMixin basics', function () {
   });
 });
 
-describe("StyleChangedMixin change  the style", function () {
+describe("StyleChangedMixin. Set el.style and change el.style 1 time", function () {
 
   it("Set default css property value and startup trigger", function (done) {
     let el = new StyleCallback();
@@ -69,14 +69,30 @@ describe("StyleChangedMixin change  the style", function () {
     requestAnimationFrame(function () {
       expect(el.testValue[0].name).to.be.equal("--custom-css-prop-1");
       expect(el.testValue[0].newValue).to.be.equal("one");
-      expect(el.testValue[0].oldValue).to.be.equal(undefined);
+      expect(el.testValue[0].oldValue).to.be.equal("");
       document.querySelector("body").removeChild(el);
       done();
     })
   });
 
+  it("numbers and boolean", function (done) {
+    let el = new StyleCallback();
+    el.style.setProperty("--custom-css-prop-1", 12);
+    el.style.setProperty("--custom-css-prop-2", true);
+    document.querySelector("body").appendChild(el);
+    requestAnimationFrame(function () {
+      expect(el.testValue[0].name).to.be.equal("--custom-css-prop-1");
+      expect(el.testValue[0].newValue).to.be.equal("12");
+      expect(el.testValue[0].oldValue).to.be.equal("");
+      expect(el.testValue[1].name).to.be.equal("--custom-css-prop-2");
+      expect(el.testValue[1].newValue).to.be.equal("true");
+      expect(el.testValue[1].oldValue).to.be.equal("");
+      document.querySelector("body").removeChild(el);
+      done();
+    })
+  });
 
-  it("Change css property value and check new values several times", function (done) {
+  it("StyleChangedMixin. Set el.style and change el.style 4 times", function (done) {
     let el = new StyleCallback();
     el.style.setProperty("--custom-css-prop-1", "one");
     document.querySelector("body").appendChild(el);
@@ -85,7 +101,7 @@ describe("StyleChangedMixin change  the style", function () {
     setTimeout(() => {
       Promise.resolve().then(() => {
         expect(el.testValue[0].name).to.be.equal("--custom-css-prop-1");
-        expect(el.testValue[0].oldValue).to.be.equal(undefined);
+        expect(el.testValue[0].oldValue).to.be.equal("");
         expect(el.testValue[0].newValue).to.be.equal("one");
         expect(el.testValue[1].name).to.be.equal("--custom-css-prop-1");
         expect(el.testValue[1].oldValue).to.be.equal("one");
@@ -94,6 +110,37 @@ describe("StyleChangedMixin change  the style", function () {
         expect(el.testValue[2].oldValue).to.be.equal("two");
         expect(el.testValue[2].newValue).to.be.equal("three");
         document.querySelector("body").removeChild(el);
+        done();
+      });
+    }, 150)
+  });
+
+  it("StyleChangedMixin. Stylesheet, then style, then stylesheet", function (done) {
+    let div = document.createElement("div");
+    div.id = "tempStyled";
+    div.innerHTML = `
+<style>
+  style-callback {
+    --custom-css-prop-1: one;
+  }
+</style> 
+<style-callback></style-callback>`;
+    const el = div.children[1];
+    document.querySelector("body").appendChild(div);
+    setTimeout(() => el.style.setProperty("--custom-css-prop-1", "two"), 50);
+    setTimeout(() => el.style.removeProperty("--custom-css-prop-1"), 100);
+    setTimeout(() => {
+      Promise.resolve().then(() => {
+        expect(el.testValue[0].name).to.be.equal("--custom-css-prop-1");
+        expect(el.testValue[0].oldValue).to.be.equal("");
+        expect(el.testValue[0].newValue).to.be.equal("one");
+        expect(el.testValue[1].name).to.be.equal("--custom-css-prop-1");
+        expect(el.testValue[1].oldValue).to.be.equal("one");
+        expect(el.testValue[1].newValue).to.be.equal("two");
+        expect(el.testValue[2].name).to.be.equal("--custom-css-prop-1");
+        expect(el.testValue[2].oldValue).to.be.equal("two");
+        expect(el.testValue[2].newValue).to.be.equal("one");
+        document.querySelector("body").removeChild(div);
         done();
       });
     }, 150)
