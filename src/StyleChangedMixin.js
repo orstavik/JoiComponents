@@ -72,20 +72,16 @@ element (with a styleChangedCallback).
 //todo thus requiring elements that have been processed between the current point and the altered point to be different.
 //todo a simple way to check this, is to verify that the ordered list of previously processed nodes have not been changed by this.
 
-function sortListDomOrder(toBeProcessed) {
-  toBeProcessed.sort((a, b) => (a.compareDocumentPosition(b) & 2));
-  return toBeProcessed;
-}
-
 const evaluateStyle = Symbol("evaluateStyle");
 const cachedStyles = Symbol("cachedStyles");
 
 const observedElements = [];
 let rafID = 0;
+let pause = false;
 
 function poll(el) {
   observedElements.push(el);
-  if (observedElements.length === 1)
+  if (observedElements.length === 1 && !pause)
     rafID = requestAnimationFrame(checkStylesFast);
 }
 
@@ -93,11 +89,47 @@ function stopPoll(el) {
   observedElements.splice(observedElements.indexOf(el), 1);
 }
 
+export function pauseStyleChangeCallbacks() {
+  if (pause)
+    return;
+  pause = true;
+  cancelAnimationFrame(rafID);
+  rafID = 0;
+}
+
+export function restartStyleChangeCallbacks() {
+  if (!pause)
+    return;
+  pause = false;
+  rafID = requestAnimationFrame(checkStylesFast);
+}
+
+function evaluateElement(el) {
+  if (!el || !el.isConnected)
+    return false;
+  const newStyle = getComputedStyle(el);
+
+  let changed = false;
+  for (let prop of el.constructor.observedStyles) {
+    const newValue = newStyle.getPropertyValue(prop).trim();
+    const oldStyle = el[cachedStyles];
+    const oldValue = oldStyle[prop] || "";
+    if (newValue !== oldValue) {
+      changed = true;
+      oldStyle[prop] = newValue;
+      el.styleChangedCallback(prop, newValue, oldValue);
+    }
+  }
+  return changed;
+}
+
 function checkStylesFast() {
   if (observedElements.length === 0)
     return cancelAnimationFrame(rafID);
-  for (let el of sortListDomOrder(observedElements))                                             //[3] sort at the beginning of every run only.
-    el && el.isConnected && el[evaluateStyle](getComputedStyle(el))
+  //sort observed elements based on DOM position once at the start of every cycle
+  const sortedElements = observedElements.sort((a, b) => (a.compareDocumentPosition(b) & 2));
+  for (let el of sortedElements)
+    evaluateElement(el);
   rafID = requestAnimationFrame(checkStylesFast);
 }
 
@@ -117,28 +149,6 @@ export function StyleChangedMixin(Base) {
     disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
       stopPoll(this);
-    }
-
-    stopStyleCheck() {
-      stopPoll(this);
-    }
-
-    startStyleCheck() {
-      poll(this);
-    }
-
-    [evaluateStyle](newStyle) {
-      let changed = false;
-      for (let prop of this.constructor.observedStyles) {
-        const newValue = newStyle.getPropertyValue(prop).trim();
-        const oldValue = this[cachedStyles][prop] || "";
-        if (newValue !== oldValue) {
-          changed = true;
-          this[cachedStyles][prop] = newValue;
-          this.styleChangedCallback(prop, newValue, oldValue);
-        }
-      }
-      return changed;
     }
   };
 }
