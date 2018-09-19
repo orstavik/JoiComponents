@@ -70,22 +70,7 @@ function checkStyles() {
   rafID = requestAnimationFrame(checkStyles);
 }
 
-
-
 function makeDocumentTreeIterator(setOfElements) {
-  function findNextUnprocessedHighestElement(observedElements) {
-    let highestElement = null;
-    let highestDocLevel = Infinity;
-    for (let el of observedElements) {
-      let nextLevel = getElementDocLevel(el);
-      if (nextLevel < highestDocLevel) {
-        highestElement = el;
-        highestDocLevel = nextLevel;
-      }
-    }
-    return highestElement;
-  }
-
   function getElementDocLevel(el) {
     let level = 0;
     for (let root = el.getRootNode(); root.host; root = root.host.getRootNode())
@@ -95,19 +80,19 @@ function makeDocumentTreeIterator(setOfElements) {
 
   return {
     [Symbol.iterator]() {
-      const toBeProcessed = new Set(setOfElements);
+      const toBeProcessed = Array.from(setOfElements);
+      toBeProcessed.sort((a,b) => getElementDocLevel(a)-getElementDocLevel(b));
       return {
         next() {
-          let value = findNextUnprocessedHighestElement(toBeProcessed);
-          toBeProcessed.delete(value);
-          return {value, done: !value};
+          if (toBeProcessed.length === 0)
+            return {value: null, done: true};
+          toBeProcessed.sort((a,b) => getElementDocLevel(a)-getElementDocLevel(b));
+          return {value: toBeProcessed.shift(), done: false};
         }
       }
     }
   }
 }
-
-
 
 export function StyleChangedMixin(Base) {
   return class StyleChangedMixin extends Base {
