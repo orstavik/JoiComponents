@@ -48,7 +48,7 @@ Problem: dirty and not dirty styleChanges?
 There is a problem that might occur with reactive styleChanges.
 Element A is coming after element B in the DOM.
 styleChangedCallback in Element A changes styles and/or DOM that affects and will trigger styleChangedCallback in element B.
-As element A *precedes* element B, then that is ok. (todo do we really need precedes? or is contains actually better??)
+As element A *precedes* element B, then that is ok.
 
 But. There is a bad thing. The styleChangedCallback in element B causes a side effect (via an event for example) that
 causes something to change the DOM or the styles so that it in turn should affect element A.
@@ -64,29 +64,22 @@ The process is only run once, and it is assumed that no styleChangedCallback wil
 element (with a styleChangedCallback).
 */
 
-//todo removing a node should have no consequence, that should be fine.
-//todo adding a node, that is sorted after the node you are currently processing, that should be fine.
-//todo adding a node before the current point of processing, that is dirty.
-//todo changing the order of the nodes before the current point of processing, that is dirty.
-//todo no, removing a node before the current point of processing, that is a problem. That can remove style operations,
-//todo thus requiring elements that have been processed between the current point and the altered point to be different.
-//todo a simple way to check this, is to verify that the ordered list of previously processed nodes have not been changed by this.
-
-const evaluateStyle = Symbol("evaluateStyle");
-const cachedStyles = Symbol("cachedStyles");
-
 const observedElements = [];
+const cachedElementStyles = new Map();
+
 let rafID = 0;
 let pause = false;
 
 function poll(el) {
   observedElements.push(el);
-  if (observedElements.length === 1 && !pause)
+  cachedElementStyles.set(el, {});
+  if (!rafID && !pause)
     rafID = requestAnimationFrame(checkStylesFast);
 }
 
 function stopPoll(el) {
   observedElements.splice(observedElements.indexOf(el), 1);
+  cachedElementStyles.delete(el);
 }
 
 export function pauseStyleChangeCallbacks() {
@@ -106,7 +99,7 @@ export function restartStyleChangeCallbacks() {
 
 function checkStylesFast() {
   if (observedElements.length === 0)
-    return cancelAnimationFrame(rafID);
+    return cancelAnimationFrame(rafID), rafID = 0;
   //sort observed elements based on DOM position once at the start of every cycle
   const sortedElements = observedElements.sort((a, b) => (a.compareDocumentPosition(b) & 2));
   for (let el of sortedElements)
@@ -118,7 +111,7 @@ function evaluateElement(el) {
   if (!el || !el.isConnected)
     return false;
   const newStyle = getComputedStyle(el);
-  const oldStyle = el[cachedStyles];
+  const oldStyle = cachedElementStyles.get(el);
 
   let changed = false;
   for (let prop of el.constructor.observedStyles) {
@@ -135,11 +128,6 @@ function evaluateElement(el) {
 
 export function StyleChangedMixin(Base) {
   return class StyleChangedMixin extends Base {
-
-    constructor() {
-      super();
-      this[cachedStyles] = {};
-    }
 
     connectedCallback() {
       super.connectedCallback && super.connectedCallback();
