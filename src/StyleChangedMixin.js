@@ -52,6 +52,13 @@ const observedElements = new Set();
 //todo then you can take them one by one.
 let rafID = 0;
 
+function documentDepth(el){
+  let level = 0;
+  for (let root = el.getRootNode(); root.host; root = root.host.getRootNode())
+    level++;
+  return level;
+}
+
 function poll(el) {
   observedElements.add(el);
   if (observedElements.size === 1)
@@ -71,22 +78,15 @@ function checkStyles() {
 }
 
 function makeDocumentTreeIterator(setOfElements) {
-  function getElementDocLevel(el) {
-    let level = 0;
-    for (let root = el.getRootNode(); root.host; root = root.host.getRootNode())
-      level++;
-    return level;
-  }
-
   return {
     [Symbol.iterator]() {
       const toBeProcessed = Array.from(setOfElements);
-      toBeProcessed.sort((a,b) => getElementDocLevel(a)-getElementDocLevel(b));
+      toBeProcessed.sort((a,b) => documentDepth(a)-documentDepth(b));
       return {
         next() {
           if (toBeProcessed.length === 0)
             return {value: null, done: true};
-          toBeProcessed.sort((a,b) => getElementDocLevel(a)-getElementDocLevel(b));
+          toBeProcessed.sort((a,b) => documentDepth(a)-documentDepth(b));
           return {value: toBeProcessed.shift(), done: false};
         }
       }
