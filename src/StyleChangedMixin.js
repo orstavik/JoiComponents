@@ -98,8 +98,11 @@ export function restartStyleChangeCallbacks() {
 }
 
 function checkStylesFast() {
-  if (observedElements.length === 0)
-    return cancelAnimationFrame(rafID), rafID = 0;
+  if (observedElements.length === 0) {
+    cancelAnimationFrame(rafID);
+    rafID = 0;
+    return;
+  }
   //sort observed elements based on DOM position once at the start of every cycle
   const sortedElements = observedElements.sort((a, b) => (a.compareDocumentPosition(b) & 2));
   for (let el of sortedElements)
