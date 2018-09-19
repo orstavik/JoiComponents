@@ -62,9 +62,43 @@ function stopPoll(el) {
 function checkStyles() {
   if (observedElements.size === 0)
     return cancelAnimationFrame(rafID);
-  for (let el of observedElements)
+  const processed = new Set();
+  let el = findHighestUnprocessedElement(processed);
+  while (el) {
     el[evaluateStyle](getComputedStyle(el));
+    processed.add(el);
+    el = findHighestUnprocessedElement(processed);
+  }
   rafID = requestAnimationFrame(checkStyles);
+}
+
+function findHighestUnprocessedElement(processed) {
+  let highestElement = null;
+  let highestDocLevel = Infinity;
+  for (let el of observedElements) {
+    if (processed.has(el)) {
+    } else if (highestElement === null) {
+      highestElement = el;
+      highestDocLevel = getElementDocLevel(el);
+    } else {
+      let nextLevel = getElementDocLevel(el);
+      if (nextLevel < highestDocLevel) {
+        highestElement = el;
+        highestDocLevel = nextLevel;
+      }
+    }
+  }
+  return highestElement;
+}
+
+function getElementDocLevel(el){
+  let level = 0;
+  let root = el.getRootNode();
+  while (!!root.host){
+    level++;
+    root = root.host.getRootNode();
+  }
+  return level;
 }
 
 export function StyleChangedMixin(Base) {
@@ -94,10 +128,10 @@ export function StyleChangedMixin(Base) {
     }
 
     [evaluateStyle](newStyle) {
-      for (let prop of this.constructor.observedStyles){
+      for (let prop of this.constructor.observedStyles) {
         const newValue = newStyle.getPropertyValue(prop).trim();
         const oldValue = this[cachedStyles][prop] || "";
-        if (newValue !== oldValue){
+        if (newValue !== oldValue) {
           this[cachedStyles][prop] = newValue;
           this.styleChangedCallback(prop, newValue, oldValue);
         }
