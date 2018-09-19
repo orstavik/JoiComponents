@@ -42,50 +42,36 @@ Even though you can Query based on a css property, you cannot
 You are in essence moving style settings from CSS and back into HTML.
 We don't want that. That
 */
-
-const evaluateStyle = Symbol("evaluateStyle");
-const cachedStyles = Symbol("cachedStyles");
-
-const observedElements = new Set();
-let rafID = 0;
-
-function poll(el) {
-  observedElements.add(el);
-  if (observedElements.size === 1)
-    rafID = requestAnimationFrame(checkStyles);
-}
-
-function stopPoll(el) {
-  observedElements.delete(el);
-}
-
-function checkStyles() {
-  if (observedElements.size === 0)
-    return cancelAnimationFrame(rafID);
-  for (let el of makeDocumentTreeIterator(observedElements))
-    el[evaluateStyle](getComputedStyle(el));
-  rafID = requestAnimationFrame(checkStyles);
-}
-
 function sortListDomOrder (toBeProcessed) {
   toBeProcessed.sort((a, b) => (a.compareDocumentPosition(b) & 2));
 }
 
-function makeDocumentTreeIterator(setOfElements) {
-  return {
-    [Symbol.iterator]() {
-      const toBeProcessed = Array.from(setOfElements);
-      sortListDomOrder(toBeProcessed);
-      return {
-        next() {
-          if (toBeProcessed.length === 0)
-            return {value: null, done: true};
-          sortListDomOrder(toBeProcessed);
-          return {value: toBeProcessed.shift(), done: false};
-        }
-      }
-    }
+const evaluateStyle = Symbol("evaluateStyle");
+const cachedStyles = Symbol("cachedStyles");
+
+const observedElements = [];
+let rafID = 0;
+
+function poll(el) {
+  observedElements.push(el);
+  if (observedElements.length === 1)
+    rafID = requestAnimationFrame(checkStyles);
+}
+
+function stopPoll(el) {
+  observedElements.splice(observedElements.indexOf(el), 1);
+}
+
+function checkStyles() {
+  if (observedElements.length === 0)
+    return cancelAnimationFrame(rafID);
+  const toBeProcessed = Array.from(observedElements);
+  while (toBeProcessed.length) {
+    sortListDomOrder(toBeProcessed);
+    let el = toBeProcessed.shift();
+    el[evaluateStyle](getComputedStyle(el));
   }
+  rafID = requestAnimationFrame(checkStyles);
 }
 
 export function StyleChangedMixin(Base) {
