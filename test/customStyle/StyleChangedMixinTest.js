@@ -1,4 +1,4 @@
-import {StyleChangedMixin} from "../../src/StyleChangedMixin.js";
+import {StyleChangedMixin, pauseStyleChangeCallbacks, restartStyleChangeCallbacks} from "../../src/StyleChangedMixin.js";
 
 const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
 
@@ -144,5 +144,38 @@ describe("StyleChangedMixin. Set el.style and change el.style 1 time", function 
         done();
       });
     }, 150)
+  });
+
+  it("pauseStyleChangeCallbacks() and restartStyleChangeCallbacks() test", function (done) {
+    let el = new StyleCallback();
+    el.style.setProperty("--custom-css-prop-1", "red");
+    document.querySelector("body").appendChild(el);
+    setTimeout(() => {
+      Promise.resolve().then(() => {
+        expect(el.testValue[0].name).to.be.equal("--custom-css-prop-1");
+        expect(el.testValue[0].newValue).to.be.equal("red");
+        expect(el.testValue[0].oldValue).to.be.equal("");
+        pauseStyleChangeCallbacks();
+      });
+    }, 10);
+    setTimeout(function () {
+      el.style.setProperty("--custom-css-prop-1", "stop");
+      el.style.setProperty("--custom-css-prop-1", "stop2");
+    }, 100);
+    setTimeout(() => {
+      Promise.resolve().then(() => {
+        expect(el.testValue.length).to.be.equal(1);
+        restartStyleChangeCallbacks();
+      });
+    },150);
+    setTimeout(() => {
+      Promise.resolve().then(() => {
+        expect(el.testValue.length).to.be.equal(2);
+        expect(el.testValue[1].newValue).to.be.equal("stop2");
+        expect(el.testValue[1].oldValue).to.be.equal("red");
+        document.querySelector("body").removeChild(el);
+        done();
+      });
+    },200);
   });
 });
