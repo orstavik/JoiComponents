@@ -47,6 +47,9 @@ const evaluateStyle = Symbol("evaluateStyle");
 const cachedStyles = Symbol("cachedStyles");
 
 const observedElements = new Set();
+//todo make the set of observedElements into a Sorted list based on document order.
+//todo make sure that every time, the sort order of this list is verified.
+//todo then you can take them one by one.
 let rafID = 0;
 
 function poll(el) {
@@ -67,21 +70,19 @@ function checkStyles() {
   rafID = requestAnimationFrame(checkStyles);
 }
 
+
+
 function makeDocumentTreeIterator(setOfElements) {
-  function findNextUnprocessedHighestElement(processed, observedElements) {
+  function findNextUnprocessedHighestElement(observedElements) {
     let highestElement = null;
     let highestDocLevel = Infinity;
     for (let el of observedElements) {
-      if (processed.has(el))
-        continue;
       let nextLevel = getElementDocLevel(el);
       if (nextLevel < highestDocLevel) {
         highestElement = el;
         highestDocLevel = nextLevel;
       }
     }
-    if (highestElement)
-      processed.add(highestElement);
     return highestElement;
   }
 
@@ -94,18 +95,19 @@ function makeDocumentTreeIterator(setOfElements) {
 
   return {
     [Symbol.iterator]() {
-      const unprocessed = setOfElements;
-      const processed = new Set();
-
+      const toBeProcessed = new Set(setOfElements);
       return {
         next() {
-          let value = findNextUnprocessedHighestElement(processed, unprocessed);
+          let value = findNextUnprocessedHighestElement(toBeProcessed);
+          toBeProcessed.delete(value);
           return {value, done: !value};
         }
       }
     }
   }
 }
+
+
 
 export function StyleChangedMixin(Base) {
   return class StyleChangedMixin extends Base {
