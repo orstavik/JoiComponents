@@ -62,52 +62,46 @@ function stopPoll(el) {
 function checkStyles() {
   if (observedElements.size === 0)
     return cancelAnimationFrame(rafID);
-  for (let el of new DocumentTreeIterator(observedElements))
+  for (let el of makeDocumentTreeIterator(observedElements))
     el[evaluateStyle](getComputedStyle(el));
   rafID = requestAnimationFrame(checkStyles);
 }
 
-class DocumentTreeIterator {
-  constructor(setOfElements){
-    this.setOfElements = setOfElements;
-    this.processed = new Set();
+function makeDocumentTreeIterator(setOfElements) {
+  function findNextUnprocessedHighestElement(processed, observedElements) {
+    let highestElement = null;
+    let highestDocLevel = Infinity;
+    for (let el of observedElements) {
+      if (processed.has(el))
+        continue;
+      let nextLevel = getElementDocLevel(el);
+      if (nextLevel < highestDocLevel) {
+        highestElement = el;
+        highestDocLevel = nextLevel;
+      }
+    }
+    if (highestElement)
+      processed.add(highestElement);
+    return highestElement;
   }
 
-  [Symbol.iterator](){
-    const unprocessed = this.setOfElements;
-    const processed = new Set();
+  function getElementDocLevel(el) {
+    let level = 0;
+    for (let root = el.getRootNode(); root.host; root = root.host.getRootNode())
+      level++;
+    return level;
+  }
 
-    function findHighestUnprocessedElement(processed, observedElements) {
-      let highestElement = null;
-      let highestDocLevel = Infinity;
-      for (let el of observedElements) {
-        if (processed.has(el))
-          continue;
-        let nextLevel = getElementDocLevel(el);
-        if (nextLevel < highestDocLevel) {
-          highestElement = el;
-          highestDocLevel = nextLevel;
-        }
-      }
-      return highestElement;
-    }
+  return {
+    [Symbol.iterator]() {
+      const unprocessed = setOfElements;
+      const processed = new Set();
 
-    function getElementDocLevel(el) {
-      let level = 0;
-      for (let root = el.getRootNode(); root.host; root = root.host.getRootNode())
-        level++;
-      return level;
-    }
-    
-    return {
-      next(){
-        let value = findHighestUnprocessedElement(processed, unprocessed);
-        if (value) {
-          processed.add(value);
-          return {value, done: false};
+      return {
+        next() {
+          let value = findNextUnprocessedHighestElement(processed, unprocessed);
+          return {value, done: !value};
         }
-        else
-          return {value, done: true};
       }
     }
   }
