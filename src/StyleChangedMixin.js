@@ -104,25 +104,6 @@ export function restartStyleChangeCallbacks() {
   rafID = requestAnimationFrame(checkStylesFast);
 }
 
-function evaluateElement(el) {
-  if (!el || !el.isConnected)
-    return false;
-  const newStyle = getComputedStyle(el);
-
-  let changed = false;
-  for (let prop of el.constructor.observedStyles) {
-    const newValue = newStyle.getPropertyValue(prop).trim();
-    const oldStyle = el[cachedStyles];
-    const oldValue = oldStyle[prop] || "";
-    if (newValue !== oldValue) {
-      changed = true;
-      oldStyle[prop] = newValue;
-      el.styleChangedCallback(prop, newValue, oldValue);
-    }
-  }
-  return changed;
-}
-
 function checkStylesFast() {
   if (observedElements.length === 0)
     return cancelAnimationFrame(rafID);
@@ -131,6 +112,25 @@ function checkStylesFast() {
   for (let el of sortedElements)
     evaluateElement(el);
   rafID = requestAnimationFrame(checkStylesFast);
+}
+
+function evaluateElement(el) {
+  if (!el || !el.isConnected)
+    return false;
+  const newStyle = getComputedStyle(el);
+  const oldStyle = el[cachedStyles];
+
+  let changed = false;
+  for (let prop of el.constructor.observedStyles) {
+    const newValue = newStyle.getPropertyValue(prop).trim();
+    const oldValue = oldStyle[prop] || "";
+    if (newValue !== oldValue) {
+      changed = true;
+      oldStyle[prop] = newValue;
+      el.styleChangedCallback(prop, newValue, oldValue);
+    }
+  }
+  return changed;
 }
 
 export function StyleChangedMixin(Base) {
