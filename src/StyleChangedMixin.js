@@ -62,43 +62,55 @@ function stopPoll(el) {
 function checkStyles() {
   if (observedElements.size === 0)
     return cancelAnimationFrame(rafID);
-  const processed = new Set();
-  let el = findHighestUnprocessedElement(processed);
-  while (el) {
+  for (let el of new DocumentTreeIterator(observedElements))
     el[evaluateStyle](getComputedStyle(el));
-    processed.add(el);
-    el = findHighestUnprocessedElement(processed);
-  }
   rafID = requestAnimationFrame(checkStyles);
 }
 
-function findHighestUnprocessedElement(processed) {
-  let highestElement = null;
-  let highestDocLevel = Infinity;
-  for (let el of observedElements) {
-    if (processed.has(el)) {
-    } else if (highestElement === null) {
-      highestElement = el;
-      highestDocLevel = getElementDocLevel(el);
-    } else {
-      let nextLevel = getElementDocLevel(el);
-      if (nextLevel < highestDocLevel) {
-        highestElement = el;
-        highestDocLevel = nextLevel;
+class DocumentTreeIterator {
+  constructor(setOfElements){
+    this.setOfElements = setOfElements;
+    this.processed = new Set();
+  }
+
+  [Symbol.iterator](){
+    const unprocessed = this.setOfElements;
+    const processed = new Set();
+
+    function findHighestUnprocessedElement(processed, observedElements) {
+      let highestElement = null;
+      let highestDocLevel = Infinity;
+      for (let el of observedElements) {
+        if (processed.has(el))
+          continue;
+        let nextLevel = getElementDocLevel(el);
+        if (nextLevel < highestDocLevel) {
+          highestElement = el;
+          highestDocLevel = nextLevel;
+        }
+      }
+      return highestElement;
+    }
+
+    function getElementDocLevel(el) {
+      let level = 0;
+      for (let root = el.getRootNode(); root.host; root = root.host.getRootNode())
+        level++;
+      return level;
+    }
+    
+    return {
+      next(){
+        let value = findHighestUnprocessedElement(processed, unprocessed);
+        if (value) {
+          processed.add(value);
+          return {value, done: false};
+        }
+        else
+          return {value, done: true};
       }
     }
   }
-  return highestElement;
-}
-
-function getElementDocLevel(el){
-  let level = 0;
-  let root = el.getRootNode();
-  while (!!root.host){
-    level++;
-    root = root.host.getRootNode();
-  }
-  return level;
 }
 
 export function StyleChangedMixin(Base) {
