@@ -86,19 +86,26 @@ let rafID = 0;
 function poll(el) {
   observedElements.push(el);
   if (observedElements.length === 1)
-    rafID = requestAnimationFrame(checkStylesFast);
+    rafID = requestAnimationFrame(checkStylesSafe);
 }
 
 function stopPoll(el) {
   observedElements.splice(observedElements.indexOf(el), 1);
 }
 
-function checkStylesFast() {
+function checkStylesSafe(timestamp, level) {
+  if (level > 100)
+    throw new Error("Circular problem in styleChangedCallback. One of your styleChangedCallback is causing changes of the styles in the lightDOM or above, and it is causing a loop.");
   if (observedElements.length === 0)
     return cancelAnimationFrame(rafID);
-  for (let el of sortListDomOrder(observedElements))                                             //[3] sort at the beginning of every run only.
-    el && el.isConnected && el[evaluateStyle](getComputedStyle(el))
-  rafID = requestAnimationFrame(checkStylesFast);
+  let changed = false;
+  for (let el of sortListDomOrder(observedElements)) {                                            //[3] sort at the beginning of every run only.
+    if (el && el.isConnected && el[evaluateStyle](getComputedStyle(el)))
+      changed = true;
+  }
+  if (changed)
+    checkStylesSafe(timestamp, (level || 0) + 1);
+  rafID = requestAnimationFrame(checkStylesSafe);
 }
 
 export function StyleChangedMixin(Base) {
