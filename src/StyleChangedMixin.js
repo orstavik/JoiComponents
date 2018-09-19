@@ -42,8 +42,39 @@ Even though you can Query based on a css property, you cannot
 You are in essence moving style settings from CSS and back into HTML.
 We don't want that. That
 */
-function sortListDomOrder (toBeProcessed) {
-  toBeProcessed.sort((a, b) => (a.compareDocumentPosition(b) & 2));
+/*
+Problem: dirty and not dirty styleChanges?
+
+There is a problem that might occur with reactive styleChanges.
+Element A is coming after element B in the DOM.
+styleChangedCallback in Element A changes styles and/or DOM that affects and will trigger styleChangedCallback in element B.
+As element A *precedes* element B, then that is ok. (todo do we really need precedes? or is contains actually better??)
+
+But. There is a bad thing. The styleChangedCallback in element B causes a side effect (via an event for example) that
+causes something to change the DOM or the styles so that it in turn should affect element A.
+This will create a circular situation where the styleChangedCallback of A and B trigger each other in an infinite loop.
+
+There are two modes:
+safe-but-slow)
+To verify that there has been no side-effects from element B to element A,
+the process of running styleChangedCallback's are run again and again upto 100 times until no observedStyles have changed.
+
+fast-but-can-loop-over-several-raf)
+The process is only run once, and it is assumed that no styleChangedCallback will affect the style of a preceding
+element (with a styleChangedCallback).
+*/
+
+//todo removing a node should have no consequence, that should be fine.
+//todo adding a node, that is sorted after the node you are currently processing, that should be fine.
+//todo adding a node before the current point of processing, that is dirty.
+//todo changing the order of the nodes before the current point of processing, that is dirty.
+//todo no, removing a node before the current point of processing, that is a problem. That can remove style operations,
+//todo thus requiring elements that have been processed between the current point and the altered point to be different.
+//todo a simple way to check this, is to verify that the ordered list of previously processed nodes have not been changed by this.
+
+function sortListDomOrder(toBeProcessed) {
+  toBeProcessed.sort((a, b) => (a.compareDocumentPosition(b) & 2));         //todo do I only need to check for contains? this does not matter for this strategy.
+  return toBeProcessed;   //Array.from(toBeProcessed);
 }
 
 const evaluateStyle = Symbol("evaluateStyle");
@@ -52,25 +83,38 @@ const cachedStyles = Symbol("cachedStyles");
 const observedElements = [];
 let rafID = 0;
 
+export let safeMode = false;
+
 function poll(el) {
   observedElements.push(el);
   if (observedElements.length === 1)
-    rafID = requestAnimationFrame(checkStyles);
+    rafID = requestAnimationFrame(safeMode ? checkStylesSafe : checkStylesFast);
 }
 
 function stopPoll(el) {
   observedElements.splice(observedElements.indexOf(el), 1);
 }
 
-function checkStyles() {
+function checkStylesFast() {
   if (observedElements.length === 0)
     return cancelAnimationFrame(rafID);
-  const toBeProcessed = Array.from(observedElements);
-  while (toBeProcessed.length) {
-    sortListDomOrder(toBeProcessed);
-    let el = toBeProcessed.shift();
-    el[evaluateStyle](getComputedStyle(el));
+  for (let el of sortListDomOrder(observedElements))                                             //[3] sort at the beginning of every run only.
+    el.isConnected && el[evaluateStyle](getComputedStyle(el))
+  rafID = requestAnimationFrame(checkStylesFast);
+}
+
+function checkStylesSafe(timestamp, level) {
+  if (level > 100)
+    throw new Error("Circular problem in styleChangedCallback. One of your styleChangedCallback is causing changes of the styles in the lightDOM or above, and it is causing a loop.");
+  if (observedElements.length === 0)
+    return cancelAnimationFrame(rafID);
+  let changed = false;
+  for (let el of sortListDomOrder(observedElements)) {                                            //[3] sort at the beginning of every run only.
+    if (el.isConnected && el[evaluateStyle](getComputedStyle(el)))
+      changed = true;
   }
+  if (changed)
+    checkStyles(timestamp, (level || 0) + 1);
   rafID = requestAnimationFrame(checkStyles);
 }
 
@@ -101,14 +145,17 @@ export function StyleChangedMixin(Base) {
     }
 
     [evaluateStyle](newStyle) {
+      let changed = false;
       for (let prop of this.constructor.observedStyles) {
         const newValue = newStyle.getPropertyValue(prop).trim();
         const oldValue = this[cachedStyles][prop] || "";
         if (newValue !== oldValue) {
+          changed = true;
           this[cachedStyles][prop] = newValue;
           this.styleChangedCallback(prop, newValue, oldValue);
         }
       }
+      return changed;
     }
   };
 }
