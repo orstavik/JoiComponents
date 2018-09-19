@@ -47,17 +47,7 @@ const evaluateStyle = Symbol("evaluateStyle");
 const cachedStyles = Symbol("cachedStyles");
 
 const observedElements = new Set();
-//todo make the set of observedElements into a Sorted list based on document order.
-//todo make sure that every time, the sort order of this list is verified.
-//todo then you can take them one by one.
 let rafID = 0;
-
-function documentDepth(el){
-  let level = 0;
-  for (let root = el.getRootNode(); root.host; root = root.host.getRootNode())
-    level++;
-  return level;
-}
 
 function poll(el) {
   observedElements.add(el);
@@ -77,16 +67,20 @@ function checkStyles() {
   rafID = requestAnimationFrame(checkStyles);
 }
 
+function sortListDomOrder (toBeProcessed) {
+  toBeProcessed.sort((a, b) => (a.compareDocumentPosition(b) & 2));
+}
+
 function makeDocumentTreeIterator(setOfElements) {
   return {
     [Symbol.iterator]() {
       const toBeProcessed = Array.from(setOfElements);
-      toBeProcessed.sort((a,b) => documentDepth(a)-documentDepth(b));
+      sortListDomOrder(toBeProcessed);
       return {
         next() {
           if (toBeProcessed.length === 0)
             return {value: null, done: true};
-          toBeProcessed.sort((a,b) => documentDepth(a)-documentDepth(b));
+          sortListDomOrder(toBeProcessed);
           return {value: toBeProcessed.shift(), done: false};
         }
       }
