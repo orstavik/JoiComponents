@@ -118,7 +118,8 @@ Thus, by enabling a register of all elements of a certain type, for example in t
 we will at the same time **disable garbagecollection** of the same elements.
 
 To register elements in the mixin from the `constructor()` is therefore an anti-pattern. 
-Don't register elements in a mixin singleton if you do not have a strategy for removing them.
+Don't register elements in a mixin singleton "normal" collection 
+if you do not have a strategy for removing them.
 
 ## Pattern: RegisterConnectedElementsOnly
 To ensure that the register does not contain objects that should be garbage collected,
