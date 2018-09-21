@@ -98,18 +98,42 @@ customElements.define("quiet-child", QuietChild);
 ```
 The `<quiet-child>` above never says "boo".
 
+## Problem 3: missing initial slotchange event when dynamically adding a `slot` element
+
+```html
+<my-el>*</my-el>
+
+<script>
+class MyEl extends HTMLElement {
+  constructor(){
+    super(); 
+    this.attachShadow({mode: "open"});
+    this.shadowRoot.innerHTML="start";
+    this.shadowRoot.addEventListener("slotchange", e => this.style.background = "red");
+  }
+}
+customElements.define("my-el", MyEl);
+setTimeout(()=> {
+  const el = document.querySelector("my-el");
+  el.shadowRoot.innerHTML ="<slot></slot>";
+}, 2000);
+</script>
+```
+
+In Chrome and Firefox, a star on red background appears after 2sec.
+In Safari, only the star appears, the background remain untouched.
+
 ## Solution: trigger initial slotchange events
 
-Both the missing initial `slotchange` event caused by the bug in Safari and 
-the missing initial `slotchange` event when a slot is instantiated without any assigned nodes,
-can be fixed using the same solution:
+Problem 1 and 2 can be fixed using the same solution:
 * trigger the `slotchange` event listener manually when an element is constructed.
 
 This manual `slotchange` you would like to trigger:
 1. sometimes in Safari and 
 2. always when there initially are no assigned nodes to a slot. 
 
-But, you would like to avoid triggering this manual `slotchange` in all other initial settings.
+But, you would like to avoid triggering this manual `slotchange` in all other situations 
+(where the initial `slotchange` event actually was or will be fired).
 
 Thus, the solution becomes to:
 1. when the element is created, que a manual trigger for the slot in the `requestAnimationFrame` que, then
