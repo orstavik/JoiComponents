@@ -35,7 +35,7 @@ And the lightDOM's lightDOM of the custom element.
 ```html
 <script>
 function log(e){
-  console.log(this.tagName, e.path);
+  console.log(this.tagName, e.composedPath());
 }  
   
 class GrandFather extends HTMLElement {
@@ -71,7 +71,7 @@ customElements.define("the-child", TheChild);
 ```
 When the `<grand-father>text</grand-father>` element is added, it adds a `"text"` node as a child.
 This `"text"` node is then chain-slotted all the way down into `<the-child>`. 
-This triggers 6(?!) slotchange events (in Chrome) that logs:
+This triggers 6(?!) slotchange events that logs:
 ```
 THE-CHILD (5) [slot, slot, document-fragment, the-child, document-fragment]
 THE-FATHER (5) [slot, slot, document-fragment, the-child, document-fragment]
