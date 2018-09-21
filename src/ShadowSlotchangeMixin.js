@@ -34,28 +34,26 @@ export function ShadowSlotchangeMixin(Base) {
       this[isInit] = false;
       this[microTaskRegister] = new WeakSet();
       this[slotToAssigned] = new WeakMap();
+      Promise.resolve().then(() => this.shadowRoot.addEventListener("slotchange", e => this[processSlotchangeEvent](e)));
     }
 
     connectedCallback() {
       if (super.connectedCallback) super.connectedCallback();
-      this[isInit] || (this[isInit] = true, this[init]());
+      this[isInit] || (Promise.resolve().then(() => this[init]()), this[isInit] = true);
     }
 
     [init]() {
-      this.shadowRoot.addEventListener("slotchange", e => this[processSlotchangeEvent](e));
-      Promise.resolve().then(() => {
-        const slots = this.shadowRoot.querySelectorAll("slot");
-        if (!slots)
-          return;
-        if (this[slotToAssigned].has(slots[0]))           //abort operation if browser has
-          return;                                         //already run slotchange event (correctly)
-        for (let i = 0; i < slots.length; i++)
-          this[processSlot](slots[i]);
-      });
+      const slots = this.shadowRoot.querySelectorAll("slot");
+      if (!slots)
+        return;
+      if (this[slotToAssigned].has(slots[0]))           //abort operation if browser has
+        return;                                         //already processed that slot with a slotchange event
+      for (let i = 0; i < slots.length; i++)
+        this[processSlot](slots[i]);
     }
 
     /**
-     * todo verify the presence of the bug and thus the need for this method.
+     * ref. Safari bug 2.
      * This method is likely needing to be called when adding a new slot element to the shadowDOM
      * so to produce the initial slotchange event missing in Safari.
      *
@@ -83,7 +81,7 @@ export function ShadowSlotchangeMixin(Base) {
      * @param e the slotchange event
      */
     [processSlotchangeEvent](e) {
-      const slot = e.path.find(n => n.tagName === "SLOT" && n.getRootNode() === this.shadowRoot);
+      const slot = e.composedPath().find(n => n.tagName === "SLOT" && n.getRootNode() === this.shadowRoot);
       if (onlyOncePerMicroTaskCycle(this[microTaskRegister], slot))
         this[processSlot](slot);
     }

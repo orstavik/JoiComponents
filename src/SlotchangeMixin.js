@@ -5,17 +5,17 @@
  */
 import {flattenNodes} from "./flattenNodes.js";
 
-function mapNodesByAttributeValue(nodes, attributeName){
+function mapNodesByAttributeValue(nodes, attributeName) {
   var res = {};
   for (var i = 0; i < nodes.length; i++) {
     var n = nodes[i];
-    var name = n.getAttribute ? (n.getAttribute(attributeName) || ""): "";
+    var name = n.getAttribute ? (n.getAttribute(attributeName) || "") : "";
     (res[name] || (res[name] = [])).push(n);
   }
   return res;
 }
 
-function flattenMap(notFlat){
+function flattenMap(notFlat) {
   var flat = {};
   for (let key in notFlat)
     flat[key] = flattenNodes(notFlat[key]);
@@ -66,32 +66,21 @@ const triggerCallback = Symbol("triggerCallback");
 const notFlatMap = Symbol("notFlatMap");
 const flatMap = Symbol("flatMap");
 const microTaskRegister = Symbol("microTaskRegister");
-const isInit = Symbol("isInit");
-const init = Symbol("init");
 
 export const SlotchangeMixin = function (Base) {
   return class SlotchangeMixin extends Base {
 
-    // slotchangedCallback(slotName, newNodeList, oldNodeList) {}
-
     constructor() {
       super();
-      this[isInit] = false;
       this[notFlatMap] = null;
       this[flatMap] = {};
       this[microTaskRegister] = new WeakSet();
-    }
-
-    connectedCallback(){
-      super.connectedCallback && super.connectedCallback();
-      this[isInit] || (this[init]() ,this[isInit]=true);
-    }
-
-    [init](){
       const mo = new MutationObserver(() => this[hostChildrenChanged]());
       mo.observe(this, {childList: true});
-      Promise.resolve().then(()=> this[hostChildrenChanged]());
       this.addEventListener("slotchange", e => this[chainedSlotchangeEvent](e));
+      Promise.resolve().then(() => this[hostChildrenChanged]());
+      //todo triggering this in the constructor might be a problem..
+      //todo connectedCallback() might not have been run yet.. I should write a test for that.
     }
 
     [chainedSlotchangeEvent](e) {
@@ -103,23 +92,24 @@ export const SlotchangeMixin = function (Base) {
         return;
       if (!onlyOncePerMicroTaskCycle(this[microTaskRegister], slot))
         return;
-      const slotName = slot.getAttribute("slot") || "";      // todo test for this use of slotnames to guide the slot assigning
+      const slotName = slot.getAttribute("slot") || "";//todo test for this use of slotnames to guide the slot assigning
       let newFlatNodeList = flattenNodes(this[notFlatMap][slotName]);
       this[triggerCallback](slotName, newFlatNodeList, this[flatMap][slotName]);
-      this[flatMap][slotName] = newFlatNodeList;
     }
 
     [triggerCallback](slotName, newAssignedNodes, oldAssignedNodes) {
-      if (!arrayEquals(newAssignedNodes, oldAssignedNodes))
-        this.slotchangedCallback(slotName, newAssignedNodes, oldAssignedNodes);
+      if (arrayEquals(newAssignedNodes, oldAssignedNodes))
+        return;
+      this.slotchangedCallback(slotName, newAssignedNodes, oldAssignedNodes);
+      this[flatMap][slotName] = newAssignedNodes;
     }
 
     [hostChildrenChanged]() {
       this[notFlatMap] = mapNodesByAttributeValue(this.childNodes, "slot");
       let newFlatMap = flattenMap(this[notFlatMap]);
-      for (let slotName in newFlatMap)
+      for (let slotName in newFlatMap) {
         this[triggerCallback](slotName, newFlatMap[slotName], this[flatMap][slotName]);
-      this[flatMap] = newFlatMap;
+      }
     }
   }
 };
