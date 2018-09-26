@@ -89,7 +89,7 @@ export const SlottableMixin = function (Base) {
           return;
         if (slot.parentNode === this){
           e.stopPropagation();
-          const slotName = slot.getAttribute("slot") || "";//todo test for this use of slotnames to guide the slot assigning
+          const slotName = slot.getAttribute("slot") || "";
           this.slotCallback(new Slottables(slotName, this[slottables][slotName]));
           return;
         }
@@ -105,4 +105,3 @@ export const SlottableMixin = function (Base) {
     }
   }
 };
-// [registered observers hold weak references/are automatically garbagecollected](https://dom.spec.whatwg.org/#garbage-collection)

@@ -368,20 +368,24 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
     it("chained slot with different name test.", function (done) {
       const el = new SlotWrapper();
       const child = el.shadowRoot.children[0];
-      el.innerHTML = "<div slot='offside'>boo</div>";   //slotchangedCallback added to the microque
+      const div = document.createElement("div");
+      div.setAttribute("slot", "offside");
+      child.appendChild(div);
       requestAnimationFrame(() => {
         if (SlotchangeMixinType === SlotchangeMixin) {
           expect(child.testValue.length).to.be.equal(1);
-          expect(child.testValue[0].oldChildren).to.be.equal(undefined);
           expect(child.testValue[0].value.length).to.be.equal(2);
           expect(child.testValue[0].value[0].nodeName).to.be.equal("#text");
           expect(child.testValue[0].value[1].nodeName).to.be.equal("#text");
-        } else if (SlotchangeMixinType === SlottableMixin) {                        //todo add tests here
-          expect(child.testValue.length).to.be.equal(1);
-          expect(child.testValue[0].oldChildren).to.be.equal(undefined);
+        } else if (SlotchangeMixinType === SlottableMixin) {                        
+          expect(child.testValue.length).to.be.equal(2);
+          expect(child.testValue[0].slotName).to.be.equal("");
           expect(child.testValue[0].value.length).to.be.equal(2);
           expect(child.testValue[0].value[0].nodeName).to.be.equal("#text");
           expect(child.testValue[0].value[1].nodeName).to.be.equal("#text");
+          expect(child.testValue[1].slotName).to.be.equal("offside");
+          expect(child.testValue[1].value.length).to.be.equal(1);
+          expect(child.testValue[1].value[0].nodeName).to.be.equal("DIV");
         }
         child.stop();
         done();
