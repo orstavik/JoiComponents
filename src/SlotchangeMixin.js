@@ -8,8 +8,10 @@ function processSlotchange(e, el) {
   for (let node of e.composedPath()) {
     if (node.tagName !== "SLOT")
       return;
-    if (node.getRootNode() === el.shadowRoot)
+    if (node.getRootNode() === el.shadowRoot){
+      e.stopPropagation();
       el.slotCallback(node);
+    }
   }
 }
 

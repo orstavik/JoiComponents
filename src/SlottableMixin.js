@@ -4,17 +4,6 @@
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
 
-function flattenNodes(nodes) {
-  let res = [];
-  for (let n of nodes) {
-    if (n.tagName === "SLOT")  //if(node instanceof HTMLSlotElement) does not work in polyfill.
-      res = res.concat(n.assignedNodes({flatten: true}));
-    else
-      res.push(n);
-  }
-  return res;
-}
-
 function mapNodesByAttributeValue(nodes, attributeName) {
   var res = {};
   for (var i = 0; i < nodes.length; i++) {
@@ -52,21 +41,10 @@ function arrayEquals(a, b) {
  * todo when the childListChanges, I need a WeakMap that hold references to the previous values.
  * todo This map is setup so that it is triggered created the first time the element is connected, but to the content
  */
-function onlyOncePerMicroTaskCycle(register, key) {
-  if (register.has(key))
-    return false;
-  register.add(key);
-  Promise.resolve().then(() => {
-    register.delete(key);
-  });
-  return true;
-}
-
 const hostChildrenChanged = Symbol("hostChildrenChanged");
 const hostSlotchange = Symbol("chainedSlotchangeEvent");
 const init = Symbol("triggerAllSlotchangeCallbacks");
 const slottables = Symbol("notFlatMap");
-const microTaskRegister = Symbol("microTaskRegister");
 
 class Slottables {
   constructor(name, assigneds) {
@@ -99,7 +77,7 @@ export const SlottableMixin = function (Base) {
     constructor() {
       super();
       this[slottables] = {};
-      this[microTaskRegister] = new WeakSet();
+      // this[microTaskRegister] = new WeakSet();
       requestAnimationFrame(() => this[init]());
     }
 
@@ -114,9 +92,7 @@ export const SlottableMixin = function (Base) {
       const slot = e.composedPath().find(n => n.tagName === "SLOT" && n.parentNode === this);
       if (!slot)    //a slotchange event of a grandchild in the lightdom, not for me
         return;
-      //todo stop propagation here??
-      if (!onlyOncePerMicroTaskCycle(this[microTaskRegister], slot))
-        return;
+      e.stopPropagation();
       const slotName = slot.getAttribute("slot") || "";//todo test for this use of slotnames to guide the slot assigning
       this.slotCallback(new Slottables(slotName, this[slottables][slotName]));
     }
