@@ -84,13 +84,16 @@ export const SlottableMixin = function (Base) {
     }
 
     [hostSlotchange](e) {
-      //todo I need to filter grandparents with illegal slot names too, right??
-      const slot = e.composedPath().find(n => n.tagName === "SLOT" && n.parentNode === this);
-      if (!slot)    //a slotchange event of a grandchild in the lightdom, not for me
-        return;
-      e.stopPropagation();
-      const slotName = slot.getAttribute("slot") || "";//todo test for this use of slotnames to guide the slot assigning
-      this.slotCallback(new Slottables(slotName, this[slottables][slotName]));
+      for (let slot of e.composedPath()) {
+        if (slot.tagName !== "SLOT")
+          return;
+        if (slot.parentNode === this){
+          e.stopPropagation();
+          const slotName = slot.getAttribute("slot") || "";//todo test for this use of slotnames to guide the slot assigning
+          this.slotCallback(new Slottables(slotName, this[slottables][slotName]));
+          return;
+        }
+      }
     }
 
     [hostChildrenChanged]() {
