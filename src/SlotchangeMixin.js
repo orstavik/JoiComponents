@@ -20,8 +20,8 @@ function onlyOncePerMicroTaskCycle(register, key) {
   return true;
 }
 
-export function ShadowSlotchangeMixin(Base) {
-  return class ShadowSlotchangeMixin extends Base {
+export function SlotchangeMixin(Base) {
+  return class SlotchangeMixin extends Base {
 
     constructor() {
       super();

@@ -1,4 +1,4 @@
-import {SlotchangeMixin} from "../../src/SlottableMixin.js";
+import {SlottableMixin} from "../../src/SlottableMixin.js";
 
 describe("Blue-frame", function () {
   it("blue-frame.", function (done) {
@@ -58,7 +58,7 @@ describe("Blue-frame", function () {
         </div>
         `;
 
-    class BlueFrame extends SlotchangeMixin(HTMLElement) {
+    class BlueFrame extends SlottableMixin(HTMLElement) {
 
       constructor() {
         super();
@@ -72,7 +72,7 @@ describe("Blue-frame", function () {
       }
     }
 
-    class PassePartout extends SlotchangeMixin(HTMLElement) {
+    class PassePartout extends SlottableMixin(HTMLElement) {
 
       constructor() {
         super();

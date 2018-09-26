@@ -19,12 +19,12 @@ const fixChromeAssignedNodesBug = needsChromeFix ?
     return slot
   };
 
-const runSlotchangeMixinTest = function (SlotchangeMixin) {
-  describe(SlotchangeMixin.name, function () {
+const runSlotchangeMixinTest = function (SlotchangeMixinType) {
+  describe(SlotchangeMixinType.name, function () {
 
-    const name = SlotchangeMixin.name.toLowerCase();
+    const name = SlotchangeMixinType.name.toLowerCase();
 
-    class Slot1 extends SlotchangeMixin(HTMLElement) {
+    class Slot1 extends SlotchangeMixinType(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
@@ -59,7 +59,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       }
     }
 
-    class GrandpaSlot extends SlotchangeMixin(HTMLElement) {
+    class GrandpaSlot extends SlotchangeMixinType(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
@@ -85,7 +85,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       }
     }
 
-    class GrandpaSlotWithSlotname extends SlotchangeMixin(HTMLElement) {
+    class GrandpaSlotWithSlotname extends SlotchangeMixinType(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
@@ -111,7 +111,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       }
     }
 
-    class GrandGrandSlot extends SlotchangeMixin(HTMLElement) {
+    class GrandGrandSlot extends SlotchangeMixinType(HTMLElement) {
       constructor() {
         super();
         this.attachShadow({mode: "open"});
@@ -163,12 +163,12 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       el.id = "boo";
       expect(proto.name).to.be.equal("Slot1");
       proto = Object.getPrototypeOf(proto);
-      expect(proto.name).to.be.equal(SlotchangeMixin.name);
+      expect(proto.name).to.be.equal(SlotchangeMixinType.name);
       proto = Object.getPrototypeOf(proto);
       expect(proto.name).to.be.equal("HTMLElement");
     });
 
-    it("SlotchangeMixin add DIV imperative and trigger slotchangedCallback", function (done) {
+    it("SlottableMixin add DIV imperative and trigger slotchangedCallback", function (done) {
       const el = new Slot1();
       el.appendChild(document.createElement("div"));
       document.body.appendChild(el);
@@ -347,11 +347,11 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
         expect(grandChild.testValue[0].slotName).to.be.equal("");
         el.appendChild(document.createElement("span"));    //slotchangedCallback added to the microque
         Promise.resolve().then(() => {
-          if (SlotchangeMixin === ShadowSlotchangeMixin) {
+          if (SlotchangeMixinType === SlotchangeMixin) {
             expect(el.testValue.length).to.be.equal(1);
             expect(grandChild.testValue.length).to.be.equal(1);
           }
-          else if (SlotchangeMixin === SlotchangeMixin) {
+          else if (SlotchangeMixinType === SlottableMixin) {
             expect(grandChild.testValue.length).to.be.equal(1);
             expect(el.testValue.length).to.be.equal(2);
             expect(el.testValue[1].slotName).to.be.equal("");
@@ -370,13 +370,13 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
       const child = el.shadowRoot.children[0];
       el.innerHTML = "<div slot='offside'>boo</div>";   //slotchangedCallback added to the microque
       requestAnimationFrame(() => {
-        if (SlotchangeMixin === ShadowSlotchangeMixin) {
+        if (SlotchangeMixinType === SlotchangeMixin) {
           expect(child.testValue.length).to.be.equal(1);
           expect(child.testValue[0].oldChildren).to.be.equal(undefined);
           expect(child.testValue[0].value.length).to.be.equal(2);
           expect(child.testValue[0].value[0].nodeName).to.be.equal("#text");
           expect(child.testValue[0].value[1].nodeName).to.be.equal("#text");
-        } else if (SlotchangeMixin === SlotchangeMixin) {
+        } else if (SlotchangeMixinType === SlottableMixin) {                        //todo add tests here
           expect(child.testValue.length).to.be.equal(1);
           expect(child.testValue[0].oldChildren).to.be.equal(undefined);
           expect(child.testValue[0].value.length).to.be.equal(2);
@@ -390,8 +390,8 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
 
   });
 };
-import {ShadowSlotchangeMixin} from "../../src/SlotchangeMixin.js";
-import {SlotchangeMixin} from "../../src/SlottableMixin.js";
+import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
+import {SlottableMixin} from "../../src/SlottableMixin.js";
 
-runSlotchangeMixinTest(ShadowSlotchangeMixin);
 runSlotchangeMixinTest(SlotchangeMixin);
+runSlotchangeMixinTest(SlottableMixin);

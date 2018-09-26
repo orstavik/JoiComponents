@@ -30,7 +30,7 @@ function arrayEquals(a, b) {
 }
 
 /**
- * SlotchangeMixin adds a reactive lifecycle hook .slotchangedCallback(...) to its subclasses.
+ * SlottableMixin adds a reactive lifecycle hook .slotchangedCallback(...) to its subclasses.
  * This lifecycle hook is triggered every time a potentially assignable node for the element changes.
  * .slotchangedCallback(...) triggers manually every time the element is attached to the DOM and
  * whenever the a slotchange event would occur inside it.
@@ -43,11 +43,11 @@ function arrayEquals(a, b) {
  *  3) except when the content of newAssignedNodes and oldAssignedNodes are equal.
  *
  * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
- * a) Detachment: SlotchangeMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
+ * a) Detachment: SlottableMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
  * b) Content assignment: changes to assignedNodes of slotted children are notified as if the change happened to a normal child.
  *
  * @param Base class that extends HTMLElement
- * @returns {SlotchangeMixin} class that extends HTMLElement
+ * @returns {SlottableMixin} class that extends HTMLElement
  *
  * todo when the childListChanges, I need a WeakMap that hold references to the previous values.
  * todo This map is setup so that it is triggered created the first time the element is connected, but to the content
@@ -93,8 +93,8 @@ class Slottables {
   }
 }
 
-export const SlotchangeMixin = function (Base) {
-  return class SlotchangeMixin extends Base {
+export const SlottableMixin = function (Base) {
+  return class SlottableMixin extends Base {
 
     constructor() {
       super();
