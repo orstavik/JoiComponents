@@ -390,8 +390,8 @@ const runSlotchangeMixinTest = function (SlotchangeMixin) {
 
   });
 };
-import {ShadowSlotchangeMixin} from "../../src/ShadowSlotchangeMixin.js";
-import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
+import {ShadowSlotchangeMixin} from "../../src/SlotchangeMixin.js";
+import {SlotchangeMixin} from "../../src/SlottableMixin.js";
 
 runSlotchangeMixinTest(ShadowSlotchangeMixin);
 runSlotchangeMixinTest(SlotchangeMixin);
