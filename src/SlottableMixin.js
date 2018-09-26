@@ -18,34 +18,6 @@ function arrayEquals(a, b) {
   return b && a && a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
-/**
- * SlottableMixin adds a reactive lifecycle hook .slotchangedCallback(...) to its subclasses.
- * This lifecycle hook is triggered every time a potentially assignable node for the element changes.
- * .slotchangedCallback(...) triggers manually every time the element is attached to the DOM and
- * whenever the a slotchange event would occur inside it.
- * The callback does not require neither a `<slot>` nor a shadowRoot to be present on the custom element,
- * it will trigger regardless.
- *
- * .slotchangedCallback(slotname, newAssignedNodes, oldAssignedNodes) is triggered every time:
- *  1) the element is connected to the DOM,
- *  2) whenever the slotted content of an element changes, but
- *  3) except when the content of newAssignedNodes and oldAssignedNodes are equal.
- *
- * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
- * a) Detachment: SlottableMixin always starts observing when it is connected to the DOM and stops when it is disconnected.
- * b) Content assignment: changes to assignedNodes of slotted children are notified as if the change happened to a normal child.
- *
- * @param Base class that extends HTMLElement
- * @returns {SlottableMixin} class that extends HTMLElement
- *
- * todo when the childListChanges, I need a WeakMap that hold references to the previous values.
- * todo This map is setup so that it is triggered created the first time the element is connected, but to the content
- */
-const hostChildrenChanged = Symbol("hostChildrenChanged");
-const hostSlotchange = Symbol("chainedSlotchangeEvent");
-const init = Symbol("triggerAllSlotchangeCallbacks");
-const slottables = Symbol("notFlatMap");
-
 class Slottables {
   constructor(name, assigneds) {
     this.name = name;
@@ -57,6 +29,7 @@ class Slottables {
       return this.assigneds;
     let res = [];
     for (let n of this.assigneds) {
+      //todo here I need to add the rule that if it is not part of a shadowDom, then it should just be pushed as it is
       if (n.tagName === "SLOT") { //if(node instanceof HTMLSlotElement) does not work in polyfill.
         const flat = n.assignedNodes({flatten: true});
         res = res.concat(flat);
@@ -71,24 +44,47 @@ class Slottables {
   }
 }
 
+/**
+ * SlottableMixin adds a reactive lifecycle hook .slotCallback(...) to its subclasses.
+ * SlottableMixin does not require neither a `<slot>` nor a shadowRoot to be present on the custom element,
+ * it will trigger regardless.
+ *
+ * This lifecycle hook is triggered every time a potentially slottable nodes for the element changes.
+ * .slotCallback(...) is initialized and triggers at .
+ * Then .slotCallback(...) is triggered whenever the childList of the host node changes, or
+ * .
+ *
+ * .slotCallback(slottables) is triggered:
+ *  1) the first requestAnimationFrame after the element is constructed,
+ *  2) whenever the childNodes of the host element changes, and
+ *  3) whenever the assigned nodes of a <slot> node that is a child of the host element changes.
+ *
+ * Gold standard: https://github.com/webcomponents/gold-standard/wiki/
+ * a) Content assignment: changes to assignedNodes of slotted children are notified as if the change happened to a normal child.
+ *
+ * @param Base class that extends HTMLElement
+ * @returns {SlottableMixin} class that extends HTMLElement
+ */
+const hostChildrenChanged = Symbol("hostChildrenChanged");
+const hostSlotchange = Symbol("chainedSlotchangeEvent");
+const slottables = Symbol("notFlatMap");
+
 export const SlottableMixin = function (Base) {
   return class SlottableMixin extends Base {
 
     constructor() {
       super();
       this[slottables] = {};
-      // this[microTaskRegister] = new WeakSet();
-      requestAnimationFrame(() => this[init]());
-    }
-
-    [init]() {
-      const mo = new MutationObserver(() => this[hostChildrenChanged]());
-      mo.observe(this, {childList: true});
-      this.addEventListener("slotchange", e => this[hostSlotchange](e));
-      this[hostChildrenChanged]();
+      requestAnimationFrame(() => {
+        const mo = new MutationObserver(() => this[hostChildrenChanged]());
+        mo.observe(this, {childList: true});
+        this.addEventListener("slotchange", e => this[hostSlotchange](e));
+        this[hostChildrenChanged]();
+      });
     }
 
     [hostSlotchange](e) {
+      //todo I need to filter grandparents with illegal slot names too, right??
       const slot = e.composedPath().find(n => n.tagName === "SLOT" && n.parentNode === this);
       if (!slot)    //a slotchange event of a grandchild in the lightdom, not for me
         return;
@@ -100,10 +96,8 @@ export const SlottableMixin = function (Base) {
     [hostChildrenChanged]() {
       const children = mapNodesByAttributeValue(this.childNodes, "slot");
       for (let name in children) {
-        if (arrayEquals(children[name], this[slottables][name]))
-          continue;
-        this[slottables][name] = children[name];
-        this.slotCallback(new Slottables(name, this[slottables][name]));
+        if (!arrayEquals(children[name], this[slottables][name]))
+          this.slotCallback(new Slottables(name, this[slottables][name] = children[name]));
       }
     }
   }
