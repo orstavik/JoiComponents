@@ -102,7 +102,7 @@
       createDiv(testValue, (this.id+" connectedCallback") === testValue)
     }
 
-    slotchangedCallback(slot, newList, oldList) {
+    slotCallback(slot) {
       let testValue = expecteds.shift();
       createDiv(testValue, (this.id+" slotchangedCallback") === testValue)
     }

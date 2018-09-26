@@ -3,22 +3,16 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
-import {flattenNodes} from "./flattenNodes.js";
 
-const isInit = Symbol("isInit");
 const init = Symbol("init");
 const processSlotchangeEvent = Symbol("processSlotchangeEvent");
-const processSlot = Symbol("processSlot");
-const slotToAssigned = Symbol("slotToAssigned");
-const microTaskRegister = Symbol("slotToAssigned");
-
-function arrayEquals(a, b) {
-  return a && b && a.length === b.length && a.every((v, i) => v === b[i]);
-}
+const microTaskRegister = Symbol("microTaskRegister");
 
 function onlyOncePerMicroTaskCycle(register, key) {
-  if (register.has(key))
+  if (register.has(key)){
+    console.log("abourt");
     return false;
+  }
   register.add(key);
   Promise.resolve().then(() => {
     register.delete(key);
@@ -31,36 +25,17 @@ export function ShadowSlotchangeMixin(Base) {
 
     constructor() {
       super();
-      this[isInit] = false;
       this[microTaskRegister] = new WeakSet();
-      this[slotToAssigned] = new WeakMap();
-      Promise.resolve().then(() => this.shadowRoot.addEventListener("slotchange", e => this[processSlotchangeEvent](e)));
-    }
-
-    connectedCallback() {
-      if (super.connectedCallback) super.connectedCallback();
-      this[isInit] || (Promise.resolve().then(() => this[init]()), this[isInit] = true);
+      requestAnimationFrame(() => this[init]());
     }
 
     [init]() {
+      this.shadowRoot.addEventListener("slotchange", e => this[processSlotchangeEvent](e));
       const slots = this.shadowRoot.querySelectorAll("slot");
       if (!slots)
         return;
-      if (this[slotToAssigned].has(slots[0]))           //abort operation if browser has
-        return;                                         //already processed that slot with a slotchange event
       for (let i = 0; i < slots.length; i++)
-        this[processSlot](slots[i]);
-    }
-
-    /**
-     * ref. Safari bug 2.
-     * This method is likely needing to be called when adding a new slot element to the shadowDOM
-     * so to produce the initial slotchange event missing in Safari.
-     *
-     * @param slot the newly added slot in the shadowDOM which you wish to trigger the initial slotchange event on.
-     */
-    triggerSlotchangeCallbackManually(slot) {
-      Promise.resolve().then(() => this[processSlot](slot));
+        this.slotCallback(slots[i]);
     }
 
     /**
@@ -81,18 +56,24 @@ export function ShadowSlotchangeMixin(Base) {
      * @param e the slotchange event
      */
     [processSlotchangeEvent](e) {
-      const slot = e.composedPath().find(n => n.tagName === "SLOT" && n.getRootNode() === this.shadowRoot);
-      if (onlyOncePerMicroTaskCycle(this[microTaskRegister], slot))
-        this[processSlot](slot);
-    }
-
-    [processSlot](slot) {
-      let newAssigned = flattenNodes(slot.assignedNodes());
-      let oldAssigned = this[slotToAssigned].get(slot);
-      if (!arrayEquals(oldAssigned, newAssigned)) {
-        this[slotToAssigned].set(slot, newAssigned);
-        this.slotchangedCallback(slot.name, newAssigned, oldAssigned);
+      // debugger;
+      //removes the GrandpaError slot
+      let path = e.composedPath();
+      let activeSlot;
+      for (let node of path) {
+        if (node.tagName === "SLOT")
+          activeSlot = node;
+        else
+          break;
       }
+      if (activeSlot.getRootNode() !== this.shadowRoot){
+        // console.log("REMOVE", path);
+        return;
+      }
+      // const slot = e.composedPath().find(n => n.tagName === "SLOT" && n.getRootNode() === this.shadowRoot);
+      //todo check if I need this after initialization
+      //if (onlyOncePerMicroTaskCycle(this[microTaskRegister], activeSlot))
+      this.slotCallback(activeSlot);
     }
   }
 }

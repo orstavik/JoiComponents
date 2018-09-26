@@ -3,7 +3,17 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
-import {flattenNodes} from "./flattenNodes.js";
+
+function flattenNodes(nodes) {
+  let res = [];
+  for (let n of nodes) {
+    if (n.tagName === "SLOT")  //if(node instanceof HTMLSlotElement) does not work in polyfill.
+      res = res.concat(n.assignedNodes({flatten: true}));
+    else
+      res.push(n);
+  }
+  return res;
+}
 
 function mapNodesByAttributeValue(nodes, attributeName) {
   var res = {};
@@ -13,13 +23,6 @@ function mapNodesByAttributeValue(nodes, attributeName) {
     (res[name] || (res[name] = [])).push(n);
   }
   return res;
-}
-
-function flattenMap(notFlat) {
-  var flat = {};
-  for (let key in notFlat)
-    flat[key] = flattenNodes(notFlat[key]);
-  return flat;
 }
 
 function arrayEquals(a, b) {
@@ -60,55 +63,71 @@ function onlyOncePerMicroTaskCycle(register, key) {
 }
 
 const hostChildrenChanged = Symbol("hostChildrenChanged");
-const chainedSlotchangeEvent = Symbol("chainedSlotchangeEvent");
-const triggerAllSlotchangeCallbacks = Symbol("triggerAllSlotchangeCallbacks");
-const triggerCallback = Symbol("triggerCallback");
-const notFlatMap = Symbol("notFlatMap");
-const flatMap = Symbol("flatMap");
+const hostSlotchange = Symbol("chainedSlotchangeEvent");
+const init = Symbol("triggerAllSlotchangeCallbacks");
+const slottables = Symbol("notFlatMap");
 const microTaskRegister = Symbol("microTaskRegister");
+
+class Slottables {
+  constructor(name, assigneds) {
+    this.name = name;
+    this.assigneds = assigneds;
+  }
+
+  assignedNodes(config) {
+    if (!(config && config.flatten === true))
+      return this.assigneds;
+    let res = [];
+    for (let n of this.assigneds) {
+      if (n.tagName === "SLOT") { //if(node instanceof HTMLSlotElement) does not work in polyfill.
+        const flat = n.assignedNodes({flatten: true});
+        res = res.concat(flat);
+      } else
+        res.push(n);
+    }
+    return res;
+  }
+
+  assignedElements(config) {
+    return this.assignedNodes(config).filter(n => n.nodeType === Node.ELEMENT_NODE);
+  }
+}
 
 export const SlotchangeMixin = function (Base) {
   return class SlotchangeMixin extends Base {
 
     constructor() {
       super();
-      this[notFlatMap] = null;
-      this[flatMap] = {};
+      this[slottables] = {};
       this[microTaskRegister] = new WeakSet();
-      const mo = new MutationObserver(() => this[hostChildrenChanged]());
-      mo.observe(this, {childList: true});
-      this.addEventListener("slotchange", e => this[chainedSlotchangeEvent](e));
-      Promise.resolve().then(() => this[hostChildrenChanged]());
-      //todo triggering this in the constructor might be a problem..
-      //todo connectedCallback() might not have been run yet.. I should write a test for that.
+      requestAnimationFrame(() => this[init]());
     }
 
-    [chainedSlotchangeEvent](e) {
-      //slotchange from chained slot triggered before the observer has run its childrenChangedAlgorithm. Just skip it, the hostChildren will regardlessly run the same logic.
-      if (!this[notFlatMap])
-        return;
-      const slot = e.path.find(n => n.tagName === "SLOT" && n.parentNode === this);
+    [init]() {
+      const mo = new MutationObserver(() => this[hostChildrenChanged]());
+      mo.observe(this, {childList: true});
+      this.addEventListener("slotchange", e => this[hostSlotchange](e));
+      this[hostChildrenChanged]();
+    }
+
+    [hostSlotchange](e) {
+      const slot = e.composedPath().find(n => n.tagName === "SLOT" && n.parentNode === this);
       if (!slot)    //a slotchange event of a grandchild in the lightdom, not for me
         return;
+      //todo stop propagation here??
       if (!onlyOncePerMicroTaskCycle(this[microTaskRegister], slot))
         return;
       const slotName = slot.getAttribute("slot") || "";//todo test for this use of slotnames to guide the slot assigning
-      let newFlatNodeList = flattenNodes(this[notFlatMap][slotName]);
-      this[triggerCallback](slotName, newFlatNodeList, this[flatMap][slotName]);
-    }
-
-    [triggerCallback](slotName, newAssignedNodes, oldAssignedNodes) {
-      if (arrayEquals(newAssignedNodes, oldAssignedNodes))
-        return;
-      this.slotchangedCallback(slotName, newAssignedNodes, oldAssignedNodes);
-      this[flatMap][slotName] = newAssignedNodes;
+      this.slotCallback(new Slottables(slotName, this[slottables][slotName]));
     }
 
     [hostChildrenChanged]() {
-      this[notFlatMap] = mapNodesByAttributeValue(this.childNodes, "slot");
-      let newFlatMap = flattenMap(this[notFlatMap]);
-      for (let slotName in newFlatMap) {
-        this[triggerCallback](slotName, newFlatMap[slotName], this[flatMap][slotName]);
+      const children = mapNodesByAttributeValue(this.childNodes, "slot");
+      for (let name in children) {
+        if (arrayEquals(children[name], this[slottables][name]))
+          continue;
+        this[slottables][name] = children[name];
+        this.slotCallback(new Slottables(name, this[slottables][name]));
       }
     }
   }

@@ -3,9 +3,9 @@
   <img id="apple" src="https://cdn0.iconfinder.com/data/icons/fruits/512/Apple.png" height="100px"/>
 </green-frame>
 <script type="module">
-  import {StaticSlotchangeMixin} from "../../src/StaticSlotchangeMixin.js";
+  import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
 
-  class GreenFrame extends StaticSlotchangeMixin(HTMLElement) {
+  class GreenFrame extends SlotchangeMixin(HTMLElement) {
     constructor() {
       super();
       this.attachShadow({mode: "open"});
@@ -17,7 +17,8 @@
       `;
     }
 
-    slotchangedCallback(slot, newFlattenedChildren, oldFlattenedChildren) {
+    slotCallback(slot) {
+      let newFlattenedChildren = slot.assignedNodes({flatten: true});
       let elementById = this.shadowRoot.getElementById("result");
       elementById.innerText = newFlattenedChildren.map(c => c.id).join(".");
     }

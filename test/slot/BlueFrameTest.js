@@ -66,9 +66,9 @@ describe("Blue-frame", function () {
         this.shadowRoot.appendChild(blueFrameTempl.content);
       }
 
-      slotchangedCallback(slotName, newChildren, oldChildren) {
+      slotCallback(slot) {
         this.testValue = this.testValue || [];
-        this.testValue.push({slotName, newChildren, oldChildren});
+        this.testValue.push({slotName: slot.name, newChildren: slot.assignedNodes({flatten: true})});
       }
     }
 
@@ -80,9 +80,9 @@ describe("Blue-frame", function () {
         this.shadowRoot.appendChild(passePartout.content);
       }
 
-      slotchangedCallback(slotName, newChildren, oldChildren) {
+      slotCallback(slot) {
         this.testValue = this.testValue || [];
-        this.testValue.push({slotName, newChildren, oldChildren});
+        this.testValue.push({slotName: slot.name, newChildren: slot.assignedNodes({flatten: true})});
       }
     }
 
@@ -103,7 +103,7 @@ describe("Blue-frame", function () {
     const allElements = document.querySelector("body").children;
     const blue = allElements[allElements.length - 1];
     const passe = blue.shadowRoot.children[1];
-    Promise.resolve().then(() => {
+    requestAnimationFrame(() => {
       expect(blue.testValue.length).to.be.equal(2);
       expect(blue.testValue[0].slotName).to.be.equal("");
       expect(blue.testValue[0].oldChildren).to.be.equal(undefined);
