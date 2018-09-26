@@ -3,14 +3,23 @@
  *
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
-
+/**
+ * Filters away <slot> elements that are placed as grandchildren or lower of this custom element.
+ */
 function processSlotchange(e, el) {
-  for (let node of e.composedPath()) {
-    if (node.tagName !== "SLOT")
+  const path = e.composedPath();
+  if (path[0].getRootNode() === el.shadowRoot){
+    e.stopPropagation();
+    el.slotCallback(path[0]);
+    return;
+  }
+  for (let i = 0; i < path.length; i++) {
+    if (path[i].tagName !== "SLOT")
       return;
-    if (node.getRootNode() === el.shadowRoot){
+    if (path[i].parentNode === el && path[i+1].getRootNode() === el.shadowRoot) {
       e.stopPropagation();
-      el.slotCallback(node);
+      el.slotCallback(path[i+1]);
+      return;
     }
   }
 }
