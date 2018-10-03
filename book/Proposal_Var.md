@@ -126,3 +126,13 @@ todo:
 1. Add onDomContentLoaded/onDocumentReady callback hook to VAR / TEMPLATE. 
    This callback hook would enable VAR / TEMPLATE to implement a below-the-fold solution in a single line.
    
+2. The initial attributeChangedCallback could/should also be called at the same time? No, i think not.
+
+3. Add initial attributeChangedCallback for all observed attributes, *also* when they are empty.
+   Make demo that shows how this is useful when you use attributes to control the setup of the shadowDOM.
+   
+## Usecases
+
+1. Make shadowDOM based on the slotted elements.
+
+2. Make shadowDOM based on attribute setting (including the empty one).
