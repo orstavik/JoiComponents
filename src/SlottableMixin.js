@@ -29,8 +29,7 @@ class Slottables {
       return this.assigneds;
     let res = [];
     for (let n of this.assigneds) {
-      //todo here I need to add the rule that if it is not part of a shadowDom, then it should just be pushed as it is
-      if (n.tagName === "SLOT") { //if(node instanceof HTMLSlotElement) does not work in polyfill.
+      if (n.tagName === "SLOT" && n.getRootNode().host) { //if(node instanceof HTMLSlotElement) does not work in polyfill.
         const flat = n.assignedNodes({flatten: true});
         res = res.concat(flat);
       } else

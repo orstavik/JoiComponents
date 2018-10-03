@@ -1,24 +1,3 @@
-const needsChromeFix = function () {
-  customElements.define("needs-chrome-fix-bug", class extends HTMLElement {
-  });
-  const div = document.createElement("needs-chrome-fix-bug");
-  const slot = document.createElement("slot");
-  const slot2 = document.createElement("slot");
-  div.appendChild(slot);
-  div.attachShadow({mode: "open"});
-  div.shadowRoot.appendChild(slot2);
-  return slot2.assignedNodes({flatten: true}).length === 1;
-}();
-const fixChromeAssignedNodesBug = needsChromeFix ?
-  function (slot) {
-    const original = slot.assignedNodes;
-    slot.assignedNodes = a => original.call(slot, a).filter(n => n.tagName !== "SLOT");
-    return slot;
-  } :
-  function (slot) {
-    return slot
-  };
-
 const runSlotchangeMixinTest = function (SlotchangeMixinType) {
   describe(SlotchangeMixinType.name, function () {
 
@@ -34,12 +13,10 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       slotCallback(slot) {
         if (this._stop)
           throw new Error("Bug in test: Lingering slotCallback");
-        slot = fixChromeAssignedNodesBug(slot);
         this.testValue = this.testValue || [];
-        const flat = slot.assignedNodes({flatten: true});
         this.testValue.push({
           slotName: slot.name,
-          value: flat
+          value: slot.assignedNodes({flatten: true})
         });
       }
 
@@ -72,7 +49,6 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       slotCallback(slot) {
         if (this._stop)
           throw new Error("Bug in test: Lingering slotCallback");
-        slot = fixChromeAssignedNodesBug(slot);
         this.testValue = this.testValue || [];
         this.testValue.push({
           slotName: slot.name,
@@ -98,7 +74,6 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       slotCallback(slot) {
         if (this._stop)
           throw new Error("Bug in test: Lingering slotCallback");
-        slot = fixChromeAssignedNodesBug(slot);
         this.testValue = this.testValue || [];
         this.testValue.push({
           slotName: slot.name,
@@ -124,7 +99,6 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       slotCallback(slot) {
         if (this._stop)
           throw new Error("Bug in test: Lingering slotCallback");
-        slot = fixChromeAssignedNodesBug(slot);
         this.testValue = this.testValue || [];
         this.testValue.push({
           slotName: slot.name,
@@ -172,9 +146,6 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       const el = new Slot1();
       el.appendChild(document.createElement("div"));
       document.body.appendChild(el);
-      //MutationObserver (is the same true for slotchange Event??)is not triggered immediately,
-      //but is added to the end of the microtask que.
-      //Therefor, the check of tests must be added after it in the micro task que.
       requestAnimationFrame(() => {
         expect(el.testValue.length).to.be.equal(1);
         expect(el.testValue[0].slotName).to.be.equal("");
@@ -185,22 +156,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       });
     });
 
-    it("Unassigned slots is not printed", function (done) {
-      const el = new Slot1();
-      el.innerHTML = "<div></div><slot></slot>";
-      // el.appendChild(document.createElement("div"));
-      // el.appendChild(document.createElement("slot"));
-      requestAnimationFrame(() => {
-        expect(el.testValue.length).to.be.equal(1);
-        expect(el.testValue[0].slotName).to.be.equal("");
-        expect(el.testValue[0].value.length).to.be.equal(1);
-        expect(el.testValue[0].value[0].nodeName).to.be.equal("DIV");
-        el.stop();
-        done();
-      });
-    });
-
-    it("chained slot test", function (done) {
+  it("chained slot test", function (done) {
       const el = new SlotWrapper();
       const inner = el.shadowRoot.children[0];
       el.appendChild(document.createElement("div"));
@@ -377,7 +333,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
           expect(child.testValue[0].value.length).to.be.equal(2);
           expect(child.testValue[0].value[0].nodeName).to.be.equal("#text");
           expect(child.testValue[0].value[1].nodeName).to.be.equal("#text");
-        } else if (SlotchangeMixinType === SlottableMixin) {                        
+        } else if (SlotchangeMixinType === SlottableMixin) {
           expect(child.testValue.length).to.be.equal(2);
           expect(child.testValue[0].slotName).to.be.equal("");
           expect(child.testValue[0].value.length).to.be.equal(2);
@@ -396,6 +352,8 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
 };
 import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
 import {SlottableMixin} from "../../src/SlottableMixin.js";
+import {VarMixin} from "../../src/VarMixin.js";
 
 runSlotchangeMixinTest(SlotchangeMixin);
 runSlotchangeMixinTest(SlottableMixin);
+runSlotchangeMixinTest(VarMixin);

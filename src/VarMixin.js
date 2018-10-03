@@ -4,6 +4,18 @@
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
 
+function flattenAssignedNodesJOIimpl(slot){
+  let res = [];
+  for (let n of slot.assignedNodes()) {
+    if (n.tagName === "SLOT") { //if(node instanceof HTMLSlotElement) does not work in polyfill.
+      const flat = flattenAssignedNodesJOIimpl(n);
+      res = res.concat(flat);
+    } else
+      res.push(n);
+  }
+  return res;
+}
+
 function mapNodesByAttributeValue(nodes, attributeName) {
   var res = {};
   for (var i = 0; i < nodes.length; i++) {
@@ -29,11 +41,23 @@ class Slottables {
       return this.assigneds;
     let res = [];
     for (let n of this.assigneds) {
-      //todo here I need to add the rule that if it is not part of a shadowDom, then it should just be pushed as it is
-      if (n.tagName === "SLOT") { //if(node instanceof HTMLSlotElement) does not work in polyfill.
-        const flat = n.assignedNodes({flatten: true});
+      if (n.tagName === "SLOT" && n.getRootNode().host) { //if(node instanceof HTMLSlotElement) does not work in polyfill.
+        const flat = n.assignedNodes(config);
         res = res.concat(flat);
       } else
+        res.push(n);
+    }
+    return res;
+  }
+
+  varAssignedNodes(config) {
+    if (!(config && config.flatten === true))
+      return this.assigneds;
+    let res = [];
+    for (let n of this.assigneds) {
+      if (n.tagName === "SLOT") //if(node instanceof HTMLSlotElement) does not work in polyfill.
+        res = res.concat(flattenAssignedNodesJOIimpl(n));
+      else
         res.push(n);
     }
     return res;
@@ -69,8 +93,8 @@ const hostChildrenChanged = Symbol("hostChildrenChanged");
 const hostSlotchange = Symbol("chainedSlotchangeEvent");
 const slottables = Symbol("notFlatMap");
 
-export const SlottableMixin = function (Base) {
-  return class SlottableMixin extends Base {
+export const VarMixin = function (Base) {
+  return class SlottableMixinVar extends Base {
 
     constructor() {
       super();
