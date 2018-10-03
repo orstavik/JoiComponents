@@ -4,7 +4,7 @@
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
 
-export function flattenAssignedNodesVar(slot){
+export function flattenAssignedNodesVar(slot) {
   let res = [];
   for (let n of slot.assignedNodes()) {
     if (n.tagName === "SLOT") { //if(node instanceof HTMLSlotElement) does not work in polyfill.
@@ -16,19 +16,19 @@ export function flattenAssignedNodesVar(slot){
   return res;
 }
 
-function triggerChainedSlotCallbacks(slot){
-  while(slot){
+function triggerChainedSlotCallbacks(slot) {
+  while (slot) {
     let parent = slot.parentNode;
     if (!parent)
       break;
     let slotName = slot.getAttribute("slot") || "";
-    if (parent[slottables] && parent.slotCallback){
+    if (parent[slottables] && parent.slotCallback) {
       parent.slotCallback(new Slottables(slotName, parent[slottables][slotName]));
     }
     let shadow = parent.shadowRoot;
     if (!shadow)
       return;
-    slot =  shadow.querySelector(`slot[name="${slotName}"]`);
+    slot = shadow.querySelector(`slot[name="${slotName}"]`);
   }
 }
 
@@ -38,6 +38,16 @@ function mapNodesByAttributeValue(nodes, attributeName) {
     var n = nodes[i];
     var name = n.getAttribute ? (n.getAttribute(attributeName) || "") : "";
     (res[name] || (res[name] = [])).push(n);
+  }
+  return res;
+}
+
+function arrayDiff(dictA, dictB) {
+  let allKeys = Object.keys(Object.assign({}, dictA, dictB));
+  let res = [];
+  for (let key of allKeys) {
+    if (!arrayEquals(dictA[key], dictB[key]))
+      res.push(key);
   }
   return res;
 }
@@ -56,6 +66,8 @@ class Slottables {
     if (!(config && config.flatten === true))
       return this.assigneds;
     let res = [];
+    if (!this.assigneds)
+      return res;
     for (let n of this.assigneds) {
       if (n.tagName === "SLOT" && n.getRootNode().host) { //if(node instanceof HTMLSlotElement) does not work in polyfill.
         const flat = n.assignedNodes(config);
@@ -108,17 +120,18 @@ class Slottables {
 const hostChildrenChanged = Symbol("hostChildrenChanged");
 const hostSlotchange = Symbol("chainedSlotchangeEvent");
 const slottables = Symbol("notFlatMap");
+const init = Symbol("init");
 
 export const VarMixin = function (Base) {
   return class VarMixin extends Base {
 
     constructor() {
       super();
-      this[slottables] = {};
+      this[slottables] = null;
       requestAnimationFrame(() => {
         const mo = new MutationObserver(() => this[hostChildrenChanged]());
         mo.observe(this, {childList: true});
-        this[hostChildrenChanged](true);
+        this[init]();
       });
     }
 
@@ -126,7 +139,7 @@ export const VarMixin = function (Base) {
       for (let slot of e.composedPath()) {
         if (slot.tagName !== "SLOT")
           return;
-        if (slot.parentNode === this){
+        if (slot.parentNode === this) {
           e.stopPropagation();
           const slotName = slot.getAttribute("slot") || "";
           this.slotCallback(new Slottables(slotName, this[slottables][slotName]));
@@ -135,17 +148,25 @@ export const VarMixin = function (Base) {
       }
     }
 
-    [hostChildrenChanged](firstTime) {
+    [init]() {
       const children = mapNodesByAttributeValue(this.childNodes, "slot");
-      for (let name in children) {
-        if (!arrayEquals(children[name], this[slottables][name])){
-          this.slotCallback(new Slottables(name, this[slottables][name] = children[name]));
-          if (this.shadowRoot && !firstTime){
-            const relevantSlot = this.shadowRoot.querySelector(`slot[name="${name}"]`);
-            triggerChainedSlotCallbacks(relevantSlot);
-          }
+      if (children.length === 0) children[""] = [];
+      for (let name in children)
+        this.slotCallback(new Slottables(name, children[name]));
+      this[slottables] = children;
+    }
+
+    [hostChildrenChanged]() {
+      const children = mapNodesByAttributeValue(this.childNodes, "slot");
+      let diffs = arrayDiff(this[slottables], children);
+      for (let name of diffs) {
+        this.slotCallback(new Slottables(name, children[name]));
+        if (this.shadowRoot) {
+          const relevantSlot = this.shadowRoot.querySelector(`slot[name="${name}"]`);
+          triggerChainedSlotCallbacks(relevantSlot);
         }
       }
+      this[slottables] = children;
     }
   }
 };

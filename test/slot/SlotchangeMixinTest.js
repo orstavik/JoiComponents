@@ -398,6 +398,103 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       });
     });
 
+    it("slottables also trigger callbacks in SlottableMixin and VarMixin", function (done) {
+      const el = new Slot1();
+      el.innerHTML = "<div id='a'></div><div id='b' slot='something'></div>";
+      requestAnimationFrame(() => {
+        if (SlotchangeMixin === SlotchangeMixinType)
+          return done();
+        expect(el.testValue.length).to.be.equal(2);
+        expect(el.testValue[0].slotName).to.be.equal("");
+        expect(el.testValue[0].value.length).to.be.equal(1);
+        expect(el.testValue[0].value[0].id).to.be.equal("a");
+        expect(el.testValue[1].slotName).to.be.equal("something");
+        expect(el.testValue[1].value.length).to.be.equal(1);
+        expect(el.testValue[1].value[0].id).to.be.equal("b");
+        el.stop();
+        done();
+      });
+    });
+
+    it("removing elements also trigger callbacks", function (done) {
+      const el = new Slot1();
+      el.innerHTML = "<div id='a'></div>";
+      requestAnimationFrame(() => {
+        expect(el.testValue.length).to.be.equal(1);
+        expect(el.testValue[0].slotName).to.be.equal("");
+        expect(el.testValue[0].value.length).to.be.equal(1);
+        expect(el.testValue[0].value[0].id).to.be.equal("a");
+        el.children[0].remove();
+        requestAnimationFrame(() => {
+          expect(el.testValue.length).to.be.equal(2);
+          expect(el.testValue[1].slotName).to.be.equal("");
+          expect(el.testValue[1].value.length).to.be.equal(0);
+          el.stop();
+          done();
+        });
+      });
+    });
+
+    it("removing elements also trigger callbacks, slottables", function (done) {
+      const el = new Slot1();
+      el.innerHTML = "<div id='a'></div><div id='b' slot='something'></div>";
+      requestAnimationFrame(() => {
+        if (SlotchangeMixin === SlotchangeMixinType)
+          return done();
+        expect(el.testValue.length).to.be.equal(2);
+        expect(el.testValue[0].slotName).to.be.equal("");
+        expect(el.testValue[0].value.length).to.be.equal(1);
+        expect(el.testValue[0].value[0].id).to.be.equal("a");
+        expect(el.testValue[1].slotName).to.be.equal("something");
+        expect(el.testValue[1].value.length).to.be.equal(1);
+        expect(el.testValue[1].value[0].id).to.be.equal("b");
+        el.children[1].remove();
+        requestAnimationFrame(() => {
+          expect(el.testValue.length).to.be.equal(3);
+          expect(el.testValue[2].slotName).to.be.equal("something");
+          expect(el.testValue[2].value.length).to.be.equal(0);
+          el.children[0].remove();
+          requestAnimationFrame(() => {
+            expect(el.testValue.length).to.be.equal(4);
+            expect(el.testValue[3].slotName).to.be.equal("");
+            expect(el.testValue[3].value.length).to.be.equal(0);
+            el.stop();
+            done();
+          });
+        });
+      });
+    });
+
+    it("removing elements also trigger callbacks, slottables, two at the same time", function (done) {
+      const el = new Slot1();
+      el.innerHTML = "<div id='a'></div><div id='b' slot='something'></div>";
+      requestAnimationFrame(() => {
+        if (SlotchangeMixin === SlotchangeMixinType)
+          return done();
+        expect(el.testValue.length).to.be.equal(2);
+        expect(el.testValue[0].slotName).to.be.equal("");
+        expect(el.testValue[0].value.length).to.be.equal(1);
+        expect(el.testValue[0].value[0].id).to.be.equal("a");
+        expect(el.testValue[1].slotName).to.be.equal("something");
+        expect(el.testValue[1].value.length).to.be.equal(1);
+        expect(el.testValue[1].value[0].id).to.be.equal("b");
+        el.children[0].remove();
+        el.children[0].remove();
+        requestAnimationFrame(() => {
+          expect(el.testValue.length).to.be.equal(4);
+          expect(el.testValue[2].slotName).to.be.equal("");
+          expect(el.testValue[2].value.length).to.be.equal(0);
+          expect(el.testValue[3].slotName).to.be.equal("something");
+          expect(el.testValue[3].value.length).to.be.equal(0);
+          el.stop();
+          done();
+        });
+      });
+    });
+
+    //todo add test for the empty initial child still gets a callback
+    //todo test for fallback slot nodes
+
   });
 };
 import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";

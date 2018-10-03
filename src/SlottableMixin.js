@@ -14,6 +14,16 @@ function mapNodesByAttributeValue(nodes, attributeName) {
   return res;
 }
 
+function arrayDiff(dictA, dictB) {
+  let allKeys = Object.keys(Object.assign({}, dictA, dictB));
+  let res = [];
+  for (let key of allKeys) {
+    if (!arrayEquals(dictA[key], dictB[key]))
+      res.push(key);
+  }
+  return res;
+}
+
 function arrayEquals(a, b) {
   return b && a && a.length === b.length && a.every((v, i) => v === b[i]);
 }
@@ -28,6 +38,8 @@ class Slottables {
     if (!(config && config.flatten === true))
       return this.assigneds;
     let res = [];
+    if (!this.assigneds)
+      return res;
     for (let n of this.assigneds) {
       if (n.tagName === "SLOT" && n.getRootNode().host) { //if(node instanceof HTMLSlotElement) does not work in polyfill.
         const flat = n.assignedNodes({flatten: true});
@@ -67,18 +79,19 @@ class Slottables {
 const hostChildrenChanged = Symbol("hostChildrenChanged");
 const hostSlotchange = Symbol("chainedSlotchangeEvent");
 const slottables = Symbol("notFlatMap");
+const init = Symbol("init");
 
 export const SlottableMixin = function (Base) {
   return class SlottableMixin extends Base {
 
     constructor() {
       super();
-      this[slottables] = {};
+      this[slottables] = null;
       requestAnimationFrame(() => {
         const mo = new MutationObserver(() => this[hostChildrenChanged]());
         mo.observe(this, {childList: true});
         this.addEventListener("slotchange", e => this[hostSlotchange](e));
-        this[hostChildrenChanged]();
+        this[init]();
       });
     }
 
@@ -95,12 +108,19 @@ export const SlottableMixin = function (Base) {
       }
     }
 
+    [init]() {
+      this[slottables] = mapNodesByAttributeValue(this.childNodes, "slot");
+      if (this[slottables].length === 0) this[slottables][""] = [];
+      for (let name in this[slottables])
+        this.slotCallback(new Slottables(name, this[slottables][name]));
+    }
+
     [hostChildrenChanged]() {
       const children = mapNodesByAttributeValue(this.childNodes, "slot");
-      for (let name in children) {
-        if (!arrayEquals(children[name], this[slottables][name]))
-          this.slotCallback(new Slottables(name, this[slottables][name] = children[name]));
-      }
+      let diffs = arrayDiff(this[slottables], children);
+      for (let name of diffs)
+        this.slotCallback(new Slottables(name, children[name]));
+      this[slottables] = children;
     }
   }
 };

@@ -117,9 +117,9 @@ MutationObserver(childList) for the elements.
 ### Implement the 'varCallback' as a mixin that uses the SLOT instead of the VAR.
 
 todo:
-1. make the new Slottables element both contain both algorithms for flattening.
-2. add the BatchedConstructor to the mixin
-3. make the varCallback use direct method calls to slot chain instead of slotchange event
+1. make VarMixin with new Slottables that contain both algorithms for flattening.
+2. add the BatchedConstructor to the mixin.. This must then be done only to the VarMixin.
+3. make the varCallback use direct method calls to slot chain instead of slotchange event. This is done
 
 ## Further suggestions
 
