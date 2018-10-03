@@ -4,16 +4,32 @@
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
 
-function flattenAssignedNodesJOIimpl(slot){
+export function flattenAssignedNodesVar(slot){
   let res = [];
   for (let n of slot.assignedNodes()) {
     if (n.tagName === "SLOT") { //if(node instanceof HTMLSlotElement) does not work in polyfill.
-      const flat = flattenAssignedNodesJOIimpl(n);
+      const flat = flattenAssignedNodesVar(n);
       res = res.concat(flat);
     } else
       res.push(n);
   }
   return res;
+}
+
+function triggerChainedSlotCallbacks(slot){
+  while(slot){
+    let parent = slot.parentNode;
+    if (!parent)
+      break;
+    let slotName = slot.getAttribute("slot") || "";
+    if (parent[slottables] && parent.slotCallback){
+      parent.slotCallback(new Slottables(slotName, parent[slottables][slotName]));
+    }
+    let shadow = parent.shadowRoot;
+    if (!shadow)
+      return;
+    slot =  shadow.querySelector(`slot[name="${slotName}"]`);
+  }
 }
 
 function mapNodesByAttributeValue(nodes, attributeName) {
@@ -56,7 +72,7 @@ class Slottables {
     let res = [];
     for (let n of this.assigneds) {
       if (n.tagName === "SLOT") //if(node instanceof HTMLSlotElement) does not work in polyfill.
-        res = res.concat(flattenAssignedNodesJOIimpl(n));
+        res = res.concat(flattenAssignedNodesVar(n));
       else
         res.push(n);
     }
@@ -94,7 +110,7 @@ const hostSlotchange = Symbol("chainedSlotchangeEvent");
 const slottables = Symbol("notFlatMap");
 
 export const VarMixin = function (Base) {
-  return class SlottableMixinVar extends Base {
+  return class VarMixin extends Base {
 
     constructor() {
       super();
@@ -102,8 +118,7 @@ export const VarMixin = function (Base) {
       requestAnimationFrame(() => {
         const mo = new MutationObserver(() => this[hostChildrenChanged]());
         mo.observe(this, {childList: true});
-        this.addEventListener("slotchange", e => this[hostSlotchange](e));
-        this[hostChildrenChanged]();
+        this[hostChildrenChanged](true);
       });
     }
 
@@ -120,11 +135,16 @@ export const VarMixin = function (Base) {
       }
     }
 
-    [hostChildrenChanged]() {
+    [hostChildrenChanged](firstTime) {
       const children = mapNodesByAttributeValue(this.childNodes, "slot");
       for (let name in children) {
-        if (!arrayEquals(children[name], this[slottables][name]))
+        if (!arrayEquals(children[name], this[slottables][name])){
           this.slotCallback(new Slottables(name, this[slottables][name] = children[name]));
+          if (this.shadowRoot && !firstTime){
+            const relevantSlot = this.shadowRoot.querySelector(`slot[name="${name}"]`);
+            triggerChainedSlotCallbacks(relevantSlot);
+          }
+        }
       }
     }
   }

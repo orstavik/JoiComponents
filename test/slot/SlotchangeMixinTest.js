@@ -17,6 +17,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
         this.testValue.push({
           slotName: slot.name,
           value: slot.assignedNodes({flatten: true})
+          , slot
         });
       }
 
@@ -53,6 +54,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
         this.testValue.push({
           slotName: slot.name,
           value: slot.assignedNodes({flatten: true})
+          , slot
         });
       }
 
@@ -78,6 +80,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
         this.testValue.push({
           slotName: slot.name,
           value: slot.assignedNodes({flatten: true})
+          , slot
         });
       }
 
@@ -103,6 +106,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
         this.testValue.push({
           slotName: slot.name,
           value: slot.assignedNodes({flatten: true})
+          , slot
         });
       }
 
@@ -156,7 +160,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       });
     });
 
-  it("chained slot test", function (done) {
+    it("chained slot test", function (done) {
       const el = new SlotWrapper();
       const inner = el.shadowRoot.children[0];
       el.appendChild(document.createElement("div"));
@@ -179,6 +183,8 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
         expect(inner.testValue[0].value.length).to.be.equal(2);
         el.appendChild(document.createElement("p"));
         Promise.resolve().then(() => {                //we must wait for the slotchange event which is run at the end of microtask que
+          if (name === "varmixin")         //not called, as SlotWrapper doesn't implement VarMixin, but only has a regular slot. Therefore, the top, initial callback doesn't trigger.
+            return done();
           expect(inner.testValue.length).to.be.equal(2);
           expect(inner.testValue[1].slotName).to.be.equal("");
           expect(inner.testValue[1].value.length).to.be.equal(3);
@@ -348,11 +354,55 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       });
     });
 
+    it("Slot without shadowRoot is added.", function (done) {
+      const el = new Slot1();
+      el.appendChild(document.createElement("div"));
+      el.appendChild(document.createElement("slot"));
+      requestAnimationFrame(() => {
+        expect(el.testValue.length).to.be.equal(1);
+        expect(el.testValue[0].slotName).to.be.equal("");
+        expect(el.testValue[0].value.length).to.be.equal(2);
+        expect(el.testValue[0].value[0].nodeName).to.be.equal("DIV");
+        expect(el.testValue[0].value[1].nodeName).to.be.equal("SLOT");
+        let alternateFlattened = flattenAssignedNodesVar(el.testValue[0].slot);
+        expect(alternateFlattened.length).to.be.equal(1);
+        expect(alternateFlattened[0].nodeName).to.be.equal("DIV");
+        el.stop();
+        done();
+      });
+    });
+
+    it("Slot without shadowRoot is added: GrandPa.", function (done) {
+      const el = new GrandpaSlot();
+      const grandChild = el.shadowRoot.children[0].shadowRoot.children[0];
+      el.appendChild(document.createElement("div"));
+      el.appendChild(document.createElement("slot"));
+      requestAnimationFrame(() => {
+        expect(el.testValue.length).to.be.equal(1);
+        expect(el.testValue[0].slotName).to.be.equal("");
+        expect(el.testValue[0].value.length).to.be.equal(2);
+        expect(el.testValue[0].value[0].nodeName).to.be.equal("DIV");
+        expect(el.testValue[0].value[1].nodeName).to.be.equal("SLOT");
+        let alternateFlattened = flattenAssignedNodesVar(el.testValue[0].slot);
+        expect(alternateFlattened.length).to.be.equal(1);
+        expect(alternateFlattened[0].nodeName).to.be.equal("DIV");
+        expect(grandChild.testValue.length).to.be.equal(1);
+        expect(grandChild.testValue[0].value.length).to.be.equal(6);
+        expect(grandChild.testValue[0].value[2].nodeName).to.be.equal("DIV");
+        expect(grandChild.testValue[0].value[3].nodeName).to.be.equal("SLOT");
+        alternateFlattened = flattenAssignedNodesVar(grandChild.testValue[0].slot);
+        expect(alternateFlattened.length).to.be.equal(5);
+        expect(alternateFlattened[2].nodeName).to.be.equal("DIV");
+        el.stop();
+        done();
+      });
+    });
+
   });
 };
 import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
 import {SlottableMixin} from "../../src/SlottableMixin.js";
-import {VarMixin} from "../../src/VarMixin.js";
+import {VarMixin, flattenAssignedNodesVar} from "../../src/VarMixin.js";
 
 runSlotchangeMixinTest(SlotchangeMixin);
 runSlotchangeMixinTest(SlottableMixin);
