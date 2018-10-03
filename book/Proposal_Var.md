@@ -95,14 +95,22 @@ MutationObserver(childList) for the elements.
 
 ## Style considerations
 
-1. The regular CSS rules that apply to both slotted elements and VAR child nodes 
-   remain the same as today.
+1. Regular CSS rules.
+   The childNodes of VAR would be styled as childNodes of TEMPLATE today.
+   This is similar to how childNodes of SLOT are styled today, 
+   with the exception that styles attributed to the SLOT itself are not inherited.
+   
+   The childNodes start from a new document root, but this document root has the same CSS rules defined 
+   as the root in which the template/var is defined.
 
 2. The ::slotted(*) CSS rules will now apply equally to assigned nodes and VAR.content nodes.
+   Var.content nodes that gets into the slotted position will be treated as ::slotted.
 
 3. In slots, regular inheritable CSS properties of a SLOT in a mediating custom element will 
    affect slotted content.
    This effect is very elusive, makes the model of style encapsulation for slotted content very vague.
+   For by far the majority of developers, this feature will function as style creep (benefitial or not),
+   and not a predictable feature. 
    (A mediating custom element is a custom element who places its slot/var
    element in the slottable position of another custom element).
    
@@ -112,8 +120,6 @@ todo:
 1. make the new Slottables element both contain both algorithms for flattening.
 2. add the BatchedConstructor to the mixin
 3. make the varCallback use direct method calls to slot chain instead of slotchange event
-
-
 
 ## Further suggestions
 
