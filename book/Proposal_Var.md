@@ -84,13 +84,22 @@ The `varCallback` is triggered in 4 ways:
     * The VAR element checks its host to see if itself is slotted, and if so, it will find its parent element
       and tell it to `triggerVarCallback` for the VAR element slotName.
  
-   This method function identical to todays slotchange events,                                   2. 
+   This method function identical to todays slotchange events, 
    except that it will only target the custom element that owns the VAR and irrelevant slotchange
    events cannot bubble up to confuse slotchange event listeners.
 
 4. Internally.   
    Whenever a VAR element is added or removed within the shadowRoot, 
-   a `varCallback` will be triggered for that VAR name, if that same name has no externally assigned nodes.
+   a `varCallback` will be triggered for that VAR name, 
+   if that same name has no externally assigned nodes.
+   
+ * Internally triggered `varCallback()`s can be skipped. The conceptual model is not very damaged by it.
+   The concept is that changes of the shadowDOM should only occur from within the custom element itself,
+   and thus processing due to such changes should be triggered pro-actively, 
+   directly from where the change is made, and not reactively via the callback.
+   This will up the performance of the `varCallback()`, simplify its conceptual model, and is my recommendation.
+   If such a policy is chosen, every time a set of externally assignable nodes are removed, 
+   the shadowRoot must be searched anew to find the current set of internal fallback nodes.
 
 ### Timing of `varCallback`
 1. As with slotchange events, subsequential `varCallback` (2., 3., 4.) 
@@ -235,7 +244,7 @@ When a VAR element disconnects from the `shadowRoot`, it:
 As connectedCallback and disconnectedCallback of SLOT is not available,
 the demo is implemented using a rAF poll.
 
-### 
+### `VAR.content` is perceived as static and does not trigger varCallback
 When the `.content` of the VAR element changes, it will not trigger a `varCallback()`.
 The `.content` can be changed dynamically, but when doing so the developer needs to actively
 process changes that arise from it.
