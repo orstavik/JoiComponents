@@ -13,9 +13,9 @@ the outer process might is still left open.
 This can create some problems if you want to run a post-construction process for the element 
 that not only anticipate that the individual element which triggers the process is completed,
 but also that the process that construct the parent or child nodes of the element is completed.
-We can call such post-construction process a "DOM-branch-dependent-process".
+We can call such a process a "DOM-branch-dependent" process.
 
-## slotchange: a DOM-branch-dependent-process
+## slotchange: a DOM-branch-dependent process
 
 A prime example of such a DOM-branch-dependent-process is the triggering of "slotchange" events.
 A slotchange is an event that reflect a DOM branch constellation that:
@@ -44,9 +44,9 @@ element construction is completed.
 And therefore, you wish to delay processing, since you can't delay triggering slotchange events, 
 until the entire DOM-branch on which it depends is completed.
 
-## The completion of DOM-branch construction
+## The completion of DOM-branch construction: 1) Main document parser
 
-There are two modes of DOM construction. First, the sync mode. Second, the parser of the main document.
+There are two modes of DOM construction. First, the parser of the main document. Second, the sync mode. 
 
 The parser of the main document creates custom elements one by one in the main DOM document.
 To explain how the construction of elements happen here, is beyond the scope of this book, let alone this chapter,
@@ -62,6 +62,14 @@ ie. delay until DCL.
 For custom elements this means that you wish to delay processing slotchange events until after DCL;
 To BatchedConstructorCallbacks of the main document, you therefore wish to delay triggering the process until DCL.
 
+```javascript
+/** First, block flushing of the que until DCL, and on DCL, open the que and try to flush it **/
+let ready = document.readyState === "complete" || document.readyState === "loaded";
+ready || window.addEventListener("DOMContentLoaded", function() {ready = true; runQue();});
+```
+
+## The completion of DOM-branch construction: 2) SYNC
+
 The second mode of DOM construction is sync.
 Sync mode can both be triggered by JS initialized constructors and the sync parser .innerHTML.
 These can be dynamically triggered during the setup of the main document (thus already delayed until DCL)
@@ -69,135 +77,172 @@ or after DCL.
 
 To delay processing events after DCL, you need another pattern: BatchedConstructorCallbacks.
 
-## BatchedConstructorCallback
+### BatchedConstructorCallback
 
 The BatchedConstructorCallback uses the constructor to both
 1. register the element in a global register *as started*, and 
 
-2. use a delayed microtask to register the element in another global register *as ended*.
-
+2. On the first element added, use a delayed microtask to start flushing the que.
+   This delayed microtask will only kick in after all the other microtask frames has completed.
    The delayed microtask will allow all the other "normal" construction processes to finish
    before it flags the element as constructed.
    
-3. When the element constructor is registered *as ended*, 
-   the BatchedConstructorCallback also checks if all constructors that were started have now ended.
-   This it does by just checking the length of the *constructors started* against the length of
-   *constructors ended*.
+3. When the element starts flushing its que, it does this in order last in-first out.
+   It then processes each task, and then register that task as completed.
    
-   When all the started constructors have also ended, the element starts flushing its que.
-   It does this by taking the last element registered and running the process it intends on it.
-   You can think of this process as for example slotchange processing.
+4. Since the tasks being flushed might start new constructors that gets added to the que,
+   the process must check if all started constructors are completed for each element it processes.
    
-4. As the process being run on the element might start new constructors,
-   the process must check if all started constructors are completed for each element it process.
-   
-5. When all the elements in the *constructors started* que have both *ended* and *processed completely*,
+5. When all the elements in the *constructors started* que have been *processed*,
    then the ques are reset and the flushing batched processes ends.
 
-### Example: WebComp with afterAllConstructorsEnded
+Below is a SIF (self invoking function) that implements such a que:
 
-In this example we create a mixin that provides a `.afterAllConstructorsEnded(...)` callback.
-`.afterAllConstructorsEnded(...)` is first delayed until DCL, and then delayed in the microtask que.
-
-```html
-<script>
-  /*First, block flushing of the que until DCL, and on DCL, open the que and try to flush it*/
-  let ready = document.readyState === "complete" || document.readyState === "loaded";
-  ready || window.addEventListener("DOMContentLoaded", function() {ready = true; runQue();});
+```javascript
+const batchedConstructorCallback = function(){
   
-  
-  let startedQue =[];
-  let endedQue =[];
-  let completed = [];
-  
-  function findLastNotChecked(toRun, hasRun){
+  //pure function to find the last in toRun, that !hasRun
+  const findLastNotChecked = function (toRun, hasRun){
     for (let i = toRun.length - 1; i >= 0; i--){
       let el = toRun[i];
-      if (hasRun.indexOf(el) < 0)
+      if (hasRun.indexOf(el) < 0) 
         return el;
     }
     return null;
   }
+  
+  //Ques for batched tasks
+  let startedQue =[];
+  let completed = [];
+  let isStarted = false;
 
-  function addToQue(el){
-    startedQue.push(el);
-    Promise.resolve().then(()=>{endedQue.push(el); runQue();});
-    
-    //alternative que timing
-    //requestAnimationFrame(()=>{endedQue.push(el); runQue();});    //que timing 2
-    
-    //This should have been que timing 1.
-    //but, the problem is normal template constructor in Chrome.
-    //this constructor does not provide a proper .assignedNodes() at any time during the microtask cycle of either constructor nor connectedCallback.
-    //this leaves the next raf as the best, but not ideal callback time.
-    //The postBatchedConstructorTiming should be:
-    //1. as soon as possible, and as sync with first, outermost, triggering constructor as possible
-    //2. but after all started constructors are finished,
-    //3. and after all the attributes are available (not a problem)
-    //4. and after all the final assignedNodes chain is available (problem in normal template parsing in Chrome).
-    //
-    //Two alternative solutions:
-    //A. use raf, + similar behavior in all browsers,
-    //            - delay the callback longer than desired, maybe strange race conditions.
-    //
-    //B. use microtask que
-    //   - this will in normal construction in Chrome cause the batchedConstructorCallback
-    //     to run on all the constructed elements *when the top level is likely empty*.
-    //     The batchedConstructorCallback would then add childList MutationObserver, 
-    //     which would trigger asap a second time later.
-    //     This option is not bad.
-  } 
-
-  function runQue(){
-    if (!ready) return;
-    //step 1:
-    //there are outer constructor microtask ques that has still not ended
-    //do nothing, and wait for the next one to be called
-    if (startedQue.length !== endedQue.length)  return;
-    //alternative if elements are removed from ques:
-    //  let el = findLastNotChecked(startedQue, endedQue);
-    //  if (el) return;
-    
-    //step 2:
-    //check if all the elements started has also been completed
-    //then, the que with elements is flushed.
-    //alternative if elements are removed from ques:
-    //if (startedQue.length === completed.length) {  3x ques = []; return; }
-    const el = findLastNotChecked(startedQue, completed);
-    if (!el) {
+  //First, block flushing of the que until DCL, and on DCL, open the que and try to flush it
+  let dcl = document.readyState === "complete" || document.readyState === "loaded";
+  dcl || window.addEventListener("DOMContentLoaded", function() {dcl = true; flushQue();});
+  
+  //process for flushing que
+  const flushQue = function(){
+    //step 1: check that dcl is ready.
+    if (!dcl) return;
+    //step 2: all elements started has been processed? reset and end
+    const fnel = findLastNotChecked(startedQue, completed);
+    if (!fnel) {
       startedQue =[];
-      endedQue =[];
       completed = [];
       return;      
     }
-    //step 3:
-    //call the function on the element
-    //mark the element as completed
-    //run the que again from scratch
-    //(in case new elements has been added to startedQue as a side-effect of running the function)
-    fn(el);
-    completed.push(el);
-    return runQue();
+    //step 3: run function, add the element to the completed list, and run again with TCO
+    fnel[0](fnel[1]);
+    completed.push(fnel);
+    flushQue();
   }
-  
-  function HTMLElement2(Base){
-    return class HTMLElement2 extends Base {
-      constructor(){
-        super();
-        addToQue(this);
-      }
+  return function batchedConstructorCallback(fn, el){
+    startedQue.push([fn,el]);
+    if (!isStarted){
+      isStarted = true;
+      Promise.resolve().then(()=>{
+        flushQue(); 
+        isStarted = false;
+      });
+    }
+  }                                                        
+}();
+```
+
+### Mixin: DOMBranchReady
+
+In this example we create a mixin that provides a `.domBranchReady()` callback.
+`.domBranchReady()` is first delayed until DCL, and then delayed in the microtask que.
+The code you put in `.domBranchReady()` you can be sure will be called as soon as possible
+after the DOM branch in which your element has been constructed is ready.
+
+```javascript
+//pure function to find the last in toRun, that !hasRun
+function findLastNotChecked(toRun, hasRun){
+  for (let i = toRun.length - 1; i >= 0; i--){
+    let el = toRun[i];
+    if (hasRun.indexOf(el) < 0) 
+      return el;
+  }
+  return null;
+}
+
+//Ques for batched tasks
+let startedQue =[];
+let completed = [];
+let isStarted = false;
+
+//First, block flushing of the que until DCL, and on DCL, open the que and try to flush it
+let dcl = document.readyState === "complete" || document.readyState === "loaded";
+dcl || window.addEventListener("DOMContentLoaded", function() {dcl = true; flushQue();});
+
+//process for flushing que
+function flushQue(){
+  //step 1: check that dcl is ready.
+  if (!dcl) return;
+  //step 2: all elements started has been processed? reset and end
+  const fnel = findLastNotChecked(startedQue, completed);
+  if (!fnel) {
+    startedQue =[];
+    completed = [];
+    return;      
+  }
+  //step 3: run function, add the element to the completed list, and run again with TCO
+  fnel[0](fnel[1]);
+  completed.push(fnel);
+  flushQue();
+}
+
+function batchedConstructorCallback(fn, el){
+  startedQue.push([fn,el]);
+  if (!isStarted){
+    isStarted = true;
+    Promise.resolve().then(()=>{
+      flushQue(); 
+      isStarted = false;
+    });
+  }
+} 
+
+const fn = function(el) { 
+  el.domBranchReady();
+}
+
+function DOMBranchReadyMixin(Base){
+  return class DOMBranchReadyMixin extends Base {
+    constructor(){
+      super();
+      batchedConstructorCallback(fn, this);
     }
   }
-  
-  const fn = function(el) { el.afterAllConstructorsEnded();}
+}
+```
+## Example: OuterMiddleInner
 
-  class WebComp3 extends HTMLElement2(HTMLElement) {
-    afterAllConstructorsEnded() {
-      console.log("afterAllConstructorsEnded", this);
+This is a bit of a technical example. 
+It just shows the status of each element when the callback is made.
+Important here is to note that the flattened assigned nodes and the attributes 
+are both ready to be used when this callback is made, and it is made 
+as soon as possible when this happens. 
+
+```html
+<script type="module">
+
+  import {DOMBranchReadyMixin} from "src/DOMBranchReadyMixin.js";
+
+  class Inner extends DOMBranchReadyMixin(HTMLElement) {
+    constructor() {
+      super();
+      console.log("Constructor", this);
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<b><slot></slot></b>";
+    }
+    domBranchReady() {
       const slot = this.shadowRoot.children[0].children[0];
-      console.log(this, this.isConnected);
-      console.log(this, slot.assignedNodes()[0]);
-      console.log(this, this.hostNode);
+      console.log("domBranchReady", this);
+      console.log("isConnected", this.isConnected);
+      console.log("flattenedAssignedNode", slot.assignedNodes({flatten: true})[0]);
+      console.log("attribute", this.getAttribute("a"));
     }
     connectedCallback(){
       console.log("connected", this);
@@ -205,30 +250,43 @@ In this example we create a mixin that provides a `.afterAllConstructorsEnded(..
     }
   }
   
-  class Inner extends WebComp3 {
-    constructor() {
-      super();
-      console.log("Constructor", this);
-      this.attachShadow({mode: "open"});
-      this.shadowRoot.innerHTML = "<b><slot></slot></b>";
-    }
-  }
-  
-  class Middle extends WebComp3 {
+  class Middle extends DOMBranchReadyMixin(HTMLElement) {
     constructor() {
       super();
       console.log("Constructor", this);
       this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML = "<inner-inner a='innerAttr'><slot></slot></inner-inner>";
     }
+    domBranchReady() {
+      const slot = this.shadowRoot.children[0].children[0];
+      console.log("domBranchReady", this);
+      console.log("isConnected", this.isConnected);
+      console.log("flattenedAssignedNode", slot.assignedNodes({flatten: true})[0]);
+      console.log("attribute", this.getAttribute("a"));
+    }
+    connectedCallback(){
+      console.log("connected", this);
+      Promise.resolve().then(()=>{console.log("connectedEnd", this);});
+    }
   }
   
-  class Outer extends WebComp3 {
+  class Outer extends DOMBranchReadyMixin(HTMLElement) {
     constructor() {
       super();
       console.log("Constructor", this);
       this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML = "<middle-middle a='middleAttr'><slot></slot></middle-middle>";
+    }
+    domBranchReady() {
+      const slot = this.shadowRoot.children[0].children[0];
+      console.log("domBranchReady", this);
+      console.log("isConnected", this.isConnected);
+      console.log("flattenedAssignedNode", slot.assignedNodes({flatten: true})[0]);
+      console.log("attribute", this.getAttribute("a"));
+    }
+    connectedCallback(){
+      console.log("connected", this);
+      Promise.resolve().then(()=>{console.log("connectedEnd", this);});
     }
   }
   customElements.define("inner-inner", Inner);
@@ -236,59 +294,6 @@ In this example we create a mixin that provides a `.afterAllConstructorsEnded(..
   customElements.define("outer-outer", Outer);
 </script>
 <outer-outer a='outerAttr'>.</outer-outer>
-
 ```
 
-
-The 
-
-
-That means that you likely wish to delay the processing of slotchange events until this point.
-This is a little bit problematic as the main dom branch consists of many smaller dom branches,
-but as the browser gives , if you wish to batch DOM element constructors 
-created by the main document parser, dom content loaded is your best bet.
-
-## Purpose: establish your own que
-
-The BatchedConstructorCallback ensures that once a constructor is called on one of its children,
-it will not trigger the callback until this constructor and all such constructor that implement 
-BatchedConstructorCallback pattern have all completed.
-
-The BatchedConstructorCallback only works when you have access to all constructors.
-This is not the case with custom elements, as you might use other custom elements developed by others
-using different patterns and resources.
-This is neither the case when other developers are using your custom elements within 
-their own custom elements.
-Thus, when applied to custom elements, the BatchedConstructorCallback only gives you the time of
-the latest custom element, and fully works if you have 
-access to the outermost element being constructed. 
-This pattern is therefore best employed when:
- * all custom elements use it, ie. *globally*, either in the browsers themselves or in a custom framework,
- * when you have access to the outermost elements, such as all the app-level elements,
- and they all employ it.
-
-If you don't have access to all custom elements 
-or in a global framework. If you have access to the outermost element being constructed
-, 
-
-The BatchedConstructorCallbacks pattern aims at creating its own async callback time.
-BatchedConstructorCallback-time can transcend microtask ques in the browser, 
-ie. it can be later than a `Promise.resolve().then(...)` callback placed after it.
-
-
-But it will still run immediately, it is not delayed in a rAF.
-
-within the synchronous domain of the such as `requestAnimationFrame(...)` and `Promise.resolve().then(...)`.
-And it will 
-
-special within synchronously the microtask cycle.
-point
-
-This pattern is a fairly complex beast. Do not worry if you do not understand it immediately.
-It is really not intended to be used by "normal" elements, not even by "normal" mixins.
-It is a pattern intended to establish a point in time that establish what can be seen as a que
-akin to .
-
-## important:
-
-2. must add the empty default slotchange event when nothing is slotted.
+The BatchedConstructorCallback only works from the level of the first element you call it from.
