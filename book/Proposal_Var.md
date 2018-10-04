@@ -4,20 +4,44 @@ The `<VAR>` element is a unification of the `<TEMPLATE>` and `<SLOT>` elements.
 
 ## Motivation
 
-1. Only process slotchange events inside the custom element whose shadowRoot contain the slot.
-   Slotchange is a private matter between a custom element and its slots.
+1. Only process `slotchange` events inside the custom element whose `shadowRoot` contain the slot.
+   `slotchange` is a private matter between a custom element and its `<SLOT>` elements.
+   Enable such direct `slotchange` events to also trigger on changes to the flattened structure (`assignedNodes({flatten:true})`), 
+   and not just the immediate children of the host node (`assignedNodes()`).
 
-2. Unify and simplify the processing of assigned nodes and fallback nodes in slot.
-   Treating assigned and fallback nodes differently is largely unnecessary.
-   It stops a clear conceptual model essential for developers and critical for web component
-   adoption.
+2. Unify and simplify the resolution of assigned nodes and fallback nodes in `<SLOT>`.
+   Today's model of treating assigned and fallback nodes differently causes confusion.
+   Processing assigned and fallback nodes similarly will:
+   1. create a clear conceptual model essential for developers and critical for web component adoption and
+   2. have very few consequences for today's model (all behavioral changes I have seen could well be considered a fix).
 
 3. Support the usecase of "setting up custom elements" as soon as both assigned nodes 
    (and initial attributes) are available, simply.
    
-4. Unify `<TEMPLATE>` and `<SLOT>` and simplify the core principles of HTML variables.
+4. Open up new usecases for web components reacting to Slottables with unknown names.
+   This can enable new patterns for interaction across shadowDOM borders, 
+   such as allowing elements to adjust the shadowDOM according to an infinite number of slot names.
+
+5. Enable `<SLOT>` elements to **delay rendering** its fallback nodes until they are needed.
+   Not rendering fallback nodes that are never displayed will likely reduce both network traffic, memory
+   and compute resources for the majority of `<SLOT>` fallback nodes made.
+   If a custom element relies on an `<IMG>` in its `<SLOT>` fallback, 
+   if this fallback is never needed, to **delay rendering** it like if it was placed in a template
+   will both prevent it from loading and its layout and style being processed.
+   
+6. Unify `<TEMPLATE>` and `<SLOT>` and simplify the core principles of HTML variables.
    This is critical for developer understanding and adoption, but also highly important for
-   future improvements and of the platform (TCO in recursive web components?). 
+   future improvements of the platform.
+   
+7. Provide clearer and tighter CSS encapsulation for slotted nodes.
+   Provide a more unified and simpler structure for existing CSS rules to be applied to.
+   Reduce style creep of inherited CSS properties from middle-man chaining `<SLOT>` elements and in-the-middle documents.
+   Reduce the confusion when children nodes of chained slot elements inside another custom element
+   are treated as assignedNodes.
+
+8. Increase the efficiency of flattening assigned nodes. 
+   Increase the efficiency of `slotchange` events.
+   Open up for future efficiency by providing a cleaner, unified model for HTML variables. 
 
 ## Short description
 As with `<TEMPLATE>`, the child elements of a `<VAR>` is placed under a documentFragment property
@@ -218,10 +242,9 @@ The parameter of the varCallback is Slottables. The Slottables interface is an o
    
 ### Implement the 'varCallback' as a mixin that uses the `<SLOT>` instead of the `<VAR>`.
 
-todo:
-1. make VarMixin with new Slottables that contain both algorithms for flattening.
-2. add the BatchedConstructor to the mixin.. This must then be done only to the VarMixin.
-3. make the varCallback use direct method calls to slot chain instead of slotchange event. This is done
+todo
+Discussion about the VarMixin. Must make that page.
+Update the pages for all 3 mixins.
 
 ## Further suggestions
 
