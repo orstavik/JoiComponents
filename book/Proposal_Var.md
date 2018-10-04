@@ -53,6 +53,10 @@ will trigger a `varCallback`.
 If *external, flattened* nodes are removed for a specific VAR name, a `varCallback` will be triggered
 using *internal, fallback* nodes if available.
 
+If neither *external, flattened* nodes nor *internal, fallback* nodes are available at startup,
+an empty `varCallback(Slottables{name: "", assignedNodes: undefined})` is triggered. 
+This makes `varCallback(...)` function as a PostBatchedConstructor callback for the custom element.
+
 The `varCallback` is triggered in 4 ways:
 
 1. Initially, directly.
@@ -61,6 +65,8 @@ The `varCallback` is triggered in 4 ways:
    
    The initial varCallbacks is the union of the external and internal varChanges, 
    where external assignedNodes trump internal assingedNodes.
+   
+   The initial varCallbacks do not recursively trigger indirect varCallbacks on chained VAR elements.
 
 2. Externally, directly.
    When a list of assignable/slottable nodes the host node changes for a specific slotname.
@@ -102,36 +108,9 @@ The `varCallback` is triggered in 4 ways:
 ### Slottables
 
 The parameter of the varCallback is Slottables. The Slottables interface is an object with:
-   * `name`
-   * `.assignedNodes({flatten:true})`
-   * `.assignedElements({flatten:true})`
-
-## Benefits of VAR: efficiency
-
-1. The child nodes of slot elements function as fallback value when no assigned elements are attached.
-   This means that if there always are assigned elements to an element, 
-   these child nodes should never be active in the flattened/visible DOM.
-   By parsing these elements directly into the .content property of the VAR, instead of into the DOM as with slot,
-   instantiating work on these nodes when not used can be avoided.
-
-2. There is no middle step into slotchange events. 
-   `varCallback` are triggered by the MutationObserver directly, 
-   and by direct methods from one VAR to another VAR element that are registered as its chained parent.
-   
-3. The flatten assigned nodes (ie. the resolution of HTML variables) is streamlined and simplified.
-   This will not have a dramatic impact per se.
-   But simplicity in variable resolution is critical when more complex models for efficiency 
-   will be created later.
-
-4. With slottableChanged instead of slotchange, the event is triggered on the level of the lightDOM instead
-   of at the level of shadowDOM. This reduces the algorithmic work with one level, for all traversal.
-   2 levels become 1. 3 levels become 2. etc. As most such events are low level, this should reduce the traversal somewhat.
-
-5. Performance drawback. slotchange does not trigger when the slottables cannot be assigned to a slottable node.
-   slottables will. If this is significant, a StaticSetting method `static get observedSlots() return ["", "slotName1"];`
-   can be added. If no such setting is set, then all slottables are observed.
-   But. This is very likely not necessary. If an app slots in tons of elements that are not used,
-   and has no need for a varCallback, this is not an issue that should be solved with the slottables callback.
+ * `name`
+ * `.assignedNodes({flatten:true})`
+ * `.assignedElements({flatten:true})`
 
 ## Benefits of VAR: Ergonomic
 
@@ -162,6 +141,33 @@ The parameter of the varCallback is Slottables. The Slottables interface is an o
    Adding a child node to the SLOT element will not trigger a slotchange event.
    within the custom element itself (thus making it simple to manage proactively, instead of reactively).
    This behavior is made more evident with the TEMPLATE characteristics of the VAR childNodes.
+
+## Benefits of VAR: efficiency
+
+1. The child nodes of slot elements function as fallback value when no assigned elements are attached.
+   This means that if there always are assigned elements to an element, 
+   these child nodes should never be active in the flattened/visible DOM.
+   By parsing these elements directly into the .content property of the VAR, instead of into the DOM as with slot,
+   instantiating work on these nodes when not used can be avoided.
+
+2. There is no middle step into slotchange events. 
+   `varCallback` are triggered by the MutationObserver directly, 
+   and by direct methods from one VAR to another VAR element that are registered as its chained parent.
+   
+3. The flatten assigned nodes (ie. the resolution of HTML variables) is streamlined and simplified.
+   This will not have a dramatic impact per se.
+   But simplicity in variable resolution is critical when more complex models for efficiency 
+   will be created later.
+
+4. With slottableChanged instead of slotchange, the event is triggered on the level of the lightDOM instead
+   of at the level of shadowDOM. This reduces the algorithmic work with one level, for all traversal.
+   2 levels become 1. 3 levels become 2. etc. As most such events are low level, this should reduce the traversal somewhat.
+
+5. Performance drawback. slotchange does not trigger when the slottables cannot be assigned to a slottable node.
+   slottables will. If this is significant, a StaticSetting method `static get observedSlots() return ["", "slotName1"];`
+   can be added. If no such setting is set, then all slottables are observed.
+   But. This is very likely not necessary. If an app slots in tons of elements that are not used,
+   and has no need for a varCallback, this is not an issue that should be solved with the slottables callback.
 
 ## Style considerations
 

@@ -13,8 +13,12 @@ export function flattenAssignedNodesVar(slot) {
     } else
       res.push(n);
   }
-  // if (res.length === 0)        //todo doesn't work?
-  //   res = slot.childNodes;
+  if (res.length === 0) {
+    for (let i = 0; i < slot.childNodes.length; i++) {
+      let child = slot.childNodes[i];
+      res.push(child);
+    }
+  }
   return res;
 }
 
@@ -24,8 +28,8 @@ function triggerChainedSlotCallbacks(slot) {
     if (!parent)
       break;
     let slotName = slot.getAttribute("slot") || "";
-    if (parent[slottables] && parent.slotCallback) {
-      parent.slotCallback(new Slottables(slotName, parent[slottables][slotName]));
+    if (parent[outerAssigned] && parent.slotCallback) {
+      parent.slotCallback(new Slottables(slotName, parent[outerAssigned][slotName]));
     }
     let shadow = parent.shadowRoot;
     if (!shadow)
@@ -90,8 +94,10 @@ class Slottables {
       else
         res.push(n);
     }
-    // if (res.length === 0)             //todo doesn't work?
-    //   res = this.childNodes;
+    if (res.length === 0) {
+      for (let i = 0; i < this.childNodes.length; i++)
+        res.push(this.childNodes[i]);
+    }
     return res;
   }
 
@@ -121,9 +127,12 @@ class Slottables {
  * @param Base class that extends HTMLElement
  * @returns {SlottableMixin} class that extends HTMLElement
  */
-const hostChildrenChanged = Symbol("hostChildrenChanged");
-const hostSlotchange = Symbol("chainedSlotchangeEvent");
-const slottables = Symbol("notFlatMap");
+const externalChange = Symbol("externalChange");
+const internalChange = Symbol("internalChangeAddedRemovedSlot");
+const updateInternalAssignedValue = Symbol("updateInternalAssignedValue");
+const outerAssigned = Symbol("outerAssigned");
+const innerAssigned = Symbol("innerAssigned");
+const innerSlots = Symbol("innerSlots");
 const init = Symbol("init");
 
 export const VarMixin = function (Base) {
@@ -131,38 +140,67 @@ export const VarMixin = function (Base) {
 
     constructor() {
       super();
-      this[slottables] = null;
+      this[outerAssigned] = null;
+      this[innerAssigned] = {};
+      this[innerSlots] = [];
       requestAnimationFrame(() => {
-        const mo = new MutationObserver(() => this[hostChildrenChanged]());
+        const mo = new MutationObserver(() => this[externalChange]());      //todo make MO MixinGlobal?
         mo.observe(this, {childList: true});
         this[init]();
       });
     }
 
-    [hostSlotchange](e) {
-      for (let slot of e.composedPath()) {
-        if (slot.tagName !== "SLOT")
-          return;
-        if (slot.parentNode === this) {
-          e.stopPropagation();
-          const slotName = slot.getAttribute("slot") || "";
-          this.slotCallback(new Slottables(slotName, this[slottables][slotName]));
-          return;
-        }
+    [updateInternalAssignedValue](name, childNodes, first) {
+      if (childNodes === undefined)
+        delete this[innerAssigned][name];
+      else
+        this[innerAssigned][name] = Array.from(childNodes);
+      if (this[outerAssigned][name])
+        return;
+      if (first)
+        return;
+      this.slotCallback(new Slottables(name, this[innerAssigned][name]));
+      if (this.shadowRoot) {
+        const relevantSlot = this.shadowRoot.querySelector(`slot[name="${name}"]`);
+        triggerChainedSlotCallbacks(relevantSlot);
       }
     }
 
-    [init]() {
-      const children = mapNodesByAttributeValue(this.childNodes, "slot");
-      if (Object.keys(children).length === 0) children[""] = [];
-      for (let name in children)
-        this.slotCallback(new Slottables(name, children[name]));
-      this[slottables] = children;
+    [internalChange](first) {
+      const newSlots = Array.from(this.shadowRoot.querySelectorAll("slot"));
+      //added slots
+      const addedNames = [];
+      for (let newSlot of newSlots) {
+        let name = newSlot.name;
+        if (addedNames.indexOf(name) !== -1)
+          throw new Error("No SLOT element can be added with the same 'name' attribute under the same shadowRoot. (VAR).");
+        addedNames.push(name);
+        if (this[innerSlots].indexOf(newSlot) === -1)
+          this[updateInternalAssignedValue](newSlot.name, newSlot.childNodes, first);
+      }
+      //removed slots
+      for (let oldSlot of this[innerSlots]) {
+        if (newSlots.indexOf(oldSlot) === -1)
+          this[updateInternalAssignedValue](oldSlot.name, undefined, first);
+      }
+      this[innerSlots] = newSlots;
+      requestAnimationFrame(() => this[internalChange]());
     }
 
-    [hostChildrenChanged]() {
+    [init]() {
+      this[outerAssigned] = mapNodesByAttributeValue(this.childNodes, "slot");
+      this[internalChange](true); // => this[innerAssigned]
+      const outerOverwritesInnerChildren = Object.assign({}, this[innerAssigned], this[outerAssigned]);
+      for (let name in outerOverwritesInnerChildren)
+        this.slotCallback(new Slottables(name, outerOverwritesInnerChildren[name]));
+      //an empty slotCallback("", undefined) is made if no assignable nodes are registered.
+      if (Object.keys(outerOverwritesInnerChildren).length === 0)
+        this.slotCallback(new Slottables("", undefined));
+    }
+
+    [externalChange]() {
       const children = mapNodesByAttributeValue(this.childNodes, "slot");
-      let diffs = arrayDiff(this[slottables], children);
+      let diffs = arrayDiff(this[outerAssigned], children);
       for (let name of diffs) {
         this.slotCallback(new Slottables(name, children[name]));
         if (this.shadowRoot) {
@@ -170,7 +208,7 @@ export const VarMixin = function (Base) {
           triggerChainedSlotCallbacks(relevantSlot);
         }
       }
-      this[slottables] = children;
+      this[outerAssigned] = children;
     }
   }
 };
