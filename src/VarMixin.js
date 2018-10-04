@@ -13,7 +13,7 @@ export function flattenAssignedNodesVar(slot) {
     } else
       res.push(n);
   }
-  if (res.length === 0) {
+  if (res.length === 0 && slot.childNodes) {
     for (let i = 0; i < slot.childNodes.length; i++) {
       let child = slot.childNodes[i];
       res.push(child);
@@ -63,9 +63,10 @@ function arrayEquals(a, b) {
 }
 
 class Slottables {
-  constructor(name, assigneds) {
+  constructor(name, externalAssigneds, internalAssigneds) {
     this.name = name;
-    this.assigneds = assigneds;
+    this.assigneds = externalAssigneds;
+    this.fallback = internalAssigneds;
   }
 
   assignedNodes(config) {
@@ -88,15 +89,17 @@ class Slottables {
     if (!(config && config.flatten === true))
       return this.assigneds;
     let res = [];
-    for (let n of this.assigneds) {
-      if (n.tagName === "SLOT") //if(node instanceof HTMLSlotElement) does not work in polyfill.
-        res = res.concat(flattenAssignedNodesVar(n));
-      else
-        res.push(n);
+    if (this.assigneds) {
+      for (let n of this.assigneds) {
+        if (n.tagName === "SLOT") //if(node instanceof HTMLSlotElement) does not work in polyfill.
+          res = res.concat(flattenAssignedNodesVar(n));
+        else
+          res.push(n);
+      }
     }
-    if (res.length === 0) {
-      for (let i = 0; i < this.childNodes.length; i++)
-        res.push(this.childNodes[i]);
+    if (res.length === 0 && this.fallback) {
+      for (let i = 0; i < this.fallback.length; i++)
+        res.push(this.fallback[i]);
     }
     return res;
   }
@@ -144,7 +147,7 @@ export const VarMixin = function (Base) {
       this[innerAssigned] = {};
       this[innerSlots] = [];
       requestAnimationFrame(() => {
-        const mo = new MutationObserver(() => this[externalChange]());      //todo make MO MixinGlobal?
+        const mo = new MutationObserver(() => this[externalChange]());      //todo make MO MixinSingleton?
         mo.observe(this, {childList: true});
         this[init]();
       });
@@ -159,7 +162,7 @@ export const VarMixin = function (Base) {
         return;
       if (first)
         return;
-      this.slotCallback(new Slottables(name, this[innerAssigned][name]));
+      this.slotCallback(new Slottables(name, undefined, this[innerAssigned][name]));
       if (this.shadowRoot) {
         const relevantSlot = this.shadowRoot.querySelector(`slot[name="${name}"]`);
         triggerChainedSlotCallbacks(relevantSlot);
@@ -192,17 +195,17 @@ export const VarMixin = function (Base) {
       this[internalChange](true); // => this[innerAssigned]
       const outerOverwritesInnerChildren = Object.assign({}, this[innerAssigned], this[outerAssigned]);
       for (let name in outerOverwritesInnerChildren)
-        this.slotCallback(new Slottables(name, outerOverwritesInnerChildren[name]));
+        this.slotCallback(new Slottables(name, this[outerAssigned][name], this[innerAssigned][name]));
       //an empty slotCallback("", undefined) is made if no assignable nodes are registered.
       if (Object.keys(outerOverwritesInnerChildren).length === 0)
-        this.slotCallback(new Slottables("", undefined));
+        this.slotCallback(new Slottables("", undefined, undefined));
     }
 
     [externalChange]() {
       const children = mapNodesByAttributeValue(this.childNodes, "slot");
       let diffs = arrayDiff(this[outerAssigned], children);
       for (let name of diffs) {
-        this.slotCallback(new Slottables(name, children[name]));
+        this.slotCallback(new Slottables(name, children[name], this[innerAssigned][name]));
         if (this.shadowRoot) {
           const relevantSlot = this.shadowRoot.querySelector(`slot[name="${name}"]`);
           triggerChainedSlotCallbacks(relevantSlot);
