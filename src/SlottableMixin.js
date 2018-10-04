@@ -110,7 +110,7 @@ export const SlottableMixin = function (Base) {
 
     [init]() {
       this[slottables] = mapNodesByAttributeValue(this.childNodes, "slot");
-      if (this[slottables].length === 0) this[slottables][""] = [];
+      if (Object.keys(this[slottables]).length === 0) this[slottables][""] = [];
       for (let name in this[slottables])
         this.slotCallback(new Slottables(name, this[slottables][name]));
     }

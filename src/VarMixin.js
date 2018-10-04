@@ -13,6 +13,8 @@ export function flattenAssignedNodesVar(slot) {
     } else
       res.push(n);
   }
+  // if (res.length === 0)        //todo doesn't work?
+  //   res = slot.childNodes;
   return res;
 }
 
@@ -88,6 +90,8 @@ class Slottables {
       else
         res.push(n);
     }
+    // if (res.length === 0)             //todo doesn't work?
+    //   res = this.childNodes;
     return res;
   }
 
@@ -150,7 +154,7 @@ export const VarMixin = function (Base) {
 
     [init]() {
       const children = mapNodesByAttributeValue(this.childNodes, "slot");
-      if (children.length === 0) children[""] = [];
+      if (Object.keys(children).length === 0) children[""] = [];
       for (let name in children)
         this.slotCallback(new Slottables(name, children[name]));
       this[slottables] = children;
