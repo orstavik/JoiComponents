@@ -4,6 +4,57 @@
  * Many thanks to Jan Miksovsky and the Elix project for input and inspiration.
  */
 
+//pure function to find the last in toRun, that !hasRun
+function findLastNotChecked(toRun, hasRun) {
+  for (let i = toRun.length - 1; i >= 0; i--) {
+    let el = toRun[i];
+    if (hasRun.indexOf(el) < 0)
+      return el;
+  }
+  return null;
+}
+
+//Ques for batched tasks
+let startedQue = [];
+let completed = [];
+let isStarted = false;
+
+//First, block flushing of the que until DCL, and on DCL, open the que and try to flush it
+let dcl = document.readyState === "complete" || document.readyState === "loaded";
+dcl || window.addEventListener("DOMContentLoaded", function () {
+  dcl = true;
+  flushQue();
+});
+
+//process for flushing que
+function flushQue() {
+  //step 1: check that dcl is ready.
+  if (!dcl) return;
+  //step 2: all elements started has been processed? reset and end
+  const fnel = findLastNotChecked(startedQue, completed);
+  if (!fnel) {
+    startedQue = [];
+    completed = [];
+    return;
+  }
+  //step 3: run function, add the element to the completed list, and run again with TCO
+  fnel[0](fnel[1]);
+  completed.push(fnel);
+  flushQue();
+}
+
+function batchedConstructorCallback(fn, el) {
+  startedQue.push([fn, el]);
+  if (!isStarted) {
+    isStarted = true;
+    Promise.resolve().then(() => {
+      flushQue();
+      isStarted = false;
+    });
+  }
+}
+
+
 export function flattenAssignedNodesVar(slot) {
   let res = [];
   for (let n of slot.assignedNodes()) {
@@ -130,13 +181,42 @@ class Slottables {
  * @param Base class that extends HTMLElement
  * @returns {SlottableMixin} class that extends HTMLElement
  */
-const externalChange = Symbol("externalChange");
+// const externalChange = Symbol("externalChange");
+// const init = Symbol("init");
 const internalChange = Symbol("internalChangeAddedRemovedSlot");
 const updateInternalAssignedValue = Symbol("updateInternalAssignedValue");
 const outerAssigned = Symbol("outerAssigned");
 const innerAssigned = Symbol("innerAssigned");
 const innerSlots = Symbol("innerSlots");
-const init = Symbol("init");
+
+function externalChange(changeList) {
+  const change = changeList[changeList.length - 1];
+  const el = change.target;
+  const children = mapNodesByAttributeValue(el.childNodes, "slot");
+  let diffs = arrayDiff(el[outerAssigned], children);
+  for (let name of diffs) {
+    el.slotCallback(new Slottables(name, children[name], el[innerAssigned][name]));
+    if (el.shadowRoot) {
+      const relevantSlot = el.shadowRoot.querySelector(`slot[name="${name}"]`);
+      triggerChainedSlotCallbacks(relevantSlot);
+    }
+  }
+  el[outerAssigned] = children;
+}
+
+const mo = new MutationObserver((changeList) => externalChange(changeList));
+
+function init(el) {
+  mo.observe(el, {childList: true});
+  el[outerAssigned] = mapNodesByAttributeValue(el.childNodes, "slot");
+  el[internalChange](true); // => this[innerAssigned]
+  const outerOverwritesInnerChildren = Object.assign({}, el[innerAssigned], el[outerAssigned]);
+  for (let name in outerOverwritesInnerChildren)
+    el.slotCallback(new Slottables(name, el[outerAssigned][name], el[innerAssigned][name]));
+  //an empty slotCallback("", undefined) is made if no assignable nodes are registered.
+  if (Object.keys(outerOverwritesInnerChildren).length === 0)
+    el.slotCallback(new Slottables("", undefined, undefined));
+}
 
 export const VarMixin = function (Base) {
   return class VarMixin extends Base {
@@ -146,11 +226,7 @@ export const VarMixin = function (Base) {
       this[outerAssigned] = null;
       this[innerAssigned] = {};
       this[innerSlots] = [];
-      requestAnimationFrame(() => {
-        const mo = new MutationObserver(() => this[externalChange]());      //todo make MO MixinSingleton?
-        mo.observe(this, {childList: true});
-        this[init]();
-      });
+      batchedConstructorCallback(init, this);
     }
 
     [updateInternalAssignedValue](name, childNodes, first) {
@@ -188,30 +264,6 @@ export const VarMixin = function (Base) {
       }
       this[innerSlots] = newSlots;
       requestAnimationFrame(() => this[internalChange]());
-    }
-
-    [init]() {
-      this[outerAssigned] = mapNodesByAttributeValue(this.childNodes, "slot");
-      this[internalChange](true); // => this[innerAssigned]
-      const outerOverwritesInnerChildren = Object.assign({}, this[innerAssigned], this[outerAssigned]);
-      for (let name in outerOverwritesInnerChildren)
-        this.slotCallback(new Slottables(name, this[outerAssigned][name], this[innerAssigned][name]));
-      //an empty slotCallback("", undefined) is made if no assignable nodes are registered.
-      if (Object.keys(outerOverwritesInnerChildren).length === 0)
-        this.slotCallback(new Slottables("", undefined, undefined));
-    }
-
-    [externalChange]() {
-      const children = mapNodesByAttributeValue(this.childNodes, "slot");
-      let diffs = arrayDiff(this[outerAssigned], children);
-      for (let name of diffs) {
-        this.slotCallback(new Slottables(name, children[name], this[innerAssigned][name]));
-        if (this.shadowRoot) {
-          const relevantSlot = this.shadowRoot.querySelector(`slot[name="${name}"]`);
-          triggerChainedSlotCallbacks(relevantSlot);
-        }
-      }
-      this[outerAssigned] = children;
     }
   }
 };

@@ -296,4 +296,17 @@ as soon as possible when this happens.
 <outer-outer a='outerAttr'>.</outer-outer>
 ```
 
-The BatchedConstructorCallback only works from the level of the first element you call it from.
+
+## Tips
+1. If you want to add an event listener for `slotchange` events, 
+but not capture the initial slotchange event, do this inside the `domBranchReady()` callback:
+
+```javascript
+Promise.resolve().then(()=>{
+  this.shadowRoot.addEventListener("slotchange", e => processSlotchange(e, this));
+});
+```
+This method will be called after the initial slotchange events have been dispatched and passed your
+custom element by.
+
+2. The BatchedConstructorCallback only works from the level of the first element you call it from.
