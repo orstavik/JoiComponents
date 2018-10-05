@@ -2,6 +2,8 @@ function findYourOwnSlot(e, shadowRoot){
   const path = e.composedPath();
   for(let i = 0; i < path.length -1; i++){
     let node = path[i];
+    if (node.tagName !== "SLOT")
+      return null;
     if (node.getRootNode() === shadowRoot)
       return [node, i];
   }
