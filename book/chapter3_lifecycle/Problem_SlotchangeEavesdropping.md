@@ -72,18 +72,18 @@ this.shadowRoot.addEventListener("slotchange", e => {
 });
 ```
 
-## Mixin: `NaiveSlotchangeMixin`
+## A naive `slotchangeCallback`
 
 There is dry gunpowder in the above paragraphs. Let's look at the fireworks.
-The first BANG! was my opinion that courteous web components NEVER should eavesdrop 
+The first BANG! was the social rule that courteous web components NEVER should eavesdrop 
 on other custom element's `slotchange` events.
 With `slotchange` events this is possible, but it requires looking into another element's
 shadowDOM, which breaks basic principles of web component encapsulation.
 The second BANG! was the need to process all `slotchange` events using the same algorithm
 for "finding-your-own-slot".
 The consequence of this is a third BANG! 
-All `slotchange` events could and should be processed from the same callback method.
-And that means: you are *always* best suited using a mixin to process your `slotchange` events.
+All `slotchange` events could and should be processed into the same callback method: 
+`slotchangeCallback`.
 
 ```javascript
 function findYourOwnSlot(e, shadowRoot){
@@ -96,21 +96,15 @@ function findYourOwnSlot(e, shadowRoot){
   return null;
 }
 
-function NaiveSlotchangeMixin(Base){
-  return class NaiveSlotchangeMixin extends Base {
-    constructor(){
-      super();
-      Promise.resolve().then(()=>{
-        this.shadowRoot.addEventListener("slotchange", e => {
-          const [slot, indirectness] = findYourOwnSlot(e);
-          this.slotchangeCallback(slot, indirectness, e);
-        });
-      });
-    }
-    //slotchangeCallback(slot, indirectness, slotchangeEvent)
-  };
+function naiveSlotchangeCallback(el){
+  el.shadowRoot.addEventListener("slotchange", e => {   //[*]
+    const [slot, indirectness] = findYourOwnSlot(e, el.shadowRoot);
+    el.slotchangeCallback(slot, indirectness, e);
+  });
 }
 ```
+ * This function has a dependency: 
+   the `el` must have an open `.shadowRoot` available before to add the `slotchange` listener.
 
 ## Example: GrandpaInAFrame
 
@@ -120,6 +114,12 @@ frame an image in a wooden (brown) frame with a bronze (yellow) label.
 The `<family-photo>` custom element also uses the `NaiveSlotchangeMixin` to
 log every time an element is slotted.
 
+In the example we will also *delay* the callback until the first `requestAnimationFrame`.
+This drops all the initial slotchange events so we only see the `slotchange` events for the
+dynamically added nodes.
+We will return in force to the initial `slotchange` events in the next chapter:
+[Problem: DeclarativeResolution](Problem_DeclarativeResolution.md).
+
 ```html
 <family-photo>
   <img src="https://images.pexels.com/photos/1146603/pexels-photo-1146603.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=125" alt="grandpa">
@@ -127,9 +127,9 @@ log every time an element is slotted.
 </family-photo>
  
 <script type="module">
-  import {NaiveSlotchangeMixin} from "https://rawgit.com/orstavik/JoiComponents/master/src/slot/NaiveSlotchangeMixin.js";
+  import {naiveSlotchangeCallback} from "https://rawgit.com/orstavik/JoiComponents/master/src/slot/NaiveSlotchangeCallback.js";
 
-  class FamilyPhoto extends NaiveSlotchangeMixin(HTMLElement) {
+  class FamilyPhoto extends HTMLElement {
     constructor() {
       super();
       this.attachShadow({
@@ -143,12 +143,13 @@ log every time an element is slotted.
   </bronze-label>
 </wooden-frame>
 `;
+      requestAnimationFrame(() => naiveSlotchangeCallback(this));
     }
     slotchangeCallback(slot, indirectness, chainedSlots){
       console.log("FamilyPhoto", slot, slot.assignedNodes({flatten: true}), indirectness, chainedSlots);
     } 
   }
-  class WoodenFrame extends NaiveSlotchangeMixin(HTMLElement) {
+  class WoodenFrame extends HTMLElement {
     constructor() {
       super();
       this.attachShadow({
@@ -162,12 +163,13 @@ log every time an element is slotted.
   </div>
 </div>
 `;
+      requestAnimationFrame(() => naiveSlotchangeCallback(this));
     }
     slotchangeCallback(slot, indirectness, chainedSlots){
       console.log("WoodenFrame", slot, slot.assignedNodes({flatten: true}), indirectness, chainedSlots);
     } 
   }
-  class BronzeLabel extends NaiveSlotchangeMixin(HTMLElement) {
+  class BronzeLabel extends HTMLElement {
     constructor() {
       super();
       this.attachShadow({
@@ -179,6 +181,7 @@ log every time an element is slotted.
 </style>
 <slot></slot>
 `;
+      requestAnimationFrame(() => naiveSlotchangeCallback(this));
     }
     slotchangeCallback(slot, indirectness, chainedSlots){
       console.log("BronzeLabel", slot, slot.assignedNodes({flatten: true}), indirectness, chainedSlots); 

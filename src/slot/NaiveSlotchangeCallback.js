@@ -8,9 +8,9 @@ function findYourOwnSlot(e, shadowRoot){
   return null;
 }
 
-export function naiveSlotchangeCallback(el){
+function naiveSlotchangeCallback(el){
   el.shadowRoot.addEventListener("slotchange", e => {   //[*]
-    const [slot, indirectness] = findYourOwnSlot(e);
+    const [slot, indirectness] = findYourOwnSlot(e, el.shadowRoot);
     el.slotchangeCallback(slot, indirectness, e);
   });
 }
