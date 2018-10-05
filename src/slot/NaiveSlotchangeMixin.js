@@ -15,10 +15,10 @@ export function NaiveSlotchangeMixin(Base){
       Promise.resolve().then(()=>{
         this.shadowRoot.addEventListener("slotchange", e => {
           const [slot, indirectness] = findYourOwnSlot(e, this.shadowRoot);
-          this.slotchangeCallback(slot, indirectness, e.composedPath().slice(0, indirectness));
+          this.slotchangeCallback(slot, indirectness, e);
         });
       });
     }
-    //slotchangeCallback(slot, indirectness, slotChain)
+    //slotchangeCallback(slot, indirectness, slotchangeEvent)
   };
 }
