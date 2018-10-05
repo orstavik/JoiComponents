@@ -12,7 +12,7 @@ function findYourOwnSlot(e, shadowRoot){
 
 export function naiveSlotchangeCallback(el){
   el.shadowRoot.addEventListener("slotchange", e => {   //[*]
-    const [slot, indirectness] = findYourOwnSlot(e, el.shadowRoot);
-    el.slotchangeCallback(slot, indirectness, e);
+    const slotDepth = findYourOwnSlot(e, el.shadowRoot);
+    if (slotDepth) el.slotchangeCallback(slotDepth[0], slotDepth[1], e);
   });
 }
