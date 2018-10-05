@@ -48,7 +48,7 @@ function batchedConstructorCallback(fn, el) {
   if (!isStarted) {
     isStarted = true;
     Promise.resolve().then(() => {
-      Promise.resolve().then(() => {
+      Promise.resolve().then(() => {        //DoublePrtPostSlotchangeTrick
         flushQue();
         isStarted = false;
       });
@@ -57,21 +57,16 @@ function batchedConstructorCallback(fn, el) {
 }
 
 /**
- * Filters away <slot> elements that are placed as grandchildren or lower of this custom element.
+ * findYourOwnSlot and avoid SlotchangeEavesdropping
  */
-function processSlotchange(e, el) {
+function triggerSlotchangeCallback(e, el) {
   const path = e.composedPath();
-  if (path[0].getRootNode() === el.shadowRoot) {
-    e.stopPropagation();
-    el.slotCallback(path[0]);
-    return;
-  }
   for (let i = 0; i < path.length; i++) {
-    if (path[i].tagName !== "SLOT")
-      return;
-    if (path[i].parentNode === el && path[i + 1].getRootNode() === el.shadowRoot) {
-      e.stopPropagation();
-      el.slotCallback(path[i + 1]);
+    const node = path[i];
+    if (node.tagName !== "SLOT")            //[*] no SlotchangeEavesdropping
+      return;                               //[*] no SlotchangeEavesdropping
+    if (node.getRootNode() === el.shadowRoot) {
+      el.slotCallback(node, i, e);
       return;
     }
   }
@@ -80,10 +75,10 @@ function processSlotchange(e, el) {
 const initFn = function (el) {
   const slots = el.shadowRoot.querySelectorAll("slot");
   for (let i = 0; i < slots.length; i++)
-    el.slotCallback(slots[i]);
+    el.slotCallback(slots[i], 0, undefined);
   if (slots.length === 0)      //adds a slotCallback(undefined) if none is available
     el.slotCallback(undefined);
-  el.shadowRoot.addEventListener("slotchange", e => processSlotchange(e, el));
+  el.shadowRoot.addEventListener("slotchange", e => triggerSlotchangeCallback(e, el));
 };
 
 export function SlotchangeMixin(Base) {

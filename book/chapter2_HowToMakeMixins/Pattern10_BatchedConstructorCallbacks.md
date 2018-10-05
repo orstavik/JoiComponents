@@ -299,7 +299,7 @@ as soon as possible when this happens.
 ```
 
 
-## PostSlotchangeTrick 
+## DoublePrtPostSlotchangeTrick 
 If you want to add an event listener for `slotchange` events, 
 but not capture the initial slotchange event, do this inside the `domBranchReady()` callback:
 
@@ -320,7 +320,9 @@ function batchedConstructorCallback(fn, el){
 Now, the flushQue() will only trigger its methods after the initial slotchange events have 
 been dispatched and passed your custom element by.
 
-## TODO
+## TODO tests!
+test BatchedPostConstructorCallback and especially DoublePrtPostSlotchangeTrick.
+
 Does The BatchedConstructorCallback only work from the level of the first element you call it from???
 I'm not sure this is the case anymore. As the main parser mode is fixed with DCL, 
 I think that the sync methods such as `innerHTML` and JS construction will work fine as they work within 

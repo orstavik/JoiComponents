@@ -66,8 +66,10 @@ this.shadowRoot.addEventListener("slotchange", e => {
   const path = e.composedPath();
   for(let i = 0; i < path.length -1; i++){
     let node = path[i];
+    if (node.tagName !== "SLOT")
+      return null;
     if (node.getRootNode() === this.shadowRoot)
-      this.slotchangeCallback(node, i === 0);     //slotchangeCallback(slotNode, isADirectChange)
+      this.slotchangeCallback(node, i, e);     //slotchangeCallback(slotNode, indirectness, event)
   }
 });
 ```
@@ -90,13 +92,15 @@ function findYourOwnSlot(e, shadowRoot){
   const path = e.composedPath();
   for(let i = 0; i < path.length -1; i++){
     let node = path[i];
+    if (node.tagName !== "SLOT")              //[no eavesdropping]
+      return null;                            //[no eavesdropping]
     if (node.getRootNode() === shadowRoot)
       return [node, i];
   }
   return null;
 }
 
-function naiveSlotchangeCallback(el){
+export function naiveSlotchangeCallback(el){
   el.shadowRoot.addEventListener("slotchange", e => {   //[*]
     const [slot, indirectness] = findYourOwnSlot(e, el.shadowRoot);
     el.slotchangeCallback(slot, indirectness, e);
@@ -197,16 +201,19 @@ setTimeout(()=>{
   const addedImg = document.createElement("img")
   addedImg.src = "https://images.pexels.com/photos/12971/pexels-photo-12971.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=125";
   familyPhoto.appendChild(addedImg);  
-}, 5000); 
+}, 1000); 
 
 setTimeout(()=>{
   const addedLabel = document.createElement("div");
   addedLabel.setAttribute("slot", "label");
   addedLabel.innerText = " by orstavik";
   familyPhoto.appendChild(addedLabel); 
-}, 10000); 
+}, 2000); 
 
 </script>
 ```
+In the example above, one eavesdropping of a `slotchange` event is averted.
+When the label "by orstavik" is added after 2000ms, 
+the `slotchange` event is 
 
 ## References
