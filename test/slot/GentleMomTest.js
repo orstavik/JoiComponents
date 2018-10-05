@@ -335,7 +335,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
 };
 // import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
 // import {SlottableMixin} from "../../src/SlottableMixin.js";
-import {VarMixin} from "../../src/VarMixin.js";
+import {VarMixin} from "../../src/slot/VarMixin.js";
 
 // runSlotchangeMixinTest(SlotchangeMixin);
 // runSlotchangeMixinTest(SlottableMixin);

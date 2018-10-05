@@ -1,4 +1,4 @@
-import {SlottableMixin} from "../../src/SlottableMixin.js";
+import {SlottableMixin} from "../../src/slot/SlottableMixin.js";
 
 describe("Blue-frame", function () {
   it("blue-frame.", function (done) {

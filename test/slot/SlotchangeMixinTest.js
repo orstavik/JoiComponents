@@ -497,9 +497,9 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
 
   });
 };
-import {SlotchangeMixin} from "../../src/SlotchangeMixin.js";
-import {SlottableMixin} from "../../src/SlottableMixin.js";
-import {VarMixin, flattenAssignedNodesVar} from "../../src/VarMixin.js";
+import {SlotchangeMixin} from "../../src/slot/SlotchangeMixin.js";
+import {SlottableMixin} from "../../src/slot/SlottableMixin.js";
+import {VarMixin, flattenAssignedNodesVar} from "../../src/slot/VarMixin.js";
 
 runSlotchangeMixinTest(SlotchangeMixin);
 runSlotchangeMixinTest(SlottableMixin);
