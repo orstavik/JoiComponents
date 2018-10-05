@@ -112,4 +112,98 @@ function NaiveSlotchangeMixin(Base){
 }
 ```
 
+## Example: GrandpaInAFrame
+
+In this example we set up a group of custom elements that chain their `<SLOT>` nodes.
+The resulting custom element `<family-photo>` will 
+frame an image in a wooden (brown) frame with a bronze (yellow) label.
+The `<family-photo>` custom element also uses the `NaiveSlotchangeMixin` to
+log every time an element is slotted.
+
+```html
+<family-photo>
+  <img src="https://images.pexels.com/photos/1146603/pexels-photo-1146603.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=125" alt="grandpa">
+  <span slot="label">My internet family</span>
+</family-photo>
+ 
+<script type="module">
+  import {NaiveSlotchangeMixin} from "https://rawgit.com/orstavik/JoiComponents/master/src/slot/NaiveSlotchangeMixin.js";
+
+  class FamilyPhoto extends NaiveSlotchangeMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({
+        mode: "open"
+      });
+      this.shadowRoot.innerHTML = `
+<wooden-frame style="display: inline-block;">
+  <slot></slot>
+  <bronze-label slot="label">
+    <slot name="label"></slot>
+  </bronze-label>
+</wooden-frame>
+`;
+    }
+    slotchangeCallback(slot, indirectness, chainedSlots){
+      console.log("FamilyPhoto", slot, slot.assignedNodes({flatten: true}), indirectness, chainedSlots);
+    } 
+  }
+  class WoodenFrame extends NaiveSlotchangeMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({
+        mode: "open"
+      });
+      this.shadowRoot.innerHTML = `
+<div style="position: relative; border: 40px solid brown;">
+  <slot></slot>
+  <div style="position: absolute; bottom: -35px; left: 30%;">
+    <slot name="label"></slot>
+  </div>
+</div>
+`;
+    }
+    slotchangeCallback(slot, indirectness, chainedSlots){
+      console.log("WoodenFrame", slot, slot.assignedNodes({flatten: true}), indirectness, chainedSlots);
+    } 
+  }
+  class BronzeLabel extends NaiveSlotchangeMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({
+        mode: "open"
+      });
+      this.shadowRoot.innerHTML = `
+<style>
+  :host {display: inline-block; background: yellow;}  
+</style>
+<slot></slot>
+`;
+    }
+    slotchangeCallback(slot, indirectness, chainedSlots){
+      console.log("BronzeLabel", slot, slot.assignedNodes({flatten: true}), indirectness, chainedSlots); 
+    } 
+  }
+  customElements.define("bronze-label", BronzeLabel);
+  customElements.define("wooden-frame", WoodenFrame);
+  customElements.define("family-photo", FamilyPhoto);
+
+  const familyPhoto = document.querySelector("family-photo");
+
+setTimeout(()=>{
+  const addedImg = document.createElement("img")
+  addedImg.src = "https://images.pexels.com/photos/12971/pexels-photo-12971.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=125";
+  familyPhoto.appendChild(addedImg);  
+}, 5000); 
+
+setTimeout(()=>{
+  const addedLabel = document.createElement("div");
+  addedLabel.setAttribute("slot", "label");
+  addedLabel.innerText = " by orstavik";
+  familyPhoto.appendChild(addedLabel); 
+}, 10000); 
+
+</script>
+```
+
 ## References
