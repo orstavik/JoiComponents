@@ -8,7 +8,7 @@ function findYourOwnSlot(e, shadowRoot){
   return null;
 }
 
-function naiveSlotchangeCallback(el){
+export function naiveSlotchangeCallback(el){
   el.shadowRoot.addEventListener("slotchange", e => {   //[*]
     const [slot, indirectness] = findYourOwnSlot(e, el.shadowRoot);
     el.slotchangeCallback(slot, indirectness, e);
