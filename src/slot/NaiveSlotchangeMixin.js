@@ -14,11 +14,11 @@ export function NaiveSlotchangeMixin(Base){
       super();
       Promise.resolve().then(()=>{
         this.shadowRoot.addEventListener("slotchange", e => {
-          const [slot, indirectness] = findYourOwnSlot(e);
-          this.slotchangeCallback(slot, indirectness, e);
+          const [slot, indirectness] = findYourOwnSlot(e, this.shadowRoot);
+          this.slotchangeCallback(slot, indirectness, e.composedPath().slice(0, indirectness));
         });
       });
     }
-    //slotchangeCallback(slot, indirectness, slotchangeEvent)
+    //slotchangeCallback(slot, indirectness, slotChain)
   };
 }
