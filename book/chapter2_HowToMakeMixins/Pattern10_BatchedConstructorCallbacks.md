@@ -198,8 +198,10 @@ function batchedConstructorCallback(fn, el){
   if (!isStarted){
     isStarted = true;
     Promise.resolve().then(()=>{
+    //Promise.resolve().then(()=>{      //trick add this second Prt if you wish to delay the batchedConstructorCallback post `slotchange` event in all instances.
       flushQue(); 
       isStarted = false;
+    //});                               
     });
   }
 } 
@@ -297,16 +299,33 @@ as soon as possible when this happens.
 ```
 
 
-## Tips
-1. If you want to add an event listener for `slotchange` events, 
+## PostSlotchangeTrick 
+If you want to add an event listener for `slotchange` events, 
 but not capture the initial slotchange event, do this inside the `domBranchReady()` callback:
 
 ```javascript
-Promise.resolve().then(()=>{
-  this.shadowRoot.addEventListener("slotchange", e => processSlotchange(e, this));
-});
+function batchedConstructorCallback(fn, el){
+  startedQue.push([fn,el]);
+  if (!isStarted){
+    isStarted = true;
+    Promise.resolve().then(()=>{
+    //Promise.resolve().then(()=>{      //trick add this second Prt if you wish to delay the batchedConstructorCallback post `slotchange` event in all instances.
+      flushQue(); 
+      isStarted = false;
+    //});                               
+    });
+  }
+} 
 ```
-This method will be called after the initial slotchange events have been dispatched and passed your
-custom element by.
+Now, the flushQue() will only trigger its methods after the initial slotchange events have 
+been dispatched and passed your custom element by.
 
-2. The BatchedConstructorCallback only works from the level of the first element you call it from.
+## TODO
+Does The BatchedConstructorCallback only work from the level of the first element you call it from???
+I'm not sure this is the case anymore. As the main parser mode is fixed with DCL, 
+I think that the sync methods such as `innerHTML` and JS construction will work fine as they work within 
+the same Prt frame.. I think..
+
+## References
+
+ * dunno
