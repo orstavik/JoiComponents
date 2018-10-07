@@ -130,7 +130,6 @@ class Slottables {
  * @returns {SlottableMixin} class that extends HTMLElement
  */
 const slottables = Symbol("notFlatMap");
-const init = Symbol("init");
 
 function indirectSlottableMutation(el, ev) {
   let path = ev.composedPath();
@@ -160,8 +159,11 @@ function directSlottableMutation(changes) {
 
 const initFn = function (el) {
   mo.observe(el, {childList: true});
-  el[init]();
   el.addEventListener("slotchange", e => indirectSlottableMutation(el, e));
+  el[slottables] = mapNodesByAttributeValue(el.childNodes, "slot");
+  if (Object.keys(el[slottables]).length === 0) el[slottables][""] = [];
+  for (let name in el[slottables])
+    el.slotCallback(new Slottables(name, el[slottables][name]));
 };
 
 export const SlottableMixin = function (Base) {
@@ -171,13 +173,6 @@ export const SlottableMixin = function (Base) {
       super();
       this[slottables] = null;
       batchedConstructorCallback(initFn, this);
-    }
-
-    [init]() {
-      this[slottables] = mapNodesByAttributeValue(this.childNodes, "slot");
-      if (Object.keys(this[slottables]).length === 0) this[slottables][""] = [];
-      for (let name in this[slottables])
-        this.slotCallback(new Slottables(name, this[slottables][name]));
     }
   }
 };
