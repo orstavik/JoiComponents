@@ -129,7 +129,7 @@ class Slottables {
  * @param Base class that extends HTMLElement
  * @returns {SlottableMixin} class that extends HTMLElement
  */
-const slottables = Symbol("notFlatMap");
+const slottables = Symbol("slottables");
 
 function indirectSlottableMutation(el, ev) {
   let path = ev.composedPath();
@@ -145,11 +145,8 @@ function indirectSlottableMutation(el, ev) {
   }
 }
 
-const mo = new MutationObserver(changes => directSlottableMutation(changes));
-
 function directSlottableMutation(changes) {
-  let change = changes[changes.length - 1];
-  const el = change.target;
+  const el = changes[0].target;
   const children = mapNodesByAttributeValue(el.childNodes, "slot");
   let diffs = arrayDiff(el[slottables], children);
   for (let name of diffs)
@@ -157,7 +154,7 @@ function directSlottableMutation(changes) {
   el[slottables] = children;
 }
 
-const initFn = function (el) {
+const init = function (el) {
   mo.observe(el, {childList: true});
   el.addEventListener("slotchange", e => indirectSlottableMutation(el, e));
   el[slottables] = mapNodesByAttributeValue(el.childNodes, "slot");
@@ -166,13 +163,15 @@ const initFn = function (el) {
     el.slotCallback(new Slottables(name, el[slottables][name]));
 };
 
+const mo = new MutationObserver(changes => directSlottableMutation(changes));
+
 export const SlottableMixin = function (Base) {
   return class SlottableMixin extends Base {
 
     constructor() {
       super();
       this[slottables] = null;
-      batchedConstructorCallback(initFn, this);
+      batchedConstructorCallback(init, this);
     }
   }
 };
