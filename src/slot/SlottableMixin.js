@@ -5,8 +5,8 @@
  */
 
 //pure function to find the last in toRun, that !hasRun
-function findLastNotChecked(toRun, hasRun){
-  for (let i = toRun.length - 1; i >= 0; i--){
+function findLastNotChecked(toRun, hasRun) {
+  for (let i = toRun.length - 1; i >= 0; i--) {
     let el = toRun[i];
     if (hasRun.indexOf(el) < 0)
       return el;
@@ -15,22 +15,25 @@ function findLastNotChecked(toRun, hasRun){
 }
 
 //Ques for batched tasks
-let startedQue =[];
+let startedQue = [];
 let completed = [];
 let isStarted = false;
 
 //First, block flushing of the que until DCL, and on DCL, open the que and try to flush it
 let dcl = document.readyState === "complete" || document.readyState === "loaded";
-dcl || window.addEventListener("DOMContentLoaded", function() {dcl = true; flushQue();});
+dcl || window.addEventListener("DOMContentLoaded", function () {
+  dcl = true;
+  flushQue();
+});
 
 //process for flushing que
-function flushQue(){
+function flushQue() {
   //step 1: check that dcl is ready.
   if (!dcl) return;
   //step 2: all elements started has been processed? reset and end
   const fnel = findLastNotChecked(startedQue, completed);
   if (!fnel) {
-    startedQue =[];
+    startedQue = [];
     completed = [];
     return;
   }
@@ -40,13 +43,15 @@ function flushQue(){
   flushQue();
 }
 
-function batchedConstructorCallback(fn, el){
-  startedQue.push([fn,el]);
-  if (!isStarted){
+function batchedConstructorCallback(fn, el) {
+  startedQue.push([fn, el]);
+  if (!isStarted) {
     isStarted = true;
-    Promise.resolve().then(()=>{
-      flushQue();
-      isStarted = false;
+    Promise.resolve().then(() => {
+      Promise.resolve().then(() => {
+        flushQue();
+        isStarted = false;
+      });
     });
   }
 }
@@ -129,14 +134,12 @@ const hostSlotchange = Symbol("chainedSlotchangeEvent");
 const slottables = Symbol("notFlatMap");
 const init = Symbol("init");
 
-const initFn = function(el){
+const initFn = function (el) {
   const mo = new MutationObserver(() => el[hostChildrenChanged]());
   mo.observe(el, {childList: true});
   el[init]();
-  Promise.resolve().then(()=>{
-    el.addEventListener("slotchange", e => el[hostSlotchange](e));
-  });
-}
+  el.addEventListener("slotchange", e => el[hostSlotchange](e));
+};
 
 export const SlottableMixin = function (Base) {
   return class SlottableMixin extends Base {
@@ -151,8 +154,8 @@ export const SlottableMixin = function (Base) {
       for (let slot of e.composedPath()) {
         if (slot.tagName !== "SLOT")
           return;
-        if (slot.parentNode === this){
-          e.stopPropagation();
+        if (slot.parentNode === this) {
+          //e.stopPropagation();
           const slotName = slot.getAttribute("slot") || "";
           this.slotCallback(new Slottables(slotName, this[slottables][slotName]));
           return;
