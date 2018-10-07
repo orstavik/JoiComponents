@@ -157,10 +157,11 @@ function directSlottableMutation(changes) {
 const init = function (el) {
   mo.observe(el, {childList: true});
   el.addEventListener("slotchange", e => indirectSlottableMutation(el, e));
-  el[slottables] = mapNodesByAttributeValue(el.childNodes, "slot");
-  if (Object.keys(el[slottables]).length === 0) el[slottables][""] = [];
-  for (let name in el[slottables])
-    el.slotCallback(new Slottables(name, el[slottables][name]));
+
+  const map = mapNodesByAttributeValue(el.childNodes, "slot");
+  if (Object.keys(map).length === 0) map[""] = [];
+  for (let name in map)
+    el.slotCallback(new Slottables(name, el[slottables][name] = map[name]));
 };
 
 const mo = new MutationObserver(changes => directSlottableMutation(changes));
@@ -170,7 +171,7 @@ export const SlottableMixin = function (Base) {
 
     constructor() {
       super();
-      this[slottables] = null;
+      this[slottables] = {};
       batchedConstructorCallback(init, this);
     }
   }
