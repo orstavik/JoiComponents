@@ -57,30 +57,6 @@ function batchedConstructorCallback(fn, el) {
 }
 
 
-function mapNodesByAttributeValue(nodes, attributeName) {
-  var res = {};
-  for (var i = 0; i < nodes.length; i++) {
-    var n = nodes[i];
-    var name = n.getAttribute ? (n.getAttribute(attributeName) || "") : "";
-    (res[name] || (res[name] = [])).push(n);
-  }
-  return res;
-}
-
-function arrayDiff(dictA, dictB) {
-  let allKeys = Object.keys(Object.assign({}, dictA, dictB));
-  let res = [];
-  for (let key of allKeys) {
-    if (!arrayEquals(dictA[key], dictB[key]))
-      res.push(key);
-  }
-  return res;
-}
-
-function arrayEquals(a, b) {
-  return b && a && a.length === b.length && a.every((v, i) => v === b[i]);
-}
-
 class Slottables {
   constructor(name, assigneds) {
     this.name = name;
@@ -131,6 +107,20 @@ class Slottables {
  */
 const slottables = Symbol("slottables");
 
+function mapNodesByAttributeValue(nodes, attributeName) {
+  var res = {};
+  for (var i = 0; i < nodes.length; i++) {
+    var n = nodes[i];
+    var name = n.getAttribute ? (n.getAttribute(attributeName) || "") : "";
+    (res[name] || (res[name] = [])).push(n);
+  }
+  return res;
+}
+
+function arrayEquals(a, b) {
+  return b && a && a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
 function indirectSlottableMutation(el, ev) {
   let path = ev.composedPath();
   for (let i = 0; i < path.length; i++) {
@@ -147,11 +137,20 @@ function indirectSlottableMutation(el, ev) {
 
 function directSlottableMutation(changes) {
   const el = changes[0].target;
-  const children = mapNodesByAttributeValue(el.childNodes, "slot");
-  let diffs = arrayDiff(el[slottables], children);
-  for (let name of diffs)
-    el.slotCallback(new Slottables(name, children[name]));
-  el[slottables] = children;
+  const newSlottables = mapNodesByAttributeValue(el.childNodes, "slot");
+  for (let name in el[slottables]) {
+    if (newSlottables[name] === undefined){
+      delete el[slottables][name];                           //deleted
+      el.slotCallback(new Slottables(name, null));
+    }
+  }
+  for (let name in newSlottables) {
+    let nodes = newSlottables[name];
+    if (!arrayEquals(nodes, el[slottables][name])){           //added or different
+      el[slottables][name] = nodes;
+      el.slotCallback(new Slottables(name, nodes));
+    }
+  }
 }
 
 const init = function (el) {
@@ -164,7 +163,7 @@ const init = function (el) {
     el.slotCallback(new Slottables(name, el[slottables][name] = map[name]));
 };
 
-const mo = new MutationObserver(changes => directSlottableMutation(changes));
+const mo = new MutationObserver(directSlottableMutation);
 
 export const SlottableMixin = function (Base) {
   return class SlottableMixin extends Base {
