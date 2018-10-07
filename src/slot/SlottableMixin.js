@@ -134,11 +134,25 @@ const hostSlotchange = Symbol("chainedSlotchangeEvent");
 const slottables = Symbol("notFlatMap");
 const init = Symbol("init");
 
+function indirectSlottableMutation(el, ev){
+  let path = ev.composedPath();
+  for (let i = 0; i < path.length; i++) {
+    let slot = path[i];
+    if (slot.tagName !== "SLOT")
+      return;                                             //no eavesdropping
+    if (slot.parentNode === el){
+      const slotName = slot.getAttribute("slot") || "";
+      el.slotCallback(new Slottables(slotName, el[slottables][slotName]), i+1, ev);  //found the right slot and triggering callback
+      return;
+    }
+  }
+}
+
 const initFn = function (el) {
   const mo = new MutationObserver(() => el[hostChildrenChanged]());
   mo.observe(el, {childList: true});
   el[init]();
-  el.addEventListener("slotchange", e => el[hostSlotchange](e));
+  el.addEventListener("slotchange", e => indirectSlottableMutation(el, e));
 };
 
 export const SlottableMixin = function (Base) {
@@ -148,19 +162,6 @@ export const SlottableMixin = function (Base) {
       super();
       this[slottables] = null;
       batchedConstructorCallback(initFn, this);
-    }
-
-    [hostSlotchange](e) {
-      for (let slot of e.composedPath()) {
-        if (slot.tagName !== "SLOT")
-          return;
-        if (slot.parentNode === this) {
-          //e.stopPropagation();
-          const slotName = slot.getAttribute("slot") || "";
-          this.slotCallback(new Slottables(slotName, this[slottables][slotName]));
-          return;
-        }
-      }
     }
 
     [init]() {
