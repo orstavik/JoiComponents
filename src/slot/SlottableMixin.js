@@ -129,27 +129,36 @@ class Slottables {
  * @param Base class that extends HTMLElement
  * @returns {SlottableMixin} class that extends HTMLElement
  */
-const hostChildrenChanged = Symbol("hostChildrenChanged");
-const hostSlotchange = Symbol("chainedSlotchangeEvent");
 const slottables = Symbol("notFlatMap");
 const init = Symbol("init");
 
-function indirectSlottableMutation(el, ev){
+function indirectSlottableMutation(el, ev) {
   let path = ev.composedPath();
   for (let i = 0; i < path.length; i++) {
     let slot = path[i];
     if (slot.tagName !== "SLOT")
       return;                                             //no eavesdropping
-    if (slot.parentNode === el){
+    if (slot.parentNode === el) {
       const slotName = slot.getAttribute("slot") || "";
-      el.slotCallback(new Slottables(slotName, el[slottables][slotName]), i+1, ev);  //found the right slot and triggering callback
+      el.slotCallback(new Slottables(slotName, el[slottables][slotName]), i + 1, ev);  //found the right slot and triggering callback
       return;
     }
   }
 }
 
+const mo = new MutationObserver(changes => directSlottableMutation(changes));
+
+function directSlottableMutation(changes) {
+  let change = changes[changes.length - 1];
+  const el = change.target;
+  const children = mapNodesByAttributeValue(el.childNodes, "slot");
+  let diffs = arrayDiff(el[slottables], children);
+  for (let name of diffs)
+    el.slotCallback(new Slottables(name, children[name]));
+  el[slottables] = children;
+}
+
 const initFn = function (el) {
-  const mo = new MutationObserver(() => el[hostChildrenChanged]());
   mo.observe(el, {childList: true});
   el[init]();
   el.addEventListener("slotchange", e => indirectSlottableMutation(el, e));
@@ -169,14 +178,6 @@ export const SlottableMixin = function (Base) {
       if (Object.keys(this[slottables]).length === 0) this[slottables][""] = [];
       for (let name in this[slottables])
         this.slotCallback(new Slottables(name, this[slottables][name]));
-    }
-
-    [hostChildrenChanged]() {
-      const children = mapNodesByAttributeValue(this.childNodes, "slot");
-      let diffs = arrayDiff(this[slottables], children);
-      for (let name of diffs)
-        this.slotCallback(new Slottables(name, children[name]));
-      this[slottables] = children;
     }
   }
 };
