@@ -108,20 +108,6 @@ function arrayEquals(a, b) {
   return b && a && a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
-function indirectSlottableMutation(el, ev) {
-  let path = ev.composedPath();
-  for (let i = 0; i < path.length; i++) {
-    let slot = path[i];
-    if (slot.tagName !== "SLOT")
-      return;                                             //no eavesdropping
-    if (slot.parentNode === el) {
-      const slotName = slot.getAttribute("slot") || "";
-      el.slotCallback(el[slottables][slotName], i + 1, ev);  //found the right slot and triggering callback
-      return;
-    }
-  }
-}
-
 function directSlottableMutation(changes) {
   const el = changes[0].target;
   const newSlottables = mapNodesByAttributeValue(el.childNodes, "slot");
@@ -145,7 +131,7 @@ const mo = new MutationObserver(directSlottableMutation);
 function SlottableCallback(el) {
   el[slottables] = {};
   mo.observe(el, {childList: true});
-  el.addEventListener("slotchange", e => indirectSlottableMutation(el, e));
+  //el.addEventListener("slotchange", e => indirectSlottableMutation(el, e));
 
   const map = mapNodesByAttributeValue(el.childNodes, "slot");
   if (Object.keys(map).length === 0) map[""] = [];
