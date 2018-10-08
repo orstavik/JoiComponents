@@ -2,6 +2,9 @@
 
 The `<VAR>` element is a unification of the `<TEMPLATE>` and `<SLOT>` elements.
 
+Todo In the flattened DOM the `<VAR>` node would be converted into a #documentFragment.
+     Assigned nodes would be attached to it.
+
 ## Motivation
 
 1. Only process `slotchange` events inside the custom element whose `shadowRoot` contain the slot.
