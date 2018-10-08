@@ -462,6 +462,16 @@ And, such alternatives using *both* a custom attribute and a slot attribute, wou
 for attribute-race-conditions such as: what if the user directly specifies a `slot` attribute?
 What if the user specifies both a different `slot` and a custom attribute?
 
+## `SlottableMixin` vs `SlotchangeMixin`
+
+If you don't have access to `this.shadowRoot` in your custom element, then you should use `SlottableMixin`.
+If you update the shadowDOM in such a way that reactions to internal slot-mutations might occur,
+or if you need to react to unassignable slotchange events, then you should use `SlottableMixin`.
+If you only wish to use one, use `SlottableMixin`.
+
+If you don't alter the shadowDOM so to encounter issue 1 and 2 with internal slot-mutations,
+and you do not wan't to react to unassignable slotchange events, then you can use `SlotchangeMixin`.
+
 ### OLD: Alternative intro
 Our custom element can react to lots of events. 
 It can react to being constructed, changes to one of its attributes, to being connected and disconnected,
@@ -477,9 +487,9 @@ We just wish to be able to communicate settings to the custom element without us
 use the slots in the custom element to also "style" some of the custom elements
 content that we can't do via 
 
-## Things to be tested
+### Things to be tested
 1. no slotchangeCallback when we add or remove inside slot nodes. 
-2. slotchangeCallback when we add or remove slot unassigned slottable nodes 
+2. slotchangeCallback when we add or remove slot unassigned slottable childNodes
 
 
 But. Do we want to do that? 
