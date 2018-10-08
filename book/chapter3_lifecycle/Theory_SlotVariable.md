@@ -1,11 +1,5 @@
 # Theory: `<SLOT>` as an HTML variable
 
-This chapter describes the problem of assigning nodes to `<SLOT>` elements.
-This process is very elaborate and complex, and needlessly so in my opinion.
-To understand why that is and how this process works, 
-is best done by putting it up against what it could have been like:
-variable resolution.
-
 ## What is variable resolution?
 
 A **variable** points to some 'thing'. 
@@ -91,6 +85,15 @@ parent(elizabeth, james).
 ```
 If a variable could be assigned *more than* one value at a time, like a `<SLOT>`,
 then it could return `slot X[charles, elizabeth]`.
+
+## Problems on the horizon
+
+Unfortunately, there are negative consequences from chained `<SLOT>` elements,
+both for CSS encapsulation and the algorithm for flattening `<SLOT>`s.
+When more `<SLOT>`s are linked and the process of
+assignments become more complex, 
+these consequences makes the conceptual structure of the `<SLOT>` harder
+to keep in mind for the developer.
 
 ## References
 
