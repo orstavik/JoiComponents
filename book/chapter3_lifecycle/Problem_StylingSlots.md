@@ -22,7 +22,7 @@ thus chaining its own `<slot>` to the `<slot>` in `<header-impl>`.
           }
         </style>
         <header-impl>
-          <slot id="fh"></slot>          
+          <slot id="middle"></slot>          
         </header-impl>
       `;
     }
@@ -39,7 +39,7 @@ thus chaining its own `<slot>` to the `<slot>` in `<header-impl>`.
             text-decoration: underline;
           }
         </style>
-        <slot id="hi"></slot>
+        <slot id="inner"></slot>
       `;
     }
   }
@@ -55,48 +55,147 @@ thus chaining its own `<slot>` to the `<slot>` in `<header-impl>`.
 ```
 This results is:
 
-Hello World!  (with underline, overline, line-through) and RED.
+Hello World!  (with red underline, blue overline, and blue line-through) and BLUE(!).
 
 ## What happened?
 
-First, `<span>Hello World!</span>` is transposed into the `<slot id="fh">`, and then into `<slot id="hi">`.
-Now, looking at `<slot id="hi">` from a variable resolution perspective, 
-we would think that the `<slot id="hi">` had been replaced with `<span>Hello World!</span>`.
-But wait, that isn't how `<SLOT>`s are flattened! No, the `<span>Hello World!</span>` is
-wrapped inside `<slot id="hi">`, so the end result in the flattened DOM should be:
+First, `<span>Hello World!</span>` is transposed into `<slot id="middle">` and then into `<slot id="inner">`.
+Now, looking at `<slot id="inner">` as variable to be resolved, 
+we would expect that the `<slot id="inner">` is replaced with `<span>Hello World!</span>`.
+But, wait, this is not how `<SLOT>`s are flattened! No, the `<span>Hello World!</span>` is
+*filled into*/wrapped inside `<slot id="inner">`, so the end result in the flattened DOM would 
+look something like:
 ```html
-<slot id="hi">
+<slot id="inner">
   <span>Hello World!</span>
 </slot>
 ```
-But wait again, now that isn't true either. What happened with the middle slot? And its `line-through`?
-Ok, so the end result in the flattened DOM turns out to be something like this.
+But, wait again! This isn't exactly true either. What about `<slot id="middle">`? 
+And the `blue` text color and `line-through`?
+Ok, so the end result is wrapped in the `<slot id="middle">` too making the 
+flattened DOM look something like this:
 ```html
-<slot id="fh">
-  <slot id="hi">
+<slot id="middle">
+  <slot id="inner">
     <span>Hello World!</span>
   </slot>
 </slot>
 ```
-Ooops, I did a mistake there, switching the `<slot>` order. The correct result is:
+Ooops, I did a mistake there! I switched the `<slot>` order. When `<slot>`s are wrapped, 
+they will go in the **reverse document order(!!)**. The inner will become the outer, and vice versa.
+And so the "correct" expectation would be something like this:
 ```html
-<slot id="hi">
-  <slot id="fh">
+<slot id="inner">
+  <slot id="middle">
     <span>Hello World!</span>
   </slot>
 </slot>
 ```
-And that is why all of the text-decoration styles are applied *and* 
-why the `red` color of `<slot id="fh">` has a higher specificity than `<slot id="hi">`.
+And with this prescient mental image of the flattened DOM, the styles *finally* start to make sense.
+First, the styles attributed to `<slot id="inner">` are attributed, red text and red underline.
+Second, `<slot id="middle">` overwrites the text color in blue, and adds a line-through.
+Third, the `<span>` adds an overline, that is blue because the text color is now blue.
+
+The take-away from this example is the importance of:
+1. making a mental model of the slotted nodes as **wrapped** in potentially several nested `<slot>`s.
+2. The this embrace-of-the-slots is in **reverse document order**, 
+   since flattening of `<slot>`s traverse the documents bottom-up.
+3. That **all the styles of all the `<slot>`s apply**.
+
+And if you are feeling confused, embrace it like a `<SLOT>`, 'cause there's more comin'!
+
+## Example 1b: `<SLOT>`s inherit their parents style too
+
+Let's play with this example a bit. Let's make it even more difficult, just for kicks!
+Let us not apply the styles in the middle, `FancyHeader`, and the top level directly to the `<slot>`.
+What happens then?
+
+```html
+<script>
+  class FancyHeader extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          b {
+            color: blue;
+            text-decoration: line-through;
+          }
+        </style>
+        <b>
+          <header-impl>
+            <slot id="middle"></slot>          
+          </header-impl>
+        </b>
+      `;
+    }
+  }
+
+  class HeaderImpl extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          slot {
+            color: red;
+            text-decoration: underline;
+          }
+        </style>
+        <slot id="inner"></slot>
+      `;
+    }
+  }
+  customElements.define("fancy-header", FancyHeader);
+  customElements.define("header-impl", HeaderImpl);
+</script>
+<style>
+  span {
+    text-decoration: overline;
+  }
+</style>  
+<fancy-header><span>Hello World!</span></fancy-header>
+```
+Before we look at the result, let's look at some possible expectations:
+
+Now, this time the text will be bold, from the `<b>` element. That is simple.
+Also, another spoiler. There will be no `line-through`. As this property does not inherit. 
+But, what about the text color? Which CSS rule will apply?
+(And we pretend that it is not necessary to care about the color of the `overline`. 
+Red or blue overline? Doesn't matter, they are both equally beautiful!)
+
+There are two alternatives for text color: red and blue.
+
+It could be blue. The rationale here would be that `color` is an inheritable CSS property. 
+That means that `<slot id="middle">` inherits this property from its parentNode 
+(which, spoiler alert, devtools shows).
+So, even though the `<slot>` isn't directly colored anymore, it inherits color, and 
+that inherited color trumps the more specific CSS selector from the inner document 
+*because the owner documents of these rules are ordered in reverse-document-order*, 
+making higher document rules trump lower document rules, regardless of specificity.
+
+It could be red. The rationale here would be that CSS rules that are directly assigned to a node,
+ie. *not* inherited, always trumps inherited properties, regardless of document order.
+
+The result is...
+
+"Hello World!"  (red text, red overline, red underline)
+
+This shows us that specificity of CSS selectors for SLOT trumps CSS document order.
+Feeling a bit more confused? Not to worry, the ride is not over yet, 
+we have much more of the good stuff coming! :D
 
 ## Example 2: ::slotted(*)
 
-To style nodes that gets assigned, a special CSS selector called `::slotted(*)` is used. 
+To style nodes that get assigned, a special CSS selector called `::slotted(*)` is used. 
 The `::slotted(*)` selector is a CSS pseudo-class, but what you really need to know, is that
 you can *only* use it to style the directly assigned nodes, and not those nodes descendants.
 **`::slotted(*)` rules *only* apply to assigned children, *not* assigned descendants**. 
 
 Let's look at our fancy example, but this time we use `::slotted(*)`.
+In this example we also sprinkle an extra css property to the middle layer `font-style: italic`.
+It can never be too fancy!
 
 ```html
 <script>
@@ -112,7 +211,7 @@ Let's look at our fancy example, but this time we use `::slotted(*)`.
           }
         </style>
         <header-impl>
-          <slot id="fh"></slot>          
+          <slot id="middle"></slot>          
         </header-impl>
       `;
     }
@@ -127,9 +226,10 @@ Let's look at our fancy example, but this time we use `::slotted(*)`.
           ::slotted(*) {
             color: red;
             text-decoration: underline;
+            font-style: italic;
           }
         </style>
-        <slot id="hi"></slot>
+        <slot id="inner"></slot>
       `;
     }
   }
@@ -142,13 +242,33 @@ Let's look at our fancy example, but this time we use `::slotted(*)`.
 <fancy-header><span>Hello World!</span></fancy-header>
 ```
 
-Take a guess! What color do you think the text will be? red? or blue?
+Take a guess! What color do you think the text will be? Red? or Blue? 
+And will it be underlined, strike-through or both?
 Which way is the `::slotted(*)` prioritized? Same way as document order, inner trumps outer?
 Or the reverse chained-slot-order that we saw before, 
 outer trumps inner, because inner `<SLOT>` becomes outer wrapper?
 
-## Example 3: fallback nodes and ::slotted(*)
- 
+Hello World! (in blue, line-through, italics)
+
+First, if you are reading this, I just have to say: you are a superhero!! 
+You *can* take more ups and downs than the next guy, you are truly the last man standing.
+I do not expect this ever to happen, in the real world I am just writing this for myself.
+
+But, back to business! If you look at the slotted `<span>` node in devtools, you will see 
+that *both* the `::slotted(*)` rules gets attached to the `<span>` node.
+The inner `::slotted(*)` rule just went right *past* the `<slot id="middle">` node.
+And if you missed that one, that's on `::slotted(*)`, not you.
+Second, as all the rules gets attached to the same `<span>` node, they will overwrite each other.
+You will not get one text-decoration for a `<slot id="middle">` node and one for the `<slot id="inner">`
+this time, you will get only one. The outer one, of course, since applying CSS rules to slotted
+elements goes ... **reverse document order**.
+
+And now, for the truly good stuff: CSS fallback nodes.
+
+## Example 3: disappearing fallback nodes
+
+To provide a default value for a `<SLOT>` if no elements are assigned to it,
+you simply add a set of childnodes under it.
 Child nodes of a `<SLOT>` element is that `<SLOT>` element's fallback nodes.
 The principle is simple. 
 If a `<SLOT>` element does not get any nodes assigned to it from outside (the lightDOM),
@@ -156,12 +276,16 @@ use the childNodes from the inside (the shadowDOM).
 
 But, there is a catch. Since `<SLOT>`s are filled with assigned content, not replaced,
 these fallback nodes are not regarded as `::slotted(*)`.
-But but, there is a catch 22 also. 
-When an inner `<SLOT>` *is* assigned to another middle `<SLOT>` that happens *not*
-to be assigned to any slotable nodes in its lightDOM, but happens to have a set of fallback nodes,
-then those fallback nodes *would be* a) regular, not-slotted fallback nodes in the middle document,
-but b) assigned and slotted nodes in the inner document. Or would they? 
-Let us bring out our `FancyHeader` and investigate:
+And, there is another catch. What if: 
+1. an inner `<SLOT>` *is* assigned to a middle `<SLOT>` that 
+2. is *not* assigned to any slotable nodes in its lightDOM, but 
+3. *do* have a set of fallback nodes?
+
+*Would* the inner `<SLOT>`:
+ * use its own fallback nodes of the middle slot, or
+ * the fallback nodes from the other `<SLOT>` element it is assigned to?
+   
+Let's have another `FancyHeader` and investigate:
 
 ```html
 <script>
@@ -177,7 +301,7 @@ Let us bring out our `FancyHeader` and investigate:
           }
         </style>
         <header-impl>
-          <slot id="fh">Inner Header</slot>          
+          <slot id="middle">Inner Header</slot>          
         </header-impl>
       `;
     }
@@ -194,48 +318,36 @@ Let us bring out our `FancyHeader` and investigate:
             text-decoration: underline;
           }
         </style>
-        <slot id="hi">Middle Header</slot>
+        <slot id="inner">Middle Header</slot>
       `;
     }
   }
   customElements.define("fancy-header", FancyHeader);
   customElements.define("header-impl", HeaderImpl);
 </script>
-<style>
-  span {
-    text-decoration: overline;
-  }
-</style>
-<fancy-header><span>Upper Fancy Header</span></fancy-header>
 <fancy-header></fancy-header>
-<header-impl><span>Upper Header Impl</span></header-impl>
-<header-impl></header-impl>
 ```
 
-To fully illustrate the situation, we need style rules that are inherited.
-Because, hold on to your hats, the middle `<SLOT>` element is not removed, but
-transposed itself. Or are just the childNodes transposed? Who can really remember?
-Who has the mental capacity and interest in keeping the neurons describing such paths
-alive in their mind?
+The real question is, do we really bother with another investigation?
+Can we just conclude with guilty and send all nodes to prison?
+Does `!important` work? And if so, how could I use it? But, enough digression,
+let's get back on track.
 
-There are several key questions a developer must answer when using `<slot>` fallback child nodes?
-Different rules seem to the `<SLOT>` elements and their children depending on which level
-they come from. 
-Is the middle slot removed in the middle layer, but the inner slot will not get removed?
-Which rules apply when, where and to what?
+The example yields good insight. 
+When `<slot id="inner">` asks `<slot id="middle">` for its `assignedNodes`, 
+`<slot id="middle">` will not return its fallback nodes to `<slot id="inner">` 
+when it has no assigned nodes.
+**Slot fallback childnodes does NOT work recursively**.
+So while the `<slot>` element works recursively for assigned nodes, 
+it does not work recursively for fallback nodes.
+If you missed that one, its not on you, blame the `<SLOT>`.
 
-If you feel that this is a jungle, you are correct. You should think of styling `<SLOT>`s as a jungle.
-There are several sets of selectors, and how you should view the selectors of `<SLOT>`s 
-differs when it is in the lightDOM and shadowDOM 
-(and root level without a shadowRoot, as we will discover in our next example). 
-In the jungle things creep around. With `<SLOT>`s and slotted content, CSS rules are also creepy.
-
-//old
-althought `<SLOT>` are filled with assigned content, not replaced,
-these fallback nodes are not regarded as `::slotted(*)`.
-These childNodes are not treated as slotted, 
-meaning `::slotted(*)` css rules do not apply to them. 
-Unless they were passed on from their 
+Secondly, the `::slotted(*)` rules do not apply. *Fallback child nodes are not considered slotted*.
+If you missed that one, that is on you! No.. Just kidding:) 
+This is also a perfectly understandable misunderstanding. 
+You just didn't know that CSS applies different rules to the `<SLOT>`s own children 
+than it does with the children that gets assigned to the `<SLOT>`. 
+No `::slotted(*)` for Christmas for you kids!
 
 ## Example 4: top level slot nodes are not removed when assigned
 
@@ -273,7 +385,7 @@ If there is *one* thing that is missing here, it would be our beloved *fancy* ex
           }
         </style>
         <header-impl>
-          <slot id="fh">Inner Header</slot>          
+          <slot id="middle">Inner Header</slot>          
         </header-impl>
       `;
     }
@@ -290,7 +402,7 @@ If there is *one* thing that is missing here, it would be our beloved *fancy* ex
             border-bottom: 2px solid black;
           }
         </style>
-        <slot id="hi">Middle Header</slot>
+        <slot id="inner">Middle Header</slot>
       `;
     }
   }
@@ -316,6 +428,14 @@ how `<SLOT>`s get styled when chained. It has:
  * and the styles are non-inheritable.
  
 In the real world, you should watch out for the following:
+
+0. It is naive to expect a `<SLOT>` to behave nicely. 
+   Sure, they often do, and things work out ok in the end.
+   But, when `<SLOT>`s get chained, things start going out of control, fast.
+   The sad news is that you have to chain `<SLOT>`s. 
+   You want to use them across many elements in many situations.
+   And so, the most important guideline is to anticipate style creep when chaining `<SLOT>`s.
+   Expect the worse, and the chained `<SLOT>`s will hopefully pleasantly surprise you.
 
 1. You forgot to view `<SLOT>` elements as variables being *filled with* content, 
    and not *replaced* by content.
