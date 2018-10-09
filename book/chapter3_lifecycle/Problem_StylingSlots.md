@@ -91,16 +91,220 @@ why the `red` color of `<slot id="fh">` has a higher specificity than `<slot id=
 
 ## Example 2: ::slotted(*)
 
-Make an example like the one above.
+To style nodes that gets assigned, a special CSS selector called `::slotted(*)` is used. 
+The `::slotted(*)` selector is a CSS pseudo-class, but what you really need to know, is that
+you can *only* use it to style the directly assigned nodes, and not those nodes descendants.
+**`::slotted(*)` rules *only* apply to assigned children, *not* assigned descendants**. 
 
-Highlight that ::slotted(*) only applies to the first level, not descendants.
+Let's look at our fancy example, but this time we use `::slotted(*)`.
 
-## Example 3: fallback nodes.
+```html
+<script>
+  class FancyHeader extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          ::slotted(*) {
+            color: blue;
+            text-decoration: line-through;
+          }
+        </style>
+        <header-impl>
+          <slot id="fh"></slot>          
+        </header-impl>
+      `;
+    }
+  }
 
-Different rules on different levels.
-Is the middle slot removed in the middle layer?
+  class HeaderImpl extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          ::slotted(*) {
+            color: red;
+            text-decoration: underline;
+          }
+        </style>
+        <slot id="hi"></slot>
+      `;
+    }
+  }
+  customElements.define("fancy-header", FancyHeader);
+  customElements.define("header-impl", HeaderImpl);
+</script>
+<style>
+  /*nothing ever gets ::slotted(*) at the root level*/
+</style>
+<fancy-header><span>Hello World!</span></fancy-header>
+```
+
+Take a guess! What color do you think the text will be? red? or blue?
+Which way is the `::slotted(*)` prioritized? Same way as document order, inner trumps outer?
+Or the reverse chained-slot-order that we saw before, 
+outer trumps inner, because inner `<SLOT>` becomes outer wrapper?
+
+## Example 3: fallback nodes and ::slotted(*)
+ 
+Child nodes of a `<SLOT>` element is that `<SLOT>` element's fallback nodes.
+The principle is simple. 
+If a `<SLOT>` element does not get any nodes assigned to it from outside (the lightDOM),
+use the childNodes from the inside (the shadowDOM).
+
+But, there is a catch. Since `<SLOT>`s are filled with assigned content, not replaced,
+these fallback nodes are not regarded as `::slotted(*)`.
+But but, there is a catch 22 also. 
+When an inner `<SLOT>` *is* assigned to another middle `<SLOT>` that happens *not*
+to be assigned to any slotable nodes in its lightDOM, but happens to have a set of fallback nodes,
+then those fallback nodes *would be* a) regular, not-slotted fallback nodes in the middle document,
+but b) assigned and slotted nodes in the inner document. Or would they? 
+Let us bring out our `FancyHeader` and investigate:
+
+```html
+<script>
+  class FancyHeader extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          ::slotted(*) {
+            color: blue;
+            text-decoration: line-through;
+          }
+        </style>
+        <header-impl>
+          <slot id="fh">Inner Header</slot>          
+        </header-impl>
+      `;
+    }
+  }
+
+  class HeaderImpl extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          ::slotted(*) {
+            color: red;
+            text-decoration: underline;
+          }
+        </style>
+        <slot id="hi">Middle Header</slot>
+      `;
+    }
+  }
+  customElements.define("fancy-header", FancyHeader);
+  customElements.define("header-impl", HeaderImpl);
+</script>
+<style>
+  span {
+    text-decoration: overline;
+  }
+</style>
+<fancy-header><span>Upper Fancy Header</span></fancy-header>
+<fancy-header></fancy-header>
+<header-impl><span>Upper Header Impl</span></header-impl>
+<header-impl></header-impl>
+```
+
+To fully illustrate the situation, we need style rules that are inherited.
+Because, hold on to your hats, the middle `<SLOT>` element is not removed, but
+transposed itself. Or are just the childNodes transposed? Who can really remember?
+Who has the mental capacity and interest in keeping the neurons describing such paths
+alive in their mind?
+
+There are several key questions a developer must answer when using `<slot>` fallback child nodes?
+Different rules seem to the `<SLOT>` elements and their children depending on which level
+they come from. 
+Is the middle slot removed in the middle layer, but the inner slot will not get removed?
+Which rules apply when, where and to what?
+
+If you feel that this is a jungle, you are correct. You should think of styling `<SLOT>`s as a jungle.
+There are several sets of selectors, and how you should view the selectors of `<SLOT>`s 
+differs when it is in the lightDOM and shadowDOM 
+(and root level without a shadowRoot, as we will discover in our next example). 
+In the jungle things creep around. With `<SLOT>`s and slotted content, CSS rules are also creepy.
+
+//old
+althought `<SLOT>` are filled with assigned content, not replaced,
+these fallback nodes are not regarded as `::slotted(*)`.
+These childNodes are not treated as slotted, 
+meaning `::slotted(*)` css rules do not apply to them. 
+Unless they were passed on from their 
 
 ## Example 4: top level slot nodes are not removed when assigned
+
+The last example we will address here is the special case were a `<SLOT>` node
+is placed in the main document, that has no shadowRoot.
+This would be a strange place to put such a `<SLOT>` element, but 
+there are situations where it might occur.
+ 
+For example. Someone is making a game with a set of characters. 
+One of these characters is defined as the fallback guy for a `<SLOT>` inside another custom element. 
+This other custom element you don't have access to, so you can't change its templating structure.
+So when someone needs this character in the main document template, 
+he uses the template whose root node is a `<SLOT>`. 
+He anticipates that the top level `<SLOT>` simply would be *replaced* by 
+its fallback nodes as it will get no assigned nodes 
+(of course, because there is no lightDOM outside the main document).
+But that is, as we know it wrong, because 
+*`<SLOT>`'s assigned content fills it, it does not replace it*.
+
+Anywho, when such a confusing situation arises, the browser might still show the text.
+It will just maybe style it wrong. It will perhaps include some styles that you have set, but not others.
+If there is *one* thing that is missing here, it would be our beloved *fancy* example:
+
+```html
+<script>
+  class FancyHeader extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          ::slotted(*) {
+            color: blue;
+            border-top: 2px solid black;
+          }
+        </style>
+        <header-impl>
+          <slot id="fh">Inner Header</slot>          
+        </header-impl>
+      `;
+    }
+  }
+
+  class HeaderImpl extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          ::slotted(*) {
+            color: red;
+            border-bottom: 2px solid black;
+          }
+        </style>
+        <slot id="hi">Middle Header</slot>
+      `;
+    }
+  }
+  customElements.define("fancy-header", FancyHeader);
+  customElements.define("header-impl", HeaderImpl);
+</script>
+<style>
+  span {
+    text-decoration: overline;
+  }
+</style>
+<fancy-header><slot><span>Upper Fancy Header</span></slot></fancy-header>
+<header-impl><slot><span>Upper Header Impl</span></slot></header-impl>
+```
 
 ## Guide to managing CSS and slot in the wild
 
