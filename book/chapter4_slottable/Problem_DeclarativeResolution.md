@@ -66,7 +66,7 @@ In theory, this might sound desirable. But in practice, it can be quite confusin
 ### Example: Extra `slotchange` events
 
 To illustrate the problem, we return to our `GrandpaInAFrame` example 
-from the previous chapter [Problem: SlotchangeEavsedropping](./Problem_SlotchangeEavesdropping.md).
+from the previous chapter [Problem: SlotchangeEavsedropping](Problem_SlotchangeEavesdropping.md).
 This time, we drop the `requestAnimationFrame`s and the `setTimeout`s and alter the log slightly.
 dynamically adding content.: BAM!!
 

@@ -3,7 +3,11 @@
 The `<VAR>` element is a unification of the `<TEMPLATE>` and `<SLOT>` elements.
 
 Todo In the flattened DOM the `<VAR>` node would be converted into a #documentFragment.
-     Assigned nodes would be attached to it.
+     Assigned nodes would be attached to it. Or, the end `<VAR>` could remain, to comply with CSS rules.
+     No, I think not. Using a #documentFragment would create a CSS border between the original elements and the
+     element into which it is slotted. This would enable a simpler rule slot[name="whatever"]:assigned
+     rules to be transfered wholesale into the document fragment of the VAR.
+     Or that regular CSS rules that applied to the VAR would be transfered into the stylesheet of the documentFragment.
 
 ## Motivation
 

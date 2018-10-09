@@ -3,51 +3,19 @@
 ## The native web components cookbook
 
 "The web component design patterns" is a set of recipes for developing simple and reusable web components. 
-This book does not rely on any framework: all patterns are intended to run natively on any browser 
+This book is framework independent: all patterns are intended to run natively on any browser 
 that supports web components and vanilla es6. 
-However, although different frameworks might require a different mode of implementation, 
-most of the patterns described here should be relevant for developers using other frameworks.
+However, the book is meant to be framework relevant: 
+the patterns should all be useful to understand either how to make web components in other frameworks or
+how other frameworks function internally.
 
 WC patterns consists of the following types of recipes:
 * problem descriptions that detail and frame frequent issues and use-cases,
 * patterns that explain how to solve these problems and build web components,
-* isolated functional mixins that implement some of these patterns,
-* and punchlines and other resources that implements other patterns needed to make a complete app.
+* isolated functional mixins that implement some of these patterns, plus
+* a few other resources that implements some of patterns needed to make a complete app.
 
-The isolated functional mixins presented do **not** make a framework. 
-In fact, it is the ambition with this book that you no longer need a framework to build
-scalable, manageable, simple, yet powerful web apps. Modern browsers now has all the power you desire.
-Hence, every mixin and resource strives for no other dependencies than itself and 
-the (polyfilled) platform. 
-
-The following mixins are directly available via rawgit.com and unpkg.com:
-
-**Regular mixins:**
-* [EnterViewMixin.js](src/EnterViewMixin.js)
-* [FirstConnectedMixin.js](src/FirstConnectedMixin.js)
-* [HashChangedMixin.js](src/HashChangedMixin.js)
-* [ResizeMixin.js](src/ResizeMixin.js)
-* [SlotchangeMixin.js](src/SlotchangeMixin.js)
-* [StaticSlotchangeMixin.js](src/StaticSlotchangeMixin.js)
-
-**Gestures:**
-* [gestures/DraggingFling.js](src/gestures/DraggingFling.js)
-* [gestures/PinchSpin.js](src/gestures/PinchSpin.js)
-* [gestures/Swipe.js](src/gestures/Swipe.js)
-
-**Other resources:**
-* [setupCallback punchline]()
-* [polyfill-loader.js](src/polyfill-loader.js)
-* [flattenNodes.js](src/flattenNodes.js)
-
-Example of complete links:
- * [https://unpkg.com/joicomponents@1.2.0/src/SlotchangeMixin.js](https://unpkg.com/joicomponents@1.2.0/src/SlotchangeMixin.js)
- * [https://cdn.rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js](https://rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js)
-
-|            | Atomic  | Composed |
-| ---------- |-------- | -------- |
-| lifecycle<br>sequential  | **constructor()**<br>**connectedCallback()**<br>**disconnectedCallback()**<br>firstConnectedCallback()<br>enterViewCallback()<br>setupCallback() |  |
-| event<br>random      | **attributeChangedCallback(name, oldValue, newValue)**<br>**adoptedCallback()**<br>slotchangeCallback(name, newFlattenedChildNodes, oldFlattenedChildNodes)<br>resizeCallback(contentRect)<br>hashchangedCallback("hash")<br> | dragFlingCallbacks<br>pinchCallbacks<br>swipeCallbacks|
+> Please refer to this project when you build on it!
 
 ## Chapter 1: How to make a web component?
 1. [Define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
@@ -76,13 +44,18 @@ Example of complete links:
 2. [Pattern: setupCallback()](book/chapter3_lifecycle/Mixin2_InitialAttributes.md)
 3. [Pattern: delay setup](book/chapter3_lifecycle/Pattern1_TemporaryTemplate.md)
 4. [Mixin: UnloadDisconnects](book/chapter3_lifecycle/Mixin3_unload_disconnects.md)
-
-## Chapter 4: Event callbacks
 1. [.attributeChangedCallback()](book/chapter3_lifecycle/HowTo_attributeChangedCallback.md)
-2. [.slotchangedCallback()](book/chapter3_lifecycle/Mixin1_SlotchangeMixin.md)
-3. [.resizeCallback()](book/chapter4_basicMixins_whileConnected/Mixin2_ResizeMixin.md)
-4. .hashChangedCallback()
+<!--4. .hashChangedCallback()-->
 <!-- 4. liefi-->
+
+## Chapter 4: Slottables
+2. [Problem: SlotchangeEavesdropping](book/chapter4_slottable/Problem_SlotchangeEavesdropping.md)
+2. [Problem: DeclarativeResolution](book/chapter4_slottable/Problem_DeclarativeResolution.md)
+2. [Problem: slotchange issues](book/chapter4_slottable/Problem_slotchange_issues.md)
+2. [Pattern: Slottables](book/chapter4_slottable/Pattern_Slottables.md)
+2. [Theory: SlotVariable](book/chapter4_slottable/Theory_SlotVariable.md)
+2. [Problem: StylingSlots](book/chapter4_slottable/Problem_StylingSlots.md)
+2. [Proposal: `<VAR>`](book/chapter4_slottable/Proposal_VAR.md)
 
 ## Chapter 5: Gestures
 1. [Sloppy fingers](book/chapter5_gestures/Problem1_sloppy_fingers.md)
@@ -128,6 +101,9 @@ Z. Sibling based ordered list.
 4. [Compound elements, replace CSS pseudo elements](book/chapter7_style/Pattern4_css_pseudo_elements.md) 
 5. [ResponsiveLayout, extend CSS media queries](book/chapter7_style/Pattern5_ResponsiveLayout.md)
 6. [Discussion about CSS pseudo elements and CSS media queries](book/chapter7_style/Discussion_mediaqueries_pseudoelements.md) 
+
+<!--3. [.resizeCallback()](book/chapter4_basicMixins_whileConnected/Mixin2_ResizeMixin.md)-->
+
 <!---
 7. Discussion. Coherence and style
 * How to handle app-wide styling. Local coherence (cohesion), thematic coherence, global coherence.
@@ -161,6 +137,47 @@ This is not for beginners. This is not necessarily a good pattern. But it is a p
 5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
 explain that custom elements with content in the lightDom should be considered app-specific components.
 -->
+
+## How to use the recipes
+
+
+ 
+The isolated functional mixins presented do **not** make a framework. 
+In fact, it is the ambition with this book that you no longer need a framework to build
+scalable, manageable, simple, yet powerful web apps. Modern browsers now has all the power you desire.
+Hence, every mixin and resource strives for no other dependencies than itself and 
+the (polyfilled) platform. 
+
+The following mixins are directly available via rawgit.com and unpkg.com:
+
+**Regular mixins:**
+* [EnterViewMixin.js](src/EnterViewMixin.js)
+* [FirstConnectedMixin.js](src/FirstConnectedMixin.js)
+* [HashChangedMixin.js](src/HashChangedMixin.js)
+* [ResizeMixin.js](src/ResizeMixin.js)
+* [SlottableMixin.js](src/slot/SlottableMixin.js)
+* [StaticSlotchangeMixin.js](trash/src/StaticSlotchangeMixin.js)
+
+**Gestures:**
+* [gestures/DraggingFling.js](src/gestures/DraggingFling.js)
+* [gestures/PinchSpin.js](src/gestures/PinchSpin.js)
+* [gestures/Swipe.js](src/gestures/Swipe.js)
+
+**Other resources:**
+* [setupCallback punchline]()
+* [polyfill-loader.js](src/polyfill-loader.js)
+* [flattenNodes.js](trash/src/flattenNodes.js)
+
+Example of complete links:
+ * [https://unpkg.com/joicomponents@1.2.0/src/SlottableMixin.js](https://unpkg.com/joicomponents@1.2.0/src/SlotchangeMixin.js)
+ * [https://cdn.rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js](https://rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js)
+
+|            | Atomic  | Composed |
+| ---------- |-------- | -------- |
+| lifecycle<br>sequential  | **constructor()**<br>**connectedCallback()**<br>**disconnectedCallback()**<br>firstConnectedCallback()<br>enterViewCallback()<br>setupCallback() |  |
+| event<br>random      | **attributeChangedCallback(name, oldValue, newValue)**<br>**adoptedCallback()**<br>slotchangeCallback(name, newFlattenedChildNodes, oldFlattenedChildNodes)<br>resizeCallback(contentRect)<br>hashchangedCallback("hash")<br> | dragFlingCallbacks<br>pinchCallbacks<br>swipeCallbacks|
+
+
 
 <!---
 ## Chapter 8: Composition of app-specific web components
