@@ -1,26 +1,32 @@
 # Proposal: VAR
 
 The `<VAR>` element is a unification of the `<TEMPLATE>` and `<SLOT>` elements.
-
-Todo In the flattened DOM the `<VAR>` node would be converted into a #documentFragment.
-     Assigned nodes would be attached to it. Or, the end `<VAR>` could remain, to comply with CSS rules.
-     No, I think not. Using a #documentFragment would create a CSS border between the original elements and the
-     element into which it is slotted. This would enable a simpler rule slot[name="whatever"]:assigned
-     rules to be transfered wholesale into the document fragment of the VAR.
-     Or that regular CSS rules that applied to the VAR would be transfered into the stylesheet of the documentFragment.
+This element builds on all the best practices described in the previous chapters, 
+plus adds support for a couple of new usecases.
 
 ## Motivation
 
-1. Only process `slotchange` events inside the custom element whose `shadowRoot` contain the slot.
-   `slotchange` is a private matter between a custom element and its `<SLOT>` elements.
-   Enable such direct `slotchange` events to also trigger on changes to the flattened structure (`assignedNodes({flatten:true})`), 
-   and not just the immediate children of the host node (`assignedNodes()`).
-
+1. Process direct and indirect `slotchange` events inside the custom element whose 
+   `shadowRoot` contain the affected slot.
+   
+   Today: `slotchange` events in chained `<SLOT>` composition can bubble and trigger
+   unrelated `<SLOT>` nodes.
+   
+   Tomorrow: `slotchange` events is a private matter between a custom element and its `<SLOT>`s,
+   and will never reach other unrelated custom elements.
+   
+   Ref: [Problem: SlotchangeEavesdropping](Problem_SlotchangeEavesdropping.md)
+   
 2. Unify and simplify the resolution of assigned nodes and fallback nodes in `<SLOT>`.
-   Today's model of treating assigned and fallback nodes differently causes confusion.
-   Processing assigned and fallback nodes similarly will:
+   
+   Today: assigned and fallback nodes are resolved differently. 
+   This causes confusion both in terms of what will be shown on screen, how it will be styled and JS API.
+   
+   Tomorrow: Resolving assigned and fallback nodes similarly will:
    1. create a clear conceptual model essential for developers and critical for web component adoption and
    2. have very few consequences for today's model (all behavioral changes I have seen could well be considered a fix).
+   
+   Ref: [Problem: DeclarativeResolution](Problem_DeclarativeResolution.md)
 
 3. Support the usecase of "setting up custom elements" as soon as both assigned nodes 
    (and initial attributes) are available, simply.
@@ -227,6 +233,14 @@ The parameter of the varCallback is Slottables. The Slottables interface is an o
    and has no need for a varCallback, this is not an issue that should be solved with the slottables callback.
 
 ## Style considerations
+
+
+Todo In the flattened DOM the `<VAR>` node would be converted into a #documentFragment.
+     Assigned nodes would be attached to it. Or, the end `<VAR>` could remain, to comply with CSS rules.
+     No, I think not. Using a #documentFragment would create a CSS border between the original elements and the
+     element into which it is slotted. This would enable a simpler rule slot[name="whatever"]:assigned
+     rules to be transfered wholesale into the document fragment of the VAR.
+     Or that regular CSS rules that applied to the VAR would be transfered into the stylesheet of the documentFragment.
 
 1. Regular CSS rules.
    The childNodes of `<VAR>` would be styled as childNodes of TEMPLATE today.
