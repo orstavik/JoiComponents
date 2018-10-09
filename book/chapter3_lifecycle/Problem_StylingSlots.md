@@ -349,27 +349,19 @@ You just didn't know that CSS applies different rules to the `<SLOT>`s own child
 than it does with the children that gets assigned to the `<SLOT>`. 
 No `::slotted(*)` for Christmas for you kids!
 
-## Example 4: top level slot nodes are not removed when assigned
+## Example 4: Freakish `<SLOT>`s in the main document
 
-The last example we will address here is the special case were a `<SLOT>` node
-is placed in the main document, that has no shadowRoot.
-This would be a strange place to put such a `<SLOT>` element, but 
-there are situations where it might occur.
- 
-For example. Someone is making a game with a set of characters. 
-One of these characters is defined as the fallback guy for a `<SLOT>` inside another custom element. 
-This other custom element you don't have access to, so you can't change its templating structure.
-So when someone needs this character in the main document template, 
-he uses the template whose root node is a `<SLOT>`. 
-He anticipates that the top level `<SLOT>` simply would be *replaced* by 
-its fallback nodes as it will get no assigned nodes 
-(of course, because there is no lightDOM outside the main document).
-But that is, as we know it wrong, because 
-*`<SLOT>`'s assigned content fills it, it does not replace it*.
+> Def: "A freakish `<SLOT>`" is a `<SLOT>` node in main document.
 
-Anywho, when such a confusing situation arises, the browser might still show the text.
-It will just maybe style it wrong. It will perhaps include some styles that you have set, but not others.
-If there is *one* thing that is missing here, it would be our beloved *fancy* example:
+There is really no point in adding `<SLOT>` elements in main document.
+A `<SLOT>` must reside inside a shadowDOM in order to be assigned content too.
+But what happens if by some freak accident a `<SLOT>` happens to end up there?
+
+The short answer is: **a freakish `<SLOT>` is just a regular HTML element**.
+The browser will make no attempt at assigning nodes to it. 
+But, no `<slot>` example without a little twist.
+As freakish `<SLOT>`s are considered regular HTML elements, 
+if they are slotted into a custom element, they will not be ignored.
 
 ```html
 <script>
@@ -381,7 +373,7 @@ If there is *one* thing that is missing here, it would be our beloved *fancy* ex
         <style>
           ::slotted(*) {
             color: blue;
-            border-top: 2px solid black;
+            text-decoration: line-through;
           }
         </style>
         <header-impl>
@@ -399,7 +391,7 @@ If there is *one* thing that is missing here, it would be our beloved *fancy* ex
         <style>
           ::slotted(*) {
             color: red;
-            border-bottom: 2px solid black;
+            text-decoration: underline;
           }
         </style>
         <slot id="inner">Middle Header</slot>
@@ -415,52 +407,65 @@ If there is *one* thing that is missing here, it would be our beloved *fancy* ex
   }
 </style>
 <fancy-header><slot><span>Upper Fancy Header</span></slot></fancy-header>
-<header-impl><slot><span>Upper Header Impl</span></slot></header-impl>
 ```
 
-## Guide to managing CSS and slot in the wild
+What to expect this time? (Except no end in sight of the Slot+CSS-expectation-roller-coaster..)
+First, we expect that the outer, freakish `<slot>` elements are treated roughly like an extra `<SPAN>`.
+Second, as the `::slotted(*)` rules apply to a double span as they would a single span, 
+we get more or less the same results as in "Example 2" above.
 
-This example is simple. This example contains the bare minimum needed to illustrate 
-how `<SLOT>`s get styled when chained. It has:
+So:
+1. while the existense of the freakish `<SLOT>` was unexpected, and
+2. that a freakish `<SLOT>` is actively *not* flattened was unexpected, 
+3. once these assumptions are corrected, the freakish `<SLOT>` behaves as expected.
+
+## Discussion
+
+The above examples are simple, believe it or not. 
+They contain the bare minimum needed to illustrate how chained `<SLOT>`s get styled. 
+They each have:
+ * 3 documents,
  * 2-3 elements per document,
  * 1-2 styles per document,
- * the style selectors apply directly to the affected elements,
- * and the styles are non-inheritable.
+ * one style CSS rule per document,
+ * and CSS rules of the same type per example.
  
-In the real world, you should watch out for the following:
+In the real world, things are not that simple. To help guide your work and protect your confidence
+while working with styling `<SLOT>`s, we therefore provide the following guidelines:
 
-0. It is naive to expect a `<SLOT>` to behave nicely. 
+## Guidelines: how to style `<SLOT>`s
+
+1. Anticipate style creep when chaining `<SLOT>`s.
+   It is naive to expect a `<SLOT>` to behave nicely. 
    Sure, they often do, and things work out ok in the end.
    But, when `<SLOT>`s get chained, things start going out of control, fast.
    The sad news is that you have to chain `<SLOT>`s. 
-   You want to use them across many elements in many situations.
-   And so, the most important guideline is to anticipate style creep when chaining `<SLOT>`s.
-   Expect the worse, and the chained `<SLOT>`s will hopefully pleasantly surprise you.
+   You often want to use two or more `<SLOT>`s together at the same time, across many different elements,
+   in many situations.
+   Expect the most creepy situation going in, and 
+   the chained `<SLOT>`s will hopefully pleasantly surprise you.
 
-1. You forgot to view `<SLOT>` elements as variables being *filled with* content, 
-   and not *replaced* by content.
-   You might have forgotten that the middle slot is not replaced/vanished, but still alive and kicking
-   in your CSSOM for the slotted elements.
-   If there are styles that are applied that you don't understand, make a flattened DOM rendition of 
-   the slotted elements with its nested slots on the outside.
+2. Remember: As variables, `<SLOT>` nodes are *filled with* content, not *replaced* by it.
+   If there is style on the element you don't know where comes from, 
+   you might just have overlooked that the middle slot is not replaced/vanished, but 
+   still alive and kicking your slotted elements.
+   If there are styles that are applied that you don't understand (style creep), 
+   make the flattened DOM rendition for the slotted elements in *reverse document order*.
    
-2. Remember that lots of CSS selectors can hit your `<SLOT>`s.
-   Therefore, check the devltools, to see which selectors in which document gets activated and prioritized.
+3. Remember: Lots of CSS selectors can hit your `<SLOT>`s' assigned nodes.
+   Therefore, check the devltools, and see which selectors in which document 
+   gets activated and prioritized.
    
-3. Remember that some CSS rules are inheritable. That means that not only styles that are 
-   directly applied to your nested `<SLOT>` elements, but also to their ancestors, 
-   in all three documents, can have a say.
+4. Remember: CSS rules are inheritable. And that applies to `<SLOT>`s' assigned nodes too.
+   That means that *both* CSS rules that are A) directly applied to your nested `<SLOT>` elements
+   *and* B) applied to an ancestor of your your nested `<SLOT>` elements *apply*.
    
-4. Remember that ::slotted(*) only applies to the immediate assignedNodes of the Slot, and 
-   that descendants deeper down the tree will not be affected.
+5. Remember: `::slotted(*)` only applies to the "assigned children" of a `<SLOT>`.
+   "Assigned descendants" of a `<SLOT>` is not captured by the `*` 
+   (as they would be by a `* { ... }` in regular CSS rule).
    
-5. Remember that the elements own fallback nodes are not ::slotted, 
-   but that slotted fallback nodes are?? todo check this
+6. Remember: An element's fallback nodes are not `::slotted(*)`. 
    
-6. Remember that any <SLOT> node that do not have a shadowDOM as rootNode will not get flattened at all.
+7. Remember: Any `<SLOT>` node that do not have a shadowDOM as rootNode is *actively not flattened*.
 
-7. Rest knowingly that you can always blame the person using your custom element for styling it the wrong way.
-   As there is little CSS encapsulation for slotted nodes, there is little you can do to control the style
-   when you make the custom element.
-
-
+## References
