@@ -409,6 +409,8 @@ First, we expect that the outer, freakish `<slot>` elements are treated roughly 
 Second, as the `::slotted(*)` rules apply to a double span as they would a single span, 
 we get more or less the same results as in "Example 2" above.
 
+<img src="./svg/slotFreak.svg" width="100%" alt="diagram of slot freak example"/>
+
 So:
 1. while the existense of the freakish `<SLOT>` was unexpected, and
 2. that a freakish `<SLOT>` is actively *not* flattened was unexpected, 
