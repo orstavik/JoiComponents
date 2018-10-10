@@ -362,10 +362,25 @@ that you see in the example, why they arise and how to best resolve the issue:
 </family-photo>
  
 <script type="module">
-  import {naiveSlotchangeCallback} from "https://rawgit.com/orstavik/JoiComponents/master/src/slot/NaiveSlotchangeCallback.js";
-
+  function findDirectSlotNode(e, shadowRoot){
+    const path = e.composedPath();
+    for(let i = 0; i < path.length -1; i++){
+      let node = path[i];
+      if (node.tagName !== "SLOT")              //[no eavesdropping]
+        return null;                            //[no eavesdropping]
+      if (node.getRootNode() === shadowRoot)
+        return {directSlotNode: node, indirectness: i};
+    }
+    return null;
+  }
+  function naiveSlotchangeCallback(el){
+    el.shadowRoot.addEventListener("slotchange", e => {   //[*]
+      const slot = findDirectSlotNode(e, el.shadowRoot);
+      slot && el.slotchangeCallback(slot.directSlotNode, slot.indirectness, e);
+    });
+  }
   class FamilyPhoto extends HTMLElement {
-    constructor() {
+    constructor() { 
       super();
       this.attachShadow({
         mode: "open"
@@ -378,10 +393,10 @@ that you see in the example, why they arise and how to best resolve the issue:
   </bronze-label>
 </wooden-frame>
 `;
-      requestAnimationFrame(() => naiveSlotchangeCallback(this));
+      naiveSlotchangeCallback(this)
     }
-    slotchangeCallback(slot, indirectness, chainedSlots){
-      console.log("FamilyPhoto", slot, slot.assignedNodes({flatten: true}), indirectness, chainedSlots);
+    slotchangeCallback(slot, indirectness, event){
+      console.log("FamilyPhoto", indirectness, event.composedPath());
     } 
   }
   class WoodenFrame extends HTMLElement {
@@ -398,10 +413,10 @@ that you see in the example, why they arise and how to best resolve the issue:
   </div>
 </div>
 `;
-      requestAnimationFrame(() => naiveSlotchangeCallback(this));
+      naiveSlotchangeCallback(this)
     }
-    slotchangeCallback(slot, indirectness, chainedSlots){
-      console.log("WoodenFrame", slot, slot.assignedNodes({flatten: true}), indirectness, chainedSlots);
+    slotchangeCallback(slot, indirectness, event){
+      console.log("WoodenFrame", indirectness, event.composedPath());
     } 
   }
   class BronzeLabel extends HTMLElement {
@@ -416,30 +431,32 @@ that you see in the example, why they arise and how to best resolve the issue:
 </style>
 <slot></slot>
 `;
-      requestAnimationFrame(() => naiveSlotchangeCallback(this));
+      naiveSlotchangeCallback(this)
     }
-    slotchangeCallback(slot, indirectness, chainedSlots){
-      console.log("BronzeLabel", slot, slot.assignedNodes({flatten: true}), indirectness, chainedSlots); 
+    slotchangeCallback(slot, indirectness, event){
+      console.log("BronzeLabel", indirectness, event.composedPath()); 
     } 
   }
   customElements.define("bronze-label", BronzeLabel);
   customElements.define("wooden-frame", WoodenFrame);
   customElements.define("family-photo", FamilyPhoto);
-
+ 
   const familyPhoto = document.querySelector("family-photo");
 
 setTimeout(()=>{
+  console.log("-----------------------------------")
   const addedImg = document.createElement("img")
   addedImg.src = "https://images.pexels.com/photos/12971/pexels-photo-12971.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=125";
   familyPhoto.appendChild(addedImg);  
 }, 1000); 
 
 setTimeout(()=>{
+  console.log("-----------------------------------")
   const addedLabel = document.createElement("div");
   addedLabel.setAttribute("slot", "label");
   addedLabel.innerText = " by orstavik";
   familyPhoto.appendChild(addedLabel); 
-}, 2000); 
+}, 2000);  
 
 </script>
 ```
