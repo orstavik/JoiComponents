@@ -372,7 +372,7 @@ if they are slotted into a custom element, they will not be ignored.
           }
         </style>
         <header-impl>
-          <slot id="middle">Inner Header</slot>          
+          <slot id="middle">Middle Header</slot>          
         </header-impl>
       `;
     }
@@ -389,7 +389,7 @@ if they are slotted into a custom element, they will not be ignored.
             text-decoration: underline;
           }
         </style>
-        <slot id="inner">Middle Header</slot>
+        <slot id="inner">Inner Header</slot>
       `;
     }
   }
