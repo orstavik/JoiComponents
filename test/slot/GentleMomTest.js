@@ -105,15 +105,15 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
     customElements.define(papTag, MiddlePap);
 
     it("1: inner empty <inner-el></inner-el>", function (done) {
-      debugger;
       const div = document.createElement("div");
       div.innerHTML = `<${innerTag}></${innerTag}>`;
       const el = div.children[0];
+      const slot = el.shadowRoot.children[1];
       requestAnimationFrame(() => {
         expect(el.testValue.length).to.be.equal(1);
         expect(el.testValue[0].slotName).to.be.equal("");
         expect(el.testValue[0].value.length).to.be.equal(0);
-        const varTest = flattenAssignedNodesVar(el.testValue[0].slot);
+        const varTest = flattenAssignedNodesVar(slot);
         expect(varTest.length).to.be.equal(1);
         expect(varTest[0].nodeName).to.be.equal("SPAN");
         expect(varTest[0].innerText).to.be.equal("inner fallback title");
@@ -165,6 +165,8 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       div.innerHTML = `<${momTag}></${momTag}>`;
       const el = div.children[0];
       const child = el.shadowRoot.children[1];
+      const slot = el.shadowRoot.children[1].children[0];
+      const childSlot = child.shadowRoot.children[1];
       requestAnimationFrame(() => {
         expect(el.testValue.length).to.be.equal(1);
         expect(el.testValue[0].slotName).to.be.equal("");
@@ -172,10 +174,10 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
         expect(child.testValue.length).to.be.equal(1);
         expect(child.testValue[0].slotName).to.be.equal("");
         expect(child.testValue[0].value.length).to.be.equal(0);
-        const varTest = flattenAssignedNodesVar(el.testValue[0].slot);
+        const varTest = flattenAssignedNodesVar(slot);
         expect(varTest.length).to.be.equal(0);
 
-        const childVarTest = flattenAssignedNodesVar(child.testValue[0].slot);
+        const childVarTest = flattenAssignedNodesVar(childSlot);
         expect(childVarTest.length).to.be.equal(1);
         expect(childVarTest[0].nodeName).to.be.equal("SPAN");
         expect(childVarTest[0].innerText).to.be.equal("inner fallback title");
@@ -249,6 +251,8 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       div.innerHTML = `<${papTag}></${papTag}>`;
       const el = div.children[0];
       const child = el.shadowRoot.children[1];
+      const slot = el.shadowRoot.children[1].children[0];
+      const childSlot = child.shadowRoot.children[1];
       requestAnimationFrame(() => {
         expect(el.testValue.length).to.be.equal(1);
         expect(el.testValue[0].slotName).to.be.equal("");
@@ -259,12 +263,12 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
         expect(child.testValue[0].value[0].nodeName).to.be.equal("SPAN");
         expect(child.testValue[0].value[0].innerText).to.be.equal("middle fallback title");
 
-        const varTest = flattenAssignedNodesVar(el.testValue[0].slot);
+        const varTest = flattenAssignedNodesVar(slot);
         expect(varTest.length).to.be.equal(1);
         expect(varTest[0].nodeName).to.be.equal("SPAN");
         expect(varTest[0].innerText).to.be.equal("middle fallback title");
 
-        const childVarTest = flattenAssignedNodesVar(child.testValue[0].slot);
+        const childVarTest = flattenAssignedNodesVar(childSlot);
         expect(childVarTest.length).to.be.equal(1);
         expect(childVarTest[0].nodeName).to.be.equal("SPAN");
         expect(childVarTest[0].innerText).to.be.equal("middle fallback title");
