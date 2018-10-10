@@ -66,7 +66,7 @@ function triggerSlotchangeCallback(e, el) {
     if (node.tagName !== "SLOT")            //[*] no SlotchangeEavesdropping
       return;                               //[*] no SlotchangeEavesdropping
     if (node.getRootNode() === el.shadowRoot) {
-      el.slotCallback(node, i, e);
+      el.slotchangeCallback(node, i, e);
       return;
     }
   }
@@ -75,9 +75,9 @@ function triggerSlotchangeCallback(e, el) {
 const initFn = function (el) {
   const slots = el.shadowRoot.querySelectorAll("slot");
   for (let i = 0; i < slots.length; i++)
-    el.slotCallback(slots[i], 0, undefined);
-  if (slots.length === 0)      //adds a slotCallback(undefined) if none is available
-    el.slotCallback(undefined);
+    el.slotchangeCallback(slots[i], 0, undefined);
+  if (slots.length === 0)      //adds a slotchangeCallback(undefined) if none is available
+    el.slotchangeCallback(undefined, 0, undefined);                    //todo move Slottables into its own class
   el.shadowRoot.addEventListener("slotchange", e => triggerSlotchangeCallback(e, el));
 };
 

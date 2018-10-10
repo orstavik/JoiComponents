@@ -1,30 +1,69 @@
-const runSlotchangeMixinTest = function (SlotchangeMixinType) {
+function makeTestClass(name, shadowString, mixin, slotCallback) {
+  return class extends mixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = shadowString;
+      this.testValue = [];
+    }
+
+    [slotCallback](slot, indirectness, ev) {
+      if (this._stop) throw new Error("Bug in test: Lingering slotCallback");
+      this.testValue.push({
+        slotName: slot.name,
+        value: slot.assignedNodes({flatten: true}),
+        slot,
+        indirectness,
+        ev
+      });
+    }
+
+    stop() {
+      this._stop = true;
+    }
+  }
+}
+
+function testAssignedValues(actuals, expecteds) {
+  expect(actuals.length === expecteds.length);
+  for (let i = 0; i < expecteds.length; i++) {
+    let exp = expecteds[i];
+    let act = actuals[i];
+    expect(act.slot.name).to.be.equal(exp.name);
+    let assigned = act.value.map(n => n.nodeName ? n.nodeName : "#text");
+    expect(assigned).to.deep.equal(exp.flattened);
+  }
+}
+
+const runSlotchangeMixinTest = function (SlotchangeMixinType, slotCallback) {
   describe(SlotchangeMixinType.name, function () {
 
     const name = SlotchangeMixinType.name.toLowerCase();
 
-    class Slot1 extends SlotchangeMixinType(HTMLElement) {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = "<slot></slot>";
-      }
+    const Slot1Shadow = "<slot></slot>";
 
-      slotCallback(slot) {
-        if (this._stop)
-          throw new Error("Bug in test: Lingering slotCallback");
-        this.testValue = this.testValue || [];
-        this.testValue.push({
-          slotName: slot.name,
-          value: slot.assignedNodes({flatten: true})
-          , slot
-        });
-      }
+    const GrandpaSlotShadow = `
+          <${name}-chained-slot>
+            <slot></slot>
+          </${name}-chained-slot>`;
 
-      stop() {
-        this._stop = true;
-      }
-    }
+    const GrandpaSlotWithSlotnameShadow = `
+          <${name}-chained-slot>
+            <slot name="a"></slot>
+          </${name}-chained-slot>`;
+
+    const GrandGrandSlotShadow = `
+          <${name}-grandpa-slot>
+            <slot></slot>
+          </${name}-grandpa-slot>`;
+
+    const ChainedSlotsGrandpaErrorShadow = `
+          <${name}-test-one>
+            <div>
+              <slot></slot>
+            </div>
+          </${name}-test-one>`;
+
 
     class SlotWrapper extends HTMLElement {
       constructor() {
@@ -37,96 +76,11 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       }
     }
 
-    class GrandpaSlot extends SlotchangeMixinType(HTMLElement) {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
-          <${name}-chained-slot>
-            <slot></slot>
-          </${name}-chained-slot>`;
-      }
-
-      slotCallback(slot) {
-        if (this._stop)
-          throw new Error("Bug in test: Lingering slotCallback");
-        this.testValue = this.testValue || [];
-        this.testValue.push({
-          slotName: slot.name,
-          value: slot.assignedNodes({flatten: true})
-          , slot
-        });
-      }
-
-      stop() {
-        this._stop = true;
-      }
-    }
-
-    class GrandpaSlotWithSlotname extends SlotchangeMixinType(HTMLElement) {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
-          <${name}-chained-slot>
-            <slot name="a"></slot>
-          </${name}-chained-slot>`;
-      }
-
-      slotCallback(slot) {
-        if (this._stop)
-          throw new Error("Bug in test: Lingering slotCallback");
-        this.testValue = this.testValue || [];
-        this.testValue.push({
-          slotName: slot.name,
-          value: slot.assignedNodes({flatten: true})
-          , slot
-        });
-      }
-
-      stop() {
-        this._stop = true;
-      }
-    }
-
-    class GrandGrandSlot extends SlotchangeMixinType(HTMLElement) {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
-          <${name}-grandpa-slot>
-            <slot></slot>
-          </${name}-grandpa-slot>`;
-      }
-
-      slotCallback(slot) {
-        if (this._stop)
-          throw new Error("Bug in test: Lingering slotCallback");
-        this.testValue = this.testValue || [];
-        this.testValue.push({
-          slotName: slot.name,
-          value: slot.assignedNodes({flatten: true})
-          , slot
-        });
-      }
-
-      stop() {
-        this._stop = true;
-      }
-    }
-
-    class ChainedSlotsGrandpaError extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-        this.shadowRoot.innerHTML = `
-          <${name}-test-one>
-            <div>
-              <slot></slot>
-            </div>
-          </${name}-test-one>`;
-      }
-    }
+    const Slot1 = makeTestClass("Slot1", Slot1Shadow, SlotchangeMixinType, slotCallback);
+    const GrandpaSlot = makeTestClass("GrandpaSlot", GrandpaSlotShadow, SlotchangeMixinType, slotCallback);
+    const GrandpaSlotWithSlotname = makeTestClass("GrandpaSlotWithName", GrandpaSlotWithSlotnameShadow, SlotchangeMixinType, slotCallback);
+    const GrandGrandSlot = makeTestClass("GrandGrandSlot", GrandGrandSlotShadow, SlotchangeMixinType, slotCallback);
+    const ChainedSlotsGrandpaError = makeTestClass("ChainedSlotsGrandpaError", ChainedSlotsGrandpaErrorShadow, SlotchangeMixinType, slotCallback);
 
     customElements.define(name + "-chained-slot-error", ChainedSlotsGrandpaError);
     customElements.define(name + "-grand-grand-slot", GrandGrandSlot);
@@ -136,10 +90,20 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
     customElements.define(name + "-test-one", Slot1);
 
     it("extend HTMLElement class correctly and make an element", function () {
-      const el = new Slot1();
+      class SlotTestClass extends SlotchangeMixinType(HTMLElement) {
+        constructor() {
+          super();
+          this.attachShadow({mode: "open"});
+        }
+
+        [slotCallback]() {
+        }
+      }
+
+      customElements.define(name + "-slot-test-class", SlotTestClass);
+      const el = new SlotTestClass();
       let proto = el.constructor;
-      el.id = "boo";
-      expect(proto.name).to.be.equal("Slot1");
+      expect(proto.name).to.be.equal("SlotTestClass");
       proto = Object.getPrototypeOf(proto);
       expect(proto.name).to.be.equal(SlotchangeMixinType.name);
       proto = Object.getPrototypeOf(proto);
@@ -149,12 +113,11 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
     it("SlottableMixin add DIV imperative and trigger slotchangedCallback", function (done) {
       const el = new Slot1();
       el.appendChild(document.createElement("div"));
-      document.body.appendChild(el);
       requestAnimationFrame(() => {
-        expect(el.testValue.length).to.be.equal(1);
-        expect(el.testValue[0].slotName).to.be.equal("");
-        expect(el.testValue[0].value.length).to.be.equal(1);
-        expect(el.testValue[0].value[0].nodeName).to.be.equal("DIV");
+        const elExpected = [
+          {name: "", flattened: ["DIV"]}
+        ];
+        testAssignedValues(el.testValue, elExpected);
         el.stop();
         done();
       });
@@ -165,10 +128,10 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       const inner = el.shadowRoot.children[0];
       el.appendChild(document.createElement("div"));
       requestAnimationFrame(() => {
-        expect(inner.testValue.length).to.be.equal(1);
-        expect(inner.testValue[0].slotName).to.be.equal("");
-        expect(inner.testValue[0].value.length).to.be.equal(3);
-        expect(inner.testValue[0].value[1].nodeName).to.be.equal("DIV");
+        const elExpected = [
+          {name: "", flattened: ["#text", "DIV", "#text"]}
+        ];
+        testAssignedValues(inner.testValue, elExpected);
         inner.stop();
         done();
       });
@@ -222,8 +185,9 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType) {
       el.appendChild(document.createElement("div"));    //is not triggered.
       el.appendChild(document.createElement("div"));    //is not triggered.
       document.querySelector("body").appendChild(el);   //slotchangedCallback triggered on connect
-      expect(el.testValue).to.be.equal(undefined);
+      expect(el.testValue).to.deep.equal([]);
       requestAnimationFrame(() => {
+        const test = [{slotName: "", value: ["DIV", "DIV", "DIV"]}];
         expect(el.testValue.length).to.be.equal(1);
         expect(el.testValue[0].slotName).to.be.equal("");
         expect(el.testValue[0].value.length).to.be.equal(3);
@@ -501,6 +465,6 @@ import {SlotchangeMixin} from "../../src/slot/SlotchangeMixin.js";
 import {SlottableMixin} from "../../src/slot/SlottableMixin.js";
 import {VarMixin, flattenAssignedNodesVar} from "../../src/slot/VarMixin.js";
 
-runSlotchangeMixinTest(SlotchangeMixin);
-runSlotchangeMixinTest(SlottableMixin);
-runSlotchangeMixinTest(VarMixin);
+runSlotchangeMixinTest(SlotchangeMixin, "slotchangeCallback");
+runSlotchangeMixinTest(SlottableMixin, "slotCallback");
+runSlotchangeMixinTest(VarMixin, "slotCallback");
