@@ -127,7 +127,12 @@ the `directSlotNode` and the level of `indirectness` (where `0` === a direct `sl
 But, there is a snag with indirect `slotchange` events.
 Your custom element `slotchange` listeners *actually can* intercept `slotchange` events
 that are completely irrelevant for them.
-To illustrate this problem, we will set up an example using:
+
+To illustrate this problem, we will set up an example.
+In this example we set up a group of custom elements that chain their `<SLOT>` nodes.
+The resulting custom element `<family-photo>` will 
+frame an image in a wooden (brown) frame with a bronze (yellow) label.
+The custom elements all use a `naiveSlotchangeCallback` to log their `slotchange` events.
 
 ```html
 <family-photo>
@@ -288,8 +293,9 @@ We do not want to eavesdrop. Nobody does. It is impolite.
 And we especially do not want others to eavesdrop on us.
 So, we want to clear away indirect event listeners for grandchildren.
 
-The method do so is simply to ensure that if there is another element that is *not* a `<SLOT>`
-before we have reached our relevant slot, that slotchange event would be ignored.
+Thankfully, the method of doing so is super simple.
+If there is another element that is *not* a `<SLOT>` in the `composedPath()`
+before a directSlotNode is found, that slotchange is *not for us*.
 This leads to a universal, simple algorithm for processing **all** slotchange events that
 will return the directSlotNode, the level of indirectness and filter out SlotchangeEavesdropping.
 
@@ -317,10 +323,7 @@ There is dry gunpowder in the above paragraphs. Let's look at the fireworks. Sin
    direct `slotchange` events avoids them, then
    
 **BANG!** it *is* both *possible* and *desireable* to create 
-**a *single* `slotchange` event listener per custom element.**
-
- * The only drawback/dependency of this function is that the custom element
-   that it is applied to, must have an open `.shadowRoot`.
+**a single, unified `slotchange` listener in all custom elements** (that uses process `slotchange` events).
 
 ```javascript
 function findYourOwnSlot(e, shadowRoot){
@@ -342,19 +345,14 @@ export function naiveSlotchangeCallback(el){
   });
 }
 ```
+ * The only drawback/dependency of this function is that the custom element
+   that it is applied to, must have an open `.shadowRoot`.
 
-## Example: GrandpaInAFrame
+## Example: GrandpaInAFrame without SlotchangeEavesdropping
 
-In this example we set up a group of custom elements that chain their `<SLOT>` nodes.
-The resulting custom element `<family-photo>` will 
-frame an image in a wooden (brown) frame with a bronze (yellow) label.
-The `<family-photo>` custom element also uses the `NaiveSlotchangeMixin` to
-log every time an element is slotted.
-
-In the example we will also *delay* the callback until the first `requestAnimationFrame`.
-This drops all the initial slotchange events so we only see the `slotchange` events for the
-dynamically added nodes.
-We will return in force to the initial `slotchange` events in the next chapter:
+We conclude this chapter with our previous example, corrected not to eavesdrop on indirect grandchild 
+`slotchange` events. In the next chapter we will look at the multitude of initial `slotchange` events 
+that you see in the example, why they arise and how to best resolve the issue:
 [Problem: DeclarativeResolution](Problem_DeclarativeResolution.md).
 
 ```html
@@ -445,31 +443,5 @@ setTimeout(()=>{
 
 </script>
 ```
-In the example above, one eavesdropping of a `slotchange` event is averted.
-When the label "by orstavik" is added after 2000ms, 
-the `slotchange` event is 
-
 ## References
 
-
-
-When custom elements was 
-
-Core web component principles:
- * The internal workings of the `shadowDom` should only be observed and controlled 
-   by the custom element itself.
- * Custom elements should not reach into and make changes to its `host` node's lightDOM context.
- * Custom elements should not make any assumptions about its `host` node's lightDOM context.
- * Changes to a custom elements lightDom are passed on to the custom element via established,
-   universal mechanisms such as lifecycle callbacks, events in general and `slotchange` event in
-   particular.
-
-The `slotchange` event is the only new event added as a 
-A `<SLOT>` node and the custom element `host` node it belongs to are intimately connected.
-The `<SLOT>` gets its `assignedNodes` from the `host` node's `childNodes`,
-and the `host` node's child elements will be transposed into the `<SLOT>`.
-
-If outsiders were to observe or control a `<SLOT>` inside another custom element's shadowDom, 
-they should only do so via the custom element host node, 
-and not by "reaching into" the shadowDOM to access the `<SLOT>` directly.
-This means that the
