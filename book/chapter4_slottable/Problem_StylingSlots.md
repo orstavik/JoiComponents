@@ -251,19 +251,21 @@ outer trumps inner, because inner `<SLOT>` becomes outer wrapper?
 Hello World! (in blue, line-through, italics)
 
 First, if you are reading this, I just have to say: you are a superhero!! 
-You *can* take more ups and downs than the next guy, you are truly the last man standing.
-I do not expect this ever to happen, in the real world I am just writing this for myself.
+You *can* take more ups and downs than the next guy, you are *truly* the last man standing.
+I do not expect this ever to happen, at this point I am thinking that I am just writing this for myself.
 
-But, back to business! If you look at the slotted `<span>` node in devtools, you will see 
+But, back to business! First, If you look at the slotted `<span>` node in devtools, you will see 
 that *both* the `::slotted(*)` rules gets attached to the `<span>` node.
 The inner `::slotted(*)` rule just went right *past* the `<slot id="middle">` node.
-And if you missed that one, that's on `::slotted(*)`, not you.
+And if you missed that one, no worries! That's on `::slotted(*)`, not you. 
+
 Second, as all the rules gets attached to the same `<span>` node, they will overwrite each other.
 You will not get one text-decoration for a `<slot id="middle">` node and one for the `<slot id="inner">`
-this time, you will get only one. The outer one, of course, since applying CSS rules to slotted
-elements goes ... **reverse document order**.
+this time, you will get only one: the outer one. "What, the outer one?" you might ask. 
+Yes, the outer one since applying CSS rules to slotted elements goes... yes, you are right...
+**reverse document order**.
 
-And now, for the truly good stuff: CSS fallback nodes.
+But. I have of now, for the truly good stuff: CSS fallback nodes.
 
 ## Example 3: disappearing fallback nodes
 

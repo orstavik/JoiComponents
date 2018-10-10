@@ -1,8 +1,13 @@
 # Proposal: VAR
 
 The `<VAR>` element is a unification of the `<TEMPLATE>` and `<SLOT>` elements.
-This element builds on all the best practices described in the previous chapters, 
+The `<VAR>` element builds on all the best practices described in the previous chapters, 
 plus adds support for a couple of new usecases.
+
+Why add a fictive Proposal to a textbook, you might ask?
+It is my goal to deepen our common understanding of `<SLOT>` and `<TEMPLATE>`. 
+By seeing this alternative solution to them both, 
+I hope both the strength and weaknesses of `<SLOT>` and `<TEMPLATE>` will be easier to see.
 
 ## Motivation
 
@@ -39,10 +44,11 @@ plus adds support for a couple of new usecases.
    in which an element is created.
    
    Tomorrow: A single callback in all custom elements that guarantee that both attributes 
-   and assigned nodes are ready.
+   and assigned nodes are ready. This callback will also function as an `initialAttributesCallback`
 
    Ref: [Problem: DeclarativeResolution](Problem_DeclarativeResolution.md)
    Ref: [Pattern: BatchedConstructorCallbacks](../chapter2_HowToMakeMixins/Pattern10_BatchedConstructorCallbacks.md)
+   Ref: [Mixin: InitialAttributes](../chapter3_lifecycle/Mixin2_InitialAttributes.md)
    
 4. New feature/usecase: Make web components reactive to unassigned slotables.
    
@@ -91,7 +97,16 @@ plus adds support for a couple of new usecases.
    Ref: [Problem: StylingSlots](Problem_StylingSlots.md)
    Ref: [Pattern: GentleMom](../chapter6_html_comp/PatternY_GentleMom.md)
 
-8. Increase the system efficiency of: a) `slotchange` events, b) flattening assigned nodes and c) `<SLOT>` fallback nodes. 
+8. Make external `<VAR>` able to fallback to default child nodes.
+
+   Today: fallback to child nodes does not work recursively.
+   
+   Tomorrow: fallback to child nodes works recursively and will trigger `varCallback` when it occurs 
+   *externally*, but not internally. 
+
+   Ref: [Pattern: GentleMom](../chapter6_html_comp/PatternY_GentleMom.md)
+
+9. Increase the system efficiency of: a) `slotchange` events, b) flattening assigned nodes and c) `<SLOT>` fallback nodes. 
    
    Today: Reactions to `slotchange` events go via the event callback system and can affect eavesdropping elements.
    Slot fallback nodes are in principle fully rendered at construction time.
@@ -102,7 +117,18 @@ plus adds support for a couple of new usecases.
    The flattening (resolution) of assigned nodes gets fewer contextual checks.
    Slot fallback nodes will only be rendered when used (assigned).
    
-9. Open up for future efficiency by providing a cleaner, unified model for HTML variables. 
+10. Manage `<VAR>` assignments and changes *within* the shadowDOM proactively only, not reactively.
+
+    Today: Changes to the shadowDOM that alters the assignment to one or more `<SLOT>` elements
+    will trigger `slotchange` events. This forces developers that also need to listen for *externally* 
+    triggered slotchange events to manage these *internally* triggered slotchange events reactively.
+    
+    Tomorrow: Manage all *externally* triggered slotchange events reactively, but 
+    trigger no reaction on *internally* triggered slotchange events.
+    
+    Ref: [Problem: StylingSlots](Problem_slotchange_issues.md)
+   
+11. Open up for future efficiency by providing a cleaner, unified model for HTML variables. 
 
 ## Short description of `<VAR>` behavior
 
@@ -143,6 +169,8 @@ plus adds support for a couple of new usecases.
    document representing the `<VAR>` node. Such `css rule`s could therefore apply their `*`
    to both child and descendants that get assigned to the `<VAR>`.
  
+## `varCallback(Slottables)`
+
 ### `varCallback(Slottables)` vs `slotchange`
 
 `<VAR>` != `<SLOT>`:
@@ -161,7 +189,7 @@ plus adds support for a couple of new usecases.
    an empty `varCallback(Slottables{name: "", assignedNodes: []})` will be triggered. 
    This makes `varCallback(...)` function as a PostBatchedConstructor callback for the custom element.
 
-The `varCallback` is triggered in 4 ways:
+The `varCallback` is triggered in 3 ways:
 
 1. Initially, directly.
    At PostBatchedConstructor-time, (after the branch containing the custom element is constructed),
@@ -226,137 +254,34 @@ slottables {
 
 3. `data`. Similar to the `slotchange` event. This data is not really critical and can be skipped.
 
-## Benefits of `<VAR>`: Ergonomic
+### `<VAR>` on connection/adoption
 
-1. A simpler model of resolving assigned nodes.
-   The value of a `<VAR>` in the flattened DOM will now *always* replace the content of the `<VAR>` node,
-   regardless if the nodes are dynamically assigned or fallback value.
-   This means that assigned and fallback nodes can be understood as equal in all cases.
+`<VAR>.adoptedCallback` &
+`<VAR>.connectedCallback`:
+   1. finds its `.getRootNode()`
+   2. verifies that it is instanceof `shadowRoot`
+   3. verifies that rootNode does not have another `<VAR>` with the same name
+      (`<VAR[name=X]> && shadowRoot.querySelectorAll("VAR[name=X]").length > 2`)
 
-2. No slotchange event, no slotchange event bubbling. 
-   Only a varCallback.
-   This means that the event/callback method in a custom element that holds a VAR will 
-   always be local to that element.
-   
-3. Proper CSS style encapsulation for slotted nodes.
-   If a mediating custom element wishes to style slotted content that it mediates,
-   it has to do so by styling the custom element into which it passes the slotted content.
-   
-4. The flattened DOM can be perceived as replacing the content of all `<VAR>` elements.
+## Limitations that prevent a mixin solution
 
-5. Clarifies the fact that `<SLOT>` is an HTML variable. 
-   That can be declared (with or without a value).
-   And that are dynamically reassigned.
-   
-6. The (fallback) .content of the `<VAR>` is expected not to change.
-   The document fragment that is under the `<VAR>` can be changed, but these changes will not
-   trigger a varCallback.
-   This is in line with the concept of the varCallback as any changes of that fallback content should be done from 
-   Adding a child node to the `<SLOT>` element will not trigger a slotchange event.
-   within the custom element itself (thus making it simple to manage proactively, instead of reactively).
-   This behavior is made more evident with the TEMPLATE characteristics of the `<VAR>` childNodes.
+1. Mixin cannot control parser behavior.
 
-## Benefits of `<VAR>`: efficiency
+2. The algorithm of flattening slots does not allow slot fallback nodes to be recursively assigned.
 
-1. The child nodes of `<SLOT>` elements function as fallback value when no assigned elements are attached.
-   This means that if there always are assigned elements to an element, 
-   these child nodes should never be active in the flattened/visible DOM.
-   By parsing these elements directly into the .content property of the `<VAR>`, instead of into the DOM as with `<SLOT>`,
-   instantiating work on these nodes when not used can be avoided.
-
-2. There is no middle step into slotchange events. 
-   `varCallback` are triggered by the MutationObserver directly, 
-   and by direct methods from one `<VAR>` to another `<VAR>` element that are registered as its chained parent.
-   
-3. The flatten assigned nodes (ie. the resolution of HTML variables) is streamlined and simplified.
-   This will not have a dramatic impact per se.
-   But simplicity in variable resolution is critical when more complex models for efficiency 
-   will be created later.
-
-4. With slottableChanged instead of slotchange, the event is triggered on the level of the lightDOM instead
-   of at the level of shadowDOM. This reduces the algorithmic work with one level, for all traversal.
-   2 levels become 1. 3 levels become 2. etc. As most such events are low level, this should reduce the traversal somewhat.
-
-5. Performance drawback. slotchange does not trigger when the slottables cannot be assigned to a slottable node.
-   slottables will. If this is significant, a StaticSetting method `static get observedSlots() return ["", "slotName1"];`
-   can be added. If no such setting is set, then all slottables are observed.
-   But. This is very likely not necessary. If an app slots in tons of elements that are not used,
-   and has no need for a varCallback, this is not an issue that should be solved with the slottables callback.
-
-## Style considerations
-
-
-Todo In the flattened DOM the `<VAR>` node would be converted into a #documentFragment.
-     Assigned nodes would be attached to it. Or, the end `<VAR>` could remain, to comply with CSS rules.
-     No, I think not. Using a #documentFragment would create a CSS border between the original elements and the
-     element into which it is slotted. This would enable a simpler rule slot[name="whatever"]:assigned
-     rules to be transfered wholesale into the document fragment of the VAR.
-     Or that regular CSS rules that applied to the VAR would be transfered into the stylesheet of the documentFragment.
-
-1. Regular CSS rules.
-   The childNodes of `<VAR>` would be styled as childNodes of TEMPLATE today.
-   This is similar to how childNodes of `<SLOT>` are styled today, 
-   with the exception that styles attributed to the `<SLOT>` itself are not inherited.
-   
-   The childNodes start from a new document root, but this document root has the same CSS rules defined 
-   as the root in which the template/var is defined.
-
-2. The ::slotted(*) CSS rules will now apply equally to assigned nodes and `<VAR>`.content nodes.
-   Var.content nodes that gets into the slotted position will be treated as ::slotted.
-
-3. In `<SLOT>`s, regular inheritable CSS properties of a `<SLOT>` in a mediating custom element will 
-   affect slotted content.
-   This effect is very elusive, makes the model of style encapsulation for slotted content very vague.
-   For by far the majority of developers, this feature will function as style creep (benefitial or not),
-   and not a predictable feature. 
-   (A mediating custom element is a custom element who places its `<SLOT>`/var
-   element in the slottable position of another custom element).
-   
-### Implement the 'varCallback' as a mixin that uses the `<SLOT>` instead of the `<VAR>`.
-
-todo
-Discussion about the VarMixin. Must make that page.
-Update the pages for all 3 mixins.
+3. CSS encapsulation cannot be controlled from JS.
 
 ## Further suggestions
 
 1. Add onDomContentLoaded/onDocumentReady callback hook to `<VAR>` / TEMPLATE. 
-   This callback hook would enable `<VAR>` / TEMPLATE to implement a below-the-fold solution in a single line.
+   This callback hook would enable `<VAR>` / TEMPLATE to implement a below-the-fold 
+   solution in a single line.
    
-2. The initial attributeChangedCallback could/should also be called at the same time? No, i think not.
-
-3. Add initial attributeChangedCallback for all observed attributes, *also* when they are empty.
-   Make demo that shows how this is useful when you use attributes to control the setup of the shadowDOM.
+   Ref: [Pattern: TemporaryTemplate](../chapter3_lifecycle/Pattern1_TemporaryTemplate.md)
    
-## Usecases
+2. Setting up the `<TEMPLATE>` element as a document node can also be used as a means to create an
+   HTML-import like functionality.
+   
+## References
 
-1. Make shadowDOM based on the slotted elements.
-
-2. Make shadowDOM based on attribute setting (including the empty one).
-
-
-### `<VAR>` element notifying shadowRoot of connection/disconnection.
-
-1. `<VAR>` elements notifying their shadowRoot custom element that they get connected/disconnected.
-
-When a `<VAR>` element connects to the shadowRoot, it:
-   1. finds its `.getRootNode()`
-   2. verifies that it is instanceof `shadowRoot`
-   3. then gets its `shadowRoot.host` and stores it as its own `assigningHost`
-   4. calls `assigningHost.varConnects(self)` with itself as parameter.
-   5. `assigningHost.varConnects(self)` will check that no other `<VAR>` with the same `name` attribute
-      is connected to it, and trigger `varCallback` if the hostNode is 
-      ready && has no externally assigned nodes for the same `name`.
-
-When a `<VAR>` element disconnects from the `shadowRoot`, it:
-   1. calls `assigningHost.varDisconnects(self)`
-   2. `assigningHost.varDisconnects(self)` will trigger `varCallback` if the hostNode is 
-      ready && has no externally assigned nodes for the same `name`.
-      
-As connectedCallback and disconnectedCallback of `<SLOT>` is not available,
-the demo is implemented using a rAF poll.
-
-### `<VAR>.content` is perceived as static and does not trigger `varCallback`
-When the `.content` of the `<VAR>` element changes, it will not trigger a `varCallback()`.
-The `.content` can be changed dynamically, but when doing so the developer needs to actively
-process changes that arise from it.
+ * 
