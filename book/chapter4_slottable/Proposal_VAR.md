@@ -1,13 +1,15 @@
 # Proposal: VAR
 
-The `<VAR>` element is a unification of the `<TEMPLATE>` and `<SLOT>` elements.
-The `<VAR>` element builds on all the best practices described in the previous chapters, 
-plus adds support for a couple of new usecases.
-
 Why add a fictive Proposal to a textbook, you might ask?
 It is my goal to deepen our common understanding of `<SLOT>` and `<TEMPLATE>`. 
 By seeing this alternative solution to them both, 
 I hope both the strength and weaknesses of `<SLOT>` and `<TEMPLATE>` will be easier to see.
+
+The `<VAR>` element is a unification of the `<TEMPLATE>` and `<SLOT>` elements.
+The changes proposed here could equally be applied as changes to the `<SLOT>` element.
+The changes and proposal is constructed to make it possible to pick and choose whenever possible.
+The reason I am formulating the proposal around a new element is to allow gradual implementation in
+existing browsers without breaking existing applications relying on existing `<SLOT>` behavior.
 
 ## Motivation
 
@@ -97,16 +99,7 @@ I hope both the strength and weaknesses of `<SLOT>` and `<TEMPLATE>` will be eas
    Ref: [Problem: StylingSlots](Problem_StylingSlots.md)
    Ref: [Pattern: GentleMom](../chapter6_html_comp/PatternY_GentleMom.md)
 
-8. Make external `<VAR>` able to fallback to default child nodes.
-
-   Today: fallback to child nodes does not work recursively.
-   
-   Tomorrow: fallback to child nodes works recursively and will trigger `varCallback` when it occurs 
-   *externally*, but not internally. 
-
-   Ref: [Pattern: GentleMom](../chapter6_html_comp/PatternY_GentleMom.md)
-
-9. Increase the system efficiency of: a) `slotchange` events, b) flattening assigned nodes and c) `<SLOT>` fallback nodes. 
+8. Increase the system efficiency of: a) `slotchange` events, b) flattening assigned nodes and c) `<SLOT>` fallback nodes. 
    
    Today: Reactions to `slotchange` events go via the event callback system and can affect eavesdropping elements.
    Slot fallback nodes are in principle fully rendered at construction time.
@@ -117,7 +110,7 @@ I hope both the strength and weaknesses of `<SLOT>` and `<TEMPLATE>` will be eas
    The flattening (resolution) of assigned nodes gets fewer contextual checks.
    Slot fallback nodes will only be rendered when used (assigned).
    
-10. Manage `<VAR>` assignments and changes *within* the shadowDOM proactively only, not reactively.
+9. Manage `<VAR>` assignments and changes *within* the shadowDOM proactively only, not reactively.
 
     Today: Changes to the shadowDOM that alters the assignment to one or more `<SLOT>` elements
     will trigger `slotchange` events. This forces developers that also need to listen for *externally* 
@@ -128,7 +121,7 @@ I hope both the strength and weaknesses of `<SLOT>` and `<TEMPLATE>` will be eas
     
     Ref: [Problem: StylingSlots](Problem_slotchange_issues.md)
    
-11. Open up for future efficiency by providing a cleaner, unified model for HTML variables. 
+10. Open up for future efficiency by providing a cleaner, unified model for HTML variables. 
 
 ## Short description of `<VAR>` behavior
 

@@ -57,7 +57,7 @@ This results is:
 
 Hello World!  (with red underline, blue overline, and blue line-through) and BLUE(!).
 
-## What happened?
+### What happened?
 
 First, `<span>Hello World!</span>` is transposed into `<slot id="middle">` and then into `<slot id="inner">`.
 Now, looking at `<slot id="inner">` as variable to be resolved, 
@@ -250,24 +250,22 @@ outer trumps inner, because inner `<SLOT>` becomes outer wrapper?
 
 Hello World! (in blue, line-through, italics)
 
-First, if you are reading this, I just have to say: you are a superhero!! 
+> If you are reading this, I just have to say: you are a superhero!! 
 You *can* take more ups and downs than the next guy, you are *truly* the last man standing.
-I do not expect this ever to happen, at this point I am thinking that I am just writing this for myself.
+I do not expect this ever to happen, at this point I believe I am alone, writing only for myself.
 
-But, back to business! First, If you look at the slotted `<span>` node in devtools, you will see 
+First, If you look at the slotted `<span>` node in devtools, you will see 
 that *both* the `::slotted(*)` rules gets attached to the `<span>` node.
 The inner `::slotted(*)` rule just went right *past* the `<slot id="middle">` node.
 And if you missed that one, no worries! That's on `::slotted(*)`, not you. 
 
 Second, as all the rules gets attached to the same `<span>` node, they will overwrite each other.
-You will not get one text-decoration for a `<slot id="middle">` node and one for the `<slot id="inner">`
-this time, you will get only one: the outer one. "What, the outer one?" you might ask. 
+You will not get one text-decoration for a `<slot id="middle">` node and one for the `<slot id="inner">`.
+This time, you will get only one: the outer one. "What, the outer one?" you might ask. 
 Yes, the outer one since applying CSS rules to slotted elements goes... yes, you are right...
 **reverse document order**.
 
-But. I have of now, for the truly good stuff: CSS fallback nodes.
-
-## Example 3: disappearing fallback nodes
+## Example 3: fallback nodes
 
 To provide a default value for a `<SLOT>` if no elements are assigned to it,
 you simply add a set of childnodes under it.
@@ -303,7 +301,7 @@ Let's have another `FancyHeader` and investigate:
           }
         </style>
         <header-impl>
-          <slot id="middle">Inner Header</slot>          
+          <slot id="middle">Middle Header</slot>
         </header-impl>
       `;
     }
@@ -320,7 +318,7 @@ Let's have another `FancyHeader` and investigate:
             text-decoration: underline;
           }
         </style>
-        <slot id="inner">Middle Header</slot>
+        <slot id="inner">Inner Header</slot>
       `;
     }
   }
@@ -329,27 +327,21 @@ Let's have another `FancyHeader` and investigate:
 </script>
 <fancy-header></fancy-header>
 ```
-
-The real question is, do we really bother with another investigation?
-Can we just conclude with guilty and send all nodes to prison?
-Does `!important` work? And if so, how could I use it? But, enough digression,
-let's get back on track.
+"Middle header" (with no color or styling)
 
 The example yields good insight. 
 When `<slot id="inner">` asks `<slot id="middle">` for its `assignedNodes`, 
-`<slot id="middle">` will not return its fallback nodes to `<slot id="inner">` 
-when it has no assigned nodes.
-**Slot fallback childnodes does NOT work recursively**.
-So while the `<slot>` element works recursively for assigned nodes, 
-it does not work recursively for fallback nodes.
-If you missed that one, its not on you, blame the `<SLOT>`.
+`<slot id="middle">` returns its fallback nodes ("Middle header") since it has no assigned nodes.
 
-Secondly, the `::slotted(*)` rules do not apply. *Fallback child nodes are not considered slotted*.
-If you missed that one, that is on you! No.. Just kidding:) 
-This is also a perfectly understandable misunderstanding. 
-You just didn't know that CSS applies different rules to the `<SLOT>`s own children 
-than it does with the children that gets assigned to the `<SLOT>`. 
-No `::slotted(*)` for Christmas for you kids!
+But.. It has no color? Meaning that none of the `::slotted(*)` rules apply. Why is that?
+
+As the "Middle header" in `FancyHeader` is not slotted, but a fallback node, the `::slotted(*)`
+CSS rule in `FancyHeader` does not apply.
+But, the `"Middle header"` text node is not a fallback node in `HeaderImpl`;
+The `"Middle header"` node *is slotted into* `<slot id="inner">`.
+So, why `::slotted(*)` is not applying on the inner layer, I cannot tell you.
+This investigation concludes that in the intersection between `<slot>` fallback nodes and 
+`::slotted` CSS rules there most likely is a bug.
 
 ## Example 4: Freakish `<SLOT>`s in the main document
 
