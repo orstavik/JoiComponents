@@ -66,7 +66,7 @@ describe("Blue-frame", function () {
         this.shadowRoot.appendChild(blueFrameTempl.content);
       }
 
-      slotCallback(slot) {
+      slottablesCallback(slot) {
         this.testValue = this.testValue || [];
         this.testValue.push({slotName: slot.name, newChildren: slot.assignedNodes({flatten: true})});
       }
@@ -80,7 +80,7 @@ describe("Blue-frame", function () {
         this.shadowRoot.appendChild(passePartout.content);
       }
 
-      slotCallback(slot) {
+      slottablesCallback(slot) {
         this.testValue = this.testValue || [];
         this.testValue.push({slotName: slot.name, newChildren: slot.assignedNodes({flatten: true})});
       }

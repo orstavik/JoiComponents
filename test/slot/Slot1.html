@@ -17,7 +17,7 @@
       `;
     }
 
-    slotCallback(slot) {
+    slottablesCallback(slot) {
       let newFlattenedChildren = slot.assignedNodes({flatten: true});
       let elementById = this.shadowRoot.getElementById("result");
       elementById.innerText = newFlattenedChildren.map(c => c.id).join(".");

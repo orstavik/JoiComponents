@@ -87,7 +87,7 @@
     "ex4 slotchangedCallback"
   ];
 
-  import {SlottableMixin} from "../../src/slot/SlottableMixin.js";
+  import {SlottableMixin} from "../../../src/slot/SlottableMixin.js";
 
   class ExampleComponent extends SlottableMixin(HTMLElement) {
 
@@ -102,7 +102,7 @@
       createDiv(testValue, (this.id+" connectedCallback") === testValue)
     }
 
-    slotCallback(slot) {
+    slottablesCallback(slot) {
       let testValue = expecteds.shift();
       createDiv(testValue, (this.id+" slotchangedCallback") === testValue)
     }

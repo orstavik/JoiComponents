@@ -85,16 +85,16 @@ class Slottables {
 }
 
 /**
- * SlottableMixin adds a reactive lifecycle hook .slotCallback(...) to its subclasses.
+ * SlottableMixin adds a reactive lifecycle hook .slottablesCallback(...) to its subclasses.
  * SlottableMixin does not require neither a `<slot>` nor a shadowRoot to be present on the custom element,
  * it will trigger regardless.
  *
  * This lifecycle hook is triggered every time a potentially slottable nodes for the element changes.
- * .slotCallback(...) is initialized and triggers at .
- * Then .slotCallback(...) is triggered whenever the childList of the host node changes, or
+ * .slottablesCallback(...) is initialized and triggers at .
+ * Then .slottablesCallback(...) is triggered whenever the childList of the host node changes, or
  * .
  *
- * .slotCallback(slottables) is triggered:
+ * .slottablesCallback(slottables) is triggered:
  *  1) the first requestAnimationFrame after the element is constructed,
  *  2) whenever the childNodes of the host element changes, and
  *  3) whenever the assigned nodes of a <slot> node that is a child of the host element changes.
@@ -129,7 +129,7 @@ function indirectSlottableMutation(el, ev) {
       return;                                             //no eavesdropping
     if (slot.parentNode === el) {
       const slotName = slot.getAttribute("slot") || "";
-      el.slotCallback(el[slottables][slotName], i + 1, ev);  //found the right slot and triggering callback
+      el.slottablesCallback(el[slottables][slotName], i + 1, ev);  //found the right slot and triggering callback
       return;
     }
   }
@@ -141,28 +141,28 @@ function directSlottableMutation(changes) {
   for (let name in el[slottables]) {
     if (newSlottables[name] === undefined) {
       delete el[slottables][name];                           //deleted
-      el.slotCallback(new Slottables(name, null));
+      el.slottablesCallback(new Slottables(name, null));
     }
   }
   for (let name in newSlottables) {
     let nodes = newSlottables[name];
     if (!el[slottables][name])                               //added
-      el.slotCallback(el[slottables][name] = new Slottables(name, nodes));
+      el.slottablesCallback(el[slottables][name] = new Slottables(name, nodes));
     if (!arrayEquals(nodes, el[slottables][name].assigneds)) //changed
-      el.slotCallback(el[slottables][name] = new Slottables(name, nodes));
+      el.slottablesCallback(el[slottables][name] = new Slottables(name, nodes));
   }
 }
 
 const mo = new MutationObserver(directSlottableMutation);
 
-function SlottableCallback(el) {
+function SlottableCallback (el) {
   mo.observe(el, {childList: true});
   el.addEventListener("slotchange", e => indirectSlottableMutation(el, e));
 
   const map = mapNodesByAttributeValue(el.childNodes, "slot");
   if (Object.keys(map).length === 0) map[""] = [];
   for (let name in map)
-    el.slotCallback(el[slottables][name] = new Slottables(name, map[name]));
+    el.slottablesCallback(el[slottables][name] = new Slottables(name, map[name]));
 }
 
 export const SlottableMixin = function (Base) {

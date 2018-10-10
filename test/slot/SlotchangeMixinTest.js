@@ -36,7 +36,7 @@ function testAssignedValues(actuals, expecteds) {
 }
 
 const runSlotchangeMixinTest = function (SlotchangeMixinType, slotCallback) {
-  describe(SlotchangeMixinType.name, function () {
+  describe("CallBack: " + SlotchangeMixinType.name, function () {
 
     const name = SlotchangeMixinType.name.toLowerCase();
 
@@ -466,5 +466,5 @@ import {SlottableMixin} from "../../src/slot/SlottableMixin.js";
 import {VarMixin, flattenAssignedNodesVar} from "../../src/slot/VarMixin.js";
 
 runSlotchangeMixinTest(SlotchangeMixin, "slotchangeCallback");
-runSlotchangeMixinTest(SlottableMixin, "slotCallback");
-runSlotchangeMixinTest(VarMixin, "slotCallback");
+runSlotchangeMixinTest(SlottableMixin, "slottablesCallback");
+// runSlotchangeMixinTest(VarMixin, "slotCallback");

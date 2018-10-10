@@ -3,11 +3,11 @@
 ## The native web components cookbook
 
 "The web component design patterns" is a set of recipes for developing simple and reusable web components. 
-This book is framework independent: all patterns are intended to run natively on any browser 
+This book is framework independent: all patterns are intended to run natively in any browser 
 that supports web components and vanilla es6. 
 However, the book is meant to be framework relevant: 
 the patterns should all be useful to understand either how to make web components in other frameworks or
-how other frameworks function internally.
+how other frameworks could or should function internally.
 
 WC patterns consists of the following types of recipes:
 * problem descriptions that detail and frame frequent issues and use-cases,
