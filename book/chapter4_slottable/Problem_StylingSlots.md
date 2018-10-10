@@ -336,10 +336,11 @@ When `<slot id="inner">` asks `<slot id="middle">` for its `assignedNodes`,
 But.. It has no color? Meaning that none of the `::slotted(*)` rules apply. Why is that?
 
 As the "Middle header" in `FancyHeader` is not slotted, but a fallback node, the `::slotted(*)`
-CSS rule in `FancyHeader` does not apply.
+CSS rule in `FancyHeader` does not apply. That's expected.
 But, the `"Middle header"` text node is not a fallback node in `HeaderImpl`;
-The `"Middle header"` node *is slotted into* `<slot id="inner">`.
-So, why `::slotted(*)` is not applying on the inner layer, I cannot tell you.
+the `"Middle header"` node *is slotted into* `<slot id="inner">`.
+So, why is `::slotted(*) {color: red; ... }` not applied? 
+I cannot tell you.
 This investigation concludes that in the intersection between `<slot>` fallback nodes and 
 `::slotted` CSS rules there most likely is a bug.
 
@@ -458,8 +459,8 @@ while working with styling `<SLOT>`s, we therefore provide the following guideli
    "Assigned descendants" of a `<SLOT>` is not captured by the `*` 
    (as they would be by a `* { ... }` in regular CSS rule).
    
-6. Remember: An element's fallback nodes are not `::slotted(*)`. 
+6. Remember: No element's fallback nodes are styled `::slotted(*)`, even when they are slotted. 
    
-7. Remember: Any `<SLOT>` node that do not have a shadowDOM as rootNode is *actively not flattened*.
+7. Remember: A `<SLOT>` node in the main document is *never* flattened.
 
 ## References
