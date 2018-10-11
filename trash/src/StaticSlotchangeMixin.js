@@ -82,7 +82,7 @@ export function StaticSlotchangeMixin(Base) {
     }
 
     [triggerSlotchangeCB](slot) {
-      let newAssigned = flattenNodes(slot.assignedNodes());
+      let newAssigned = slot.assignedNodes({flatten: true});
       let oldAssigned = this[assigneds].get(slot);
       if (arrayEquals(oldAssigned, newAssigned))
         return;
