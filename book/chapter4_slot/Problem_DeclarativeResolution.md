@@ -224,6 +224,10 @@ And so when the HTML resolver completes the branch and then should alert the JS 
 `slotchange` events that have occurred, it should do so only when the complete context is available
 and only trigger one such event per `<SLOT>` node.
 
+## Missing initial `slotchange` event in Safari.
+
+//todo add the test that shows the missing `slotchange` event in Safari.
+
 ## BatchedPostConstructorCallback to the rescue!
 
 To summarize and simplify, the problem is that:

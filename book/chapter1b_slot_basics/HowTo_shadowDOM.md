@@ -1,4 +1,6 @@
-# What is a shadowDOM and a slot?
+# WhatIs: shadowDOM and `<SLOT>`
+
+<img width="100%" src="svg/overview.svg" />
 
 We start with a simplified overview of some basic principles:
 
@@ -106,7 +108,9 @@ We can imagine the flattened DOM looking something like this:
       border: 10px solid green;
     }
   </style>
-  <img src="aNicePicture.jpg" alt="a nice picture">          <!--4-->
+  <slot>
+    <img src="aNicePicture.jpg" alt="a nice picture">          <!--4-->
+  </slot>
 </green-frame>
 ```
 1. The `<green-frame>` host node still exists
