@@ -146,8 +146,8 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType, slotCallback) {
         expect(inner.testValue[0].value.length).to.be.equal(2);
         el.appendChild(document.createElement("p"));
         Promise.resolve().then(() => {                //we must wait for the slotchange event which is run at the end of microtask que
-          if (name === "varmixin")         //not called, as SlotWrapper doesn't implement VarMixin, but only has a regular slot. Therefore, the top, initial callback doesn't trigger.
-            return done();
+          // if (name === "varmixin")         //not called, as SlotWrapper doesn't implement VarMixin, but only has a regular slot. Therefore, the top, initial callback doesn't trigger.
+          //   return done();
           expect(inner.testValue.length).to.be.equal(2);
           expect(inner.testValue[1].slotName).to.be.equal("");
           expect(inner.testValue[1].value.length).to.be.equal(3);
@@ -362,7 +362,7 @@ const runSlotchangeMixinTest = function (SlotchangeMixinType, slotCallback) {
       });
     });
 
-    it("slottables also trigger callbacks in SlottableMixin and VarMixin", function (done) {
+    it("slottables also trigger callbacks in SlottableMixin", function (done) {
       const el = new Slot1();
       el.innerHTML = "<div id='a'></div><div id='b' slot='something'></div>";
       requestAnimationFrame(() => {

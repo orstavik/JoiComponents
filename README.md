@@ -139,36 +139,41 @@ explain that custom elements with content in the lightDom should be considered a
 -->
 
 ## How to use the recipes
-
-
- 
 The isolated functional mixins presented do **not** make a framework. 
-In fact, it is the ambition with this book that you no longer need a framework to build
-scalable, manageable, simple, yet powerful web apps. Modern browsers now has all the power you desire.
-Hence, every mixin and resource strives for no other dependencies than itself and 
-the (polyfilled) platform. 
+In fact, it is the ambition of this book that to make scalable, manageable, simple, yet powerful web apps
+without a framework. Modern browsers now has all the power you desire.
+Every mixin strives for no other dependencies than itself and the (polyfilled) platform. 
 
-The following mixins are directly available via rawgit.com and unpkg.com:
+### Mixins:
 
-**Regular mixins:**
-* [EnterViewMixin.js](src/EnterViewMixin.js)
-* [FirstConnectedMixin.js](src/FirstConnectedMixin.js)
-* [HashChangedMixin.js](src/HashChangedMixin.js)
-* [ResizeMixin.js](src/ResizeMixin.js)
-* [SlottableMixin.js](src/slot/SlottableMixin.js)
-* [StaticSlotchangeMixin.js](trash/src/StaticSlotchangeMixin.js)
+##### Polyfill:
+ * [polyfill-loader.js](src/polyfill-loader.js)
 
-**Gestures:**
-* [gestures/DraggingFling.js](src/gestures/DraggingFling.js)
-* [gestures/PinchSpin.js](src/gestures/PinchSpin.js)
-* [gestures/Swipe.js](src/gestures/Swipe.js)
+##### Slot:
+ * [SlottableMixin.js](src/slot/SlottableMixin.js)
+ * [SlotchangeMixin.js](trash/src/SlotchangeMixin.js)
 
-**Other resources:**
-* [setupCallback punchline]()
-* [polyfill-loader.js](src/polyfill-loader.js)
-* [flattenNodes.js](trash/src/flattenNodes.js)
+##### Layout:
+ * [EnterViewMixin.js](src/layout/EnterViewMixin.js)
+ * [ResizeMixin.js](src/layout/ResizeMixin.js)
 
-Example of complete links:
+##### Style:
+ * [StyleChangedMixin.js](src/style/StyleChangedMixin.js)
+ * 
+
+##### Gestures:
+ * [gestures/DraggingFling.js](src/gestures/DraggingFling.js)
+ * [gestures/PinchSpin.js](src/gestures/PinchSpin.js)
+ * [gestures/Swipe.js](src/gestures/Swipe.js)
+
+##### Network:
+ * [HashChangedMixin.js](src/network/HashChangedMixin.js)
+ * [LieFi.js] not made yet
+
+##### Other:
+ * [FirstConnectedMixin.js](src/FirstConnectedMixin.js)
+
+The mixins are directly available via rawgit.com and unpkg.com:
  * [https://unpkg.com/joicomponents@1.2.0/src/SlottableMixin.js](https://unpkg.com/joicomponents@1.2.0/src/SlotchangeMixin.js)
  * [https://cdn.rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js](https://rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js)
 
@@ -182,7 +187,7 @@ Example of complete links:
 <!---
 ## Chapter 8: Composition of app-specific web components
 1. 
-2. props down, (custom) events up
+2. props down, (composed) events up
 ((ATT!! In generic custom elements, it is more children and attributes down, events up)).
 
 3. dispatch and observe, in a joiState
