@@ -3,9 +3,9 @@ function getSlotContent(slot) {
   return slot.assignedNodes().map(node => node.textContent).join("");
 }
 
-import {SlotchangeMixin} from '../../src/SlotchangeMixin.js';
+import {SlottableMixin} from '../../src/slot/SlottableMixin.js';
 
-export class CodeMirrorBox extends SlotchangeMixin(HTMLElement) {
+export class CodeMirrorBox extends SlottableMixin(HTMLElement) {
   constructor() {
     super();
     this.attachShadow({mode: "open"});
@@ -41,7 +41,7 @@ export class CodeMirrorBox extends SlotchangeMixin(HTMLElement) {
 }
 
 //src wins over content+fallback-filename
-export class CodeFile extends SlotchangeMixin(HTMLElement) {
+export class CodeFile extends SlottableMixin(HTMLElement) {
 
   static get observedAttributes() {
     return ["src", "fallback-filename"];

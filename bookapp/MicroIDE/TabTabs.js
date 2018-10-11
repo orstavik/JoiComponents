@@ -1,4 +1,4 @@
-import {SlotchangeMixin} from "https://cdn.rawgit.com/orstavik/JoiComponents/master/src/SlotchangeMixin.js";
+import {SlotchangeMixin} from "https://cdn.rawgit.com/orstavik/JoiComponents/master/src/SlottableMixin.js";
 
 const tabsTemplate = document.createElement("template");
 tabsTemplate.innerHTML = `

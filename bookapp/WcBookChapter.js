@@ -1,7 +1,7 @@
-import {SlotchangeMixin, flattenedChildren} from "../src/SlotchangeMixin.js";
+import {SlottableMixin, flattenedChildren} from "../src/slot/SlottableMixin.js";
 import {ResizeMixin} from "https://cdn.rawgit.com/orstavik/JoiComponents/master/src/ResizeMixin.js";
 
-export class WcBook extends ResizeMixin(SlotchangeMixin(HTMLElement)) {
+export class WcBook extends ResizeMixin(SlottableMixin(HTMLElement)) {
   constructor() {
     super();
     this.attachShadow({mode: "open"});
@@ -89,7 +89,7 @@ export class WcBook extends ResizeMixin(SlotchangeMixin(HTMLElement)) {
   }
 }
 
-export class WcChapter extends SlotchangeMixin(HTMLElement) {
+export class WcChapter extends SlottableMixin(HTMLElement) {
   constructor() {
     super();
     this.attachShadow({mode: "open"});

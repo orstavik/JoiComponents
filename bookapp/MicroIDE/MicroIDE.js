@@ -1,9 +1,9 @@
 
 import hyperHTML from 'https://unpkg.com/hyperhtml?module';
-import {ShadowSlotchangeMixin} from '../../src/ShadowSlotchangeMixin.js';
+import {SlotchangeMixin} from '../../src/slot/SlotchangeMixin.js';
 
 //this is a micro code editor
-export class MicroCodeEditor extends ShadowSlotchangeMixin(HTMLElement) {
+export class MicroCodeEditor extends SlotchangeMixin(HTMLElement) {
 
   constructor() {
     super();
