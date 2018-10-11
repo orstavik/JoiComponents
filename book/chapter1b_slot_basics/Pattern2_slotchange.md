@@ -1,15 +1,12 @@
 # Pattern: `slotchange`
 
 The `slotchange` event is dispatched from a `<slot>` element every time 
-its `assignedNodes` changes. There are two problems with the `slotchange` event:
+its `assignedNodes` changes.
                              
-1. The `slotchange` event does **not bubble**.
-The HTML standard specifies that the `slotchange` event *should* bubble.
-But. All the browsers make the `slotchange` event *not* bubble.
-Because `slotchange` does not bubble, `slotchange` event listener 
-*must be* added to the exact `<slot>` node that is observed.  
+2. The initial-`slotchange`-event is not always dispatched in Safari (upto current version oct 2018).
+//todo The tests that I have that shows the slotchange events in different browsers illustrated exactly
+where this problem was
 
-2. The initial-`slotchange`-event is not dispatched in Safari.
 The initial-`slotchange`-event is the `slotchange` event that is dispatched 
 when the slot is created and assigned nodes for the very first time.
 Both Chrome and the polyfill dispatch an initial-`slotchange`-event, but Safari does not.
@@ -118,7 +115,7 @@ Adding the `slotchange` listener, caching the assigned nodes, and checking the a
 to cancel redundant callbacks is adding code and complexity to our web components.
 To encapsulate this complexity we can create a Mixin that we can reuse across elements.
 There are two ways to do so, and you can read more about them in
-[SlotchangeMixin](../chapter3_lifecycle/Mixin1_SlotchangeMixin.md).
+[SlotchangeMixin](../chapter3_lifecycle/chapter3_old/Mixin1_SlotchangeMixin.md).
 
 ## Example: IfOnly
 
@@ -159,8 +156,6 @@ class IfOnly__RedFrame extends HTMLElement {
 customElements.define("red-frame", IfOnly__RedFrame);
 ```
 
-This example is **BROKEN** and **DOES NOT WORK!**.
-It only serves as an example of how simple life **would have been** if the standard was working everywhere.
 In this example, there is no need to cache the previously assigned nodes nor 
 to discover nor update the `<slot>` elements inside `this.shadowRoot`.
 This *greatly* reduces the complexity of listening for `slotchange` events and 
@@ -172,5 +167,4 @@ thus the complexity of the components that do so.
  * [Spesification: whatwg on slotchange](https://dom.spec.whatwg.org/#mutation-observers)
  
 ## TODOS
-1. Check that I interpret the standard correctly
 2. check that Safari also slotchange event {bubble: false}

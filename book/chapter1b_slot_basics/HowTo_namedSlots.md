@@ -54,6 +54,7 @@ In this example we will add a label to our `<green-frame>` custom element.
   <img src="aPicture.jpg">
   <span slot="label">Painted by: Noot Hert Han</span>
   <div slot="inTheLightDomYouSeeMe">But in the flattened DOM you don't</div>
+  <span slot="label"> So Mebo Dy</span>
 </green-frame>
 ```
 
@@ -69,6 +70,7 @@ We can imagine the flattened DOM looking like this:
   <img src="aPicture.jpg">
   <div>
     <span>Painted by: Noot Hert Han</span>
+    <span> So Mebo Dy</span>
   </div>
 </green-frame>
 ```
@@ -81,16 +83,17 @@ not the `<div slot="inTheLightDomYouSeeMe">`.
 When a host child is given a `slot`-attribute, but 
 no matching named `<slot>` can be found in the shadowDOM, 
 the element is dropped from the flattened DOM and view.
+3. The second `<span slot="label">` is also included in the flattenedDOM.
 
 ## Opinionated advice
 There are limitation to using named slots. 
-Often, when you need to name slots, you also need to manipulate the host child elements 
-that are named.
+Often, when you need to name slots, you also need to alter or add other elements
+around the named slot elements.
 But, you don't want to alter the lightDOM, transposed children directly from within the shadowDOM.
 That would be reaching into the lightDOM, and we wan't to avoid that.
-So, when you need to mark lightDOM elements using the `slot`-attribute, 
-be aware that it is likely that you will need to also make changes in or around the slotted element, 
-and that if that is the case, you want to use the HelicopterParentChild pattern, and not the slot pattern.
+So, if you mark lightDOM elements with the `slot`-attribute and suddenly feel the urge to 
+also make changes in or around the slotted element, this is a sign that you do not want the `slot`
+pattern, but are on your way to creating a pair of elements using the [HelicopterParentChild pattern](../chapter6_html_comp/Pattern2_HelicopterParentChild.md).
 
 <!--
 All `<slot>` elements refer to children elements of the `host` element in the lightDOM.
