@@ -99,7 +99,7 @@ add a 10px wide green border around it.
 
 Below is a diagram that illustrates how this all fits together:
 
-<img width="100%" src="svg/overview.svg" />
+<img width="100%" src="svg/overview.svg" background="#FEFAEF"/>
 
 ## What happened?
 
@@ -123,6 +123,12 @@ it creates a new html document for that element.
    it will convert this *multi-document* **DOM** into a single document **flattened DOM**.
 6. The browser will then finally render it, by ascribing style to the nodes in this 
    **flattened DOM**, calculating these nodes layout, and then paint them.
+   
+ * To transpose a large document full of slotable nodes sound computationally very heavy. 
+   But, in practice, it rarely is. The browser can easily keep track of which slotable nodes have been changed, 
+   and which remain the same as before. It then only works on the changes, leaving the rest untouched.
+   By working "smart" like this, the browser can keep the flattened DOM up-to-date, always, 
+   with little to no effort.
 
 ## References
  * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
