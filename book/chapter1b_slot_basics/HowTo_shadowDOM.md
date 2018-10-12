@@ -60,75 +60,12 @@ This is done by simply placing a special HTML tag for that element called **`<SL
 somewhere in the inner html document of your web component. 
 The `<SLOT>` marks the square around which the HTML frame of your web component will wrap itself.
 
-##Example: `<green-frame>` with `<slot>`
-In this chapter I will describe how you can use web components in your HTML.    
+## Example: `<green-frame>` with `<slot>`
 
-
-<img width="100%" src="svg/overview.svg" />
-
-In the beginning I will give a strict rule. Do not use the term "assigned" about the nodes 
-that gets slotted 
-
-We start with a simplified overview of some basic principles:
-
-* The **DOM** is the dynamic representation the browser has of the living html document 
-that it will display on the screen. The DOM forms a tree of DOM nodes.
-
-* A **DOM node** can be either an HTML element, a text node, or 
-a root node to represent another HTML document.
-A DOM node is the actual entities that the browser can show on the screen.
-
-* An **HTML element** is a DOM node that is created from an HTML tag.
-HTML elements are created and added to the DOM *both* when the browsers parses the main HTML documents
-*and* by particular JS functions such as `document.createElement("div")`.
-
-* In addition to the DOM, a browser can also have a series of javascript objects and 
-functions living in its memory. These objects and functions are not visible per se,
-but can produce dom nodes dynamically that will be visible when added to the DOM.
-
-However, with the advent of shadowDOM, we need a bigger vocabulary to describe the DOM.
-
-* **ShadowDOM** are pieces of DOM that are encapsulated *inside* custom elements as a *separate document*.
-A shadowDOM is attached to an element as a `.shadowRoot` property.
-As different custom elements are added, the DOM is broken into different parts, different shadowDOMs.
-When custom elements are used inside each other's shadowDOMs, 
-they also divide the DOM into several layers.
-
-* The **LightDOM** for a particular custom element is the part of the DOM where 
-that element's `host` node is placed.
-
-* The **`host` node** is the DOM node of a custom element with a shadowDOM.
-The custom element with its `host` node *and* `.shadowRoot` property forms a link
-between two different parts and layers of the DOM, between a lightDOM and a shadowDOM.
-You can see this layered structure in dev tools.
-
-* A **`<slot>`** is an HTML variable. 
-The `<slot>` is a particular type of DOM node that functions as a placeholder for other DOM nodes.
-The `<slot>` should only be used inside a shadowDOM, and 
-it will essentially "kidnap" one or more of the `.childNodes` of the `host` node in the lightDOM and 
-present them as its own children in the "flattened DOM".
-
-* **assignable nodes** are DOM nodes that can be transposed from a DOM 
-into the shadowDOM of a custom element.
-It is only the direct children of a `host` node that are assignable.
-But when a child of a host is assigned, all its descendant are transposed with it.
-
-* A **slot chain** is a series of nested slot nodes.
-As custom elements can be used inside the shadowDOM of other custom elements,
-slot elements can also be linked to other slot elements. 
-
-* **`.assignedNodes()`** are the set of actual nodes that one `<slot>` element will transpose.
-In practice, the `.assignedNodes()` are the `.childNodes` of the `host` node of the custom element.
-However, if one of the host node's child nodes also happen to be a `slot`, 
-then that `slot` will also be replaced by its `host` `.childNodes`, and so on.
-
-* The **flattened DOM** is the DOM where all `host` nodes are resolved, 
-all the assignedNodes are transposed into their shadowDOM positions and 
-the lightDOM and shadowDOM are "flattened" as they will be displayed.
-
-## Example: GreenFrame
-In this example we create a simple custom element with a shadowDOM. 
-The custom element called GreenFrame will add a green border 10px wide around its content.
+In this example we create a simple custom element with a `<SLOT>`. 
+The custom element called `GreenFrame` has a single default slot, 
+it will stretch to fit that slot, and 
+add a 10px wide green border around that slot.
 
 ```html
 <script>
@@ -139,12 +76,15 @@ The custom element called GreenFrame will add a green border 10px wide around it
       this.attachShadow({mode: "open"});     //[1]
       this.shadowRoot.innerHTML =             
         `<style>
-          :host {
+          div {
             display: block;                                  
             border: 10px solid green;
           }
         </style>
-        <slot></slot>`;                      //[2]  //[5]
+
+        <div>
+          <slot></slot>
+        </div>`;
     }
   }
   customElements.define("green-frame", GreenFrame);
@@ -154,40 +94,33 @@ The custom element called GreenFrame will add a green border 10px wide around it
   <img src="aNicePicture.jpg" alt="a nice picture">          <!--4-->
 </green-frame>
 ```
-1. A `.shadowRoot` is added to the custom element.
-2. A `<slot>` element is added in this shadowDOM.
-3. A `<green-frame>` host node is created in an HTML document.
-The document in which this `host` node exists is the lightDOM 
-for the `<green-frame>` custom elements.
-4. An `<img>` element is added as child node for the `<green-frame>` host element.
-As a direct child of the host node, 
-the `<img>` node is an *assignable* node for the `<green-frame>` custom element.
-5. The `<slot>` element is assigned to `<img>`.
-`.assignedNodes()` on this slot element will return a list with `[textNode, <img>, textNode]`
-(the textNodes are the new-line and whitespace characters around the `<img>` element).
 
-We can imagine the flattened DOM looking something like this:
-```html
-<green-frame>                                                <!--1-->
-  <style>                                                    <!--2-->
-    __special_selector__ {                                   <!--3-->
-      display: block;                                  
-      border: 10px solid green;
-    }
-  </style>
-  <slot>
-    <img src="aNicePicture.jpg" alt="a nice picture">          <!--4-->
-  </slot>
-</green-frame>
-```
-1. The `<green-frame>` host node still exists
-2. `<style>` element from the shadowDOM is pulled up into the lightDOM.
-3. We can imagine the browser creating a `__special_selector__` CSS selector 
-that only applies to this particular branch of the DOM, 
-starting from the parent node of this particular style node.
-No such node-specific rules exists in normal CSS.
-4. First, the `<slot>` node is replaced by its `.assignedNodes()`.
-Then these `.assignedNodes()` are pulled up into the lightDOM like the `<style>` element.
+Below is a diagram that illustrates how this all fits together:
+
+<img width="100%" src="svg/overview.svg" />
+
+## How did it work?
+
+1. The browser loads the source file `index.html`.
+2. The browser's parser starts to parse the `index.html` file and build the `main` html document from that file.
+3. As the parser encounters the `<script>`, it runs it, and from it creates a definition 
+for the `GreenFrame` web component which it registers under tag name `<green-frame>`.
+4. When the browser then encounters the `<green-frame>` tag in the document,
+it creates a new html document for that element.
+   1. The `this.attachShadow({mode: "open"});` creates the inner document. 
+   2. The root of this new html document is placed under the `.shadowRoot` 
+      property of its `<green-frame>` element node in the `main` html document. 
+      This node is referred to as this web component instance's `host` node.
+   3. The parser will then create the inner document content using the text passed into 
+      `this.shadowRoot.innerHTML`.
+   4. Inside the inner document of the `<green-frame>` component, 
+      there is a separate `<style>` for that document, and a `<div>` 
+      that wraps around the `<slot>`.
+5. When the browser is finished running all its processes to make the two documents, 
+   the `main` document and the inner document of the `<green-frame>` host node, 
+   it will convert this *multi-document* **DOM** into a single document **flattened DOM**.
+6. The browser will then finally render it, by ascribing style to the nodes in this 
+   **flattened DOM**, calculating these nodes layout, and then paint them.
 
 ## References
  * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
