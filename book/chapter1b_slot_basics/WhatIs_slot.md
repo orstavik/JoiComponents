@@ -101,7 +101,7 @@ Below is a diagram that illustrates how this all fits together:
 
 <img width="100%" src="svg/overview.svg" />
 
-## How did it work?
+## What happened?
 
 1. The browser loads the source file `index.html`.
 2. The browser's parser starts to parse the `index.html` file and build the `main` html document from that file.
