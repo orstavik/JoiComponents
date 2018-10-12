@@ -1,6 +1,73 @@
-# WhatIs: shadowDOM and `<SLOT>`
+# WhatIs: `<SLOT>`
+
+## Introduction: The concept of HTML slots
+HTML is a language of HTML tags. 
+You can put tags next to eachother, and you can put tags inside each other. 
+The act of putting together an HTML document by placing HTML tags next to and inside each other is 
+called HTML composition.
+
+## HTML tags composed side by side
+
+When you put HTML tags next to each other, 
+they will be presented as beads on a string. You may of course use CSS to 
+style the structure of this string, make it go upside down, right to left, 
+stop after the fifth bead, etc. But, regardless of the shape of the string, 
+the beads you put on it is one after the other, sequential.
+
+When you make a web component (a custom HTML tag with an inner html document (a shadowDOM)), 
+and place it next to other HTML tags, the web component will
+place itself on the screen next to the other tags and 
+present its inner html document as its children.
+Using web components like this is simple, straight forward.
+(And it is a good way to encapsulate HTML and CSS code, 
+hiding low level from view and creating several local scopes for CSS, which we really like).  
+
+## HTML tags composed within each other
+
+When you put HTML tags inside each other, you can think of them as frames within frames.
+When you set up the first tag, the outer frame, it will fill its own border, 
+and create a space for the next frame.
+The space for the inner frame we can think of as **a slot**, an opening inside the HTML tag
+into which we can put our other tags.
+
+Sometimes, the size of the HTML frame is static, meaning it is fixed from above.
+But most HTML frames are elastic, like rubber, meaning that their size and shape 
+depends on the size of what is put in the slot.
+If the frame receives a small pass photo, it will shrink and wrap itself around the matchbox sized slot.
+If the frame receives a large man-sized portait of a medieval king, 
+it will grow and wrap itself around that.
+And, if there is not enough space around the sides of the frame, 
+some frames will adjust their border size, while others will remain fixed and rigid.
+
+HTML tags can also be put inside each other in many levels, like frames within frames within frames etc. etc.
+The outer element gives the frame, then comes a passepartout, then another passpartout and on and on,
+until the final atomic photo is put in place.
+Each frame will preserve **a slot** for its inner content, and each frame will contain its own rules
+of whether it should stretch to fill the slot from its parent frame, remain a fixed size, or shrink
+to fit the content of its slot.
+
+HTML tags can also *both* contain **several slots** *and* fill **several elements in each slot**.
+Each HTML frame control how their different inner slots are positioned against each other.
+They can decide to show them side by side, one on top of the other, hide one of them,
+stretch one to fit the other, etc. etc.
+But, when several HTML tags are put together into the same slot of another the outer tag,
+the outer tag will treat the elements as a group. The outer HTML frame will therefore strech to accomodate 
+or statically define the frame around this group of HTML tags.
+
+When you make a web component for and place other HTML tags inside that component, 
+you therefore need to define the *slot(s)* for those inner HTML tags.
+This is done by simply placing a special HTML tag for that element called **`<SLOT>`** 
+somewhere in the inner html document of your web component. 
+The `<SLOT>` marks the square around which the HTML frame of your web component will wrap itself.
+
+##Example: `<green-frame>` with `<slot>`
+In this chapter I will describe how you can use web components in your HTML.    
+
 
 <img width="100%" src="svg/overview.svg" />
+
+In the beginning I will give a strict rule. Do not use the term "assigned" about the nodes 
+that gets slotted 
 
 We start with a simplified overview of some basic principles:
 
