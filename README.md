@@ -19,12 +19,7 @@ WC patterns consists of the following types of recipes:
 
 ## Chapter 1: How to make a web component?
 1. [Define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
-2. [How to shadowDOM](book/chapter1/HowTo_shadowDOM.md)
-3. [How to `<slot>`](book/chapter1/HowTo_slot.md)
-4. [How to name `<slot>`s](book/chapter1/HowTo_namedSlots.md)
-5. [How to chain `<slot>`s](book/chapter1/HowTo_chainSlots.md)
 6. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
-7. [Pattern: `slotchange`](book/chapter1/Pattern2_slotchange.md)
 8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
 <!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
 
@@ -47,6 +42,17 @@ WC patterns consists of the following types of recipes:
 1. [.attributeChangedCallback()](book/chapter3_lifecycle/HowTo_attributeChangedCallback.md)
 <!--4. .hashChangedCallback()-->
 <!-- 4. liefi-->
+
+## Chapter 4a: slot
+1. [What is: `<slot>`](book/chapter1b_slot_basics/WhatIs_slot.md)
+2. [What is: shadowDOM](book/chapter1b_slot_basics/WhatIs_shadowDOM.md)
+3. [How to `<slot>`](book/chapter1b_slot_basics/HowTo_slot.md)
+4. [How to name `<slot>`s](book/chapter1b_slot_basics/HowTo_namedSlots.md)
+5. [How to chain `<slot>`s](book/chapter1b_slot_basics/HowTo_chainSlots.md)
+6. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
+7. [Pattern: `slotchange`](book/chapter1b_slot_basics/Pattern2_slotchange.md)
+8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
+<!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
 
 ## Chapter 4: Slottables
 2. [Problem: SlotchangeEavesdropping](book/chapter4_slottable/Problem_SlotchangeEavesdropping.md)
