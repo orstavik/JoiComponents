@@ -63,5 +63,26 @@ Below is the diagram that illustrates how the two different elements gets flatte
 4. The diagram above also illustrates that when you use a custom element multiple times 
    in the same document, the browser will create one new shadowDOM document for each element.
 
+## Pattern: the GentleMan
+
+When making a web component, there is a simple principle that can help guide you as to when to 
+use `<slot>`s and when to use slot fallback nodes: the GentleMan.
+
+First, the GentleMan pattern states that a web component should always provide its users 
+with `<slot>`s for context-dependent, varying content that will either be displayed or iterated over.
+The author of a web component should not define inside the shadowDOM content will vary depending
+on the lightDOM context in which the web component is used. Be a GentleMan, don't make up your mind 
+about something before you have heard what the other's have to say.
+
+Second, when there is no content provided by the users of the web component, fallback gracefully as if 
+such a situation was the most natural thing in the world.
+If your web component anticipates a `<slot>` being filled with content, provide that `<slot>` with 
+fallback nodes so to *both* guide your web components users about which type of content is anticipated,
+and so that if your users forget to fill the `<slot>`, such an oversight will not break the look and
+feel of your component as a whole.
+
+Third, apply the same style to both slotted and fallback children alike. This requires implementing
+both regular CSS styles and `::slotted` CSS styles. We will return to this in later chapters.
+
 ## References
  * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom

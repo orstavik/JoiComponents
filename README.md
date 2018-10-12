@@ -48,7 +48,8 @@ WC patterns consists of the following types of recipes:
 2. [What is: shadowDOM](book/chapter1b_slot_basics/WhatIs_shadowDOM.md)
 3. [What is: slot fallback nodes](book/chapter1b_slot_basics/WhatIs_slot_fallback_nodes.md)
 4. [What is: slot name](book/chapter1b_slot_basics/WhatIs_slotname.md)
-4. [What is: slot chain](book/chapter1b_slot_basics/WhatIs_slotchain.md)
+5. [What is: slot chain](book/chapter1b_slot_basics/WhatIs_slotchain.md)
+6. [Pattern: GentleMom](book/chapter1b_slot_basics/Pattern_GentleMom.md)
 
 ...
 4. [How to `<slot>`](book/chapter1b_slot_basics/HowTo_slot.md)
