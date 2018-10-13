@@ -1,7 +1,5 @@
 # Pattern: GentleMom
 
-> The GentleMom pattern apply to most aspects of a custom element, not just slot fallback nodes.
-
 *The GentleMom principle: 
 Always try to honor the wishes of first outside parents and then inside children,
 before you substitute their wishes with your own.*
@@ -9,22 +7,30 @@ before you substitute their wishes with your own.*
 The GentleMan pattern in [What is: slot fallback nodes](WhatIs_slot_fallback_nodes.md) 
 describes why and when to provide `<slot>`s, and why and when to provide fallback nodes.
 But, what should we do when we *link slots*? 
-How should the web component where the slots are linked, treat:
+How should a web component that link slots treat:
 1. the `<slot>`s it provides to its user web components, its outside parents?
 2. the fallback nodes of its inner web component `<slot>`?
 3. the fallback nodes of its own `<slot>`?
 
-As described above, when linking `<slot>`s, a web component should first of all follow the GentleMan
-pattern. That means providing `<slot>`s where necessary, and ensuring that a graceful fallback will occur.
-But, in addition to the GentleMan pattern, a web component that creates a slot link, 
-should also avoid overwriting the fallback nodes of its children if no special reasons require it to do so.
-The GentleMom would therefore prioritize first slotable nodes from its outside parents,
-and then rely on the inner web components own fallback nodes, 
-if no special circumstance compels it to fill in its own fallback value.
+When linking `<slot>`s, a web component should first of all follow the GentleMan pattern. 
+The web component should provide its users with all the relevant `<slot>`s, and 
+ensuring that each `<slot>` has a graceful fallback on relevant child nodes.
+But, a web component that links slots should also avoid overwriting the fallback nodes of its children 
+if no special reasons require it to do so.
+The GentleMom's priorities are: 
+1. slotable nodes from its outside parents,
+2. the inner web component children's own fallback nodes, and
+3. its own fallback value.
 
 ## Example: the GentleMom Fail!
 
-Unfortunately, with the current implementation (and spec?) for `<slot>`s, this pattern is broken.
+If there is no compelling reason why she should, 
+the GentleMom will not provide a default fallback content of her own slot.
+Instead, she will let her children, who is nearest to the situation, 
+provide the fallback content of their own slot.
+The GentleMom does not overwrite the fallback content of her children if there is no need.
+
+Unfortunately, the GentleMom pattern fails according to the current DOM specification for `<slot>`s.
 The following example illustrate how.
 
 **This example is BROKEN!!**. 
@@ -74,13 +80,12 @@ The following example illustrate how.
 
 <green-frame></green-frame>
 ```
-**This example is BROKEN!!**. 
+**This example FAILS**. "Thank you for your interest!" is *not* displayed.
 
 ## Diagram
 
-## Why did it break?
+## Why did it fail?
 
-**This example is BROKEN!!**. But why? 
 The GentleMom pattern breaks because of peculiarities in the algorithm that flattens a `<slot>`: 
 
 If a `<slot>` has no slotable elements, then it will use its own fallback nodes.
@@ -97,10 +102,9 @@ This next pattern will base itself on a cultural dogma that
 fathers are not as sensitive and respectful of their children's own wishes as mothers are. 
 Mothers and fathers alike will respect and listen to directives coming from the outside, but 
 fathers will overlook their childrens wishes and put words in their children mouths. 
-If this dogma is true or not, I don't know. But as a recognizable metaphor,
-it serves our purposes.
+If this dogma is true or not, I don't know. But as a recognizable metaphor, it serves our purposes.
 
-As the GentleMan and GentleMom, web components following the GentlePap pattern will 
+As with the GentleMan and GentleMom, web components following the GentlePap pattern will 
 prioritize and show content from their outside parents.
 But, unlike the GentleMom pattern, the GentlePap will provide its own fallback nodes *always*, 
 even though the inner child's `<slot>` do provide similar and as appropriate fallback nodes.
@@ -168,22 +172,39 @@ it again comes up empty handed.
 But, counter to the previous example, the `<slot id="outerSlot">` *has* fallback nodes,
 and during the resolution, it will return those fallback nodes.
 
+## Discussion: GentleMom as low coupling
 
-## Discussion: Why GentleMom?
-In addition to being a GentleMan, the GentleMom is equally gentle and helpful towards her children elements.
-If there is no compelling reason why she should, the GentleMom will not provide a default fallback content of her own slot.
-Instead, she will let her children, who is nearest to the situation, 
-provide the fallback content of their own slot.
-The GentleMom will not overrule/overwrite the fallback content of her children if she does not have to.
+All web components operates in a context of change.
+A web component must not only anticipate to be used in many different apps and contexts, but
+also anticipate that *all* of these apps and contexts will be updated, enhanced, refactored, etc.etc.
+over time.
+To adapt to this changing landscape *above* the web component, 
+web components should be made with as *low coupling* to their context of use as possible.
 
-The reason the GentleMom principle is benefitial is that the GentleMom custom element operates in a context of change.
-The many and updating documents that might use the GentleMom element will of course change. 
-But(!) In addition the custom children element that she relies on, will also change. 
-In general, by allowing the children element to make as many decisions as possible, 
+But, web components that also use other child web components in their shadowDOM
+operates in a context of doubly change, change both above and below.
+The child web component also needs to update itself to keep efficient, become more performant,
+fix bugs, get better style, etc.etc.
+The parent web component that use this other web component can and do freeze the version of the
+child web component it uses, these changes are not fluidly running into established apps, usually.
+But, to keep fresh and not grow stale, the when the web component updates and changes, 
+it should for good housekeeping also update its children.
+By allowing the children element to make as many decisions as possible, 
 these children elements become more independent and can be updated and evolve more freely without 
 negatively interfering with the function of the parent, consumer element. 
-Put simply: Low coupling is good, and this is a situation that calls for low coupling.
 
+The GentleMom pattern is not only a rule for `<slot>`s and slot fallback nodes;
+the GentleMom pattern applies to most aspects of a custom element in general.
+The GentleMom is a pattern of *low coupling* for web components "in the middle".
+The GentleMom has a truly attractive ethos of being sweet and kind to those with less power 
+than herself in the situation. Following this ethos also makes her more adaptable to change.
+
+## References
+
+ * dunno
+ 
+## Old
+ 
 ## Example: RedPage
 Lets us see this problem in action. 
 Here we will make a GentleMom element that we call RedPage. 
@@ -237,9 +258,5 @@ See the StylingSlots chapter explanation.
 Instead "Blue title" is shown.
 --> 
 ```
-
 The [GreenBook.html example](https://codepen.io/orstavik/pen/dgyWMM) in action.
-
-## References
-
- * dunno
+ 
