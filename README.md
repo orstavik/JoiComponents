@@ -50,6 +50,7 @@ WC patterns consists of the following types of recipes:
 4. [What is: slot name](book/chapter1b_slot_basics/WhatIs_slotname.md)
 5. [What is: slot chain](book/chapter1b_slot_basics/WhatIs_slotchain.md)
 6. [Pattern: GentleMom](book/chapter1b_slot_basics/Pattern_GentleMom.md)
+7. [HowTo: style slots](book/chapter1b_slot_basics/WhatIs_style_slot.md)
 
 ...
 4. [How to `<slot>`](book/chapter1b_slot_basics/HowTo_slot.md)

@@ -1,6 +1,7 @@
 # HowTo: style `slot`
 
-`<slot>`s and slotted nodes is primarily styled using types of CSS selectors:
+`<slot>`s and slotted nodes be styled using several different CSS selectors.
+In this chapter we will look at the two most important ones:
  * regular CSS selectors and
  * `::slotted(*)`.
 
@@ -11,8 +12,9 @@ Regular CSS selectors can style both:
 4. the slotted nodes parents (in the lightDOM).
 
 `::slotted(*)` can *only* select the *slotted direct children*,
-not slotted descendants.
-`::slotted(*)` has high specificity.
+not slotted descendants. 
+`::slotted(*)` has lower specificity than regular CSS selectors,
+but higher specificity than inherited rules.
 
 ## Example: `<green-frame>` with style
 
@@ -31,25 +33,28 @@ We will use many different selectors to see the many ways to succeed.
           div {
             display: block;                                  
             border: 10px solid green;
-            font-style: italic;       //[will be inherited]
+            font-style: italic;       /*inherited*/
           }
           slot {
-            font-family: times;       //[will be inherited]
+            color: blue;
+            font-family: times;       /*inherited*/
             border-left: 2px solid blue;
           }
           ::slotted(h1) {
-            border-top: 2px solid red; //[will be added]
+            color: red;
+            border-left: 2px solid red; /*added directly*/
           }
           ::slotted(span){
-            border-top: 2px solid red; //[will not be added as the span is a slotted descendant]
+            border-left: 2px solid red; /*not added: span is a slotted descendant*/
           }
           ::slotted(*){
-            border: 5px solid yellow;  //[will be added to both h1 and p]
+            border-top: 5px solid yellow;  /*added directly to both h1 and p*/
           }
         </style>
 
         <div>
           <slot></slot>
+          <h2>by orstavik</h2>
         </div>`;
     }
   }
@@ -57,10 +62,13 @@ We will use many different selectors to see the many ways to succeed.
 </script>
 <style>
   body {
-    font-weight: lighter;
+    text-align: center;  /*inherited*/
   }
   * {
     background: lightgrey;
+  }
+  h1 {
+    color: blue;
   }
   span {
     border-bottom: 2px solid orange;
@@ -74,7 +82,7 @@ We will use many different selectors to see the many ways to succeed.
 
 ## Diagram
 
-todo
+<img src="svg/slot_style.svg" width="100%" alt="diagram"/>
 
 ## What happened?
 
