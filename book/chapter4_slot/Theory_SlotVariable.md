@@ -1,5 +1,8 @@
 # Theory: `<SLOT>` as an HTML variable
 
+The first thing you learn when you start to learn programming is the variable. 
+The variable is simple, it is like a programming pronoun that simply points to some other thing.
+
 ## What is variable resolution?
 
 A **variable** points to some 'thing'. 
@@ -98,3 +101,20 @@ to keep in mind for the developer.
 ## References
 
  * 
+
+
+## Pronouns as English variables
+
+One reason normal programming variables are so deeply rooted in our minds,
+is that we use these same structures in our natural language.
+Pronouns in English can easily be described as natural language variables.
+Example:
+
+"He" is John. "She" is Camilla. "They" is "he" and "she". Now, ask yourself:
+Is "they": "he which is john and she which is Camilla"? Or, is "they" simply "John and Camilla". 
+We resolve the pronouns.
+
+I think the dichotomy is transpose and resolve. Both are assigned. 
+But when something is transposed, the original link structure is preserved. 
+When something is resolved, the link structure is removed.
+
