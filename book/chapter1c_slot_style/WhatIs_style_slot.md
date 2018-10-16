@@ -79,26 +79,26 @@ Here we only attempt to illustrate how the CSS rules work, *not* style itself.
 ## What happened?
 
 When the browser creates the DOM, it will parse the content of all `<style>` and 
-`<link rel="stylesheet">` elements and set up a set of `stylesheet` objects on the document
-root node. These `stylesheet` objects form the basis of the CSSOM.
+`<link rel="stylesheet">` elements and set up `stylesheet` objects on the document root node. 
+These `stylesheet` objects form the basis of the CSSOM.
 
 *Before* the DOM is flattened, the CSSOM rules are merged into the DOM hierarchy. 
 At this point, the documents in the DOM still remain separate, and 
 this means that the rules in the CSSOM `stylesheet` objects are matched to the
 nodes *within each document*. 
 
-*Then* the DOM is flattened.
-To flatten the DOM thus means to move/transpose elements *with* their attributed CSS rules
-*from* a host node parent in the lightDOM
-*to* a slot node parent inside the shadowDOM.
+*Then* the DOM is flattened. To flatten the DOM thus means to move/transpose nodes:
+ * **with individually attributed CSS rules**
+ * **from the host** node parent in the lightDOM
+ * **to the slot** node parent inside the shadowDOM.
 
 *After* the DOM is flattened, **inherited** CSS property values gets attributed to each node.
 The inherited value of CSS properties thus follow the *flattened* hierarchy of the DOM working
 *across DOM document borders*.
 
 *As a result* in the flattened DOM, we see that:
-1. CSS rules are *only* attributed *within document borders, before documents are flattened* while
-2. CSS property inheritance is done *across document borders, after documents are flattened*.
+1. **CSS rules** are *only* attributed **within document borders, before documents are flattened** while
+2. **CSS inheritance** is done **across document borders, after documents are flattened**.
 
 With regular CSS selectors, this gives us 4 ways to style `<slot>` and slotted nodes:
 
