@@ -1,23 +1,50 @@
 # Intro: Style in web components
 
-The main function of web components in regards to CSS is to hide it.
-CSS and its global scope is any system architects nightmare, and 
-if CSS and style had been critical in order to make a page work, 
-CSS and the way it is organized would have been changed looooong ago.
-And that is why we want to hide it. 
-CSS reminds us of all the old rules we wrote some time ago, that had a purpose back then, 
-a style that have since been reworked several times, but we are afraid to remove the old rules
-because some of the new rules that we have made implicitly relies upon them.
-Yes, please, hide that stuff!
+This chapter describes the different ways a web component can be styled and 
+react to style/layout changes.
 
-No wait.. That looks wrong.. We don't want to hide stuff we don't understand! 
+1. Antipattern: this.style is not my style
+2. Pattern: use `<style>` and `<link rel="style">` inside the shadowRoot
+4. `:host` with style inside the shadowRoot
+5. style slotted nodes using `::slotted(*)`
+6. Pass style settings into the custom element using CSS --custom-properties as css variables:
+   * `--some-value: blue;` in the lightDOM and
+   * `color: var(--some-value)` in the shadowDom 
+7. StyleMixin.js: `styleCallback("custom-prop")` 
+   and `static get observedStyle() return ["--custom-prop"]`
+8. LayoutMixin.js: `layoutCallback({size: {width, height}, position{top, left, bottom, right}})` 
+   and `static get observedLayout() return ["position", "size"]` 
+   (cf. old resizeCallback()).
+9. CssShadowPartsMixin.js: 
+
+## Is a web components main purpose to encapsulate and hide CSS?
+
+It certainly is one of the main points of web components.
+
+One perspective on CSS is this:
+> CSS and its global scope is any system architects nightmare.
+If errors in CSS had stopped a web page/app from working, 
+CSS and the way it is organized would have been changed looooong ago.
+
+An answer to this perspective is:
+> That is why we want to hide CSS. 
+CSS is full of old, no-longer in use rules that we wrote some time ago.
+Most of the rules had a purpose back then, but now, only a few of the rules do.
+But to find out exactly where and when these rules apply can be too tedious, 
+so it is better to simply hide the CSS rules in separate files.
+A style that have since been reworked several times, but we are afraid to remove the old rules
+as some of our elements might need them occasionally or implicitly.
+So, yes, please, hide that stuff!
+
+An answer to that again is:
+> No wait.. That looks wrong.. We don't want to hide stuff we don't understand! 
 We *only* want to hide stuff that we *do* understand. And. We don't really want to hide it: 
 we just want to split it up into manageable bits, modularize it, 
 so that we can design, test, deploy, maintain and sleep knowing about, without numbing our 
 sensibility to system failure.
 
-So, ok, that is what we will do here. We will not hide anything in css that is ugly.
+So our exercise is:
+> So, ok, that is what we will do here. We will not hide anything in css that is ugly.
 We will only encapsulate style stuff that is understandable and that can and should 
-be put into a web component. We will make CSS prettier. And I promise you: 
-web components *do* provide a mechanism to uncook half the bowl of CSS spagetti. 
-
+put into a web component. We will make CSS prettier. And I promise you: 
+web components *do* provide a mechanism to uncook half the bowl of CSS spaghetti.

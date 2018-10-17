@@ -1,5 +1,7 @@
 ## EnterViewMixin                                                 
 
+todo This should be moved into a layoutCallback!!
+
 `enterViewCallback()` triggers the first time the element comes into view.
 `EnterViewMixin` uses InterSectionObserver.
 No fallback using requestAnimationFrame implemented.

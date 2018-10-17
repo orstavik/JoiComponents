@@ -19,7 +19,7 @@ This means that users of SlotchangeMixin can
 *without* having to worry about such changes muting the mixin.
 No need to `updateSlotListeners()` when the shadowDOM changes.
 
-[link to the source of SlotchangeMixin](../../src/SlotchangeMixin.js)
+[link to the source of SlotchangeMixin](../../src/slot/SlottableMixin.js)
 
 ## How to react to dynamic changes of the DOM inside a custom element?
 
@@ -58,7 +58,7 @@ And, finally, whenever the ChildrenChanges, these listeners will be checked to m
 ## Example
 
 ```javascript
-import {SlotchangeMixin, getVisibleChildren} from "./SlotchangeMixin.js";
+import {SlotchangeMixin, getVisibleChildren} from "./SlottableMixin.js";
 
 class MyWebComponent extends SlotchangeMixin(HTMLElement) {
                                                

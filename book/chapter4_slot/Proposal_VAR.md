@@ -96,8 +96,8 @@ existing browsers without breaking existing applications relying on existing `<S
    the ability to style slotted and use fallback nodes increases while at the same time being tighter
    encapsulated.
    
-   Ref: [Problem: StylingSlots](Problem_StylingSlots.md)
-   Ref: [Pattern: GentleMom](../chapter6_html_comp/PatternY_GentleMom.md)
+   Ref: [Problem: StylingSlots](../chapter1c_slot_style/Problem_StylingSlots.md)
+   Ref: [Pattern: GentleMom](../chapter1b_slot_basics/Pattern_GentleMom.md)
 
 8. Increase the system efficiency of: a) `slotchange` events, b) flattening assigned nodes and c) `<SLOT>` fallback nodes. 
    

@@ -1,5 +1,7 @@
 # Mixin: LieFi
 
+Todo. This should probably not be a mixin, but an element or a function..
+
 A typical problem for web apps working on a 3g/4g connection, is that the browser is registered as online, 
 but the web connection is nonresponsive. We have a LieFi situation.
 
@@ -35,6 +37,8 @@ then it will not alert the user that it is connected, but that it has a weak con
 The LieFiMixin also actively polls a micro network resource every 10seconds
 to see if it can get it if the network is reportedly on.
 How best to do this I don't know.
+
+Heavy user of [MixinSingleton] pattern.
 
 ```javascript
 const objs = [];

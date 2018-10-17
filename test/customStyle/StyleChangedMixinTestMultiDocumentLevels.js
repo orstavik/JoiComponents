@@ -1,4 +1,4 @@
-import {StyleChangedMixin} from "../../src/StyleChangedMixin.js";
+import {StyleChangedMixin} from "../../src/style/StyleChangedMixin.js";
 
 function hexToRgb(hex) {
   var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);

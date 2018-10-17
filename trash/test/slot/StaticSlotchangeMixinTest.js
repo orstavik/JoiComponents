@@ -1,4 +1,4 @@
-import {StaticSlotchangeMixin} from "../src/StaticSlotchangeMixin.js";
+import {StaticSlotchangeMixin} from "../../src/StaticSlotchangeMixin.js";
 
 // const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
 

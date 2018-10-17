@@ -20,7 +20,7 @@ describe('InitialAttributesMixin', function () {
 
   //works with mocha 4.0.1
   //https://stackoverflow.com/questions/39354331/how-can-i-prevent-mocha-from-trapping-unhandled-exceptions
-  it("element that does not implement initialAttributesCallback will fail", function (done) {
+  it("element that does not implement initialAttributesCallback will fail on connect", function (done) {
     // Stop Mocha from handling uncaughtExceptions.
     // mocha.allowUncaught();
     const savedHandler = window.onerror;

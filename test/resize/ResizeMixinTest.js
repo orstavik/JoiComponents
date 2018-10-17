@@ -1,4 +1,4 @@
-import {ResizeMixin} from "../../src/ResizeMixin.js";
+import {ResizeMixin} from "../../src/layout/ResizeMixin.js";
 
 const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
 

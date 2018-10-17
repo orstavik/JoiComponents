@@ -1,31 +1,7 @@
 # Theory: `<SLOT>` as an HTML variable
 
-The first thing you learn when you start to learn programming is the variable. 
-The variable is simple, it is like a programming pronoun that simply points to some other thing.
-
 ## What is variable resolution?
 
-A **variable** points to some 'thing'. 
-**Variable resolution** is the system identifying what that 'thing' is and giving it to you.
-Variable resolution happens automatically, behind the scenes, every time you need to use that variable.
-
-Variables can also be linked: one variable pointing to another variable pointing to another.
-The link of variables end when a variable stops pointing to another variable 
-(and points to another 'thing' or 'nothing').
-When linked variables are resolved, the system will resolve each step in the chain recursively:
-"If variable one points to another variable two, then the value of one is simply the value of two.
-Furthermore, if variable two points to another variable three, then the value of one is simply the value of three.
-Repeat this until the linked variables either points to a thing or nothing."
-
-> **Variable resolution is to replace a variable with the `thing` it points to, recursively**.
-
-The concept of variables and variable resolution is super simple. Because it *has to be* super simple.
-Sure, there are issues such as casting and automatic type conversions.
-But, variables are used everywhere, all the time. 
-And so when you add complexity to the process of variable resolution, 
-you add that complexity everywhere and all the time.
-So, if you think you have a fair understanding of what a variable is and how it is resolved, 
-then that is because you do. It is simple and clear. Because it must be for the language to be viable.
 
 ## `<SLOT>` as an HTML variable
 
@@ -102,19 +78,4 @@ to keep in mind for the developer.
 
  * 
 
-
-## Pronouns as English variables
-
-One reason normal programming variables are so deeply rooted in our minds,
-is that we use these same structures in our natural language.
-Pronouns in English can easily be described as natural language variables.
-Example:
-
-"He" is John. "She" is Camilla. "They" is "he" and "she". Now, ask yourself:
-Is "they": "he which is john and she which is Camilla"? Or, is "they" simply "John and Camilla". 
-We resolve the pronouns.
-
-I think the dichotomy is transpose and resolve. Both are assigned. 
-But when something is transposed, the original link structure is preserved. 
-When something is resolved, the link structure is removed.
 

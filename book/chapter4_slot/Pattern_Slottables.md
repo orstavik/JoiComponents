@@ -491,4 +491,8 @@ reach into child of the parent and add a slot attribute also. But, this is more 
 As the slot attribute might be added directly, thus not triggering the necessary 
 attributeChangedCallback, etc. Etc.
 
+slottablesCallback enables us to in template make elements that can react 
+*to the full HTML structure, directly*.
+They therefore enable us to program even more reactive/adaptive declerative html.
+
 ## References

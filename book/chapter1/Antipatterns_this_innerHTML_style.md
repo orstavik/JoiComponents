@@ -32,3 +32,20 @@
 4. "TypeError: Illegal constructor"
    
    You forgot to add customElements.define() of your new subclass of HTMLElement.
+   
+5. Use `element.tagName === "SLOT"` instead of `element instanceof HTMLSlotElement`.
+   
+   The polyfill has the `HTMLUnknownElement` class for its elements, not their proper class type.
+   
+   
+   
+   
+
+## Core web component patterns:
+ * The internal workings of the `shadowDom` should only be observed and controlled 
+   by the custom element itself.
+ * Custom elements should not reach into and make changes to its `host` node's lightDOM context.
+ * Custom elements should not make any assumptions about its `host` node's lightDOM context.
+ * Changes to a custom elements lightDom are passed on to the custom element via established,
+   universal mechanisms such as lifecycle callbacks, events in general and `slotchange` event in
+   particular.

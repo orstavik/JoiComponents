@@ -4,10 +4,10 @@
 > styles an element in another part of the document, without the developer's awareness.
 
 CSS is not simple. Transposing slotable nodes is not simple. 
-Lets for good measure now include a slot chain and see how creepy things can get. 
- 
+Lets for good measure add CSS to a slot chain and see how creepy things get.
+
 ## Example 1: FancyHeader
-                                         
+
 In the following example an HTML is created with a custom element called `<fancy-header>`.
 The `<fancy-header>` has a shadowDOM with a `<header-impl>` node.
 The `<header-impl>` element only contains a `<style>` and a `<slot>`. 
@@ -18,9 +18,10 @@ In sum, a basic slot chain.
 Then, we add the styles. We only work with one, non-inheritable CSS property to begin with:
 `text-decoration`. 
 We add the `text-decoration` property to both `<slot id="inner">`, `<slot id="middle">`, and 
-the outermost, slotted `<span>` element according to document order:
-in the top document we add an `overline`, in the middle document `line-through`, and
-in the inner document `underline`.
+the outermost, slotted `<span>` element in document order:
+ * top document => `overline`
+ * middle document => `line-through`
+ * inner document => `underline`
 
 ```html
 <script>
@@ -73,6 +74,8 @@ Hello World!  (with both underline, overline, and line-through).
 
 
 ## What happened?
+
+First of all, `<slot>` are styled too.
 
 First, `<span>Hello World!</span>` is transposed into `<slot id="middle">` and 
 then into `<slot id="inner">`.

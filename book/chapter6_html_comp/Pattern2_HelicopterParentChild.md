@@ -35,7 +35,7 @@ b) process slotted items on par with normal items.
 
 ### Defining two custom element types
 ```javascript
-import {SlotchangeMixin} from "SlotchangeMixin.js"; 
+import {SlotchangeMixin} from "SlottableMixin.js"; 
 
 class OlWc extends SlotchangeMixin(HTMLElement) {
                                                                                 

@@ -1,5 +1,12 @@
 # Problem: Redundant slotchange events
 
+todo 
+This description is old.
+This problem is caused by consequent DOM compositions due to constructors of custom elements
+being nested within each other in the constructor.
+
+//ref https://github.com/w3c/webcomponents/issues/764#issuecomment-425620510
+
 When you chain slots, the browser will dispatch multiple `slotchange` events for 
 *the same slot* for *the same change*.
 Furthermore, the content of the `slotchange` event sometimes, but not always, originate 
@@ -17,8 +24,8 @@ grand-father
         the-child
           #shadow
             slot
-        slot 
-    slot
+          slot 
+      slot
   "text"
 ```
 We add a slotchange event listener that logs `element.tagName` and `event.path` for all three custom elements.    
