@@ -52,6 +52,19 @@ WC patterns consists of the following types of recipes:
 6. [Pattern: GentleMom](book/chapter1b_slot_basics/Pattern_GentleMom.md)
 7. [HowTo: style slots](book/chapter1c_slot_style/WhatIs_style_slot.md)
 
+## Chapter 4b: slot style
+1. [HowTo: style `<slot>`](book/chapter1c_slot_style/WhatIs_style_slot.md)
+2. [HowTo: `::slotted(*)`](book/chapter1c_slot_style/WhatIs_style_slotted.md)
+3. [Problem: SlotStyleCreep](book/chapter1c_slot_style/Problem_StylingSlots.md)
+
+## Chapter 4: Slottables
+2. [Problem: SlotchangeEavesdropping](book/chapter4_slottable/Problem_SlotchangeEavesdropping.md)
+2. [Problem: DeclarativeResolution](book/chapter4_slottable/Problem_DeclarativeResolution.md)
+2. [Problem: slotchange issues](book/chapter4_slottable/Problem_slotchange_issues.md)
+2. [Pattern: Slottables](book/chapter4_slottable/Pattern_Slottables.md)
+2. [Theory: SlotVariable](book/chapter4_slottable/Theory_SlotVariable.md)
+2. [Proposal: `<VAR>`](book/chapter4_slottable/Proposal_VAR.md)
+
 ...
 4. [How to `<slot>`](book/chapter1b_slot_basics/HowTo_slot.md)
 4. [How to name `<slot>`s](book/chapter1b_slot_basics/HowTo_namedSlots.md)
@@ -61,14 +74,6 @@ WC patterns consists of the following types of recipes:
 8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
 <!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
 
-## Chapter 4: Slottables
-2. [Problem: SlotchangeEavesdropping](book/chapter4_slottable/Problem_SlotchangeEavesdropping.md)
-2. [Problem: DeclarativeResolution](book/chapter4_slottable/Problem_DeclarativeResolution.md)
-2. [Problem: slotchange issues](book/chapter4_slottable/Problem_slotchange_issues.md)
-2. [Pattern: Slottables](book/chapter4_slottable/Pattern_Slottables.md)
-2. [Theory: SlotVariable](book/chapter4_slottable/Theory_SlotVariable.md)
-2. [Problem: StylingSlots](book/chapter4_slottable/Problem_StylingSlots.md)
-2. [Proposal: `<VAR>`](book/chapter4_slottable/Proposal_VAR.md)
 
 ## Chapter 5: Gestures
 1. [Sloppy fingers](book/chapter5_gestures/Problem1_sloppy_fingers.md)
