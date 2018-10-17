@@ -74,8 +74,7 @@ Here we only attempt to illustrate how the CSS rules work, *not* style itself.
 
 ### Diagram
 
-![Alt text](https://rawgit.com/orstavik/JoiComponents/master/book/chapter1c_slot_style/svg/style_regular.svg)
-
+<img src="svg/style_regular.svg" width="100%"/>
 Right click and open image in new tab for a better view.
 
 ## What happened?
