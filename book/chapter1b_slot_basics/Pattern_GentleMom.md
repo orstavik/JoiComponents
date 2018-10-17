@@ -96,7 +96,7 @@ when it tries to add those slotables, it comes up empty.
 
 ## Next-best alternative: GentlePap
 
-> "Not the Momma!" baby from [Dinosaurs](https://en.wikipedia.org/wiki/Dinosaurs_(TV_series))
+> "Not the Momma!" Baby Sinclair from [Dinosaurs](https://en.wikipedia.org/wiki/Dinosaurs_(TV_series))
 
 This next pattern will base itself on a cultural dogma that 
 fathers are not as sensitive and respectful of their children's own wishes as mothers are. 
