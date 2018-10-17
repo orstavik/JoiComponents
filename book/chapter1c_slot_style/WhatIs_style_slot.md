@@ -74,7 +74,7 @@ Here we only attempt to illustrate how the CSS rules work, *not* style itself.
 
 ## Diagram
 
-<img src="svg/slot_style.svg" width="100%" alt="diagram"/>
+<img src="svg/style_regular.svg" width="100%" alt="diagram"/>
 
 ## What happened?
 
