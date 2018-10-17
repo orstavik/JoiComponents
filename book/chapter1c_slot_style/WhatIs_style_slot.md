@@ -74,8 +74,10 @@ Here we only attempt to illustrate how the CSS rules work, *not* style itself.
 
 ### Diagram
 
-<img src="https://rawgit.com/orstavik/JoiComponents/master/book/chapter1c_slot_style/svg/style_regular.svg" width="100%"/>
-Right click and open image in new tab if problem viewing the diagram.
+<a 
+href="https://rawgit.com/orstavik/JoiComponents/master/book/chapter1c_slot_style/svg/style_regular.svg"
+target="_blank">
+Open the diagram in a new tab</a>.
 
 ## What happened?
 
