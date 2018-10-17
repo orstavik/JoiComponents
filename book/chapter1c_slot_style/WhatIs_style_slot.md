@@ -72,7 +72,12 @@ Here we only attempt to illustrate how the CSS rules work, *not* style itself.
 </green-frame>
 ```
 
-### [see diagram of the code](svg/style_regular.svg)
+### Diagram
+
+Right click and open image in new tab to see the diagram.
+
+<img src="svg/style_regular.svg" width="100px"/>
+
 
 ## What happened?
 
