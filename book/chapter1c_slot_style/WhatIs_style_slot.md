@@ -72,10 +72,7 @@ Here we only attempt to illustrate how the CSS rules work, *not* style itself.
 </green-frame>
 ```
 
-## Diagram
-
-<img src="svg/style_regular.svg?sanitize=1" width="100%" alt="diagram"/>
-<iframe src="svg/style_regular.svg" width="100%"> diagram </iframe>
+### [see diagram of the code](svg/style_regular.svg)
 
 ## What happened?
 
