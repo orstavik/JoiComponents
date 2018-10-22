@@ -150,21 +150,36 @@ And from left to right match `one.hello.world`, `one.hello` and `one`.
 And from right to left match `one.hello.world, three`, but not `one.hello, three.world`, etc.
 When the examples match, `A* = hello.world`(1,4), `A* = hello`(2), and `A* = ""`(3).
 
+In sum, the router (map) form a *pure function*. The route map is given a route in.
+This route can be seen as a potential middle.
+It will then try to simplify the route to make a new left version.
+This is done recursively with the route map function working from right to left, 
+working recursively from the beginning of its ruleset for every new simplified version it can produce.
+At the same time, the route map will also produce an explicated new right side version.
+This is done in the same way, working recursively from left to right from the top of the ruleset.
+
+### Anti-pattern? route-to-actionable
+
+Many client-side routers implement some form of declarative funcion above, although usually less generic.
+However, many client-sider routers *also* go another step, 
+namely to connect the output route (the explicated right side) with an *actionable* object 
+such as a JS callback function, an object or a class.
+The first step is a pure, reversible function of parsing and clarifying the route;
+the second step of connecting the route to an *actionable* is on the contrary an irreversible 
+interpretation of the route.
+
+To mix the declarative, reversible, pure route translation and clarification with the 
+imperative, irreversible interpretation of route-to-actionable with side-effects, is unnecessary.
+It provides no performance nor ergonomic benefit for the developer.
+
+It is my opinion that explicated routes should be connected actionable entities
+either in a state manager, separate controller, or root view web component.
+To mix the connection of routes to actionable *inside* the router only muddies the water between 
+what is the route, route map, route resolution and the rest of the app.
+Thus, in this book, routes and route maps are kept pure, ie. without connections to actionables. 
 
 ### hash-dot routes
 
-Additionally, we can say that the simple left side is in the user space while 
-the complex right side is on the system side.
-Whenever a rule in the map is matched, the router should:
-1. present the simple rule to the user in the address bar 
-2. pass the complex rule to the browser.
-
-and if we set up routes in a map of A to/from B 
-shortcuts and simplifications can be seen as two sides of the same coin.
-We can describe shortcuts as translations *from* a shorter, simpler, implied format *to* a longer, complex, explicated format
-
-Above the hash-dot notation for links is specified. 
-In this section, we will look at how we can *route* hash-dot links.
 
 Put simply, a route is a translation of one *symbolic* path description into 
 another *actual* path description.
