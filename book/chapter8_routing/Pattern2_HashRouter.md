@@ -178,12 +178,46 @@ To mix the connection of routes to actionable *inside* the router only muddies t
 what is the route, route map, route resolution and the rest of the app.
 Thus, in this book, routes and route maps are kept pure, ie. without connections to actionables. 
 
-### hash-dot routes
+## Implementation: HashDotRouter route map
 
+1. HashDotRouter receives a route map on the form of:
+```
+routeMap = {
+  one.A.B: two.A#three.B;
+  one.A*: one.A*#four;
+  ...
+}
+```
 
-Put simply, a route is a translation of one *symbolic* path description into 
-another *actual* path description.
-The symbolic path is considered "in the user space", while the actual path is in the system space.
+2. The routemap is converted to two regex to template exchangers:
+```
+leftToRight = {
+  one\.$1\.$2: two/${1}#three${2},
+  one\$_1: one${$_1}#four,
+  ...
+}
+rightToLeft = {
+  two\.{$1}#three\.{$2}: one.${1}.${2},
+  one{$_1}#four: one${_1},
+  ...
+}
+```
+
+1. The hash-dot router listens for `hashchange` event:
+   1. produce mostLeft by recursively running rightToLeft on the window.location.hash.
+      The recursion tries to match and replace for each rule, top to bottom.
+      Whenever the rule matches, then the result is run in the same function recursively.
+      The rule returns the last result when no rule in the ruleset matches the result.
+      Each rule in the ruleset can only be matched once, if not otherwise specified.
+      No rule can be matched twice if it contains the same signature on the left and right side.
+   2. produce mostRight by recursively running leftToRight on the window.location.hash,
+      similar method.
+   3. The router caches its 3 different routes: left, middle, right.
+   4. The window.location.hash is updated if needed, this will match the cached value, 
+      thus not requiring any circular reference.
+   5. The three routes (with the rightmost route) is passed passed out as a routechange event (or a callback). 
+
+2. Upon receiving the hash
 
 Often, the symbolic path is in a reader-friendly format, and 
 the system path is in another system-near format.
@@ -191,14 +225,6 @@ However, it is important to see that the router system does two things.
 First, it parses and translates purely symbolically a data object given in as string into 
 another data object given as an object.
 Then, many routers also connects this parsed data object with *actionable* callback functions or classes.
-
-In this book, I advocate *not* connecting the parsed data object with *actionable* callback functions.
-The router should remain simple, a pure function that translates data to other data.
-How this data should be connected with actions, functions and classes *should be* handled by the state machine 
-(or other app components).
-
-1. make a symbolic path into a "real" actionable path
-
 
 A hash-dot link is **a list** of **hash keywords** with **`.`-postfix arguments**.
 Each keyword typically point to one component.
