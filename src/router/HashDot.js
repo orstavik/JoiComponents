@@ -1,12 +1,11 @@
-function tokenType(c) {
+function wordType(c) {
   if (c === "'" || c === '"') return "'";
   if (/[\w]/.test(c)) return "w";
-  if (c === "#" || c === "." || c === ":" || c === "*") return c;
   return "u";
 }
 
 function tokenizeAndParse(hashString) {
-  const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|:|\*|#|[\w]+/g;
+  const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|:|\?|#|[\w]+/g;
   const hashdots = [];
   let hashdot;
 
@@ -18,7 +17,7 @@ function tokenizeAndParse(hashString) {
     if (t2 === null)
       throw new SyntaxError("HashDots cannot end with: -->" + t1[0] + "<--.\nFull HashDots string: -->" + hashString + "<--");
     let one = t1[0], two = t2[0];
-    let twoType = tokenType(two[0]);
+    let twoType = wordType(two[0]);
     if (one === "#") {
       if (twoType === "w") {
         hashdot = {keyword: two, arguments: [], argumentTypes: [], argumentString: ""};
@@ -31,10 +30,8 @@ function tokenizeAndParse(hashString) {
     if (!hashdot)
       throw new SyntaxError("A HashDot must start with #Keyword (#[\\w]+): -->" + one + two + "<--\nFull HashDots string: -->" + hashString + "<--");
 
-    if (one === "." || one === ":") {
-      if (two === "*") {
-        hashdot.universalArguments = true;
-      } else if (twoType === "w" || twoType === "'") {
+    if (one === "." || one === ":" || one === "?") {
+      if (twoType === "w" || twoType === "'") {
         hashdot.arguments.push(two);
         hashdot.argumentTypes.push(one);
         hashdot.argumentString += one + two;
@@ -63,6 +60,59 @@ export function parseHashDots(hashString) {
   return {map: map, tree: tree};
 }
 
+// export class HashDotsRouteMap {
+//   constructor(routeMap){
+//     this.routeMap = routeMap.values().map(entry =>({
+//       left: parseHashDots(entry[0]),
+//       right: parseHashDots(entry[1])
+//     }));
+//     this.leftToRight = makeLeftToRight(routeMap);
+//     // this.rightToLeft = makeLeftToRight(routeMap.reverse());
+//   }
+//
+//   right(hashdots){
+//     const given = parseHashDots(hashdots);
+//     this.resolveLeftToRight(given);
+//   }
+//
+//   resolveLeftToRight(resolved){
+//     for (let i = 0; i < resolved.tree.length; i++) {
+//       const hashdot = resolved.tree[i];
+//       const signature = hashdot.signature;
+//
+//       rule: for (let j = 0; j < this.routeMap.length; j++) {
+//         let rule = this.routeMap[j];
+//         let left = rule.left.tree[0];
+//         if (left.signature === signature || left.universalArguments && left.keyword === hashdot.keyword){
+//           //i and j is good for one rule
+//           for (let k = i+1, l = 1; l < rule.left.tree.length; k++, l++) {
+//             if (k >= resolved.tree.length)
+//               break rule;
+//             const nextResolved = resolved.tree[k];
+//             const nextLeft = rule.left.tree[l];
+//             if (!(nextLeft.signature === nextResolved.signature || nextLeft.universalArguments && nextLeft.keyword === nextResolved.keyword)){
+//               break rule;
+//             }
+//           }
+//           //rules match
+//           let right = rule.right;
+//           //todo this is the job of the makeLeftToRight(routeMap)
+//           //loop through all the right arguments. Find the parameters. Find the equivalent parameter name in the left rule.
+//           //And then find the position of that parameter in the left rule. And then get the arguments for the parameters from the resolved.map.
+//         }
+//       }
+//     }
+//   }
+//   makeLeftToRight(routeMap){
+//     return routeMap.map(rule => {
+//       const left = rule.left;
+//       const right = rule.right;
+//
+//     });
+//
+//   }
+// }
+//
 export class HashDotsRouter {
   constructor() {
     this.inputHash = undefined;
