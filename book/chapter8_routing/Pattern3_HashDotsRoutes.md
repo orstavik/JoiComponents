@@ -147,6 +147,59 @@ Every time a rule matches, the function is called recursively matching all the r
 The exact same procedure is run on the rightToLeft map in order to resolve 
 the leftMost description of a HashDots path.
 
+## alternative replace using regex
+
+```javascript
+routeMap = {
+  "#one.A.B": "#two.A#three.B",
+  "#one.A*": "#one.A*#four"
+}
+```
+Can also be converted into a set of four regex replacers:
+ * A and B from left to right (A multi-arguments and B single-arguments)
+ * C and D from right to left (C multi-arguments and D single-arguments)
+
+A is made by first identifying the multiarguments on the left hand side: `/\.[\w]+\*/g`.
+The list of these arguments are then on the left side replaced with a generic query.
+
+On the left side, the content is replaced 
+
+```
+Left side replace:
+/\.[\w]+\*/g 
+=>
+((\.\"((?:\\\"|(?:(?!\").))*)\"|\.\'((?:\\\'|(?:(?!\').))*)\'|\.[\w]+)+)
+
+Also on the left side escape # and `.`.
+
+
+Right side replace:
+/\.[\w]+\*/g 
+=>
+/((\.\"((?:\\\"|(?:(?!\").))*)\"|\.\'((?:\\\'|(?:(?!\').))*)\'|\.[\w]+)+)/g
+
+``` 
+On the right side, the content is replaced like 
+
+From the left side, this can be done by finding all argument names in the left entry:
+.  and then listing them sequentially.
+Then, the same is done on the right side.
+
+First, a list of fullArguments and partialArguments must be created.
+This is done by finding all the arguments on 
+
+## Unsolved problem 
+How to handle fixed values in the routemap.
+Lets say I want to add hashtag that also has a fixed value? How would I recognize that?
+Maybe I should add a different symbol for variables such as "?"?
+```javascript
+routeMap = {
+  "#one:A:B": "#two:A#three.123:B.fixedValue",
+  "#one:*A": "#one:*A#four"
+}
+```
+
+
 ## the HashDotsRouter
 
 1. The HashDotRouter can be given a HashDotsRouteMap at startup or at any later point run-time.

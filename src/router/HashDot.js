@@ -46,6 +46,8 @@ export function parseHashDots(hashString) {
     }
     one = undefined;
   }
+  for (let hashtag of res)
+    hashtag.signature = hashtag.keyword + "/" + hashtag.arguments.length;
   return res;
 }
 
