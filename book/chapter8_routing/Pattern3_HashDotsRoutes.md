@@ -1,100 +1,6 @@
-# Pattern: HashDotRouter
+# Pattern: HashDotsRouteMap
 
-## Alternative 1: hash-and-slash
-
-Many SPA that use page-internal-links today follow this recipe:
-1. Convert path+argument data into a `/`-based format.
-   The `/`-notation makes the links *look* normal, even though they are not.
-2. Add `#` or `#!` infront of the `/`-based location.
-   This `#` would not belong in a normal `/`-based location, and 
-   this makes the composed **hash-and-slash** link look slightly different and thus suspicious.
-3. Convert the `/`-based link back out into path+argument data.
-   This often require the parser to be aware of semantic properties of the different segments
-   in the links as some segments might be path names while other argument values.
-   
-The **hash-and-slash** approach has two major drawbacks.
-First, it looks familiar, but different. Uncanny.
-Second, double conversion. 
-It requires conversion of key/value-pairs into a flat, unary `/`-delineated format,
-*and* back again.
-To add a deeper syntax would break even more with established convention,
-thus the `/`-format should be kept unary and flat.
-((How to convert key/value-pairs into `/`-paths is described later in the chapter)).
-
-## Alternative 2: hash-dot
-
-The hash-and-slash approach search for familiarity *inside* established convention for web app navigation.
-But, it is possible to find familiarity *outside* this cultural domain too.
-Today, the `#` symbol is primarily associated with hashtags in social media.
-Hashtags is a means for *thematic* linking and navigation.
-This external convention can be drawn upon to create new familiarity for the user, 
-which would ease adoption and lessen suspicion.
-
-When we apply the hashtag convention to internal navigation in an app,
-several route notation premises are turned upside down:
-
-1. Singularity vs. plurality
-   * `/`-path segments combine to point to a single name. But many segment names only yield one location.
-   You only get one outcome from multiple `/`-segments such as `/this/is/a/single.file`.
-   * Individual `#`-tags also point to a single theme, but multiple `#`-tags points to multiple themes.
-   A tweet can contain an array of `#`-tags such as `tweet! #thinkingOutsideTheBox #moreIsMerrier`.
-   * App internal navigation using hashtags should therefore embrace plurality conceptually.
-   An app internal link can contain many hashtags, and the route itself can be used to compose
-   unique instances of the view.
-   On the conversion side, allowing the router *not to* squeeze multiple entries into a singular output
-   also reduces the processing effort.
-
-2. Page vs. component
-   * The archetype of a path segment is a folder or a file.
-   * The archetype of a hashtag is a keyword.
-   * In app internal navigation, using keywords to point to key components fits.
-   This also corresponds nicely with the composition principle above: 
-   A path is a composition of one or more components.
-
-3. Flat vs. deep.
-   * The morphology of segment folders is flat, a folder only has a name.
-   However, the morphology of segment files is deep. The `.` in a filename divide 
-   the name from the file type(s) and can be nested several levels deep (cf. `script.min.js.map.tar.gz`).
-   * The morphology of hashtags is flat. 
-   * When we merge the convention of hashtags into url, can we also merge the convention of `.` in 
-   filenames into hashtags? Would `https://app.shoestore.com/#marathon.42` make sense? 
-   My personal opinion is that it does.
-
-This new, hybrid format we call **hash-dot** links.
-
-### Implementation hash-dot format
-
-```
-hash-dot-link := ([#]<hash-dot>)+
-hash-dot := [\w\d]+<dot-values>
-dot-values := ([.]<dot-value>)*
-dot-value := [\w\d]+
-dot-value := ["][\"]*["]
-```
-
-This can be implemented in JS like so:
-```javascript
-let links = location.hash.split("#");
-links.length > 1;
-links.shift();
-links = links.map(link => {
-  dots = link.split(".");
-  return {
-    name: dots.shift(),
-    values: dots
-  };
-});
-//todo do lots of special case handling, ""-string parsing, 
-//empty link values (#one##three)
-//empty dot values (#one..value)
-```
-
-And in regex:
-```
-//todo
-```
-
-## WhatIs: Route map
+## Intro: RouteMap
 
 Principally, a "route" is a translation of one path into another path.
 "Routing" is beneficial as it support:
@@ -158,7 +64,107 @@ working recursively from the beginning of its ruleset for every new simplified v
 At the same time, the route map will also produce an explicated new right side version.
 This is done in the same way, working recursively from left to right from the top of the ruleset.
 
-### Anti-pattern? route-to-actionable
+## HashDotsRouteMap
+
+A HashDotsRouteMap is a map that can convert one HashDots path into another HashDots path.
+You specify the HashDotsRouteMap as a declarative map with two sides:
+
+1. the user-facing side on the left (usually simpler and shorter), and
+2. the system-facing side on the right (usually more explicated and longer).
+3. Arguments can only be on the form of `[\w]+[\*]?` (regex).
+
+Below is an example of a HashDotsRouteMap in JS.
+```javascript
+routeMap = {
+  "#one.A.B": "#two.A#three.B",
+  "#one.A*": "#one.A*#four"
+}
+```
+The HashDotsRouteMap is converted into *two* PathReplaceFunctions-sets:
+ * leftToRight
+ * rightToLeft
+
+```javascript
+const leftToRight = [
+  {
+    signature: ["one/2"],
+    replace: [
+      {
+        keyword: "two",
+        arguments: ["one/0"]
+      }, 
+      {
+        keyword: "three",
+        arguments: ["one/1"]
+      }
+    ]
+  },
+  {
+    signature: ["one/n"],
+    replace: [
+      
+      {
+        keyword: "one",
+        arguments: "one/n"
+      }, 
+      {
+        keyword: "four",
+        arguments: []
+      }
+    ]
+  }
+];
+
+const rightToLeft = [
+  {
+    signature: ["two/1", "three/1"],
+    replace : [
+      {
+        keyword: "one",
+        arguments: ["two/0", "three/0"]
+      }
+    ]
+  },
+  {
+    signature: ["one/n", "four/0"],
+    replace : [
+      {
+        keyword: "one",
+        arguments: "one/n"
+      }
+    ]
+  }
+];
+```
+The resolve the rightMost description of a given HashDots path, 
+the HashDotsRouteMap will try to match the signatures in sequential order with the keys 
+in the leftToRight PathReplaceFunctions-set with the signatures in the given path (in sequential order).
+Once a set of signatures match, then the HashDotsRouteMap will clone the matching rule,
+grab the argument values from the given path to populate the replace side of the rule and then
+clone the given path and replace the matching hashtags with the composed matching hashtags in the rule.
+Every time a rule matches, the function is called recursively matching all the rules.
+
+The exact same procedure is run on the rightToLeft map in order to resolve 
+the leftMost description of a HashDots path.
+
+## the HashDotsRouter
+
+1. The HashDotRouter can be given a HashDotsRouteMap at startup or at any later point run-time.
+
+2. When given a new set HashDotsRouteMap, the HashDotsRouter will its HashDotsRouteMap into 
+   two sets of leftwards and rightwards set of resolver functions.
+
+3. The HashDotsRouter listens for `hashchange` event, and when for each `hashchange` event, it will
+   1. check to see if the `hash` location is already known.
+      A known hash-location matches either its existing leftMostPath, givenPath, or rightMostPath.
+      If the location is known as either the givenPath or rightMostPath, 
+      it will only update the window.location and return.
+   2. If the path is unknown, the HashDotsRouter produce the leftMostPath and RightMostPath of the givenPath.
+   3. If a new leftMostPath is created, the window.location.hash is updated. 
+   4. If a new rightMostPath is created, 
+      the HashDotsRouter dispatches a `routechange` event with the parsed rightMostPath as detail. 
+
+### Anti-pattern: route => actionable?
 
 Many client-side routers implement some form of declarative funcion above, although usually less generic.
 However, many client-sider routers *also* go another step, 
@@ -178,47 +184,36 @@ To mix the connection of routes to actionable *inside* the router only muddies t
 what is the route, route map, route resolution and the rest of the app.
 Thus, in this book, routes and route maps are kept pure, ie. without connections to actionables. 
 
-## Implementation: HashDotRouter route map
+### Problems:
 
-1. HashDotRouter receives a route map on the form of:
-```
-routeMap = {
-  one.A.B: two.A#three.B;
-  one.A*: one.A*#four;
-  ...
-}
-```
+1. lacking the `.` for numbers.
 
-2. The routemap is converted to two regex to template exchangers:
-```
-leftToRight = {
-  one\.$1\.$2: two/${1}#three${2},
-  one\$_1: one${$_1}#four,
-  ...
-}
-rightToLeft = {
-  two\.{$1}#three\.{$2}: one.${1}.${2},
-  one{$_1}#four: one${_1},
-  ...
-}
-```
+## HowTo: use HashDots routes
 
-1. The hash-dot router listens for `hashchange` event:
-   1. produce mostLeft by recursively running rightToLeft on the window.location.hash.
-      The recursion tries to match and replace for each rule, top to bottom.
-      Whenever the rule matches, then the result is run in the same function recursively.
-      The rule returns the last result when no rule in the ruleset matches the result.
-      Each rule in the ruleset can only be matched once, if not otherwise specified.
-      No rule can be matched twice if it contains the same signature on the left and right side.
-   2. produce mostRight by recursively running leftToRight on the window.location.hash,
-      similar method.
-   3. The router caches its 3 different routes: left, middle, right.
-   4. The window.location.hash is updated if needed, this will match the cached value, 
-      thus not requiring any circular reference.
-   5. The three routes (with the rightmost route) is passed passed out as a routechange event (or a callback). 
+0. Combine composition of HashDots with HashDots shortcuts.
+   Convert `#chapter2` into `#chapter2_1#chapter2_2#chapter2_3` and then
+   `#intro.mixins_md#example.simpleMixin#references.2_1#intro.mixins_...`.
+   This will enable you to organize medium-sized data sets much more comfortably. 
 
-2. Upon receiving the hash
+1. Look to the hashtag convention. Don't be afraid to list many keywords and few arguments.
+   A rule of thumb is that a HashDots link in sum should have more keywords than arguments. 
 
+2. Manage HashDots order in the state manager, not in the links.
+   A sporting goods store might wish to keep `#menswear#shoes` as two separate hashtags.
+   However, when given both tags, the state manager can elect not show both selections, 
+   but merge the two categories (as the two categories have too many items).
+   The store could then choose to process `#shoes` first, then `#menswear` 
+   as it is the more specialized (fewer items) of the tags.
+   Or the store might choose to process `#menswear` first, then `#shoes`,
+   as they are listed in that order, or because the users browsing history indicate this order.
+   Such interpretation of tags can either be done simple (sequential), user oriented
+   (looking towards previous app state) or data oriented (looking to the state or persistent data content).
+
+3. Try to find a balance between keywords and arguments.
+   A user at the sporting goods store might search for shoes size 44. Or 44-45.
+   The most user friendly format would be `#shoes.44-45`. Not `#shoes#44#45` nor `#shoes.44.45`
+
+   
 Often, the symbolic path is in a reader-friendly format, and 
 the system path is in another system-near format.
 However, it is important to see that the router system does two things.
@@ -229,16 +224,8 @@ Then, many routers also connects this parsed data object with *actionable* callb
 A hash-dot link is **a list** of **hash keywords** with **`.`-postfix arguments**.
 Each keyword typically point to one component.
 
-### How to interpret hash-dot routes
 
-   
-## Strategy: routing
 
-4. Make the router simple, and move processing of navigation choices to where it belong:
-   the state management system.
-   The state manager can choose to overlap hashtags as values:
-   `#product#shoes` => if first `#`-tag === `product`, then second `#`-tag => productCategory.
-   Or `#product?shoes` => if `#`-tag === `product`, productCategory = first argument.
 
 ## Strategy 3: #myWay
 
