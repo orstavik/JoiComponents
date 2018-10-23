@@ -2,44 +2,52 @@ export function parseHashDots(hashString) {
 
   function tokenType(c) {
     if (c === "'" || c === '"') return "'";
-    if (/[\d\w]/.test(c)) return "w";
-    if (c === "#") return "#";
-    if (c === ".") return ".";
+    if (/[\w]/.test(c)) return "w";
+    if (c === "#" || c === "." || c === ":" || c === "*") return c;
     return "u";
   }
 
-  const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|#|[\d\w]+/g;
+  const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|:|\*|#|[\w]+/g;
   const res = [];
   let one = undefined;
   let hashtag;
 
   for (let t = toks.exec(hashString); t !== null; t = toks.exec(hashString)) {
     let w = t[0];
-    let c = w[0];
-    let two = tokenType(c);
+    let two = tokenType(w[0]);
     if (!one) {
       one = two;
       continue;
     }
     if (one === "#") {
       if (two === "w") {
-        hashtag = {keyword: w, arguments: [], argumentString: ""};
+        hashtag = {keyword: w, arguments: [], argumentTypes: [], argumentString: ""};
         res.push(hashtag);
       } else {
         throw new SyntaxError("A HashTag must start with a keyword.");
       }
     }
-    if (one === ".") {
+    else if (one === ":" && two === "*"){
+      if (!hashtag)
+        throw new SyntaxError("A HashDot must start with a keyword, it .");
+      if (hashtag.arguments.length)
+        throw new SyntaxError("A HashDot with can either have normal arguments or universal arguments ");
+      hashtag.universalArguments = true;
+    }
+    else if (one === "." || one === ":") {
+      if (hashtag.universalArguments )
+        throw new SyntaxError("A HashDot with can either have normal arguments or universal arguments ");
       if (two === "w" || two === "'") {
         hashtag.arguments.push(w);
+        hashtag.argumentTypes.push(one);
         hashtag.argumentString += "." + w;
       } else {
         throw new SyntaxError(
-          "A HashTag argument starting with . must be followed by a digitword or a \"/'string."
+          "A HashDot argument starting with . must be followed by a digitword or a \"/'string."
         );
       }
     }
-    if (one !== "." && one !== "#") {
+    else {
       throw new SyntaxError(
         "A HashDot sequence must begin with either a '#' or a '.'"
       );
