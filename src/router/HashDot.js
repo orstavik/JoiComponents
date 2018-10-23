@@ -45,7 +45,7 @@ function parse(hashString) {
         );
       }
     }
-    throw new SyntaxError("A HashDot sequence must begin with either a '#' or a '.'");
+    throw new SyntaxError("A HashDot sequence begins with either '#', '.' or ':', not: -->" + one + "<--");
   }
   return res;
 }
