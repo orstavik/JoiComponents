@@ -5,7 +5,12 @@ describe("parseHashDot", function () {
 
     const test = "#omg.what.is.'this?!#...#'#wtf#OMG123.123";
     let res = parseHashDots(test);
-    expect(res).to.deep.equal([
+    expect(res.map).to.deep.equal({
+      omg: ["what", "is", "'this?!#...#'"],
+      wtf: [],
+      OMG123: ["123"],
+    });
+    expect(res.tree).to.deep.equal([
       {
         keyword: "omg",
         signature: "omg/3",
@@ -24,6 +29,7 @@ describe("parseHashDot", function () {
         arguments: ["123"],
         argumentTypes: ["."],
         argumentString: ".123"
-      }]);
+      }
+    ]);
   });
 });

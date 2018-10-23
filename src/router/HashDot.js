@@ -5,10 +5,10 @@ function tokenType(c) {
   return "u";
 }
 
-function parse(hashString) {
+function tokenizeAndParse(hashString) {
   const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|:|\*|#|[\w]+/g;
-  const res = [];
-  let hashtag;
+  const hashdots = [];
+  let hashdot;
 
   while (true) {
     let t1 = toks.exec(hashString);
@@ -21,23 +21,23 @@ function parse(hashString) {
     let twoType = tokenType(two[0]);
     if (one === "#") {
       if (twoType === "w") {
-        hashtag = {keyword: two, arguments: [], argumentTypes: [], argumentString: ""};
-        res.push(hashtag);
+        hashdot = {keyword: two, arguments: [], argumentTypes: [], argumentString: ""};
+        hashdots.push(hashdot);
         continue;
       } else {
         throw new SyntaxError("A HashDot must start with #Keyword (#[\\w]+): -->" + one + two + "<--\nFull HashDots string: -->" + hashString + "<--");
       }
     }
-    if (!hashtag)
+    if (!hashdot)
       throw new SyntaxError("A HashDot must start with #Keyword (#[\\w]+): -->" + one + two + "<--\nFull HashDots string: -->" + hashString + "<--");
 
     if (one === "." || one === ":") {
       if (two === "*") {
-        hashtag.universalArguments = true;
+        hashdot.universalArguments = true;
       } else if (twoType === "w" || twoType === "'") {
-        hashtag.arguments.push(two);
-        hashtag.argumentTypes.push(one);
-        hashtag.argumentString += one + two;
+        hashdot.arguments.push(two);
+        hashdot.argumentTypes.push(one);
+        hashdot.argumentString += one + two;
         continue;
       } else {
         throw new SyntaxError(
@@ -47,21 +47,20 @@ function parse(hashString) {
     }
     throw new SyntaxError("A HashDot sequence begins with either '#', '.' or ':', not: -->" + one + "<--");
   }
-  return res;
+  return hashdots;
 }
 
 export function parseHashDots(hashString) {
 
-  const res2 = {};
-  const res = parse(hashString);
-  for (let hashtag of res) {
+  const tree = tokenizeAndParse(hashString);
+  const map = {};
+  for (let hashtag of tree) {
     if (hashtag.universalArguments && hashtag.arguments.length)
-      throw new SyntaxError("A HashDot can only contain a single universal parameter ':*' or a sequence of either arguments '.something' or parameters ':A', not both.");
-    hashtag.signature = hashtag.keyword + "/" + hashtag.arguments.length;
-    res2[hashtag.keyword] = hashtag.arguments;
+      throw new SyntaxError("A HashDot can only contain a single universal parameter ':*' or a sequence of either arguments '.something' and/or parameters ':A', not both.");
+    hashtag.signature = hashtag.keyword + "/" + hashtag.arguments.length;   //todo maybe remove this
+    map[hashtag.keyword] = hashtag.arguments;
   }
-  //res2 is the simple lookup map
-  return res;
+  return {map: map, tree: tree};
 }
 
 export class HashDotsRouter {
