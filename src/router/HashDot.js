@@ -1,61 +1,66 @@
-export function parseHashDots(hashString) {
+function tokenType(c) {
+  if (c === "'" || c === '"') return "'";
+  if (/[\w]/.test(c)) return "w";
+  if (c === "#" || c === "." || c === ":" || c === "*") return c;
+  return "u";
+}
 
-  function tokenType(c) {
-    if (c === "'" || c === '"') return "'";
-    if (/[\w]/.test(c)) return "w";
-    if (c === "#" || c === "." || c === ":" || c === "*") return c;
-    return "u";
-  }
-
+function parse(hashString) {
   const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|:|\*|#|[\w]+/g;
   const res = [];
-  let one = undefined;
   let hashtag;
 
-  for (let t = toks.exec(hashString); t !== null; t = toks.exec(hashString)) {
-    let w = t[0];
-    let two = tokenType(w[0]);
-    if (!one) {
-      one = two;
-      continue;
-    }
+  while (true) {
+    let t1 = toks.exec(hashString);
+    if (t1 === null)
+      break;
+    let t2 = toks.exec(hashString);
+    if (t2 === null)
+      throw new SyntaxError("HashDots cannot end with: -->" + t1[0] + "<--.\nFull HashDots string: -->" + hashString + "<--");
+    let one = t1[0], two = t2[0];
+    let twoType = tokenType(two[0]);
     if (one === "#") {
-      if (two === "w") {
-        hashtag = {keyword: w, arguments: [], argumentTypes: [], argumentString: ""};
+      if (twoType === "w") {
+        hashtag = {keyword: two, arguments: [], argumentTypes: [], argumentString: ""};
         res.push(hashtag);
+        continue;
       } else {
-        throw new SyntaxError("A HashTag must start with a keyword.");
+        throw new SyntaxError("A HashDot must start with #Keyword (#[\\w]+): -->" + one + two + "<--\nFull HashDots string: -->" + hashString + "<--");
       }
     }
-    else if (one === ":" && two === "*"){
-      if (!hashtag)
-        throw new SyntaxError("A HashDot must start with a keyword, it .");
-      if (hashtag.arguments.length)
-        throw new SyntaxError("A HashDot with can either have normal arguments or universal arguments ");
-      hashtag.universalArguments = true;
-    }
-    else if (one === "." || one === ":") {
-      if (hashtag.universalArguments )
-        throw new SyntaxError("A HashDot with can either have normal arguments or universal arguments ");
-      if (two === "w" || two === "'") {
-        hashtag.arguments.push(w);
+    if (!hashtag)
+      throw new SyntaxError("A HashDot must start with #Keyword (#[\\w]+): -->" + one + two + "<--\nFull HashDots string: -->" + hashString + "<--");
+
+    if (one === "." || one === ":") {
+      if (two === "*") {
+        hashtag.universalArguments = true;
+      } else if (twoType === "w" || twoType === "'") {
+        hashtag.arguments.push(two);
         hashtag.argumentTypes.push(one);
-        hashtag.argumentString += "." + w;
+        hashtag.argumentString += one + two;
+        continue;
       } else {
         throw new SyntaxError(
-          "A HashDot argument starting with . must be followed by a digitword or a \"/'string."
+          "A HashDot argument value must be an AlpaNumeric or a \"quoted\" 'string'."
         );
       }
     }
-    else {
-      throw new SyntaxError(
-        "A HashDot sequence must begin with either a '#' or a '.'"
-      );
-    }
-    one = undefined;
+    throw new SyntaxError("A HashDot sequence must begin with either a '#' or a '.'");
   }
-  for (let hashtag of res)
+  return res;
+}
+
+export function parseHashDots(hashString) {
+
+  const res2 = {};
+  const res = parse(hashString);
+  for (let hashtag of res) {
+    if (hashtag.universalArguments && hashtag.arguments.length)
+      throw new SyntaxError("A HashDot can only contain a single universal parameter ':*' or a sequence of either arguments '.something' or parameters ':A', not both.");
     hashtag.signature = hashtag.keyword + "/" + hashtag.arguments.length;
+    res2[hashtag.keyword] = hashtag.arguments;
+  }
+  //res2 is the simple lookup map
   return res;
 }
 
