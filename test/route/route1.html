@@ -1,22 +1,9 @@
 <script type="module">
 
-  import {HashChangedMixin} from "../../src/network/HashChangedMixin.js";
+  import {HashDotsRouter} from "../../src/router/HashDot.js";
 
-  class HashComp extends HashChangedMixin(HTMLElement) {
-
-    connectedCallback(){
-      super.connectedCallback();
-      this.style.display = "block";
-      this.style.width = "100px";
-      this.style.height = "100px";
-      this.style.background = "black";
-    }
-
-    hashChangedCallback(newHash){
-      this.style.background = newHash;
-    }
-  }
-  customElements.define("hash-comp", HashComp);
+  const router = new HashDotsRouter();
+  window.addEventListener("routechange", e => console.log(e.detail));
 </script>
 
 <a href="#red">Red</a>
