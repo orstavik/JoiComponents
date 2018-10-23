@@ -51,15 +51,17 @@ export function parseHashDots(hashString) {
 
   const tree = tokenizeAndParse(hashString);
   const map = {};
-  const params = [];
+  const params = {};
   for (let hashdot of tree) {
     for (let i = 0; i < hashdot.arguments.length; i++) {
       let arg = hashdot.arguments[i];
       let argType = hashdot.argumentTypes[i];
       if (argType === "?" && hashdot.arguments.length > 1)
         throw new SyntaxError("A HashDot can only contain a single universal parameter '?'.\nNot a sequence of either arguments '.something' and/or parameters ':A', not both.");
-      if (argType === "?" ||argType === ":")
-        params.push({type: argType, name: arg, keyword: hashdot.keyword, position: i});
+      if (argType === "?" ||argType === ":"){
+        const key = argType + arg;
+        params[key] || (params[key] = {type: argType, name: arg, keyword: hashdot.keyword, position: i});
+      }
     }
     hashdot.signature = hashdot.keyword + "/" + hashdot.arguments.length;   //todo maybe remove this
     map[hashdot.keyword] = hashdot.arguments;

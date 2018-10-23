@@ -10,7 +10,7 @@ describe("parseHashDot", function () {
       wtf: [],
       OMG123: ["123"],
     });
-    expect(res.params).to.deep.equal([]);
+    expect(res.params).to.deep.equal({});
     expect(res.tree).to.deep.equal([
       {
         keyword: "omg",
@@ -37,7 +37,7 @@ describe("parseHashDot", function () {
   it("parameter: #omg:what", function () {
     const test = "#omg:what";
     let res = parseHashDots(test);
-    expect(res.params).to.deep.equal([{type: ":", name: "what", keyword: "omg", position: 0}]);
+    expect(res.params).to.deep.equal({":what": {type: ":", name: "what", keyword: "omg", position: 0}});
     expect(res.map).to.deep.equal({
       omg: ["what"]
     });
@@ -55,7 +55,7 @@ describe("parseHashDot", function () {
   it("parameter: #wtf?A", function () {
     const test = "#wtf?A";
     let res = parseHashDots(test);
-    expect(res.params).to.deep.equal([{type: "?", name: "A", keyword: "wtf", position: 0}]);
+    expect(res.params).to.deep.equal({"?A" : {type: "?", name: "A", keyword: "wtf", position: 0}});
     expect(res.map).to.deep.equal({
       wtf: ["A"]
     });
