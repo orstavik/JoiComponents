@@ -59,7 +59,7 @@ export function parseHashDots(hashString) {
       if (argType === "?" && hashdot.arguments.length > 1)
         throw new SyntaxError("A HashDot can only contain a single universal parameter '?'.\nNot a sequence of either arguments '.something' and/or parameters ':A', not both.");
       if (argType === "?" ||argType === ":")
-        params.push({type: argType, name: arg});
+        params.push({type: argType, name: arg, keyword: hashdot.keyword, position: i});
     }
     hashdot.signature = hashdot.keyword + "/" + hashdot.arguments.length;   //todo maybe remove this
     map[hashdot.keyword] = hashdot.arguments;
