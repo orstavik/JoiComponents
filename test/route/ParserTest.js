@@ -82,45 +82,17 @@ describe("HashDotMap", function () {
       "#one:A:B": "#two:A#three:B"
     });
     const right = routeMap.right("#one.a.b");
-    expect(right.map).to.deep.equal({
-      two: ["a"],
-      three: ["b"]
-    });
-    expect(right.typesMap).to.deep.equal({
-      two: ["."],
-      three: ["."],
-    });
-    expect(right.params).to.deep.equal({});
-    expect(right.tree).to.deep.equal([
-      {
-        keyword: "two",
-        arguments: ["a"],
-        argumentTypes: ["."],
-      }, {
-        keyword: "three",
-        arguments: ["b"],
-        argumentTypes: ["."],
-      }
-    ]);
-  });
-  it("leftToRight: #one:A:B <=> #two:A#three:B", function () {
-    const routeMap = new HashDotsRouteMap({
-      "#one:A:B": "#two:A#three:B"
-    });
+    expect(right).to.deep.equal(mapHashDots(parseHashDots("#two.a#three.b")));
     const left = routeMap.left("#two.a#three.b");
-    expect(left.map).to.deep.equal({
-      one: ["a", "b"]
+    expect(left).to.deep.equal(mapHashDots(parseHashDots("#one.a.b")));
+  });
+  it("leftToRight: #nothing#one:A:B <=> #two:A#three:B", function () {
+    const routeMap = new HashDotsRouteMap({
+      "#nothing#one:A:B": "#two:A#three:B"
     });
-    expect(left.typesMap).to.deep.equal({
-      one: [".", "."],
-    });
-    expect(left.params).to.deep.equal({});
-    expect(left.tree).to.deep.equal([
-      {
-        keyword: "one",
-        arguments: ["a", "b"],
-        argumentTypes: [".", "."],
-      }
-    ]);
+    const right = routeMap.right("#nothing#one.a.b");
+    expect(right).to.deep.equal(mapHashDots(parseHashDots("#two.a#three.b")));
+    const left = routeMap.left("#two.a#three.b");
+    expect(left).to.deep.equal(mapHashDots(parseHashDots("#nothing#one.a.b")));
   });
 });
