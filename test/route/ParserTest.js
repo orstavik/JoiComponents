@@ -110,56 +110,55 @@ describe("HashDotMap", function () {
   });
 });
 describe("Error tests", function () {
-  it("Several universal parameters", () => {
-    try {
-      const test = "#a?b?c";
-      const hashDots = parseHashDots(test);
-      const res = mapHashDots(hashDots);
-    } catch (err) {
-      expect(err);
-      expect(err.message).to.deep.equal("A HashDot can only contain a single universal parameter \'?\'.\nNot a sequence of either arguments \'.something\' and/or parameters \':A\', not both.");
-    }
+   describe("Semantic errors", function () {
+    it("Several universal parameters (mapHashDots())", () => {
+      try {
+        const test = "#a?b?c";
+        const hashDots = parseHashDots(test);
+        const res = mapHashDots(hashDots);
+      } catch (err) {
+        expect(err);
+        expect(err.message).to.deep.equal("A HashDot can only contain a single universal parameter \'?\'.\nNot a sequence of either arguments \'.something\' and/or parameters \':A\', not both.");
+      }
+    });
   });
 
-
-  it("Line start with different symbol", () => {
-    try {
-      const test = ".error";
-      const hashDots = parseHashDots(test);
-      const res = mapHashDots(hashDots);
-    } catch (err) {
-      expect(err);
-      expect(err.message).to.deep.equal("A HashDot must start with #Keyword (#[\\w]+): -->.error<--\nFull HashDots string: -->.error<--");
-    }
-  });
-  it("Line start without # and ends with different symbol", () => {
-    try {
-      const test = "error@";
-      const hashDots = parseHashDots(test);
-      const res = mapHashDots(hashDots);
-    } catch (err) {
-      expect(err);
-      expect(err.message).to.deep.equal("HashDots cannot end with: -->error<--.\nFull HashDots string: -->error@<--");
-    }
-  });
-  it("Hash symbol as an argument of HashDot", () => {
-    try {
-      const test = "#assa.#";
-      const hashDots = parseHashDots(test);
-      const res = mapHashDots(hashDots);
-    } catch (err) {
-      expect(err);
-      expect(err.message).to.deep.equal("A HashDot argument value must be an AlpaNumeric or a \"quoted\" 'string'.");
-    }
-  });
-  it("HashDot wrong sequence", () => {
-    try {
-      const test = "#a.b c#d";
-      const hashDots = parseHashDots(test);
-      const res = mapHashDots(hashDots);
-    } catch (err) {
-      expect(err);
-      expect(err.message).to.deep.equal("A HashDot sequence begins with either \'#\', \'.\' or \':\', not: -->c<--");
-    }
+  describe("Syntactic errors (parseHashDots())", function () {
+    it("Line start with different symbol", () => {
+      try {
+        const test = ".error";
+        const hashDots = parseHashDots(test);
+      } catch (err) {
+        expect(err);
+        expect(err.message).to.deep.equal("A HashDot must start with #Keyword (#[\\w]+): -->.error<--\nFull HashDots string: -->.error<--");
+      }
+    });
+    it("Line start without # and ends with different symbol", () => {
+      try {
+        const test = "error@";
+        const hashDots = parseHashDots(test);
+      } catch (err) {
+        expect(err);
+        expect(err.message).to.deep.equal("HashDots cannot end with: -->error<--.\nFull HashDots string: -->error@<--");
+      }
+    });
+    it("Hash symbol as an argument of HashDot", () => {
+      try {
+        const test = "#assa.#";
+        const hashDots = parseHashDots(test);
+      } catch (err) {
+        expect(err);
+        expect(err.message).to.deep.equal("A HashDot argument value must be an AlpaNumeric or a \"quoted\" 'string'.");
+      }
+    });
+    it("HashDot wrong sequence", () => {
+      try {
+        const test = "#a.b c#d";
+        const hashDots = parseHashDots(test);
+      } catch (err) {
+        expect(err);
+        expect(err.message).to.deep.equal("A HashDot sequence begins with either \'#\', \'.\' or \':\', not: -->c<--");
+      }
+    });
   });
 });
