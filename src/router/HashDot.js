@@ -47,18 +47,18 @@ function tokenizeAndParse(hashString) {
   return hashdots;
 }
 
-export function parseHashDots(hashString) {
-
-  const tree = tokenizeAndParse(hashString);
+function makeHashDotsFrame(tree) {
   const map = {};
   const params = {};
+  // let signatureString = "";
   for (let hashdot of tree) {
+    // signatureString += "#" + hashdot.keyword + "/" + (hashdot.argumentTypes[0] === "?" ? "n" : hashdot.arguments.length);
     for (let i = 0; i < hashdot.arguments.length; i++) {
       let arg = hashdot.arguments[i];
       let argType = hashdot.argumentTypes[i];
       if (argType === "?" && hashdot.arguments.length > 1)
         throw new SyntaxError("A HashDot can only contain a single universal parameter '?'.\nNot a sequence of either arguments '.something' and/or parameters ':A', not both.");
-      if (argType === "?" ||argType === ":"){
+      if (argType === "?" || argType === ":") {
         const key = argType + arg;
         params[key] || (params[key] = {type: argType, name: arg, keyword: hashdot.keyword, position: i});
       }
@@ -69,59 +69,59 @@ export function parseHashDots(hashString) {
   return {map, tree, params};
 }
 
-// export class HashDotsRouteMap {
-//   constructor(routeMap){
-//     this.routeMap = routeMap.values().map(entry =>({
-//       left: parseHashDots(entry[0]),
-//       right: parseHashDots(entry[1])
-//     }));
-//     this.leftToRight = makeLeftToRight(routeMap);
-//     // this.rightToLeft = makeLeftToRight(routeMap.reverse());
-//   }
-//
-//   right(hashdots){
-//     const given = parseHashDots(hashdots);
-//     this.resolveLeftToRight(given);
-//   }
-//
-//   resolveLeftToRight(resolved){
-//     for (let i = 0; i < resolved.tree.length; i++) {
-//       const hashdot = resolved.tree[i];
-//       const signature = hashdot.signature;
-//
-//       rule: for (let j = 0; j < this.routeMap.length; j++) {
-//         let rule = this.routeMap[j];
-//         let left = rule.left.tree[0];
-//         if (left.signature === signature || left.universalArguments && left.keyword === hashdot.keyword){
-//           //i and j is good for one rule
-//           for (let k = i+1, l = 1; l < rule.left.tree.length; k++, l++) {
-//             if (k >= resolved.tree.length)
-//               break rule;
-//             const nextResolved = resolved.tree[k];
-//             const nextLeft = rule.left.tree[l];
-//             if (!(nextLeft.signature === nextResolved.signature || nextLeft.universalArguments && nextLeft.keyword === nextResolved.keyword)){
-//               break rule;
-//             }
-//           }
-//           //rules match
-//           let right = rule.right;
-//           //todo this is the job of the makeLeftToRight(routeMap)
-//           //loop through all the right arguments. Find the parameters. Find the equivalent parameter name in the left rule.
-//           //And then find the position of that parameter in the left rule. And then get the arguments for the parameters from the resolved.map.
-//         }
-//       }
-//     }
-//   }
-//   makeLeftToRight(routeMap){
-//     return routeMap.map(rule => {
-//       const left = rule.left;
-//       const right = rule.right;
-//
-//     });
-//
-//   }
-// }
-//
+export function parseHashDots(hashString) {
+  return makeHashDotsFrame(tokenizeAndParse(hashString));
+}
+
+function ruleMatches(hashLeft, hashMiddle) {
+  if (hashLeft.keyword !== hashMiddle.keyword)
+    return false;
+  if (hashMiddle.arguments.length === 1 && hashMiddle.argumentTypes[0] === "?")
+    return true;
+  return hashMiddle.arguments.length === hashLeft.arguments.length;
+
+}
+
+function hashDotsMerge(left, middle, right, i) {
+  //0. make a newHashDots []
+  //1. from 0 to i, simply clone the hashDots from left into newHashDots
+  //2. on i, then clone each rule in right, then on all parameters, go from right to middle to left to resolve the argument values.
+  //3. then add the length of middle to i, and then clone in the rest of left into newHashDots object.
+  //4. return makeHashDotsFrame(newHashDots);
+}
+
+function resolveLeftToRight(leftSide, rules) {
+  const leftHashDots = leftSide.tree;
+  for (let i = 0; i < leftHashDots.length; i++) {
+    rule: for (let rule of rules) {
+      const middleHashDots = rule.left.tree;
+      for (let n = 0; n < middleHashDots.length; n++) {
+        if (!ruleMatches(leftHashDots[i + n], middleHashDots[n])) //the next hashdot in the rule fails
+          continue rule;
+      }
+      //rules match left side
+      let newLeftSide = hashDotsMerge(leftSide, rule.left, rule.right, i);
+      return resolveLeftToRight(newLeftSide);
+    }
+  }
+  //no rules applies to this leftSide anymore, return the original
+  return leftSide;
+}
+
+export class HashDotsRouteMap {
+  constructor(routeMap) {
+    this.routeMap = routeMap.values().map(entry => ({
+      left: parseHashDots(entry[0]),
+      right: parseHashDots(entry[1])
+    }));
+  }
+
+  right(hashdots) {
+    const given = parseHashDots(hashdots);
+    return resolveLeftToRight(given, this.routeMap);
+  }
+}
+
 export class HashDotsRouter {
   constructor() {
     this.inputHash = undefined;
