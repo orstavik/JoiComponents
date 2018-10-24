@@ -4,7 +4,7 @@ function wordType(c) {
   return "u";
 }
 
-export function tokenizeAndParse(hashString) {
+export function parseHashDots(hashString) {
   const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|:|\?|#|[\w]+/g;
   const hashdots = [];
   let hashdot;
@@ -46,7 +46,7 @@ export function tokenizeAndParse(hashString) {
   return hashdots;
 }
 
-function makeHashDotsFrame(tree) {
+export function mapHashDots(tree) {
   const map = {};
   const typesMap = {};
   const params = {};
@@ -68,10 +68,6 @@ function makeHashDotsFrame(tree) {
   return {tree, params, map, typesMap};
 }
 
-export function parseHashDots(hashString) {
-  return makeHashDotsFrame(tokenizeAndParse(hashString));
-}
-
 function ruleMatches(hashLeft, hashMiddle) {
   if (hashLeft.keyword !== hashMiddle.keyword)
     return false;
@@ -81,12 +77,12 @@ function ruleMatches(hashLeft, hashMiddle) {
 
 }
 
-let cloneHashDot = function (oldDot) {
+function cloneHashDot(oldDot) {
   let newDot = Object.assign({}, oldDot);
   newDot.arguments = [].concat(oldDot.arguments);
   newDot.argumentTypes = [].concat(oldDot.argumentTypes);
   return newDot;
-};
+}
 
 function resolveHashDots(start, middle, end, i) {
   const newDots = [];
@@ -116,19 +112,20 @@ function resolveHashDots(start, middle, end, i) {
   i += middle.tree.length;
   for (; i < start.tree.length; i++)
     newDots.push(cloneHashDot(start.tree[i]));
-  return makeHashDotsFrame(newDots);
+  return mapHashDots(newDots);
 }
 
 function resolve(leftSide, middleSide, rightSide) {
   const leftHashDots = leftSide.tree;
-  for (let i = 0; i < leftHashDots.length; i++) {
-    rule: for (let i= 0; i < middleSide.length; i++) {
+  for (let j = 0; j < leftHashDots.length; j++) {
+    rule: for (let i = 0; i < middleSide.length; i++) {
       const middleHashDots = middleSide[i].tree;
       for (let n = 0; n < middleHashDots.length; n++) {
-        if (!ruleMatches(leftHashDots[i + n], middleHashDots[n])) //the next hashdot in the rule fails
+        if (!ruleMatches(leftHashDots[j + n], middleHashDots[n])) //the next hashdot in the rule fails
           continue rule;
       }
-      return resolve(resolveHashDots(leftSide, middleSide[i], rightSide[i], i), middleSide, rightSide);
+      const resolved = resolveHashDots(leftSide, middleSide[i], rightSide[i], j);
+      return resolve(resolved, middleSide, rightSide);
     }
   }
   return leftSide;
@@ -136,17 +133,16 @@ function resolve(leftSide, middleSide, rightSide) {
 
 export class HashDotsRouteMap {
   constructor(routeMap) {
-    this.leftRules = Object.keys(routeMap).map(str => parseHashDots(str));
-    this.rightRules = Object.values(routeMap).map(str => parseHashDots(str));
+    this.leftRules = Object.keys(routeMap).map(str => mapHashDots(parseHashDots(str)));
+    this.rightRules = Object.values(routeMap).map(str => mapHashDots(parseHashDots(str)));
   }
 
   right(hashdots) {
-    const given = parseHashDots(hashdots);
-    return resolve(given, this.leftRules, this.rightRules);
+    return resolve(mapHashDots(parseHashDots(hashdots)), this.leftRules, this.rightRules);
   }
+
   left(hashdots) {
-    const given = parseHashDots(hashdots);
-    return resolve(given, this.rightRules, this.leftRules);
+    return resolve(mapHashDots(parseHashDots(hashdots)), this.rightRules, this.leftRules);
   }
 }
 
@@ -164,7 +160,8 @@ export class HashDotsRouter {
     let currentHash = window.location.hash;
     if (this.inputHash === currentHash) //will become this.leftHash === currentHash
       return;
-    let hashdots = parseHashDots(currentHash);
+    const parsedDots = parseHashDots(currentHash);
+    let hashdots = mapHashDots(parsedDots);
     window.dispatchEvent(new CustomEvent("routechange", {detail: hashdots}));
   }
 }

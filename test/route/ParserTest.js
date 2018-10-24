@@ -1,10 +1,12 @@
-import {parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
+import {mapHashDots, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
 
 describe("parseHashDot", function () {
   it("basic test: #omg.what.is.'this?!#...#'#wtf#OMG123.123", function () {
 
     const test = "#omg.what.is.'this?!#...#'#wtf#OMG123.123";
-    let res = parseHashDots(test);
+    const hashDots = parseHashDots(test);
+    const res = mapHashDots(hashDots);
+
     expect(res.map).to.deep.equal({
       omg: ["what", "is", "'this?!#...#'"],
       wtf: [],
@@ -35,7 +37,8 @@ describe("parseHashDot", function () {
 
   it("parameter: #omg:what", function () {
     const test = "#omg:what";
-    let res = parseHashDots(test);
+    const hashDots = parseHashDots(test);
+    const res = mapHashDots(hashDots);
     expect(res.params).to.deep.equal({":what": {type: ":", name: "what", keyword: "omg", position: 0}});
     expect(res.map).to.deep.equal({
       omg: ["what"]
@@ -54,7 +57,8 @@ describe("parseHashDot", function () {
 
   it("parameter: #wtf?A", function () {
     const test = "#wtf?A";
-    let res = parseHashDots(test);
+    const hashDots = parseHashDots(test);
+    const res = mapHashDots(hashDots);
     expect(res.params).to.deep.equal({"?A" : {type: "?", name: "A", keyword: "wtf", position: 0}});
     expect(res.map).to.deep.equal({
       wtf: ["A"]
