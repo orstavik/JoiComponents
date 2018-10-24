@@ -73,7 +73,7 @@ describe("parseHashDot", function () {
 });
 
 describe("HashDotMap", function () {
-  it("map test", function () {
+  it("map: #one:A:B <=> #two:A#three:B", function () {
     const routeMap = new HashDotsRouteMap({
       "#one:A:B": "#two:A#three:B"
     });

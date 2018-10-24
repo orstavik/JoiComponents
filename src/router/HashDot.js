@@ -4,7 +4,7 @@ function wordType(c) {
   return "u";
 }
 
-function tokenizeAndParse(hashString) {
+export function tokenizeAndParse(hashString) {
   const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|:|\?|#|[\w]+/g;
   const hashdots = [];
   let hashdot;
@@ -59,9 +59,9 @@ function makeHashDotsFrame(tree) {
       if (argType === "?" || argType === ":") {
         const key = argType + arg;
         params[key] || (params[key] = {type: argType, name: arg, keyword: hashdot.keyword, position: i});
+        //todo this is wrong, I need to add more positions if an argument is used several places on one side.
       }
     }
-    // hashdot.signature = hashdot.keyword + "/" + hashdot.arguments.length;   //todo maybe remove this
     map[hashdot.keyword] = hashdot.arguments;
     typesMap[hashdot.keyword] = hashdot.argumentTypes;
   }
@@ -88,34 +88,34 @@ let cloneHashDot = function (oldDot) {
   return newDot;
 };
 
-function hashDotsMerge(left, middle, right, i) {
+function resolveHashDots(start, middle, end, i) {
   const newDots = [];
   for (let j = 0; j < i; j++)
-    newDots.push(cloneHashDot(left.tree[j]));
-  for (let j = 0; j < right.tree.length; j++) {
-    let rightClone = cloneHashDot(right.tree[j]);
-    for (let k = 0; k < rightClone.argumentTypes.length; k++) {
-      let rightType = rightClone.argumentTypes[k];
+    newDots.push(cloneHashDot(start.tree[j]));
+  for (let j = 0; j < end.tree.length; j++) {
+    let newDot = cloneHashDot(end.tree[j]);
+    for (let k = 0; k < newDot.argumentTypes.length; k++) {
+      let rightType = newDot.argumentTypes[k];
       if (rightType === ".")
         continue;
-      let rightValue = rightClone.arguments[k];
+      let rightValue = newDot.arguments[k];
       let middleParam = middle.params[rightType + rightValue];
       //resolve multiparam
       if (rightType === "?") {
-        rightClone.arguments = new Array(left.map[middleParam.keyword]);
-        rightClone.argumentTypes = new Array(left.typesMap[middleParam.keyword]);
+        newDot.arguments = [].concat(start.map[middleParam.keyword]);
+        newDot.argumentTypes = [].concat(start.typesMap[middleParam.keyword]);
       } else
       //resolve singleparams
       if (rightType === ":") {
-        rightClone.arguments[k] = left.map[middleParam.keyword][middleParam.position];
-        rightClone.argumentTypes[k] = left.typesMap[middleParam.keyword][middleParam.position];
+        newDot.arguments[k] = start.map[middleParam.keyword][middleParam.position];
+        newDot.argumentTypes[k] = start.typesMap[middleParam.keyword][middleParam.position];
       }
     }
-    newDots.push(rightClone);
+    newDots.push(newDot);
   }
   i += middle.tree.length;
-  for (; i < left.tree.length; i++)
-    newDots.push(cloneHashDot(left.tree[i]));
+  for (; i < start.tree.length; i++)
+    newDots.push(cloneHashDot(start.tree[i]));
   return makeHashDotsFrame(newDots);
 }
 
@@ -128,12 +128,9 @@ function resolveLeftToRight(leftSide, rules) {
         if (!ruleMatches(leftHashDots[i + n], middleHashDots[n])) //the next hashdot in the rule fails
           continue rule;
       }
-      //rules match left side
-      let newLeftSide = hashDotsMerge(leftSide, rule.left, rule.right, i);
-      return resolveLeftToRight(newLeftSide, rules);
+      return resolveLeftToRight(resolveHashDots(leftSide, rule.left, rule.right, i), rules);
     }
   }
-  //no rules applies to this leftSide anymore, return the original
   return leftSide;
 }
 
