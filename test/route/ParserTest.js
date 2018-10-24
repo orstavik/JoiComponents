@@ -1,4 +1,4 @@
-import {parseHashDots} from "../../src/router/HashDot.js";
+import {parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
 
 describe("parseHashDot", function () {
   it("basic test: #omg.what.is.'this?!#...#'#wtf#OMG123.123", function () {
@@ -10,26 +10,25 @@ describe("parseHashDot", function () {
       wtf: [],
       OMG123: ["123"],
     });
+    expect(res.typesMap).to.deep.equal({
+      omg: [".", ".", "."],
+      wtf: [],
+      OMG123: ["."],
+    });
     expect(res.params).to.deep.equal({});
     expect(res.tree).to.deep.equal([
       {
         keyword: "omg",
-        signature: "omg/3",
         arguments: ["what", "is", "'this?!#...#'"],
         argumentTypes: [".", ".", "."],
-        argumentString: ".what.is.'this?!#...#'"
       }, {
         keyword: "wtf",
-        signature: "wtf/0",
         arguments: [],
         argumentTypes: [],
-        argumentString: ""
       }, {
         keyword: "OMG123",
-        signature: "OMG123/1",
         arguments: ["123"],
         argumentTypes: ["."],
-        argumentString: ".123"
       }
     ]);
   });
@@ -41,13 +40,14 @@ describe("parseHashDot", function () {
     expect(res.map).to.deep.equal({
       omg: ["what"]
     });
+    expect(res.typesMap).to.deep.equal({
+      omg: [":"]
+    });
     expect(res.tree).to.deep.equal([
       {
         keyword: "omg",
-        signature: "omg/1",
         arguments: ["what"],
         argumentTypes: [":"],
-        argumentString: ":what"
       }
     ]);
   });
@@ -59,28 +59,46 @@ describe("parseHashDot", function () {
     expect(res.map).to.deep.equal({
       wtf: ["A"]
     });
+    expect(res.typesMap).to.deep.equal({
+      wtf: ["?"]
+    });
     expect(res.tree).to.deep.equal([
       {
         keyword: "wtf",
-        signature: "wtf/1",
         arguments: ["A"],
         argumentTypes: ["?"],
-        argumentString: "?A"
       }
     ]);
   });
 });
 
-/*
 describe("HashDotMap", function () {
   it("map test", function () {
     const routeMap = new HashDotsRouteMap({
-      "#one.A.B": "#two.A#three.B"
+      "#one:A:B": "#two:A#three:B"
     });
-    // const right = routeMap.right("#one.a.b");
-    // expect(right).to.deep.equal("#two.a#three.b");
+    const right = routeMap.right("#one.a.b");
+    expect(right.map).to.deep.equal({
+      two: ["a"],
+      three: ["b"]
+    });
+    expect(right.typesMap).to.deep.equal({
+      two: ["."],
+      three: ["."],
+    });
+    expect(right.params).to.deep.equal({});
+    expect(right.tree).to.deep.equal([
+      {
+        keyword: "two",
+        arguments: ["a"],
+        argumentTypes: ["."],
+      }, {
+        keyword: "three",
+        arguments: ["b"],
+        argumentTypes: ["."],
+      }
+    ]);
     // const left = routeMap.left("#two.a#three.b");
     // expect(left).to.deep.equal("#one.a.b");
   });
 });
-*/

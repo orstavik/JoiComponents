@@ -20,7 +20,7 @@ function tokenizeAndParse(hashString) {
     let twoType = wordType(two[0]);
     if (one === "#") {
       if (twoType === "w") {
-        hashdot = {keyword: two, arguments: [], argumentTypes: [], argumentString: ""};
+        hashdot = {keyword: two, arguments: [], argumentTypes: []};
         hashdots.push(hashdot);
         continue;
       } else {
@@ -34,7 +34,6 @@ function tokenizeAndParse(hashString) {
       if (twoType === "w" || twoType === "'") {
         hashdot.arguments.push(two);
         hashdot.argumentTypes.push(one);
-        hashdot.argumentString += one + two;
         continue;
       } else {
         throw new SyntaxError(
@@ -49,10 +48,9 @@ function tokenizeAndParse(hashString) {
 
 function makeHashDotsFrame(tree) {
   const map = {};
+  const typesMap = {};
   const params = {};
-  // let signatureString = "";
   for (let hashdot of tree) {
-    // signatureString += "#" + hashdot.keyword + "/" + (hashdot.argumentTypes[0] === "?" ? "n" : hashdot.arguments.length);
     for (let i = 0; i < hashdot.arguments.length; i++) {
       let arg = hashdot.arguments[i];
       let argType = hashdot.argumentTypes[i];
@@ -63,10 +61,11 @@ function makeHashDotsFrame(tree) {
         params[key] || (params[key] = {type: argType, name: arg, keyword: hashdot.keyword, position: i});
       }
     }
-    hashdot.signature = hashdot.keyword + "/" + hashdot.arguments.length;   //todo maybe remove this
+    // hashdot.signature = hashdot.keyword + "/" + hashdot.arguments.length;   //todo maybe remove this
     map[hashdot.keyword] = hashdot.arguments;
+    typesMap[hashdot.keyword] = hashdot.argumentTypes;
   }
-  return {map, tree, params};
+  return {tree, params, map, typesMap};
 }
 
 export function parseHashDots(hashString) {
@@ -82,12 +81,42 @@ function ruleMatches(hashLeft, hashMiddle) {
 
 }
 
+let cloneHashDot = function (oldDot) {
+  let newDot = Object.assign({}, oldDot);
+  newDot.arguments = [].concat(oldDot.arguments);
+  newDot.argumentTypes = [].concat(oldDot.argumentTypes);
+  return newDot;
+};
+
 function hashDotsMerge(left, middle, right, i) {
-  //0. make a newHashDots []
-  //1. from 0 to i, simply clone the hashDots from left into newHashDots
-  //2. on i, then clone each rule in right, then on all parameters, go from right to middle to left to resolve the argument values.
-  //3. then add the length of middle to i, and then clone in the rest of left into newHashDots object.
-  //4. return makeHashDotsFrame(newHashDots);
+  const newDots = [];
+  for (let j = 0; j < i; j++)
+    newDots.push(cloneHashDot(left.tree[j]));
+  for (let j = 0; j < right.tree.length; j++) {
+    let rightClone = cloneHashDot(right.tree[j]);
+    for (let k = 0; k < rightClone.argumentTypes.length; k++) {
+      let rightType = rightClone.argumentTypes[k];
+      if (rightType === ".")
+        continue;
+      let rightValue = rightClone.arguments[k];
+      let middleParam = middle.params[rightType + rightValue];
+      //resolve multiparam
+      if (rightType === "?") {
+        rightClone.arguments = new Array(left.map[middleParam.keyword]);
+        rightClone.argumentTypes = new Array(left.typesMap[middleParam.keyword]);
+      } else
+      //resolve singleparams
+      if (rightType === ":") {
+        rightClone.arguments[k] = left.map[middleParam.keyword][middleParam.position];
+        rightClone.argumentTypes[k] = left.typesMap[middleParam.keyword][middleParam.position];
+      }
+    }
+    newDots.push(rightClone);
+  }
+  i += middle.tree.length;
+  for (; i < left.tree.length; i++)
+    newDots.push(cloneHashDot(left.tree[i]));
+  return makeHashDotsFrame(newDots);
 }
 
 function resolveLeftToRight(leftSide, rules) {
@@ -101,7 +130,7 @@ function resolveLeftToRight(leftSide, rules) {
       }
       //rules match left side
       let newLeftSide = hashDotsMerge(leftSide, rule.left, rule.right, i);
-      return resolveLeftToRight(newLeftSide);
+      return resolveLeftToRight(newLeftSide, rules);
     }
   }
   //no rules applies to this leftSide anymore, return the original
@@ -110,7 +139,7 @@ function resolveLeftToRight(leftSide, rules) {
 
 export class HashDotsRouteMap {
   constructor(routeMap) {
-    this.routeMap = routeMap.values().map(entry => ({
+    this.routeMap = Object.entries(routeMap).map(entry => ({
       left: parseHashDots(entry[0]),
       right: parseHashDots(entry[1])
     }));
