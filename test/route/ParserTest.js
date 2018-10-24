@@ -81,7 +81,7 @@ describe("parseHashDot", function () {
 });
 
 describe("HashDotMap", function () {
-  it("leftToRight: #one:A:B <=> #two:A#three:B", function () {
+  it("#one:A:B <=> #two:A#three:B", function () {
     const routeMap = new HashDotsRouteMap({
       "#one:A:B": "#two:A#three:B"
     });
@@ -90,7 +90,7 @@ describe("HashDotMap", function () {
     const left = routeMap.left("#two.a#three.b");
     expect(left).to.deep.equal(mapHashDots(parseHashDots("#one.a.b")));
   });
-  it("leftToRight: #nothing#one:A:B <=> #two:A#three:B", function () {
+  it("#nothing#one:A:B <=> #two:A#three:B", function () {
     const routeMap = new HashDotsRouteMap({
       "#nothing#one:A:B": "#two:A#three:B"
     });
@@ -98,6 +98,15 @@ describe("HashDotMap", function () {
     expect(right).to.deep.equal(mapHashDots(parseHashDots("#two.a#three.b")));
     const left = routeMap.left("#two.a#three.b");
     expect(left).to.deep.equal(mapHashDots(parseHashDots("#nothing#one.a.b")));
+  });
+  it("#one?A <=> #two?A", function () {
+    const routeMap = new HashDotsRouteMap({
+      "#one?A": "#two?A"
+    });
+    const right = routeMap.right("#one.a.b");
+    expect(right).to.deep.equal(mapHashDots(parseHashDots("#two.a.b")));
+    const left = routeMap.left("#two.a.b.c");
+    expect(left).to.deep.equal(mapHashDots(parseHashDots("#one.a.b.c")));
   });
 });
 describe("Error tests", function () {
