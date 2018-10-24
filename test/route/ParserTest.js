@@ -73,7 +73,7 @@ describe("parseHashDot", function () {
 });
 
 describe("HashDotMap", function () {
-  it("map: #one:A:B <=> #two:A#three:B", function () {
+  it("leftToRight: #one:A:B <=> #two:A#three:B", function () {
     const routeMap = new HashDotsRouteMap({
       "#one:A:B": "#two:A#three:B"
     });
@@ -98,7 +98,25 @@ describe("HashDotMap", function () {
         argumentTypes: ["."],
       }
     ]);
-    // const left = routeMap.left("#two.a#three.b");
-    // expect(left).to.deep.equal("#one.a.b");
+  });
+  it("leftToRight: #one:A:B <=> #two:A#three:B", function () {
+    const routeMap = new HashDotsRouteMap({
+      "#one:A:B": "#two:A#three:B"
+    });
+    const left = routeMap.left("#two.a#three.b");
+    expect(left.map).to.deep.equal({
+      one: ["a", "b"]
+    });
+    expect(left.typesMap).to.deep.equal({
+      one: [".", "."],
+    });
+    expect(left.params).to.deep.equal({});
+    expect(left.tree).to.deep.equal([
+      {
+        keyword: "one",
+        arguments: ["a", "b"],
+        argumentTypes: [".", "."],
+      }
+    ]);
   });
 });

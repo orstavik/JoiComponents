@@ -119,16 +119,16 @@ function resolveHashDots(start, middle, end, i) {
   return makeHashDotsFrame(newDots);
 }
 
-function resolveLeftToRight(leftSide, rules) {
+function resolve(leftSide, middleSide, rightSide) {
   const leftHashDots = leftSide.tree;
   for (let i = 0; i < leftHashDots.length; i++) {
-    rule: for (let rule of rules) {
-      const middleHashDots = rule.left.tree;
+    rule: for (let i= 0; i < middleSide.length; i++) {
+      const middleHashDots = middleSide[i].tree;
       for (let n = 0; n < middleHashDots.length; n++) {
         if (!ruleMatches(leftHashDots[i + n], middleHashDots[n])) //the next hashdot in the rule fails
           continue rule;
       }
-      return resolveLeftToRight(resolveHashDots(leftSide, rule.left, rule.right, i), rules);
+      return resolve(resolveHashDots(leftSide, middleSide[i], rightSide[i], i), middleSide, rightSide);
     }
   }
   return leftSide;
@@ -136,15 +136,17 @@ function resolveLeftToRight(leftSide, rules) {
 
 export class HashDotsRouteMap {
   constructor(routeMap) {
-    this.routeMap = Object.entries(routeMap).map(entry => ({
-      left: parseHashDots(entry[0]),
-      right: parseHashDots(entry[1])
-    }));
+    this.leftRules = Object.keys(routeMap).map(str => parseHashDots(str));
+    this.rightRules = Object.values(routeMap).map(str => parseHashDots(str));
   }
 
   right(hashdots) {
     const given = parseHashDots(hashdots);
-    return resolveLeftToRight(given, this.routeMap);
+    return resolve(given, this.leftRules, this.rightRules);
+  }
+  left(hashdots) {
+    const given = parseHashDots(hashdots);
+    return resolve(given, this.rightRules, this.leftRules);
   }
 }
 
