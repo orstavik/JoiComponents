@@ -1,27 +1,104 @@
-# Pattern: HashDots
+# Pattern: HashDot
 
-## Parsing HashDots
-
-**HashDots** is a new, hybrid format combining the conventions of hashtags and filenames.
+**HashDot** is a new, hybrid format synthesizing hashtag and filename conventions.
 The purpose of HashDots is to make links that:
  * are familiar and user-readable
  * have a form that represent their content
- * scale functionally to enable developers build more powerful client-side applications
+ * scale functionally to enable developers to build more powerful client-side applications
    with less complexity.
 
+## HashDot
 
-   
-### PseudoCode
+diagram 1. that illustrate some basic hashdots.
+What is what.
+
+HashDots can be listed as a non-space delineated sequence of HashDots.
+All HashDots starts with a hashtag.
+If you need to specify something about the hashtag, you can add a "Dot" to it.
+The "dot" is a simple argument value prefixed with `.`. It very much resemble filetypes in filenames.
+The value of Dots can be either text, numbers (as text) or quoted strings.
+
+## Matching HashDots
+
+A sequence of HashDots can be matched with another sequence of HashDots.
+When two HashDots are matched, variables in either HashDot will be filled with the corresponding
+values in the other HashDot.
+
+diagram 2.
+
+Variables in HashDots are called "DoubleDots".
+DoubleDots look like Dots, except that they are prefixed with `:` and have alphanumeric names.
+If you need to specify all the arguments of a hashtag as a variable, you use the "DoubleDoubleDot",
+a DoubleDot with two colons as prefix instead of one `::`.
+
+diagram 3.
+
+
+## DEMO time, go max!!!
+
+ATT!! This demo only illustrate how to parse HashDots. It does not match them. 
+I have no matching algorithm for only two HashDot lists.
+
+Basically, it is just a unit test.
+
+As a running function it looks like this:
+```javascript
+const test = "#shoes.42.black#menswear#search.'socks'";
+const test1 = "#shoes::ALL#search:Q";
+let res = parseHashDots(test);
+let res2 = parseHashDots(test2);
+res === [
+  {
+    keyword: "shoes",
+    arguments: ["42", "black"],
+    argumentTypes: ["42", "black"],
+  }, {
+    keyword: "menswear",
+    arguments: [],
+  }, {
+    keyword: "search",
+    arguments: ["'socks'"],
+  }
+];
+res2 === [
+  {
+    keyword: "shoes",
+    arguments: ["ALL"],
+    argumentTypes: ["::"],
+  }, {
+    keyword: "menswear",
+    arguments: [],
+  }, {
+    keyword: "search",
+    arguments: ["'socks'"],
+  }
+];
 ```
-HashDots := (#<HashDot>)+
-HashDot := <Keyword><Dots>
-Keyword := [\w\d]+
-Dots := ([.]<Dot>)*
-Dot := Keyword|String
-String := {string wrapped in a pair of " or '.}
+For now, HashDots is strict and unforgiving. Attempting to parse these hashlocations will throw an Error.
+```javascript
+parseHashDots("#no #whitespace #inBetween");
+parseHashDots("#no##missing.keywords");
+parseHashDots("#no#missing..arguments");
+parseHashDots("#no#illegal.characters?%&!¤,;:-_");
 ```
 
-### JS function
+## Implementation
+
+The syntax of HashDots can be summarized in the following pseudo form:
+```
+HashDotSequence := <HashDot>+
+HashDot := <HashTag>(<DotOrDoubleDot>)*
+HashTag := [#]<Keyword>
+DotOrDoubleDot := Dot|DoubleDot|DoubleDoubleDot
+Dot := [.](<Keyword>|<"double quoted" string>|<'single quoted' string>)
+DoubleDot := [:]<Keyword>
+DoubleDoubleDot := [::]<Keyword>
+Keyword := [\w]+
+```
+
+A full implementation of HashDot parser in JS looks like this:
+todo update this..
+
 ```javascript
 function parseHashDots(hashString) {
 
@@ -74,36 +151,6 @@ function parseHashDots(hashString) {
   return res;
 }
 ```
-As a running function it looks like this:
-```javascript
-const test = "#shoes.42.black#menswear#search.'socks'";
-let res = parseHashDots(test);
-res === [
-  {
-    keyword: "shoes",
-    signature: "shoes/2",
-    arguments: ["42", "black"],
-    argumentString: ".42.black"
-  }, {
-    keyword: "menswear",
-    signature: "menswear/0",
-    arguments: [],
-    argumentString: ""
-  }, {
-    keyword: "search",
-    signature: "search/1",
-    arguments: ["'socks'"],
-    argumentString: ".'socks'"
-  }
-];
-```
-For now, HashDots is strict and unforgiving. Attempting to parse these hashlocations will throw an Error.
-```javascript
-parseHashDots("#no #whitespace #inBetween");
-parseHashDots("#no##missing.keywords");
-parseHashDots("#no#missing..arguments");
-parseHashDots("#no#illegal.characters?%&!¤,;:-_");
-```
 
 # References
 
@@ -112,16 +159,3 @@ parseHashDots("#no#illegal.characters?%&!¤,;:-_");
  * [Article on routing](http://krasimirtsonev.com/blog/article/deep-dive-into-client-side-routing-navigo-pushstate-hash)
  * [Video on routing strategies](https://codecraft.tv/courses/angular/routing/routing-strategies/)
  * [Demo of pushstate and popstate](https://geeklaunch.net/pushstate-and-popstate/)
- 
- 
-## Draft, should I put in this in this chapter??
-
-> Parsing #-location as if it was a path location = to spoof the path location.
-> This is discussed under MPA router.
-
-Systems relying on both the path and the #-tag of URLs will likely need to implement a parser
-like [path-to-regex](https://github.com/pillarjs/path-to-regexp) on the client.
-But, system relying on #-tag will also need to implement relative linking in some instances where
-regular path-based navigation do not.
-
- 

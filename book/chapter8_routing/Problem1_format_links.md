@@ -1,5 +1,19 @@
 # Problem: how to format links?
 
+what is the use case
+First, what does app internal navigation require. what is it that we are navigating to?
+-component and state function
+- often single, but also often multiples
+- we are navigating *with data* coming from the user. 
+That means that we have more a query structure than a flat pointer structure
+
+alternatives: 
+only path / 
+path with query
+\# and slash
+\# and nothing
+HashDot
+
 ## Alternative 1: HashAndSlash
 
 Many SPA that use page-internal-links today follow this recipe:
@@ -63,7 +77,7 @@ some core navigation premises are turned inside out:
 How to these three premises relate to the task of navigating inside a web app?
 We start in reverse order.
 
-**App internal links point to components or state functions, neither files nor themes.** 
+**App internal links point to pages or views, not files nor themes.** 
 Inside a web app, we typically need to point to a page in the memory of the app.
 Sometimes, such pages are modularized and stored as files.
 But more often, pages in a web app *are not files*.
