@@ -2,6 +2,11 @@
 
 ## Intro: RouteMap
 
+//todo: Commonly, the router does three tasks: 
+1. parse the given path into a data object.
+2. Convert shortcuts into full paths based on a set of rules
+3. link the path with an actionable object.
+
 Principally, a "route" is a translation of one path into another path.
 "Routing" is beneficial as it support:
 

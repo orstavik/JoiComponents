@@ -1,74 +1,16 @@
 # Pattern: HashDots
 
-## Alternative 1: HashAndSlash
-
-Many SPA that use page-internal-links today follow this recipe:
-1. Convert path+argument data into a `/`-based format.
-   The `/`-notation makes the links *look* normal, even though they are not.
-2. Add `#` or `#!` infront of the `/`-based location.
-   This `#` would not belong in a normal `/`-based location, and 
-   this makes the composed **HashAndSlash** link look slightly different and thus suspicious.
-3. Convert the `/`-based link back out into path+argument data.
-   This often require the parser to be aware of semantic properties of the different segments
-   in the links as some segments might be path names while other argument values.
-   
-The **HashAndSlash** approach has two major drawbacks.
-First, it looks familiar, but different. Uncanny. 
-To add a deeper syntax would break even more with established convention,
-thus the `/`-format is kept unary and flat.
-
-Second, double conversion. 
-It requires conversion of key/value-pairs into a flat, unary `/`-delineated format,
-*and* back again.
-                          
-In the [SlashMPA](todo) chapter, we will describe in detail how paths and arguments can be converted
-in and out of the flat, unary `/`-delineated format.
-
-## Alternative 2: HashDots
-
-> Why? Familiarity. You don't want the link to look strange.
-
-The HashAndSlash approach search for familiarity *inside* established convention for web app navigation.
-But, it is possible to find familiarity *outside* this cultural domain too.
-Today, the `#` symbol is primarily associated with hashtags in social media.
-Hashtags is a means for *thematic* linking and navigation.
-This external convention can be drawn upon to create new familiarity for the user, 
-which would ease adoption and lessen suspicion.
-
-When we apply the hashtag convention to internal navigation in an app,
-several route notation premises are turned upside down:
-
-1. Singularity vs. plurality
-   * `/`-path segments combine to point to a single name. But many segment names only yield one location.
-   You only get one outcome from multiple `/`-segments such as `/this/is/a/single.file`.
-   * Individual `#`-tags also point to a single theme, but multiple `#`-tags points to multiple themes.
-   A tweet can contain an array of `#`-tags such as `tweet! #thinkingOutsideTheBox #moreIsMerrier`.
-   * App internal navigation using hashtags should therefore embrace plurality conceptually.
-   An app internal link can contain many hashtags, and the route itself can be used to compose
-   unique instances of the view.
-   On the conversion side, allowing the router *not to* squeeze multiple entries into a singular output
-   also reduces the processing effort.
-
-2. Page vs. component
-   * The archetype of a path segment is a folder or a file.
-   * The archetype of a hashtag is a keyword.
-   * In app internal navigation, using keywords to point to key components fits.
-   This also corresponds nicely with the composition principle above: 
-   A path is a composition of one or more components.
-
-3. Flat vs. deep.
-   * The morphology of segment folders is flat, a folder only has a name.
-   However, the morphology of segment files is deep. The `.` in a filename divide 
-   the name from the file type(s) and can be nested several levels deep (cf. `script.min.js.map.tar.gz`).
-   * The morphology of hashtags is flat. 
-   * When we merge the convention of hashtags into url, can we also merge the convention of `.` in 
-   filenames into hashtags? Would `https://app.shoestore.com/#marathon.42` make sense? 
-   My personal opinion is that it does.
-
-This new, hybrid format we call **HashDots**.
-
 ## Parsing HashDots
 
+**HashDots** is a new, hybrid format combining the conventions of hashtags and filenames.
+The purpose of HashDots is to make links that:
+ * are familiar and user-readable
+ * have a form that represent their content
+ * scale functionally to enable developers build more powerful client-side applications
+   with less complexity.
+
+
+   
 ### PseudoCode
 ```
 HashDots := (#<HashDot>)+
