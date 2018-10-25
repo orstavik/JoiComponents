@@ -76,8 +76,8 @@ You specify the HashDotsRouteMap as a declarative map with two sides:
 Below is an example of a HashDotsRouteMap in JS.
 ```javascript
 routeMap = {
-  "#one.A.B": "#two.A#three.B",
-  "#one.A*": "#one.A*#four"
+  "#one:A:B": "#two:A#three:B",
+  "#one?A": "#one?A#four"
 }
 ```
 The HashDotsRouteMap is converted into *two* PathReplaceFunctions-sets:

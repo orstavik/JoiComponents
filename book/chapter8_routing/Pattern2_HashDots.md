@@ -26,6 +26,8 @@ in and out of the flat, unary `/`-delineated format.
 
 ## Alternative 2: HashDots
 
+> Why? Familiarity. You don't want the link to look strange.
+
 The HashAndSlash approach search for familiarity *inside* established convention for web app navigation.
 But, it is possible to find familiarity *outside* this cultural domain too.
 Today, the `#` symbol is primarily associated with hashtags in social media.
