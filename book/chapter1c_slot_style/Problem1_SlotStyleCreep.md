@@ -133,3 +133,7 @@ And if you are feeling confused, embrace it like a `<SLOT>`, 'cause there's more
          discussion: "no ::slotted(*) presents for the children of slots"
          kids behvaing badly gets no presents from santa.
       -> theory on variable resolution vs transposition
+
+## References
+
+ * [CCS spec: flattening DOM](https://drafts.csswg.org/css-scoping/#flattening)

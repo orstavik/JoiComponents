@@ -131,4 +131,6 @@ it creates a new html document for that element.
    with little to no effort.
 
 ## References
- * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
+ * [HTML spec: `<slot>`](https://html.spec.whatwg.org/multipage/scripting.html#the-slot-element)
+ * [HTML spec: assigning slotables](https://dom.spec.whatwg.org/#shadow-trees)
+ * [Google: lightDOM](https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom)

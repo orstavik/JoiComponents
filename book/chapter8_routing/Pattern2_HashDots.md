@@ -165,7 +165,12 @@ parseHashDots("#no#illegal.characters?%&!¤,;:-_");
 
 # References
 
- * 
+ * [HTML spec on links](https://www.w3.org/TR/html4/struct/links.html)
+ * [path-to-regexp](https://github.com/pillarjs/path-to-regexp)
+ * [Article on routing](http://krasimirtsonev.com/blog/article/deep-dive-into-client-side-routing-navigo-pushstate-hash)
+ * [Video on routing strategies](https://codecraft.tv/courses/angular/routing/routing-strategies/)
+ * [Demo of pushstate and popstate](https://geeklaunch.net/pushstate-and-popstate/)
+ 
  
 ## Draft, should I put in this in this chapter??
 

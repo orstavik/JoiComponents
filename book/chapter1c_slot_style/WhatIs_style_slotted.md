@@ -97,6 +97,7 @@ Here are the rules regarding `::slotted(...)` that you need to know:
 
 ## References
  
+ * [CSS spec: `::slotted`](https://drafts.csswg.org/css-scoping/#slotted-pseudo)
 
  1.2. -> style chained slots regularly
          discussion on style creep both for directly assigned, but also and especially inherited styles
