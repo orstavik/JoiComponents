@@ -110,7 +110,7 @@ describe("HashDotMap", function () {
   });
 });
 describe("Error tests", function () {
-   describe("Semantic errors", function () {
+  describe("Semantic errors", function () {
     it("Several universal parameters (mapHashDots())", () => {
       try {
         const test = "#a::b::c";
@@ -118,7 +118,7 @@ describe("Error tests", function () {
         const res = mapHashDots(hashDots);
       } catch (err) {
         expect(err);
-        expect(err.message).to.deep.equal("A HashDot can only contain a single universal parameter \'?\'.\nNot a sequence of either arguments \'.something\' and/or parameters \':A\', not both.");
+        expect(err.message).to.deep.equal("If a HashDot has a DoubleDoubleDot \'::\' variable, it can have no other arguments.");
       }
     });
   });
@@ -130,7 +130,7 @@ describe("Error tests", function () {
         const hashDots = parseHashDots(test);
       } catch (err) {
         expect(err);
-        expect(err.message).to.deep.equal("A HashDot must start with #Keyword (#[\\w]+): -->.error<--\nFull HashDots string: -->.error<--");
+        expect(err.message).to.deep.equal("A HashDot must start with #Keyword (#[\\w]+).\ninput: .error\nerror: ↑↑↑↑↑↑");
       }
     });
     it("Line start without # and ends with different symbol", () => {
@@ -139,7 +139,7 @@ describe("Error tests", function () {
         const hashDots = parseHashDots(test);
       } catch (err) {
         expect(err);
-        expect(err.message).to.deep.equal("HashDots cannot end with: -->error<--.\nFull HashDots string: -->error@<--");
+        expect(err.message).to.deep.equal("Invalid array length");
       }
     });
     it("Hash symbol as an argument of HashDot", () => {
@@ -148,7 +148,7 @@ describe("Error tests", function () {
         const hashDots = parseHashDots(test);
       } catch (err) {
         expect(err);
-        expect(err.message).to.deep.equal("A HashDot argument value must be an AlpaNumeric or a \"quoted\" 'string'.");
+        expect(err.message).to.deep.equal("A HashDot argument value must be an AlpaNumeric or a \"quoted\" \'string\'.\ninput: #assa.#\nerror:      ↑↑");
       }
     });
     it("HashDot wrong sequence", () => {
@@ -157,7 +157,7 @@ describe("Error tests", function () {
         const hashDots = parseHashDots(test);
       } catch (err) {
         expect(err);
-        expect(err.message).to.deep.equal("A HashDot sequence begins with either \'#\', \'.\' or \':\', not: -->c<--");
+        expect(err.message).to.deep.equal("A HashDot sequence begins with either \'#\', \'.\' or \':\'\ninput: #a.b c#d\nerror:      ↑↑");
       }
     });
   });
