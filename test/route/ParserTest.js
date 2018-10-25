@@ -1,14 +1,14 @@
 import {mapHashDots, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
 
 describe("parseHashDot", function () {
-  it("basic test: #omg.what.is.'this?!#...#'#wtf#OMG123.123", function () {
+  it("basic test: #omg.what.is.'this:!#...#'#wtf#OMG123.123", function () {
 
-    const test = "#omg.what.is.'this?!#...#'#wtf#OMG123.123";
+    const test = "#omg.what.is.'this:!#...#'#wtf#OMG123.123";
     const hashDots = parseHashDots(test);
     const res = mapHashDots(hashDots);
 
     expect(res.map).to.deep.equal({
-      omg: ["what", "is", "'this?!#...#'"],
+      omg: ["what", "is", "'this:!#...#'"],
       wtf: [],
       OMG123: ["123"],
     });
@@ -21,7 +21,7 @@ describe("parseHashDot", function () {
     expect(res.tree).to.deep.equal([
       {
         keyword: "omg",
-        arguments: ["what", "is", "'this?!#...#'"],
+        arguments: ["what", "is", "'this:!#...#'"],
         argumentTypes: [".", ".", "."],
       }, {
         keyword: "wtf",
@@ -55,25 +55,25 @@ describe("parseHashDot", function () {
     ]);
   });
 
-  it("parameter: #wtf?A", function () {
-    const test = "#wtf?A";
+  it("parameter: #wtf::A", function () {
+    const test = "#wtf::A";
     const hashDots = parseHashDots(test);
     const res = mapHashDots(hashDots);
     expect(res).to.deep.equal({
       params: {
-        "?A": {type: "?", name: "A", keyword: "wtf", position: 0}
+        "::A": {type: "::", name: "A", keyword: "wtf", position: 0}
       },
       map: {
         wtf: ["A"]
       },
       typesMap: {
-        wtf: ["?"]
+        wtf: ["::"]
       },
       tree: [
         {
           keyword: "wtf",
           arguments: ["A"],
-          argumentTypes: ["?"],
+          argumentTypes: ["::"],
         }
       ]
     });
@@ -99,9 +99,9 @@ describe("HashDotMap", function () {
     const left = routeMap.left("#two.a#three.b");
     expect(left).to.deep.equal(mapHashDots(parseHashDots("#nothing#one.a.b")));
   });
-  it("#one?A <=> #two?A", function () {
+  it("#one::A <=> #two::A", function () {
     const routeMap = new HashDotsRouteMap({
-      "#one?A": "#two?A"
+      "#one::A": "#two::A"
     });
     const right = routeMap.right("#one.a.b");
     expect(right).to.deep.equal(mapHashDots(parseHashDots("#two.a.b")));
@@ -113,7 +113,7 @@ describe("Error tests", function () {
    describe("Semantic errors", function () {
     it("Several universal parameters (mapHashDots())", () => {
       try {
-        const test = "#a?b?c";
+        const test = "#a::b::c";
         const hashDots = parseHashDots(test);
         const res = mapHashDots(hashDots);
       } catch (err) {
