@@ -1,3 +1,36 @@
+export function parseHashDots(input) {
+  if (!input.startsWith("#")) {
+    throw new SyntaxError(`HashDot sequence must start with #.
+Input:  ${input}
+Error:  ↑`);
+  }
+  const hashOrDot = /#[\w]+|\.[\w]+|::?[\w]+|\."((?:\\"|(?:(?!").))*)"|\.'((?:\\'|(?:(?!').))*)'|(((.+)))/g;
+  const main = [];
+  const types = [];
+  const tree = [];
+  let hashdot;
+  for (let next; (next = hashOrDot.exec(input)) !== null;) {
+    if (next[3]) {
+      throw new SyntaxError(`HashDot syntax error:
+Input:  ${input}
+Error:  ${Array(hashOrDot.lastIndex - next[3].length+1).join(" ")}↑`);
+    }
+    main.push(next[0]);
+    let type = next[0][1] === ":" ? "::" : next[0][0];
+    types.push(type);
+    if (type === "#") {
+      hashdot = {keyword: next[0].substring(1), arguments: [], argumentTypes: []};
+      tree.push(hashdot);
+    } else {
+      hashdot.arguments.push(next[0].substring(type.length));
+      hashdot.argumentTypes.push(type);
+    }
+  }
+  return tree;
+  // return {main, types};
+}
+
+
 function wordType(c) {
   if (c === "'" || c === '"') return "'";
   if (/[\w]/.test(c)) return "w";
@@ -11,7 +44,7 @@ function throwSyntaxError(message, hashString, lastIndex, one, two) {
   throw new SyntaxError(message);
 }
 
-export function parseHashDots(hashString) {
+export function parseHashDotsOld(hashString) {
   const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|::|:|#|[\w]+/g;
   const hashdots = [];
   let hashdot;

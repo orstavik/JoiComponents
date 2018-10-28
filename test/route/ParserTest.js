@@ -115,7 +115,7 @@ describe("Error tests", function () {
       try {
         const test = "#a::b::c";
         const hashDots = parseHashDots(test);
-        const res = mapHashDots(hashDots);
+        mapHashDots(hashDots);
       } catch (err) {
         expect(err);
         expect(err.message).to.deep.equal("If a HashDot has a DoubleDoubleDot \'::\' variable, it can have no other arguments.");
@@ -126,38 +126,30 @@ describe("Error tests", function () {
   describe("Syntactic errors (parseHashDots())", function () {
     it("Line start with different symbol", () => {
       try {
-        const test = ".error";
-        const hashDots = parseHashDots(test);
+        parseHashDots(".error");
       } catch (err) {
-        expect(err);
-        expect(err.message).to.deep.equal("A HashDot must start with #Keyword (#[\\w]+).\ninput: .error\nerror: ↑↑↑↑↑↑");
+        expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:  .error\nError:  ↑");
       }
     });
     it("Line start without # and ends with different symbol", () => {
       try {
-        const test = "error@";
-        const hashDots = parseHashDots(test);
+        parseHashDots("error@");
       } catch (err) {
-        expect(err);
-        expect(err.message).to.deep.equal("Invalid array length");
+        expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:  error@\nError:  ↑");
       }
     });
     it("Hash symbol as an argument of HashDot", () => {
       try {
-        const test = "#assa.#";
-        const hashDots = parseHashDots(test);
+        parseHashDots("#assa.#");
       } catch (err) {
-        expect(err);
-        expect(err.message).to.deep.equal("A HashDot argument value must be an AlpaNumeric or a \"quoted\" \'string\'.\ninput: #assa.#\nerror:      ↑↑");
+        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #assa.#\nError:       ↑");
       }
     });
     it("HashDot wrong sequence", () => {
       try {
-        const test = "#a.b c#d";
-        const hashDots = parseHashDots(test);
+        parseHashDots("#a.b c#d");
       } catch (err) {
-        expect(err);
-        expect(err.message).to.deep.equal("A HashDot sequence begins with either \'#\', \'.\' or \':\'\ninput: #a.b c#d\nerror:      ↑↑");
+        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:      ↑");
       }
     });
   });
