@@ -33,7 +33,7 @@ describe("parseHashDot", function () {
     const res = parseHashDots(`#singletring.'\\''`);
     expect(res.tags).to.deep.equal(["#singletring"]);
     expect(res.map).to.deep.equal({
-      "#singletring": ["'"]
+      "#singletring": ['.\'\\\'\'']
     });
   });
 
@@ -41,7 +41,7 @@ describe("parseHashDot", function () {
     const res = parseHashDots(`#doubletring."\\""`);
     expect(res.tags).to.deep.equal(["#doubletring"]);
     expect(res.map).to.deep.equal({
-      "#doubletring": ['"']
+      "#doubletring": ['."\\""' ]
     });
   });
 
@@ -87,16 +87,15 @@ describe("HashDotsRouteMap", function () {
     const left = routeMap.left("#two.a#three.b");
     expect(hashDotsToString(left)).to.be.equal("#nothing#one.a.b");
   });
-  it("#one::A <=> #two::A", function () {
-    const routeMap = new HashDotsRouteMap({
-      "#one::A": "#two::A"
-    });
-    debugger;
-    const right = routeMap.right("#one.a.b");
-    expect(hashDotsToString(right)).to.be.equal("#two.a.b");
-    const left = routeMap.left("#two.a.b.c");
-    expect(hashDotsToString(left)).to.be.equal("#one.a.b.c");
+it("#one::A <=> #two::A", function () {
+  const routeMap = new HashDotsRouteMap({
+    "#one::A": "#two::A"
   });
+  const right = routeMap.right("#one.a");
+  expect(hashDotsToString(right)).to.be.equal("#two.a.aA");
+  const left = routeMap.left("#two.a");
+  expect(hashDotsToString(left)).to.be.equal("#one.a.aA");
+});
 });
 describe("Error tests", function () {
   describe("Syntactic errors (parseHashDots())", function () {
