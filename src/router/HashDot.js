@@ -1,87 +1,44 @@
 export function parseHashDots(input) {
-  if (!input.startsWith("#")) {
-    throw new SyntaxError(`HashDot sequence must start with #.
-Input:  ${input}
-Error:  ↑`);
-  }
+  if (!input.startsWith("#"))
+    throw new SyntaxError(`HashDot sequence must start with #.\nInput:  ${input}\nError:  ↑`);
   const hashOrDot = /#[\w]+|\.[\w]+|::?[\w]+|\."((?:\\"|(?:(?!").))*)"|\.'((?:\\'|(?:(?!').))*)'|(((.+)))/g;
-  const main = [];
-  const types = [];
-  const tree = [];
-  let hashdot;
+  const tags = [];
+  const map = {};
+  let key;
+  const tree = [];                                                                  //todo skip
+  let hashdot;                                                                      //todo skip
   for (let next; (next = hashOrDot.exec(input)) !== null;) {
     if (next[3]) {
-      throw new SyntaxError(`HashDot syntax error:
-Input:  ${input}
-Error:  ${Array(hashOrDot.lastIndex - next[3].length+1).join(" ")}↑`);
+      const errorPos = hashOrDot.lastIndex - next[3].length + 1;
+      throw new SyntaxError(`HashDot syntax error:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
     }
-    main.push(next[0]);
     let type = next[0][1] === ":" ? "::" : next[0][0];
-    types.push(type);
     if (type === "#") {
-      hashdot = {keyword: next[0].substring(1), arguments: [], argumentTypes: []};
-      tree.push(hashdot);
+      hashdot = {keyword: next[0].substring(1), arguments: [], argumentTypes: []};  //todo skip
+      tree.push(hashdot);                                                           //todo skip
+      tags.push(key = next[0]);
+      if (map[key]) {
+        const errorPos = hashOrDot.lastIndex - next[0].length + 1;
+        throw new SyntaxError(`HashDot syntax error: A HashDot sequence cannot have two tags with the same name:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
+      }
     } else {
-      hashdot.arguments.push(next[0].substring(type.length));
-      hashdot.argumentTypes.push(type);
+      if ((type === "::" && map[key]) || map[key] instanceof String) {
+        const errorPos = hashOrDot.lastIndex - next[0].length + 1;
+        throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
+      }
+      if (type === "::") {
+        map[key] = next[0];
+        hashdot.arguments.push(next[0].substring(type.length));                     //todo skip
+        hashdot.argumentTypes.push(type);                                           //todo skip
+      } else {
+        (map[key] || (map[key] = [])).push(next[0]);
+        hashdot.arguments.push(next[0].substring(type.length));                     //todo skip
+        hashdot.argumentTypes.push(type);                                           //todo skip
+      }
     }
   }
+  // return {tree, map, tags};
   return tree;
-  // return {main, types};
-}
-
-
-function wordType(c) {
-  if (c === "'" || c === '"') return "'";
-  if (/[\w]/.test(c)) return "w";
-  return "u";
-}
-
-function throwSyntaxError(message, hashString, lastIndex, one, two) {
-  message += "\ninput: " + hashString;
-  const minus = (one ? one.length : 0) + (two ? two.length : 0);
-  message += "\nerror: " + Array(lastIndex - minus + 1).join(" ") + Array(minus + 1).join("↑");
-  throw new SyntaxError(message);
-}
-
-export function parseHashDotsOld(hashString) {
-  const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|::|:|#|[\w]+/g;
-  const hashdots = [];
-  let hashdot;
-
-  while (true) {
-    let t1 = toks.exec(hashString);
-    if (t1 === null)
-      break;
-    let t2 = toks.exec(hashString);
-    if (t2 === null)
-      throwSyntaxError("HashDots cannot end with: " + t1[0], hashString, toks.lastIndex, t1[0]);
-    let one = t1[0], two = t2[0];
-    let twoType = wordType(two[0]);
-    if (one === "#") {
-      if (twoType === "w") {
-        hashdot = {keyword: two, arguments: [], argumentTypes: []};
-        hashdots.push(hashdot);
-        continue;
-      } else {
-        throwSyntaxError("A HashDot must start with #Keyword (#[\\w]+).", hashString, toks.lastIndex, one, two);
-      }
-    }
-    if (!hashdot)
-      throwSyntaxError("A HashDot must start with #Keyword (#[\\w]+).", hashString, toks.lastIndex, one, two);
-
-    if (one === "." || one === ":" || one === "::") {
-      if (twoType === "w" || twoType === "'") {
-        hashdot.arguments.push(two);
-        hashdot.argumentTypes.push(one);
-        continue;
-      } else {
-        throwSyntaxError("A HashDot argument value must be an AlpaNumeric or a \"quoted\" 'string'.", hashString, toks.lastIndex, one, two);
-      }
-    }
-    throwSyntaxError("A HashDot sequence begins with either '#', '.' or ':'", hashString, toks.lastIndex, one, two);
-  }
-  return hashdots;
 }
 
 export function mapHashDots(tree) {
@@ -89,13 +46,9 @@ export function mapHashDots(tree) {
   const typesMap = {};
   const params = {};
   for (let hashdot of tree) {
-    if (map[hashdot.keyword])
-      throw new SyntaxError("A HashDot sequence cannot contain two identically named HashDots.");
     for (let i = 0; i < hashdot.arguments.length; i++) {
       let arg = hashdot.arguments[i];
       let argType = hashdot.argumentTypes[i];
-      if (argType === "::" && hashdot.arguments.length > 1)
-        throw new SyntaxError("If a HashDot has a DoubleDoubleDot '::' variable, it can have no other arguments.");
       if (argType === "::" || argType === ":") {
         const key = argType + arg;
         params[key] || (params[key] = {type: argType, name: arg, keyword: hashdot.keyword, position: i});
@@ -114,7 +67,6 @@ function ruleMatches(hashLeft, hashMiddle) {
   if (hashMiddle.arguments.length === 1 && hashMiddle.argumentTypes[0] === "::")
     return true;
   return hashMiddle.arguments.length === hashLeft.arguments.length;
-
 }
 
 function cloneHashDot(oldDot) {

@@ -78,6 +78,45 @@ describe("parseHashDot", function () {
       ]
     });
   });
+
+  it(`String: #singletring.'\\''`, function () {
+    const hashDots = parseHashDots(`#singletring.'\\''`);
+    const res = mapHashDots(hashDots);
+    expect(res.params).to.deep.equal({});
+    expect(res.map).to.deep.equal({
+      singletring: ["'"]
+    });
+    expect(res.typesMap).to.deep.equal({
+      singletring: ["."]
+    });
+    expect(res.tree).to.deep.equal([
+      {
+        keyword: "singletring",
+        arguments: ["'"],
+        argumentTypes: ["."],
+      }
+    ]);
+  });
+
+  it(`String: #doubletring."\\""`, function () {
+    const hashDots = parseHashDots(`#doubletring."\\""`);
+    const res = mapHashDots(hashDots);
+    expect(res.params).to.deep.equal({});
+    expect(res.map).to.deep.equal({
+      doubletring: ['"']
+    });
+    expect(res.typesMap).to.deep.equal({
+      doubletring: ["."]
+    });
+    expect(res.tree).to.deep.equal([
+      {
+        keyword: "doubletring",
+        arguments: ['"'],
+        argumentTypes: ["."],
+      }
+    ]);
+  });
+
 });
 
 describe("HashDotMap", function () {
@@ -110,20 +149,14 @@ describe("HashDotMap", function () {
   });
 });
 describe("Error tests", function () {
-  describe("Semantic errors", function () {
-    it("Several universal parameters (mapHashDots())", () => {
+  describe("Syntactic errors (parseHashDots())", function () {
+    it("Several universal parameters", () => {
       try {
-        const test = "#a::b::c";
-        const hashDots = parseHashDots(test);
-        mapHashDots(hashDots);
+        const hashDots = parseHashDots("#a::b::c");
       } catch (err) {
-        expect(err);
-        expect(err.message).to.deep.equal("If a HashDot has a DoubleDoubleDot \'::\' variable, it can have no other arguments.");
+        expect(err.message).to.deep.equal("HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  #a::b::c\nError:       ↑");
       }
     });
-  });
-
-  describe("Syntactic errors (parseHashDots())", function () {
     it("Line start with different symbol", () => {
       try {
         parseHashDots(".error");
