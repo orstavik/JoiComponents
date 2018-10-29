@@ -84,7 +84,7 @@ describe("parseHashDot", function () {
     const res = mapHashDots(hashDots);
     expect(res.params).to.deep.equal({});
     expect(res.map).to.deep.equal({
-      singletring: ["'"]
+      singletring: ["'\\''"]
     });
     expect(res.typesMap).to.deep.equal({
       singletring: ["."]
@@ -92,7 +92,7 @@ describe("parseHashDot", function () {
     expect(res.tree).to.deep.equal([
       {
         keyword: "singletring",
-        arguments: ["'"],
+        arguments: ["'\\''"],
         argumentTypes: ["."],
       }
     ]);
@@ -103,7 +103,7 @@ describe("parseHashDot", function () {
     const res = mapHashDots(hashDots);
     expect(res.params).to.deep.equal({});
     expect(res.map).to.deep.equal({
-      doubletring: ['"']
+      doubletring: ['"\\""']
     });
     expect(res.typesMap).to.deep.equal({
       doubletring: ["."]
@@ -111,7 +111,7 @@ describe("parseHashDot", function () {
     expect(res.tree).to.deep.equal([
       {
         keyword: "doubletring",
-        arguments: ['"'],
+        arguments: ['"\\""'],
         argumentTypes: ["."],
       }
     ]);
