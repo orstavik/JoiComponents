@@ -5,43 +5,132 @@ export function parseHashDots(input) {
   const tags = [];
   const map = {};
   let key;
-  const tree = [];                                                                  //todo skip
-  let hashdot;                                                                      //todo skip
   for (let next; (next = hashOrDot.exec(input)) !== null;) {
     if (next[3]) {
       const errorPos = hashOrDot.lastIndex - next[3].length + 1;
       throw new SyntaxError(`HashDot syntax error:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
     }
-    let type = next[0][1] === ":" ? "::" : next[0][0];
-    if (type === "#") {
-      hashdot = {keyword: next[0].substring(1), arguments: [], argumentTypes: []};  //todo skip
-      tree.push(hashdot);                                                           //todo skip
-      tags.push(key = next[0]);
+    if (next[0].startsWith("#")) {
+      key = next[0];
       if (map[key]) {
         const errorPos = hashOrDot.lastIndex - next[0].length + 1;
         throw new SyntaxError(`HashDot syntax error: A HashDot sequence cannot have two tags with the same name:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
-    } else {
-      if ((type === "::" && map[key]) || map[key] instanceof String) {
+      map[key] = [];
+      tags.push(key);
+    } else if (next[0].startsWith("::")) {
+      if (map[key].length) {
         const errorPos = hashOrDot.lastIndex - next[0].length + 1;
         throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
-      if (type === "::") {
-        map[key] = next[0];
-        hashdot.arguments.push(next[0].substring(type.length));                     //todo skip
-        hashdot.argumentTypes.push(type);                                           //todo skip
-      } else {
-        (map[key] || (map[key] = [])).push(next[0]);
-        hashdot.arguments.push(next[0].substring(type.length));                     //todo skip
-        hashdot.argumentTypes.push(type);                                           //todo skip
+      map[key] = next[0];
+    } else {
+      if (map[key] instanceof String) {
+        const errorPos = hashOrDot.lastIndex - next[0].length + 1;
+        throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
+      }
+      map[key].push(next[0]);
+    }
+  }
+  return {tags, map};
+}
+
+function checkAndAddToVarMap(a, b, varMap) {
+  let aValue;
+  for (aValue = a; varMap[aValue]; aValue = varMap[aValue]) ;
+  if (aValue.startsWith(":")) {
+    varMap[aValue] = b;
+    return true;
+  }
+  let bValue;
+  for (bValue = b; varMap[bValue]; bValue = varMap[bValue]) ;
+  if (bValue.startsWith(":")) {
+    varMap[bValue] = a;
+    return true;
+  }
+  if (a instanceof Array && b instanceof Array) {
+    return a.deep.equal(b);
+  }
+  return a === b;
+}
+
+function matchArguments(as, bs, varMap) {
+  if (as instanceof String || bs instanceof String)
+    if (!checkAndAddToVarMap(as, bs, varMap))
+      return false;
+  for (let i = 0; i < as.length; i++)
+    if (!checkAndAddToVarMap(as[i], bs[i], varMap))
+      return false;
+  return true;
+}
+
+export function matchTags(left, right) {
+  let leftPos = 0;
+  let first = right.tags[0];
+  while (true) {
+    if (left.tags[leftPos] === first)
+      break;
+    if (leftPos === left.length - 1)
+      return null;
+    leftPos++;
+  }
+  let varMappings = {};
+  for (let i = 0; i < right.tags.length; i++) {
+    let rightTag = right.tags[i];
+    let leftTag = left.tags[leftPos + i];
+    if (rightTag !== leftTag)
+      return null;
+    if (!matchArguments(left.map[leftTag], right.map[rightTag], varMappings))
+      return null;
+  }
+  return {leftPos, varMappings};
+}
+
+function replace(left, right, startPost, length, varMappings) {
+  const tags = [].concat(left.tags);
+  tags.splice(startPost, length, ...right.tags);
+  return {
+    tags,
+    map: Object.assign({}, left.map, right.map),
+    varMappings
+  }
+}
+
+function flatten({tags, map, varMappings}) {
+  const flatMap = {};
+  for (let tag of tags) {
+    let args = map[tag];
+    if (args instanceof String)
+      for (; varMappings[args]; args = varMappings[args]) ;
+    if (args instanceof String)
+      flatMap[tag] = args;
+    else {
+      flatMap[tag] = [];
+      for (let arg of args) {
+        for (; varMappings[arg]; arg = varMappings[arg]) ;
+        flatMap[tag].push(arg);
       }
     }
   }
-  // return {tree, map, tags};
-  return tree;
+  return {tags, map: flatMap, varMappings};
 }
 
-export function mapHashDots(tree) {
+export function hashDotsToString({tags, map, varMappings}){
+  let flat = flatten({tags, map, varMappings});
+  let str = "";
+  for (let tag of flat.tags) {
+    str+=tag;
+    let args = flat.map[tag];
+    if (args instanceof String)
+      str+=args;
+    else
+      for (let arg of args) str += arg;
+  }
+  return str;
+}
+
+export function mapHashDots(parsed) {
+  const tree = parsed.tree;
   const map = {};
   const typesMap = {};
   const params = {};
@@ -58,7 +147,7 @@ export function mapHashDots(tree) {
     map[hashdot.keyword] = hashdot.arguments;
     typesMap[hashdot.keyword] = hashdot.argumentTypes;
   }
-  return {tree, params, map, typesMap};
+  return {tree, params, map: parsed.map || map, typesMap};
 }
 
 function ruleMatches(hashLeft, hashMiddle) {
@@ -104,10 +193,20 @@ function resolveHashDots(start, middle, end, i) {
   i += middle.tree.length;
   for (; i < start.tree.length; i++)
     newDots.push(cloneHashDot(start.tree[i]));
-  return mapHashDots(newDots);
+  return mapHashDots({tree: newDots});
 }
 
 function resolve(leftSide, middleSide, rightSide) {
+  for (let i = 0; i < middleSide.length; i++) {
+    const middleHashDots = middleSide[i];
+    const match = matchTags(leftSide, middleHashDots);
+    if (match)
+      return replace(leftSide, rightSide[i], match.leftPos, middleHashDots.tags.length, match.varMappings);
+  }
+  return leftSide;
+}
+
+function resolveOld(leftSide, middleSide, rightSide) {
   const leftHashDots = leftSide.tree;
   for (let j = 0; j < leftHashDots.length; j++) {
     rule: for (let i = 0; i < middleSide.length; i++) {
@@ -125,16 +224,16 @@ function resolve(leftSide, middleSide, rightSide) {
 
 export class HashDotsRouteMap {
   constructor(routeMap) {
-    this.leftRules = Object.keys(routeMap).map(str => mapHashDots(parseHashDots(str)));
-    this.rightRules = Object.values(routeMap).map(str => mapHashDots(parseHashDots(str)));
+    this.leftRules = Object.keys(routeMap).map(str => parseHashDots(str));
+    this.rightRules = Object.values(routeMap).map(str => parseHashDots(str));
   }
 
   right(hashdots) {
-    return resolve(mapHashDots(parseHashDots(hashdots)), this.leftRules, this.rightRules);
+    return resolve(parseHashDots(hashdots), this.leftRules, this.rightRules);
   }
 
   left(hashdots) {
-    return resolve(mapHashDots(parseHashDots(hashdots)), this.rightRules, this.leftRules);
+    return resolve(parseHashDots(hashdots), this.rightRules, this.leftRules);
   }
 }
 

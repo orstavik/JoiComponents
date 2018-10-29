@@ -1,151 +1,101 @@
-import {mapHashDots, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
+import {hashDotsToString, matchTags, mapHashDots, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
 
 describe("parseHashDot", function () {
   it("basic test: #omg.what.is.'this:!#...#'#wtf#OMG123.123", function () {
 
-    const test = "#omg.what.is.'this:!#...#'#wtf#OMG123.123";
-    const hashDots = parseHashDots(test);
-    const res = mapHashDots(hashDots);
+    const res = parseHashDots("#omg.what.is.'this:!#...#'#wtf#OMG123.123");
 
+    expect(res.tags).to.deep.equal(["#omg","#wtf","#OMG123"]);
     expect(res.map).to.deep.equal({
-      omg: ["what", "is", "'this:!#...#'"],
-      wtf: [],
-      OMG123: ["123"],
+      "#omg": [".what", ".is", ".'this:!#...#'"],
+      "#wtf": [],
+      "#OMG123": [".123"],
     });
-    expect(res.typesMap).to.deep.equal({
-      omg: [".", ".", "."],
-      wtf: [],
-      OMG123: ["."],
-    });
-    expect(res.params).to.deep.equal({});
-    expect(res.tree).to.deep.equal([
-      {
-        keyword: "omg",
-        arguments: ["what", "is", "'this:!#...#'"],
-        argumentTypes: [".", ".", "."],
-      }, {
-        keyword: "wtf",
-        arguments: [],
-        argumentTypes: [],
-      }, {
-        keyword: "OMG123",
-        arguments: ["123"],
-        argumentTypes: ["."],
-      }
-    ]);
   });
 
   it("parameter: #omg:what", function () {
-    const test = "#omg:what";
-    const hashDots = parseHashDots(test);
-    const res = mapHashDots(hashDots);
-    expect(res.params).to.deep.equal({":what": {type: ":", name: "what", keyword: "omg", position: 0}});
+    const res= parseHashDots("#omg:what");
+    expect(res.tags).to.deep.equal(["#omg"]);
     expect(res.map).to.deep.equal({
-      omg: ["what"]
+      "#omg": [":what"]
     });
-    expect(res.typesMap).to.deep.equal({
-      omg: [":"]
-    });
-    expect(res.tree).to.deep.equal([
-      {
-        keyword: "omg",
-        arguments: ["what"],
-        argumentTypes: [":"],
-      }
-    ]);
   });
 
   it("parameter: #wtf::A", function () {
-    const test = "#wtf::A";
-    const hashDots = parseHashDots(test);
-    const res = mapHashDots(hashDots);
-    expect(res).to.deep.equal({
-      params: {
-        "::A": {type: "::", name: "A", keyword: "wtf", position: 0}
-      },
-      map: {
-        wtf: ["A"]
-      },
-      typesMap: {
-        wtf: ["::"]
-      },
-      tree: [
-        {
-          keyword: "wtf",
-          arguments: ["A"],
-          argumentTypes: ["::"],
-        }
-      ]
+    const res = parseHashDots("#wtf::A");
+    expect(res.tags).to.deep.equal(["#wtf"]);
+    expect(res.map).to.deep.equal({
+      "#wtf": "::A"
     });
   });
 
   it(`String: #singletring.'\\''`, function () {
-    const hashDots = parseHashDots(`#singletring.'\\''`);
-    const res = mapHashDots(hashDots);
-    expect(res.params).to.deep.equal({});
+    const res = parseHashDots(`#singletring.'\\''`);
+    expect(res.tags).to.deep.equal(["#singletring"]);
     expect(res.map).to.deep.equal({
-      singletring: ["'"]
+      "#singletring": ["'"]
     });
-    expect(res.typesMap).to.deep.equal({
-      singletring: ["."]
-    });
-    expect(res.tree).to.deep.equal([
-      {
-        keyword: "singletring",
-        arguments: ["'"],
-        argumentTypes: ["."],
-      }
-    ]);
   });
 
   it(`String: #doubletring."\\""`, function () {
-    const hashDots = parseHashDots(`#doubletring."\\""`);
-    const res = mapHashDots(hashDots);
-    expect(res.params).to.deep.equal({});
+    const res = parseHashDots(`#doubletring."\\""`);
+    expect(res.tags).to.deep.equal(["#doubletring"]);
     expect(res.map).to.deep.equal({
-      doubletring: ['"']
+      "#doubletring": ['"']
     });
-    expect(res.typesMap).to.deep.equal({
-      doubletring: ["."]
-    });
-    expect(res.tree).to.deep.equal([
-      {
-        keyword: "doubletring",
-        arguments: ['"'],
-        argumentTypes: ["."],
-      }
-    ]);
   });
 
 });
 
-describe("HashDotMap", function () {
+describe("HashDotMatch", function () {
+  it("matchTags(#one:A:B, #one.a.b)", function () {
+    const res = new matchTags(parseHashDots("#one:A:B"), parseHashDots("#one.a.b"));
+    expect(res.leftPos).to.be.equal(0);
+    expect(res.varMappings).to.deep.equal({":A": ".a", ":B": ".b"});
+  });
+  it("matchTags(#one.a.b, #one:A:B)", function () {
+    const res = new matchTags(parseHashDots("#one.a.b"), parseHashDots("#one:A:B"));
+    expect(res.leftPos).to.be.equal(0);
+    expect(res.varMappings).to.deep.equal({":A": ".a", ":B": ".b"});
+  });
+});
+
+describe("HashDotsRouteMap", function () {
+  it("new HashDotsRouteMap()", function(){
+    const map = new HashDotsRouteMap({
+      "#one:A:B": "#two:A#three:B"
+    });
+    expect(map.leftRules[0].tags[0]).to.be.equal("#one");
+    expect(map.rightRules[0].map["#three"][0]).to.be.equal(":B");
+  });
+
   it("#one:A:B <=> #two:A#three:B", function () {
     const routeMap = new HashDotsRouteMap({
       "#one:A:B": "#two:A#three:B"
     });
     const right = routeMap.right("#one.a.b");
-    expect(right).to.deep.equal(mapHashDots(parseHashDots("#two.a#three.b")));
+    expect(hashDotsToString(right)).to.be.equal("#two.a#three.b");
     const left = routeMap.left("#two.a#three.b");
-    expect(left).to.deep.equal(mapHashDots(parseHashDots("#one.a.b")));
+    expect(hashDotsToString(left)).to.be.equal("#one.a.b");
   });
   it("#nothing#one:A:B <=> #two:A#three:B", function () {
     const routeMap = new HashDotsRouteMap({
       "#nothing#one:A:B": "#two:A#three:B"
     });
     const right = routeMap.right("#nothing#one.a.b");
-    expect(right).to.deep.equal(mapHashDots(parseHashDots("#two.a#three.b")));
+    expect(hashDotsToString(right)).to.be.equal("#two.a#three.b");
     const left = routeMap.left("#two.a#three.b");
-    expect(left).to.deep.equal(mapHashDots(parseHashDots("#nothing#one.a.b")));
+    expect(hashDotsToString(left)).to.be.equal("#nothing#one.a.b");
   });
   it("#one::A <=> #two::A", function () {
     const routeMap = new HashDotsRouteMap({
       "#one::A": "#two::A"
     });
+    debugger;
     const right = routeMap.right("#one.a.b");
-    expect(right).to.deep.equal(mapHashDots(parseHashDots("#two.a.b")));
+    expect(hashDotsToString(right)).to.be.equal("#two.a.b");
     const left = routeMap.left("#two.a.b.c");
-    expect(left).to.deep.equal(mapHashDots(parseHashDots("#one.a.b.c")));
+    expect(hashDotsToString(left)).to.be.equal("#one.a.b.c");
   });
 });
 describe("Error tests", function () {
