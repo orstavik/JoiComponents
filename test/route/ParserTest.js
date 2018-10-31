@@ -29,11 +29,11 @@ describe("parseHashDot", function () {
     });
   });
 
-  it(`String: #singletring.'\\''`, function () {
-    const res = parseHashDots(`#singletring.'\\''`);
+  it(`String: #singletring.'\''`, function () {
+    const res = parseHashDots(`#singletring.'\''`);
     expect(res.tags).to.deep.equal(["#singletring"]);
     expect(res.map).to.deep.equal({
-      "#singletring": ["'"]
+      "#singletring": [".'\'."]
     });
   });
 

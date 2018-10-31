@@ -104,21 +104,22 @@ function replace(left, right, match) {
   return {
     tags,
     map: Object.assign({}, left.map, right.map),
-    varMap: match.varMap
+    varMap:match.varMap
   }
 }
 
 function flatten(tags, map, varMappings) {
   const flatMap = {};
   for (let tag of tags) {
-    let args = resolveVariable(map[tag], varMappings);
+    let args = map[tag];
+    if (!Array.isArray(args)) args = resolveVariable(args, varMappings);
     flatMap[tag] = Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
   }
   return {tags, map: flatMap};
 }
 
-export function hashDotsToString({tags, map, varMappings}) {
-  let flat = flatten(tags, map, varMappings);
+export function hashDotsToString({tags, map, varMap}) {
+  let flat = flatten(tags, map, varMap);
   let str = "";
   for (let tag of flat.tags) {
     str += tag;
