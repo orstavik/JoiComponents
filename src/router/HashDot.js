@@ -44,24 +44,23 @@ function resolveVariable(key, map){
 
 function checkAndAddToVarMap(a, b, varMap) {
   let aValue = resolveVariable(a, varMap);
-  if (!Array.isArray(aValue) && aValue.startsWith(":")) {
-    varMap[aValue] = b;
-    return true;
+  if (aValue.startsWith(":")) {
+    return varMap[aValue] = b;
   }
   let bValue = resolveVariable(b, varMap);
-  if (!Array.isArray(bValue) && bValue.startsWith(":")) {
-    varMap[bValue] = a;
-    return true;
-  }
-  if (a instanceof Array && b instanceof Array) {
-    return a.deep.equal(b);                           //todo not implemented
+  if (bValue.startsWith(":")) {
+    return varMap[bValue] = a;
   }
   return a === b;
 }
 
 function matchArguments(as, bs, varMap) {
-  if (!Array.isArray(as) || !Array.isArray(bs))
-    return checkAndAddToVarMap(as, bs, varMap);
+  as = resolveVariable(as, varMap);
+  if (!Array.isArray(as))
+    return varMap[as] = bs;
+  bs = resolveVariable(bs, varMap);
+  if (!Array.isArray(bs))
+    return varMap[bs] = as;
   for (let i = 0; i < as.length; i++)
     if (!checkAndAddToVarMap(as[i], bs[i], varMap))
       return false;
