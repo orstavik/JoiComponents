@@ -43,14 +43,12 @@ function resolveVariable(key, map){
 }
 
 function checkAndAddToVarMap(a, b, varMap) {
-  let aValue = resolveVariable(a, varMap);
-  if (aValue.startsWith(":")) {
-    return varMap[aValue] = b;
-  }
-  let bValue = resolveVariable(b, varMap);
-  if (bValue.startsWith(":")) {
-    return varMap[bValue] = a;
-  }
+  a = resolveVariable(a, varMap);
+  if (a.startsWith(":"))
+    return varMap[a] = b;
+  b = resolveVariable(b, varMap);
+  if (b.startsWith(":"))
+    return varMap[b] = a;
   return a === b;
 }
 
