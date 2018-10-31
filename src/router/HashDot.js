@@ -42,6 +42,8 @@ function resolveVariable(key, map){
   return key;
 }
 
+//todo, I need to ensure that in the varMap, I name the left and right side differently entities, so that they don't coincidentally mix.
+//todo how best to do this, I don't know..
 function checkAndAddToVarMap(a, b, varMap) {
   a = resolveVariable(a, varMap);
   if (a.startsWith(":"))
@@ -59,6 +61,9 @@ function matchArguments(as, bs, varMap) {
   bs = resolveVariable(bs, varMap);
   if (!Array.isArray(bs))
     return varMap[bs] = as;
+  //todo add test when the length of bs is longer than the length of as
+  if (as.length !== bs.length)
+    return false;
   for (let i = 0; i < as.length; i++)
     if (!checkAndAddToVarMap(as[i], bs[i], varMap))
       return false;
