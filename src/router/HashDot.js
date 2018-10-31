@@ -101,27 +101,17 @@ function replace(left, right, match) {
   }
 }
 
-function flatten({tags, map, varMappings}) {
+function flatten(tags, map, varMappings) {
   const flatMap = {};
   for (let tag of tags) {
-    let args = map[tag];          //todo replace with resolveVariable(key, map)
-    if (!Array.isArray(args))
-      for (; varMappings[args]; args = varMappings[args]) ;
-    if (!Array.isArray(args))
-      flatMap[tag] = args;
-    else {
-      flatMap[tag] = [];
-      for (let arg of args) {    //todo replace with resolveVariable(key, map)
-        for (; varMappings[arg]; arg = varMappings[arg]) ;
-        flatMap[tag].push(arg);
-      }
-    }
+    let args = resolveVariable(map[tag], varMappings);
+    flatMap[tag] = Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
   }
-  return {tags, map: flatMap, varMappings};
+  return {tags, map: flatMap};
 }
 
 export function hashDotsToString({tags, map, varMappings}) {
-  let flat = flatten({tags, map, varMappings});
+  let flat = flatten(tags, map, varMappings);
   let str = "";
   for (let tag of flat.tags) {
     str += tag;
