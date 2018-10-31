@@ -71,35 +71,35 @@ function matchArguments(as, bs, varMap) {
 }
 
 export function matchTags(left, right) {
-  let leftPos = 0;
+  let start = 0;
   let first = right.tags[0];
   while (true) {
-    if (left.tags[leftPos] === first)
+    if (left.tags[start] === first)
       break;
-    if (leftPos === left.length - 1)
+    if (start === left.length - 1)
       return null;
-    leftPos++;
+    start++;
   }
-  let varMappings = {};
-  const matchLength = right.tags.length;
-  for (let i = 0; i < matchLength; i++) {
+  let varMap = {};
+  const stop = right.tags.length;
+  for (let i = 0; i < stop; i++) {
     let rightTag = right.tags[i];
-    let leftTag = left.tags[leftPos + i];
+    let leftTag = left.tags[start + i];
     if (rightTag !== leftTag)
       return null;
-    if (!matchArguments(left.map[leftTag], right.map[rightTag], varMappings))
+    if (!matchArguments(left.map[leftTag], right.map[rightTag], varMap))
       return null;
   }
-  return {leftPos, varMappings, matchLength};
+  return {start, stop, varMap};
 }
 
 function replace(left, right, match) {
   const tags = [].concat(left.tags);           //todo make a better splice: Array.prototype.splice.call([], ...) ??
-  tags.splice(match.leftPos, match.matchLength, ...right.tags);
+  tags.splice(match.start, match.stop, ...right.tags);
   return {
     tags,
     map: Object.assign({}, left.map, right.map),
-    varMappings:match.varMappings
+    varMappings:match.varMap
   }
 }
 

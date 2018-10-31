@@ -50,13 +50,13 @@ describe("parseHashDot", function () {
 describe("HashDotMatch", function () {
   it("matchTags(#one:A:B, #one.a.b)", function () {
     const res = new matchTags(parseHashDots("#one:A:B"), parseHashDots("#one.a.b"));
-    expect(res.leftPos).to.be.equal(0);
-    expect(res.varMappings).to.deep.equal({":A": ".a", ":B": ".b"});
+    expect(res.start).to.be.equal(0);
+    expect(res.varMap).to.deep.equal({":A": ".a", ":B": ".b"});
   });
   it("matchTags(#one.a.b, #one:A:B)", function () {
     const res = new matchTags(parseHashDots("#one.a.b"), parseHashDots("#one:A:B"));
-    expect(res.leftPos).to.be.equal(0);
-    expect(res.varMappings).to.deep.equal({":A": ".a", ":B": ".b"});
+    expect(res.start).to.be.equal(0);
+    expect(res.varMap).to.deep.equal({":A": ".a", ":B": ".b"});
   });
 });
 
