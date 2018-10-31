@@ -38,13 +38,13 @@ export function parseHashDots(input) {
 function checkAndAddToVarMap(a, b, varMap) {
   let aValue;
   for (aValue = a; varMap[aValue]; aValue = varMap[aValue]) ;
-  if (aValue.startsWith(":")) {
+  if (!Array.isArray(aValue) && aValue.startsWith(":")) {
     varMap[aValue] = b;
     return true;
   }
   let bValue;
   for (bValue = b; varMap[bValue]; bValue = varMap[bValue]) ;
-  if (bValue.startsWith(":")) {
+  if (!Array.isArray(bValue) && bValue.startsWith(":")) {
     varMap[bValue] = a;
     return true;
   }
@@ -55,9 +55,8 @@ function checkAndAddToVarMap(a, b, varMap) {
 }
 
 function matchArguments(as, bs, varMap) {
-  if (as instanceof String || bs instanceof String)
-    if (!checkAndAddToVarMap(as, bs, varMap))
-      return false;
+  if (!Array.isArray(as)|| !Array.isArray(bs))
+    return checkAndAddToVarMap(as, bs, varMap);
   for (let i = 0; i < as.length; i++)
     if (!checkAndAddToVarMap(as[i], bs[i], varMap))
       return false;
@@ -100,9 +99,9 @@ function flatten({tags, map, varMappings}) {
   const flatMap = {};
   for (let tag of tags) {
     let args = map[tag];
-    if (args instanceof String)
+    if (!Array.isArray(args))
       for (; varMappings[args]; args = varMappings[args]) ;
-    if (args instanceof String)
+    if (!Array.isArray(args))
       flatMap[tag] = args;
     else {
       flatMap[tag] = [];

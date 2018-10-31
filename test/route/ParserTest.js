@@ -91,7 +91,6 @@ describe("HashDotsRouteMap", function () {
     const routeMap = new HashDotsRouteMap({
       "#one::A": "#two::A"
     });
-    debugger;
     const right = routeMap.right("#one.a.b");
     expect(hashDotsToString(right)).to.be.equal("#two.a.b");
     const left = routeMap.left("#two.a.b.c");
