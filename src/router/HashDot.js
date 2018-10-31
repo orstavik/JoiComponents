@@ -63,10 +63,6 @@ function matchArguments(as, bs, varMap) {
   bs = resolveVariable(bs, varMap);
   if (!Array.isArray(bs))
     return varMap[bs] = as;
-  //todo add test when the length of bs is longer than the length of as
-// matchTags("#one.a.b", "#one.a.b.c")
-// matchTags("#one:A.b", "#one.a:B.c")
-// matchTags("#one:A.b", "#one.a:B:C")
   if (as.length !== bs.length)
     return false;
   for (let i = 0; i < as.length; i++)

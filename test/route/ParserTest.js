@@ -82,9 +82,29 @@ describe("HashDotMatch", function () {
     expect(res.stop).to.be.equal(1);
     expect(res.varMap).to.deep.equal({"::ALL": [".a", ".b", ".c"]});
   });
+  it("matchTags: equal tag names, but unequal tag length", function () {
+    let res = matchTags(parseHashDots("#one.a#two.b.error"), parseHashDots("#one:A#two:B:C:D"));
+    expect(res).to.be.equal(null);
+    res = matchTags(parseHashDots("#one.a.b"), parseHashDots("#one.a.b.c"));
+    expect(res).to.be.equal(null);
+    res = matchTags(parseHashDots("#one:A.b"), parseHashDots("#one.a:B.c"));
+    expect(res).to.be.equal(null);
+    res = matchTags(parseHashDots("#one:A:B"), parseHashDots("#one.a:B:C"));
+    expect(res).to.be.equal(null);
+    res = matchTags(parseHashDots("#one"), parseHashDots("#one.a"));
+    expect(res).to.be.equal(null);
+    res = matchTags(parseHashDots("#one"), parseHashDots("#one:A"));
+    expect(res).to.be.equal(null);
+  });
   it("matchTags: equal tag names, but unequal parity", function () {
     const res = matchTags(parseHashDots("#one.a#two.b.error"), parseHashDots("#one:A#two:B:C:D"));
     expect(res).to.be.equal(null);
+  });
+  it("matchTags with the same variable name on both sides: #one:A#two.b <=> #one.c#two:A", function () {
+    const res = matchTags(parseHashDots("#one:A#two.b"), parseHashDots("#one.c#two:A"));
+    expect(res.start).to.be.equal(0);
+    expect(res.stop).to.be.equal(2);
+    expect(res.varMap).to.deep.equal({":A": ".b"});
   });
 });
 
