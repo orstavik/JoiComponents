@@ -1,25 +1,24 @@
 import {hashDotsToString, matchTags, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
 
-describe("Max tests", function(){
-it("matchTags(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
-  const res = new matchTags(parseHashDots("#one.a.b.c#two.lala"), parseHashDots("#one:A:B:C#two:LALA"));
-  expect(res.leftPos).to.be.equal(0);
-  expect(res.varMappings).to.deep.equal({":A": ".a", ":B": ".b", ":C": ".c", ":LALA": ".lala"});
-});
+describe("Max tests", function () {
+  it("matchTags(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
+    const res = matchTags(parseHashDots("#one.a.b.c#two.lala"), parseHashDots("#one:A:B:C#two:LALA"));
+    expect(res.start).to.be.equal(0);
+    expect(res.varMap).to.deep.equal({":A": ".a", ":B": ".b", ":C": ".c", ":LALA": ".lala"});
+  });
 
-it("Extra rule from right part will not apply with empty value", function () {
-  const res = new matchTags(parseHashDots("#one.a#two.b.error"), parseHashDots("#one:A#two:B:C:D"));
-  expect(res.leftPos).to.be.equal(0);
-  expect(res.varMappings).to.deep.equal({":A": ".a", ":B": ".b", ":C": ".error"});
+  it("matchTags: equal tag names, but unequal parity", function () {
+    const res = matchTags(parseHashDots("#one.a#two.b.error"), parseHashDots("#one:A#two:B:C:D"));
+    expect(res).to.be.equal(null);
+  });
 });
-}):
 
 describe("parseHashDot", function () {
   it("basic test: #omg.what.is.'this:!#...#'#wtf#OMG123.123", function () {
 
     const res = parseHashDots("#omg.what.is.'this:!#...#'#wtf#OMG123.123");
 
-    expect(res.tags).to.deep.equal(["#omg","#wtf","#OMG123"]);
+    expect(res.tags).to.deep.equal(["#omg", "#wtf", "#OMG123"]);
     expect(res.map).to.deep.equal({
       "#omg": [".what", ".is", ".'this:!#...#'"],
       "#wtf": [],
@@ -28,7 +27,7 @@ describe("parseHashDot", function () {
   });
 
   it("parameter: #omg:what", function () {
-    const res= parseHashDots("#omg:what");
+    const res = parseHashDots("#omg:what");
     expect(res.tags).to.deep.equal(["#omg"]);
     expect(res.map).to.deep.equal({
       "#omg": [":what"]
@@ -75,7 +74,7 @@ describe("HashDotMatch", function () {
 });
 
 describe("HashDotsRouteMap", function () {
-  it("new HashDotsRouteMap()", function(){
+  it("new HashDotsRouteMap()", function () {
     const map = new HashDotsRouteMap({
       "#one:A:B": "#two:A#three:B"
     });
