@@ -1,18 +1,5 @@
 import {hashDotsToString, matchTags, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
 
-describe("Max tests", function () {
-  it("matchTags(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
-    const res = matchTags(parseHashDots("#one.a.b.c#two.lala"), parseHashDots("#one:A:B:C#two:LALA"));
-    expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A": ".a", ":B": ".b", ":C": ".c", ":LALA": ".lala"});
-  });
-
-  it("matchTags: equal tag names, but unequal parity", function () {
-    const res = matchTags(parseHashDots("#one.a#two.b.error"), parseHashDots("#one:A#two:B:C:D"));
-    expect(res).to.be.equal(null);
-  });
-});
-
 describe("parseHashDot", function () {
   it("basic test: #omg.what.is.'this:!#...#'#wtf#OMG123.123", function () {
 
@@ -41,20 +28,33 @@ describe("parseHashDot", function () {
       "#wtf": "::A"
     });
   });
-
+  //todo the string tests look wrong. They should be only a \' and \"..
+  it(`Wrong?? String: #singletring.'\\''`, function () {
+    const res = parseHashDots(`#singletring.'\\''`);
+    expect(res.tags).to.deep.equal(["#singletring"]);
+    expect(res.map).to.deep.equal({
+      "#singletring": [".'\\''"]
+    });
+  });
+  it(`Wrong?? String: #doubletring."\\""`, function () {
+    const res = parseHashDots(`#doubletring."\\""`);
+    expect(res.tags).to.deep.equal(["#doubletring"]);
+    expect(res.map).to.deep.equal({
+      "#doubletring": ['."\\""']
+    });
+  });
   it(`String: #singletring.'\''`, function () {
     const res = parseHashDots(`#singletring.'\''`);
     expect(res.tags).to.deep.equal(["#singletring"]);
     expect(res.map).to.deep.equal({
-      "#singletring": [".'\'."]
+      "#singletring": [".'\''"]
     });
   });
-
-  it(`String: #doubletring."\\""`, function () {
-    const res = parseHashDots(`#doubletring."\\""`);
+  it(`String: #doubletring."\""`, function () {
+    const res = parseHashDots(`#doubletring."\""`);
     expect(res.tags).to.deep.equal(["#doubletring"]);
     expect(res.map).to.deep.equal({
-      "#doubletring": ['"']
+      "#doubletring": ['."\""']
     });
   });
 
@@ -70,6 +70,21 @@ describe("HashDotMatch", function () {
     const res = new matchTags(parseHashDots("#one.a.b"), parseHashDots("#one:A:B"));
     expect(res.start).to.be.equal(0);
     expect(res.varMap).to.deep.equal({":A": ".a", ":B": ".b"});
+  });
+  it("matchTags(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
+    const res = matchTags(parseHashDots("#one.a.b.c#two.lala"), parseHashDots("#one:A:B:C#two:LALA"));
+    expect(res.start).to.be.equal(0);
+    expect(res.varMap).to.deep.equal({":A": ".a", ":B": ".b", ":C": ".c", ":LALA": ".lala"});
+  });
+  it("matchTags(#one.a.b.с#two.lala, #one::ALL)", function () {
+    const res = matchTags(parseHashDots("#one.a.b.c#two.lala"), parseHashDots("#one::ALL"));
+    expect(res.start).to.be.equal(0);
+    expect(res.stop).to.be.equal(1);
+    expect(res.varMap).to.deep.equal({"::ALL": [".a", ".b", ".c"]});
+  });
+  it("matchTags: equal tag names, but unequal parity", function () {
+    const res = matchTags(parseHashDots("#one.a#two.b.error"), parseHashDots("#one:A#two:B:C:D"));
+    expect(res).to.be.equal(null);
   });
 });
 
