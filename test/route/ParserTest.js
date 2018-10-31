@@ -1,4 +1,4 @@
-import {hashDotsToString, matchTags, mapHashDots, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
+import {hashDotsToString, matchTags, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
 
 describe("parseHashDot", function () {
   it("basic test: #omg.what.is.'this:!#...#'#wtf#OMG123.123", function () {

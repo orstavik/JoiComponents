@@ -55,7 +55,7 @@ function checkAndAddToVarMap(a, b, varMap) {
 }
 
 function matchArguments(as, bs, varMap) {
-  if (!Array.isArray(as)|| !Array.isArray(bs))
+  if (!Array.isArray(as) || !Array.isArray(bs))
     return checkAndAddToVarMap(as, bs, varMap);
   for (let i = 0; i < as.length; i++)
     if (!checkAndAddToVarMap(as[i], bs[i], varMap))
@@ -114,85 +114,18 @@ function flatten({tags, map, varMappings}) {
   return {tags, map: flatMap, varMappings};
 }
 
-export function hashDotsToString({tags, map, varMappings}){
+export function hashDotsToString({tags, map, varMappings}) {
   let flat = flatten({tags, map, varMappings});
   let str = "";
   for (let tag of flat.tags) {
-    str+=tag;
+    str += tag;
     let args = flat.map[tag];
-    if (args instanceof String)
-      str+=args;
-    else
+    if (Array.isArray(args))
       for (let arg of args) str += arg;
+    else
+      str += args;
   }
   return str;
-}
-
-export function mapHashDots(parsed) {
-  const tree = parsed.tree;
-  const map = {};
-  const typesMap = {};
-  const params = {};
-  for (let hashdot of tree) {
-    for (let i = 0; i < hashdot.arguments.length; i++) {
-      let arg = hashdot.arguments[i];
-      let argType = hashdot.argumentTypes[i];
-      if (argType === "::" || argType === ":") {
-        const key = argType + arg;
-        params[key] || (params[key] = {type: argType, name: arg, keyword: hashdot.keyword, position: i});
-        //todo this is wrong, I need to add more positions if an argument is used several places on one side.
-      }
-    }
-    map[hashdot.keyword] = hashdot.arguments;
-    typesMap[hashdot.keyword] = hashdot.argumentTypes;
-  }
-  return {tree, params, map: parsed.map || map, typesMap};
-}
-
-function ruleMatches(hashLeft, hashMiddle) {
-  if (hashLeft.keyword !== hashMiddle.keyword)
-    return false;
-  if (hashMiddle.arguments.length === 1 && hashMiddle.argumentTypes[0] === "::")
-    return true;
-  return hashMiddle.arguments.length === hashLeft.arguments.length;
-}
-
-function cloneHashDot(oldDot) {
-  let newDot = Object.assign({}, oldDot);
-  newDot.arguments = [].concat(oldDot.arguments);
-  newDot.argumentTypes = [].concat(oldDot.argumentTypes);
-  return newDot;
-}
-
-function resolveHashDots(start, middle, end, i) {
-  const newDots = [];
-  for (let j = 0; j < i; j++)
-    newDots.push(cloneHashDot(start.tree[j]));
-  for (let j = 0; j < end.tree.length; j++) {
-    let newDot = cloneHashDot(end.tree[j]);
-    for (let k = 0; k < newDot.argumentTypes.length; k++) {
-      let rightType = newDot.argumentTypes[k];
-      if (rightType === ".")
-        continue;
-      let rightValue = newDot.arguments[k];
-      let middleParam = middle.params[rightType + rightValue];
-      //resolve multiparam
-      if (rightType === "::") {
-        newDot.arguments = [].concat(start.map[middleParam.keyword]);
-        newDot.argumentTypes = [].concat(start.typesMap[middleParam.keyword]);
-      } else
-      //resolve singleparams
-      if (rightType === ":") {
-        newDot.arguments[k] = start.map[middleParam.keyword][middleParam.position];
-        newDot.argumentTypes[k] = start.typesMap[middleParam.keyword][middleParam.position];
-      }
-    }
-    newDots.push(newDot);
-  }
-  i += middle.tree.length;
-  for (; i < start.tree.length; i++)
-    newDots.push(cloneHashDot(start.tree[i]));
-  return mapHashDots({tree: newDots});
 }
 
 function resolve(leftSide, middleSide, rightSide) {
@@ -201,22 +134,6 @@ function resolve(leftSide, middleSide, rightSide) {
     const match = matchTags(leftSide, middleHashDots);
     if (match)
       return replace(leftSide, rightSide[i], match.leftPos, middleHashDots.tags.length, match.varMappings);
-  }
-  return leftSide;
-}
-
-function resolveOld(leftSide, middleSide, rightSide) {
-  const leftHashDots = leftSide.tree;
-  for (let j = 0; j < leftHashDots.length; j++) {
-    rule: for (let i = 0; i < middleSide.length; i++) {
-      const middleHashDots = middleSide[i].tree;
-      for (let n = 0; n < middleHashDots.length; n++) {
-        if (!ruleMatches(leftHashDots[j + n], middleHashDots[n])) //the next hashdot in the rule fails
-          continue rule;
-      }
-      const resolved = resolveHashDots(leftSide, middleSide[i], rightSide[i], j);
-      return resolve(resolved, middleSide, rightSide);
-    }
   }
   return leftSide;
 }
@@ -251,7 +168,6 @@ export class HashDotsRouter {
     if (this.inputHash === currentHash) //will become this.leftHash === currentHash
       return;
     const parsedDots = parseHashDots(currentHash);
-    let hashdots = mapHashDots(parsedDots);
-    window.dispatchEvent(new CustomEvent("routechange", {detail: hashdots}));
+    window.dispatchEvent(new CustomEvent("routechange", {detail: parsedDots}));
   }
 }
