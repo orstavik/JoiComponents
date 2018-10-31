@@ -44,6 +44,8 @@ function resolveVariable(key, map){
 
 //todo, I need to ensure that in the varMap, I name the left and right side differently entities, so that they don't coincidentally mix.
 //todo how best to do this, I don't know..
+//todo I think the breaking test looks like this
+// #one:A#two.b <=> #one.c#two:A
 function checkAndAddToVarMap(a, b, varMap) {
   a = resolveVariable(a, varMap);
   if (a.startsWith(":"))
@@ -62,6 +64,9 @@ function matchArguments(as, bs, varMap) {
   if (!Array.isArray(bs))
     return varMap[bs] = as;
   //todo add test when the length of bs is longer than the length of as
+// matchTags("#one.a.b", "#one.a.b.c")
+// matchTags("#one:A.b", "#one.a:B.c")
+// matchTags("#one:A.b", "#one.a:B:C")
   if (as.length !== bs.length)
     return false;
   for (let i = 0; i < as.length; i++)
@@ -99,7 +104,7 @@ function replace(left, right, match) {
   return {
     tags,
     map: Object.assign({}, left.map, right.map),
-    varMappings:match.varMap
+    varMap: match.varMap
   }
 }
 
