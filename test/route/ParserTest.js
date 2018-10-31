@@ -5,7 +5,7 @@ describe("parseHashDot", function () {
 
     const res = parseHashDots("#omg.what.is.'this:!#...#'#wtf#OMG123.123");
 
-    expect(res.tags).to.deep.equal(["#omg","#wtf","#OMG123"]);
+    expect(res.tags).to.deep.equal(["#omg", "#wtf", "#OMG123"]);
     expect(res.map).to.deep.equal({
       "#omg": [".what", ".is", ".'this:!#...#'"],
       "#wtf": [],
@@ -14,7 +14,7 @@ describe("parseHashDot", function () {
   });
 
   it("parameter: #omg:what", function () {
-    const res= parseHashDots("#omg:what");
+    const res = parseHashDots("#omg:what");
     expect(res.tags).to.deep.equal(["#omg"]);
     expect(res.map).to.deep.equal({
       "#omg": [":what"]
@@ -33,7 +33,7 @@ describe("parseHashDot", function () {
     const res = parseHashDots(`#singletring.'\\''`);
     expect(res.tags).to.deep.equal(["#singletring"]);
     expect(res.map).to.deep.equal({
-      "#singletring": ["'"]
+      "#singletring": ['.\'\\\'\'']
     });
   });
 
@@ -41,10 +41,9 @@ describe("parseHashDot", function () {
     const res = parseHashDots(`#doubletring."\\""`);
     expect(res.tags).to.deep.equal(["#doubletring"]);
     expect(res.map).to.deep.equal({
-      "#doubletring": ['"']
+      "#doubletring": ['."\\""']
     });
   });
-
 });
 
 describe("HashDotMatch", function () {
@@ -61,7 +60,7 @@ describe("HashDotMatch", function () {
 });
 
 describe("HashDotsRouteMap", function () {
-  it("new HashDotsRouteMap()", function(){
+  it("new HashDotsRouteMap()", function () {
     const map = new HashDotsRouteMap({
       "#one:A:B": "#two:A#three:B"
     });
@@ -92,11 +91,13 @@ describe("HashDotsRouteMap", function () {
       "#one::A": "#two::A"
     });
     const right = routeMap.right("#one.a.b");
+    let a = hashDotsToString(right);
     expect(hashDotsToString(right)).to.be.equal("#two.a.b");
     const left = routeMap.left("#two.a.b.c");
     expect(hashDotsToString(left)).to.be.equal("#one.a.b.c");
   });
 });
+
 describe("Error tests", function () {
   describe("Syntactic errors (parseHashDots())", function () {
     it("Several universal parameters", () => {
