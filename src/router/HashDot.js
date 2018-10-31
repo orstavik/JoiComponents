@@ -35,21 +35,26 @@ export function parseHashDots(input) {
   return {tags, map};
 }
 
+function resolveVariable(key, map){
+  let next;
+  while(next = map[key])
+    key = next;
+  return key;
+}
+
 function checkAndAddToVarMap(a, b, varMap) {
-  let aValue;
-  for (aValue = a; varMap[aValue]; aValue = varMap[aValue]) ;
+  let aValue = resolveVariable(a, varMap);
   if (!Array.isArray(aValue) && aValue.startsWith(":")) {
     varMap[aValue] = b;
     return true;
   }
-  let bValue;
-  for (bValue = b; varMap[bValue]; bValue = varMap[bValue]) ;
+  let bValue = resolveVariable(b, varMap);
   if (!Array.isArray(bValue) && bValue.startsWith(":")) {
     varMap[bValue] = a;
     return true;
   }
   if (a instanceof Array && b instanceof Array) {
-    return a.deep.equal(b);
+    return a.deep.equal(b);                           //todo not implemented
   }
   return a === b;
 }
@@ -74,7 +79,8 @@ export function matchTags(left, right) {
     leftPos++;
   }
   let varMappings = {};
-  for (let i = 0; i < right.tags.length; i++) {
+  const matchLength = right.tags.length;
+  for (let i = 0; i < matchLength; i++) {
     let rightTag = right.tags[i];
     let leftTag = left.tags[leftPos + i];
     if (rightTag !== leftTag)
@@ -82,30 +88,30 @@ export function matchTags(left, right) {
     if (!matchArguments(left.map[leftTag], right.map[rightTag], varMappings))
       return null;
   }
-  return {leftPos, varMappings};
+  return {leftPos, varMappings, matchLength};
 }
 
-function replace(left, right, startPost, length, varMappings) {
-  const tags = [].concat(left.tags);
-  tags.splice(startPost, length, ...right.tags);
+function replace(left, right, match) {
+  const tags = [].concat(left.tags);           //todo make a better splice: Array.prototype.splice.call([], ...) ??
+  tags.splice(match.leftPos, match.matchLength, ...right.tags);
   return {
     tags,
     map: Object.assign({}, left.map, right.map),
-    varMappings
+    varMappings:match.varMappings
   }
 }
 
 function flatten({tags, map, varMappings}) {
   const flatMap = {};
   for (let tag of tags) {
-    let args = map[tag];
+    let args = map[tag];          //todo replace with resolveVariable(key, map)
     if (!Array.isArray(args))
       for (; varMappings[args]; args = varMappings[args]) ;
     if (!Array.isArray(args))
       flatMap[tag] = args;
     else {
       flatMap[tag] = [];
-      for (let arg of args) {
+      for (let arg of args) {    //todo replace with resolveVariable(key, map)
         for (; varMappings[arg]; arg = varMappings[arg]) ;
         flatMap[tag].push(arg);
       }
@@ -133,7 +139,7 @@ function resolve(leftSide, middleSide, rightSide) {
     const middleHashDots = middleSide[i];
     const match = matchTags(leftSide, middleHashDots);
     if (match)
-      return replace(leftSide, rightSide[i], match.leftPos, middleHashDots.tags.length, match.varMappings);
+      return replace(leftSide, rightSide[i], match);
   }
   return leftSide;
 }
