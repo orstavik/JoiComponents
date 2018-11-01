@@ -23,7 +23,7 @@ describe("parseHashDot", function () {
     const res = parseHashDots("#omg:what").left;
     expect(res.tags).to.deep.equal(["#omg"]);
     expect(res.map).to.deep.equal({
-      "#omg": [":what"]
+      "#omg": [":what-1"]
     });
   });
 
@@ -60,17 +60,17 @@ describe("HashDotMatch", function () {
   it("matchTags(#one:A:B, #one.a.b)", function () {
     const res = matchTags(parseHashDots("#one:A:B").left, parseHashDots("#one.a.b").left, {});
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A": ".a", ":B": ".b"});
+    expect(res.varMap).to.deep.equal({":A-7": ".a", ":B-7": ".b"});
   });
   it("matchTags(#one.a.b, #one:A:B)", function () {
     const res = matchTags(parseHashDots("#one.a.b").left, parseHashDots("#one:A:B").left, {});
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A": ".a", ":B": ".b"});
+    expect(res.varMap).to.deep.equal({":A-10": ".a", ":B-10": ".b"});
   });
   it("matchTags(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
     const res = matchTags(parseHashDots("#one.a.b.c#two.lala").left, parseHashDots("#one:A:B:C#two:LALA").left, {});
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A": ".a", ":B": ".b", ":C": ".c", ":LALA": ".lala"});
+    expect(res.varMap).to.deep.equal({":A-12": ".a", ":B-12": ".b", ":C-12": ".c", ":LALA-12": ".lala"});
   });
   it("matchTags(#one.a.b.с#two.lala, #one::ALL)", function () {
     const res = matchTags(parseHashDots("#one.a.b.c#two.lala").left, parseHashDots("#one::ALL").left, {});
@@ -101,7 +101,7 @@ describe("HashDotMatch", function () {
     const res = matchTags(parseHashDots("#one:A#two.b").left, parseHashDots("#one.c#two:A").left, {});
     expect(res.start).to.be.equal(0);
     expect(res.stop).to.be.equal(2);
-    expect(res.varMap).to.deep.equal({":A": ".b"});
+    expect(res.varMap).to.deep.equal({':A-29': '.c', ':A-30': '.b'});
   });
 });
 
