@@ -35,9 +35,9 @@ export function parseHashDots(input) {
   return {tags, map};
 }
 
-function resolveVariable(key, map){
+function resolveVariable(key, map) {
   let next;
-  while(next = map[key])
+  while (next = map[key])
     key = next;
   return key;
 }
@@ -77,7 +77,7 @@ export function matchTags(left, right) {
   while (true) {
     if (left.tags[start] === first)
       break;
-    if (start === left.length - 1)
+    if (start === left.tags.length - 1)
       return null;
     start++;
   }
@@ -100,11 +100,13 @@ function replace(left, right, match) {
   return {
     tags,
     map: Object.assign({}, left.map, right.map),
-    varMap:match.varMap
+    varMap: match.varMap
   }
 }
 
 function flatten(tags, map, varMappings) {
+  if (!varMappings)
+    return {tags, map};
   const flatMap = {};
   for (let tag of tags) {
     let args = map[tag];
@@ -133,7 +135,7 @@ function resolve(leftSide, middleSide, rightSide) {
     const middleHashDots = middleSide[i];
     const match = matchTags(leftSide, middleHashDots);
     if (match)
-      return replace(leftSide, rightSide[i], match);
+      return resolve(replace(leftSide, rightSide[i], match), middleSide, rightSide);
   }
   return leftSide;
 }
@@ -145,29 +147,50 @@ export class HashDotsRouteMap {
   }
 
   right(hashdots) {
-    return resolve(parseHashDots(hashdots), this.leftRules, this.rightRules);
+    return this.rightParsed(parseHashDots(hashdots));
   }
 
   left(hashdots) {
-    return resolve(parseHashDots(hashdots), this.rightRules, this.leftRules);
+    return this.leftParsed(parseHashDots(hashdots));
+  }
+
+  rightParsed(middle) {
+    return resolve(middle, this.leftRules, this.rightRules);
+  }
+
+  leftParsed(middle) {
+    return resolve(middle, this.rightRules, this.leftRules);
   }
 }
 
 export class HashDotsRouter {
-  constructor() {
-    this.inputHash = undefined;
-    // this.leftHash = undefined;
-    // this.rightHash = undefined;
-    window.addEventListener("hashchange", this._onHashchange);
+  constructor(routes) {
+    this.middle = undefined;
+    this.left = undefined;
+    this.right = undefined;
+    this.lastEvent = null;
+    this.map = new HashDotsRouteMap(routes);
+    window.addEventListener("hashchange", () => this._onHashchange());
     //dispatch an initial routechange event at the first raf after startup
     requestAnimationFrame(() => this._onHashchange());
   }
 
   _onHashchange() {
     let currentHash = window.location.hash;
-    if (this.inputHash === currentHash) //will become this.leftHash === currentHash
-      return;
-    const parsedDots = parseHashDots(currentHash);
-    window.dispatchEvent(new CustomEvent("routechange", {detail: parsedDots}));
+    if (this.middle === currentHash || this.left === currentHash || this.right === currentHash)
+      return window.location.hash = this.left;
+    const middle = parseHashDots(currentHash);
+    let left = this.map.leftParsed(middle);
+    let leftStr = hashDotsToString(left);
+    if (leftStr === this.left)
+      return window.location.hash = this.left;
+    let right = this.map.rightParsed(middle);
+    let rightStr = hashDotsToString(right);
+    this.left = leftStr;
+    this.right = rightStr;
+    this.middle = currentHash;
+    this.lastEvent = {left, middle, right};
+    window.location.hash = leftStr;
+    window.dispatchEvent(new CustomEvent("routechange", {detail: this.lastEvent}));
   }
 }

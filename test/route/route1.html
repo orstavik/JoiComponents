@@ -2,11 +2,22 @@
 
   import {HashDotsRouter} from "../../src/router/HashDot.js";
 
-  const router = new HashDotsRouter();
+  const router = new HashDotsRouter({
+    "#red": "#orange",
+    "#orange": "#yellow",
+    "#black": "#grey",
+    "#grey": "#white"
+  });
   window.addEventListener("routechange", e => console.log(e.detail));
 </script>
 
 <a href="#red">Red</a>
-<a href="#green">Green</a>
-<a href="#blue">Blue</a>
+<a href="#orange">Orange</a>
+<a href="#yellow">Yellow</a>
+<hr>
+<a href="#black">Black</a>
+<a href="#grey">Grey</a>
+<a href="#white">White</a>
+<hr>
+<a href="#blue.a.b">blue.a.b</a>
 <hash-comp></hash-comp>
