@@ -28,36 +28,20 @@ describe("parseHashDot", function () {
       "#wtf": "::A"
     });
   });
-  //todo the string tests look wrong. They should be only a \' and \"..
-  it(`Wrong?? String: #singletring.'\\''`, function () {
-    const res = parseHashDots(`#singletring.'\\''`);
-    expect(res.tags).to.deep.equal(["#singletring"]);
-    expect(res.map).to.deep.equal({
-      "#singletring": [".'\\''"]
-    });
-  });
-  it(`Wrong?? String: #doubletring."\\""`, function () {
-    const res = parseHashDots(`#doubletring."\\""`);
-    expect(res.tags).to.deep.equal(["#doubletring"]);
-    expect(res.map).to.deep.equal({
-      "#doubletring": ['."\\""']
-    });
-  });
-  it(`String: #singlestring.'\''`, function () {
-    const res = parseHashDots(`#singlestring.'\''`);
+  it(`String: #singlestring.'\\''`, function () {
+    const res = parseHashDots(`#singlestring.'\\''`);
     expect(res.tags).to.deep.equal(["#singlestring"]);
     expect(res.map).to.deep.equal({
-      "#singlestring": [".'\''"]
+      "#singlestring": [".'\\''"]
     });
   });
-  it(`String: #doublestring."\""`, function () {
-    const res = parseHashDots(`#doublestring."\""`);
+  it(`String: #doublestring."\\""`, function () {
+    const res = parseHashDots(`#doublestring."\\""`);
     expect(res.tags).to.deep.equal(["#doublestring"]);
     expect(res.map).to.deep.equal({
-      "#doublestring": ['."\""']
+      "#doublestring": ['."\\""']
     });
   });
-
 });
 
 describe("HashDotMatch", function () {
@@ -151,7 +135,7 @@ describe("Syntactic errors (parseHashDots())", function () {
     try {
       const hashDots = parseHashDots("#a::B::C");
     } catch (err) {
-      expect(err.message).to.deep.equal("HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  #a::C::D\nError:       ↑");
+      expect(err.message).to.deep.equal("HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  #a::B::C\nError:       ↑");
     }
   });
   it("Line start with different symbol", () => {

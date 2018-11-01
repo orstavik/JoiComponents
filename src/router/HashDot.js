@@ -1,7 +1,7 @@
 export function parseHashDots(input) {
   if (!input.startsWith("#"))
     throw new SyntaxError(`HashDot sequence must start with #.\nInput:  ${input}\nError:  ↑`);
-  const hashOrDot = /#[\w]+|\.[\w]+|::?[\w]+|\."((?:\\"|(?:(?!").))*)"|\.'((?:\\'|(?:(?!').))*)'|(((.+)))/g;
+  const hashOrDot = /#[\w]+|\.[\w]+|::?[\w]+|\."(\\.|[^"])*"|\.'(\\.|[^'])*'|(((.+)))/g;
   const tags = [];
   const map = {};
   let key;
