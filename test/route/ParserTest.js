@@ -109,7 +109,7 @@ describe("HashDotsRouteMap", function () {
   it("new HashDotsRouteMap()", function () {
     const map = new HashDotsRouteMap(["#one:A:B <=> #two:A#three:B"]);
     expect(map.leftRules[0].tags[0]).to.be.equal("#one");
-    expect(map.rightRules[0].map["#three"][0]).to.be.equal(":B");
+    expect(map.rightRules[0].map["#three"][0]).to.be.equal(":B-31");
   });
 
   it("#one:A:B <=> #two:A#three:B", function () {
