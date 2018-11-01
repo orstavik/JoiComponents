@@ -1,8 +1,4 @@
-const flatValues = {};
-let variableCounter = 0;
-
-//todo this is locking in all strings forever..
-
+const flatValues = {};              //todo this is locking in all strings forever..
 export function flatValue(key) {
   let old = flatValues[key];
   if (old)
@@ -14,15 +10,15 @@ export function flatValue(key) {
   return flatValues[key] = key.substring(1);
 }
 
+let variableCounter = 0;
 export function parseHashDots(input) {
   const varCounter = variableCounter++;
   if (!input.startsWith("#"))
     throw new SyntaxError(`HashDot sequence must start with #.\nInput:  ${input}\nError:  ↑`);
   const hashOrDot = /#[\w]+|\.[\w]+|::?[\w]+|\."(\\.|[^"])*"|\.'(\\.|[^'])*'|\s*(<=>)\s*|(.+)/g;
-  const rule = {left: {tags: [], map: {}/*, flat: {}*/}};
+  const rule = {left: {tags: [], map: {}}};
   let tags = rule.left.tags;
   let map = rule.left.map;
-  // let flat = rule.left.flat;
   let key;
   for (let next; (next = hashOrDot.exec(input)) !== null;) {
     if (next[4]) {
@@ -33,7 +29,6 @@ export function parseHashDots(input) {
       rule.right = {tags: [], map: {}};
       tags = rule.right.tags;
       map = rule.right.map;
-      // flat = rule.right.flat;
       key = undefined;
     } else if (next[0].startsWith("#")) {
       key = next[0];
@@ -42,7 +37,6 @@ export function parseHashDots(input) {
         throw new SyntaxError(`HashDot syntax error: A HashDot sequence cannot have two tags with the same name:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
       map[key] = [];
-      // flat[key] = [];
       tags.push(key);
     } else if (next[0].startsWith("::")) {
       if (map[key].length) {
@@ -50,18 +44,15 @@ export function parseHashDots(input) {
         throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
       map[key] = next[0] + "-" + varCounter;
-      // flat[key] = next[0];
     } else {
       if (map[key] instanceof String) {
         const errorPos = hashOrDot.lastIndex - next[0].length + 1;
         throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
-      if (key.startsWith(":")) {
+      if (next[0].startsWith(":")) {
         map[key].push(next[0] + "-" + varCounter);
-        // flat[key].push(next[0]);
       } else {  //"."
         map[key].push(next[0]);
-        // flat[key].push(flatValue(next[0]));
       }
     }
   }
@@ -75,10 +66,6 @@ function resolveVariable(key, map) {
   return key;
 }
 
-//todo, I need to ensure that in the varMap, I name the left and right side differently entities, so that they don't coincidentally mix.
-//todo how best to do this, I don't know..
-//todo I think the breaking test looks like this
-// #one:A#two.b <=> #one.c#two:A,
 function checkAndAddToVarMap(a, b, varMap) {
   a = resolveVariable(a, varMap);
   if (a.startsWith(":"))
