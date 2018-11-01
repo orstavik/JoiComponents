@@ -35,6 +35,24 @@ export function parseHashDots(input) {
   return {tags, map};
 }
 
+export function getArgumentValue(map, tag, argNr) {
+  // if (argNr < 0)
+  //   return undefined;
+  const args = map["#" + tag];
+  if (!Array.isArray(args) || argNr >= args.length)
+    return undefined;
+  let arg = args[argNr];
+  if (arg.startsWith(":"))
+    return undefined;
+  if (arg.startsWith(".'") || arg.startsWith('."')) {
+    arg = arg.substring(2, arg.length-1);
+    arg = arg.replace(/\\(.)/g, "$1");
+  } else {
+    arg = arg.substring(1);
+  }
+  return arg;
+}
+
 function resolveVariable(key, map) {
   let next;
   while (next = map[key])

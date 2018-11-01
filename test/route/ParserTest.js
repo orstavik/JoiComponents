@@ -1,4 +1,4 @@
-import {hashDotsToString, matchTags, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
+import {getArgumentValue, hashDotsToString, matchTags, parseHashDots, HashDotsRouteMap} from "../../src/router/HashDot.js";
 
 describe("parseHashDot", function () {
   it("basic test: #omg.what.is.'this:!#...#'#wtf#OMG123.123", function () {
@@ -41,6 +41,14 @@ describe("parseHashDot", function () {
     expect(res.map).to.deep.equal({
       "#doublestring": ['."\\""']
     });
+  });
+  it("#one.'a single \\' string?¤#'.end", function () {
+    const res = parseHashDots("#one.'a single \\' string?¤#'.end");
+    expect(getArgumentValue(res.map, "one", 0)).to.be.equal("a single ' string?¤#");
+  });
+  it('#one."a double \\" string?¤#".end', function () {
+    const res = parseHashDots('#one."a double \\" string?¤#".end');
+    expect(getArgumentValue(res.map, "one", 0)).to.be.equal('a double " string?¤#');
   });
 });
 
@@ -133,7 +141,7 @@ describe("HashDotsRouteMap", function () {
 describe("Syntactic errors (parseHashDots())", function () {
   it("Several universal parameters", () => {
     try {
-      const hashDots = parseHashDots("#a::B::C");
+      parseHashDots("#a::B::C");
     } catch (err) {
       expect(err.message).to.deep.equal("HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  #a::B::C\nError:       ↑");
     }
