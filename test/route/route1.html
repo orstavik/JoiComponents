@@ -1,23 +1,40 @@
 <script type="module">
 
-  import {HashDotsRouter} from "../../src/router/HashDot.js";
+  import {HashDotsRouter, hashDotsToString} from "../../src/router/HashDot.js";
 
   const router = new HashDotsRouter({
-    "#red": "#orange",
-    "#orange": "#yellow",
+    "#red:A": "#orange:A",
+    "#orange:A": "#yellow:A",
+    "#chp2": "#chp2_1#chp2_2",
+    "#chp2_1": "#intro_mixin#ex_mixin_basic#ref.mix1.johnG.IvarO",
+    "#chp2_2": "#mixin_global#ex_mixin_global#ref.mix1.IvarO.MaxH",
     "#black": "#grey",
     "#grey": "#white"
   });
-  window.addEventListener("routechange", e => console.log(e.detail));
+  window.addEventListener("routechange", e => {
+    const dump = document.querySelector("#dump");
+    console.log(e.detail.right);
+    dump.innerText = "left: " + hashDotsToString(e.detail.left) + "\n";
+    dump.innerText += "middle: " + hashDotsToString(e.detail.middle) + "\n";
+    dump.innerText += "right: " + hashDotsToString(e.detail.right) + "\n";
+  });
 </script>
 
-<a href="#red">Red</a>
-<a href="#orange">Orange</a>
-<a href="#yellow">Yellow</a>
+<a href="#red.re">Red</a><br>
+<a href="#orange.or">Orange</a><br>
+<a href="#yellow.ye">Yellow</a><br>
 <hr>
-<a href="#black">Black</a>
-<a href="#grey">Grey</a>
-<a href="#white">White</a>
+<a href="#chp2">#chp2</a><br>
+<a href="#chp2_1#chp2_2">#chp2_1#chp2_2</a><br>
+<a href="#chp2_1">#chp2_1</a><br>
+<a href="#intro_mixin#ex_mixin_basic#ref.mix1.johnG.IvarO">#intro_mixin#ex_mixin_basic#ref.mix1.johnG.IvarO</a><br>
 <hr>
-<a href="#blue.a.b">blue.a.b</a>
+<a href="#black">Black</a><br>
+<a href="#grey">Grey</a><br>
+<a href="#white">White</a><br>
+<hr>
+<a href="#blue.a.b">blue.a.b</a><br>
+<hr>
+<pre id="dump"></pre>
+
 <hash-comp></hash-comp>

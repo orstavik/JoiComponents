@@ -130,12 +130,15 @@ export function hashDotsToString({tags, map, varMap}) {
   return str;
 }
 
+//todo pass in a varMap here instead that can be used by the matchTags
 function resolve(leftSide, middleSide, rightSide) {
   for (let i = 0; i < middleSide.length; i++) {
     const middleHashDots = middleSide[i];
     const match = matchTags(leftSide, middleHashDots);
-    if (match)
-      return resolve(replace(leftSide, rightSide[i], match), middleSide, rightSide);
+    if (match){
+      const merged = replace(leftSide, rightSide[i], match);
+      return resolve(flatten(merged.tags, merged.map, merged.varMap), middleSide, rightSide);
+    }
   }
   return leftSide;
 }

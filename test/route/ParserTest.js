@@ -43,18 +43,18 @@ describe("parseHashDot", function () {
       "#doubletring": ['."\\""']
     });
   });
-  it(`String: #singletring.'\''`, function () {
-    const res = parseHashDots(`#singletring.'\''`);
-    expect(res.tags).to.deep.equal(["#singletring"]);
+  it(`String: #singlestring.'\''`, function () {
+    const res = parseHashDots(`#singlestring.'\''`);
+    expect(res.tags).to.deep.equal(["#singlestring"]);
     expect(res.map).to.deep.equal({
-      "#singletring": [".'\''"]
+      "#singlestring": [".'\''"]
     });
   });
-  it(`String: #doubletring."\""`, function () {
-    const res = parseHashDots(`#doubletring."\""`);
-    expect(res.tags).to.deep.equal(["#doubletring"]);
+  it(`String: #doublestring."\""`, function () {
+    const res = parseHashDots(`#doublestring."\""`);
+    expect(res.tags).to.deep.equal(["#doublestring"]);
     expect(res.map).to.deep.equal({
-      "#doubletring": ['."\""']
+      "#doublestring": ['."\""']
     });
   });
 
@@ -145,83 +145,82 @@ describe("HashDotsRouteMap", function () {
     expect(hashDotsToString(left)).to.be.equal("#one.a.b.c");
   });
 });
-describe("Error tests", function () {
-  describe("Syntactic errors (parseHashDots())", function () {
-    it("Several universal parameters", () => {
-      try {
-        const hashDots = parseHashDots("#a::B::C");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  #a::C::D\nError:       ↑");
-      }
-    });
-    it("Line start with different symbol", () => {
-      try {
-        parseHashDots(".error");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:  .error\nError:  ↑");
-      }
-    });
-    it("Line start without # and ends with different symbol", () => {
-      try {
-        parseHashDots("error@");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:  error@\nError:  ↑");
-      }
-    });
-    it("Empty #", () => {
-      try {
-        parseHashDots("#empty#");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #empty#\nError:        ↑");
-      }
-      try {
-        parseHashDots("#no##missing.keywords");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no##missing.keywords\nError:     ↑");
-      }
-    });
-    it("Empty .", () => {
-      try {
-        parseHashDots("#empty.");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #empty.\nError:        ↑");
-      }
-      try {
-        parseHashDots("#no.missing.#args");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no.missing.#args\nError:             ↑");
-      }
-    });
-    //todo maybe we should allow whitespace in the format, make it simpler to write the rules?
-    it("No whitespace", () => {
-      try {
-        parseHashDots("#a.b c#d");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:      ↑");
-      }
-      try {
-        parseHashDots(" #a.b");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:   #a.b\nError:  ↑");
-      }
-      try {
-        parseHashDots("#no #whitespace #inBetween");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no #whitespace #inBetween\nError:     ↑");
-      }
-      try {
-        parseHashDots("#no.w .inBetween");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no.w .inBetween\nError:       ↑");
-      }
-    });
-    it("HashDot wrong sequence", () => {
-      try {
-        parseHashDots("#a.b c#d");
-      } catch (err) {
-        expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:      ↑");
-      }
-    });
-    // parseHashDots("#no#illegal.characters?%&!¤,;:-_");
+
+describe("Syntactic errors (parseHashDots())", function () {
+  it("Several universal parameters", () => {
+    try {
+      const hashDots = parseHashDots("#a::B::C");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  #a::C::D\nError:       ↑");
+    }
   });
+  it("Line start with different symbol", () => {
+    try {
+      parseHashDots(".error");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:  .error\nError:  ↑");
+    }
+  });
+  it("Line start without # and ends with different symbol", () => {
+    try {
+      parseHashDots("error@");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:  error@\nError:  ↑");
+    }
+  });
+  it("Empty #", () => {
+    try {
+      parseHashDots("#empty#");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #empty#\nError:        ↑");
+    }
+    try {
+      parseHashDots("#no##missing.keywords");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no##missing.keywords\nError:     ↑");
+    }
+  });
+  it("Empty .", () => {
+    try {
+      parseHashDots("#empty.");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #empty.\nError:        ↑");
+    }
+    try {
+      parseHashDots("#no.missing.#args");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no.missing.#args\nError:             ↑");
+    }
+  });
+  //todo maybe we should allow whitespace in the format, make it simpler to write the rules?
+  it("No whitespace", () => {
+    try {
+      parseHashDots("#a.b c#d");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:      ↑");
+    }
+    try {
+      parseHashDots(" #a.b");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:   #a.b\nError:  ↑");
+    }
+    try {
+      parseHashDots("#no #whitespace #inBetween");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no #whitespace #inBetween\nError:     ↑");
+    }
+    try {
+      parseHashDots("#no.w .inBetween");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no.w .inBetween\nError:       ↑");
+    }
+  });
+  it("HashDot wrong sequence", () => {
+    try {
+      parseHashDots("#a.b c#d");
+    } catch (err) {
+      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:      ↑");
+    }
+  });
+  // parseHashDots("#no#illegal.characters?%&!¤,;:-_");
 });
