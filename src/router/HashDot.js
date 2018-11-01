@@ -35,6 +35,7 @@ export function parseHashDots(input) {
   return {tags, map};
 }
 
+//todo merge this into the parser? yes.. :)
 export function getArgumentValue(map, tag, argNr) {
   // if (argNr < 0)
   //   return undefined;
@@ -89,7 +90,7 @@ function matchArguments(as, bs, varMap) {
   return true;
 }
 
-export function matchTags(left, right) {
+export function matchTags(left, right, varMap) {
   let start = 0;
   let first = right.tags[0];
   while (true) {
@@ -99,7 +100,7 @@ export function matchTags(left, right) {
       return null;
     start++;
   }
-  let varMap = {};
+  // let varMap = {};
   const stop = right.tags.length;
   for (let i = 0; i < stop; i++) {
     let rightTag = right.tags[i];
@@ -149,13 +150,14 @@ export function hashDotsToString({tags, map, varMap}) {
 }
 
 //todo pass in a varMap here instead that can be used by the matchTags
-function resolve(leftSide, middleSide, rightSide) {
+function resolve(leftSide, middleSide, rightSide, varMap) {
   for (let i = 0; i < middleSide.length; i++) {
     const middleHashDots = middleSide[i];
-    const match = matchTags(leftSide, middleHashDots);
+    const match = matchTags(leftSide, middleHashDots, varMap);
     if (match){
       const merged = replace(leftSide, rightSide[i], match);
-      return resolve(flatten(merged.tags, merged.map, merged.varMap), middleSide, rightSide);
+      return resolve(merged, middleSide, rightSide, varMap);
+      // return resolve(flatten(merged.tags, merged.map, merged.varMap), middleSide, rightSide);
     }
   }
   return leftSide;
@@ -176,11 +178,11 @@ export class HashDotsRouteMap {
   }
 
   rightParsed(middle) {
-    return resolve(middle, this.leftRules, this.rightRules);
+    return resolve(middle, this.leftRules, this.rightRules, {});
   }
 
   leftParsed(middle) {
-    return resolve(middle, this.rightRules, this.leftRules);
+    return resolve(middle, this.rightRules, this.leftRules, {});
   }
 }
 
