@@ -108,8 +108,8 @@ describe("HashDotMatch", function () {
 describe("HashDotsRouteMap", function () {
   it("new HashDotsRouteMap()", function () {
     const map = new HashDotsRouteMap(["#one:A:B <=> #two:A#three:B"]);
-    expect(map.leftRules[0].tags[0]).to.be.equal("#one");
-    expect(map.rightRules[0].map["#three"][0]).to.be.equal(":B-31");
+    expect(map.rules[0].left.tags[0]).to.be.equal("#one");
+    expect(map.reverseRules[0].left.map["#three"][0]).to.be.equal(":B-31");
   });
 
   it("#one:A:B <=> #two:A#three:B", function () {
@@ -153,6 +153,11 @@ describe("HashDotsRouteMap", function () {
     expect(hashDotsToString(right)).to.be.equal("#aa.1#bb.2");
     const left = routeMap.left("#cc.1.2");
     expect(hashDotsToString(left)).to.be.equal("#a.1#b.2");
+  });
+  it("Rule order problem for variables: #b:X <=> #c:X && #a:X <=> #b:X", function () {
+    const routeMap = new HashDotsRouteMap(["#b:A <=> #c:A", "#a:A <=> #b:A"]);
+    const right = routeMap.right("#a.1");
+    expect(hashDotsToString(right)).to.be.equal("#c.1");
   });
 });
 
