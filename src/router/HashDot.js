@@ -93,7 +93,7 @@ function matchArguments(as, bs, varMap) {
   return true;
 }
 
-export function matchTags(left, right, varMap) {
+export function matchTags(left, right) {
   let start = 0;
   let first = right.tags[0];
   while (true) {
@@ -103,6 +103,7 @@ export function matchTags(left, right, varMap) {
       return null;
     start++;
   }
+  let varMap = {};
   const stop = right.tags.length;
   for (let i = 0; i < stop; i++) {
     let rightTag = right.tags[i];
@@ -115,20 +116,13 @@ export function matchTags(left, right, varMap) {
   return {start, stop, varMap};
 }
 
-function pureSplice(origin, match, added) {
+function pureSplice(origin, start, stop, added) {
   const tags = [].concat(origin);
-  tags.splice(match.start, match.stop, ...added);
+  tags.splice(start, stop, ...added);
   return tags;
 }
 
-function replace(left, right, match) {
-  return {
-    tags: pureSplice(left.tags, match, right.tags),
-    args: pureSplice(left.args, match, right.args),
-    varMap: match.varMap
-  }
-}
-
+//todo should this be mutable??
 function flatten(allArgs, varMappings) {
   if (!varMappings)
     return allArgs;
@@ -156,19 +150,15 @@ export function hashDotsToString({tags, args, varMap}) {
   return str;
 }
 
-function resolve(leftSide, rules, varMap) {
+function resolve(leftSide, rules) {
   for (let rule of rules) {
-    //strategy 1. make a new / clear the varMap each run. This will ensure that the varMap is emptied each time.
-    //after this, when there is a match, the varMap only has to be merged. And flattening can be done at the end.
-    //if this is the strategy, then making matchTags produce the varMap was the best??
-    const match = matchTags(leftSide, rule.left, varMap);
+    const match = matchTags(leftSide, rule.left);
     if (match) {
       //todo can I avoid merging and flattening here??
-      //strategy 2. trim the varMap here.
-      //i don't like this strategy
-      const merged = replace(leftSide, rule.right, match);
-      const args = flatten(merged.args, merged.varMap);
-      return resolve({tags: merged.tags, args}, rules, {});
+      let tags = pureSplice(leftSide.tags, match.start, match.stop, rule.right.tags);
+      let args = pureSplice(leftSide.args, match.start, match.stop, rule.right.args);
+      args = flatten(args, match.varMap);
+      return resolve({tags, args}, rules);
     }
   }
   return leftSide;
@@ -189,11 +179,11 @@ export class HashDotsRouteMap {
   }
 
   rightParsed(middle) {
-    return resolve(middle, this.rules, {});
+    return resolve(middle, this.rules);
   }
 
   leftParsed(middle) {
-    return resolve(middle, this.reverseRules, {});
+    return resolve(middle, this.reverseRules);
   }
 }
 
