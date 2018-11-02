@@ -140,16 +140,13 @@ describe("HashDotsRouteMap", function () {
     const left = routeMap.left("#yellow.ye");
     expect(hashDotsToString(left)).to.be.equal("#red.ye");
   });
-  // it("#red:A <=> #orange:A && #orange:A <=> #yellow:A", function () {
-  //   const routeMap = new HashDotsRouteMap({
-  //     "#red:A": "#orange:A",
-  //     "#orange:A": "#yellow:A"
-  //   });
-  //   const right = routeMap.right("#red.re");
-  //   expect(hashDotsToString(right)).to.be.equal("#yellow.re");
-  //   const left = routeMap.left("#yellow.ye");
-  //   expect(hashDotsToString(left)).to.be.equal("#red.ye");
-  // });
+  it("Same variable name across different HashDot statements: #red:A <=> #orange:A && #orange:A <=> #yellow:A", function () {
+    const routeMap = new HashDotsRouteMap(["#red:A <=> #orange:A", "#orange:A <=> #yellow:A"]);
+    const right = routeMap.right("#red.re");
+    expect(hashDotsToString(right)).to.be.equal("#yellow.re");
+    const left = routeMap.left("#yellow.ye");
+    expect(hashDotsToString(left)).to.be.equal("#red.ye");
+  });
 });
 
 describe("Syntactic errors (parseHashDots())", function () {
