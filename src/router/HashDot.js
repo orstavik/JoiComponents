@@ -149,15 +149,14 @@ export function hashDotsToString({tags, map, varMap}) {
   return str;
 }
 
-function resolve(leftSide, middleSide, rightSide, varMap) {
-  for (let i = 0; i < middleSide.length; i++) {
-    const middleHashDots = middleSide[i];
-    const match = matchTags(leftSide, middleHashDots, varMap);
+function resolve(leftSide, rules, varMap) {
+  for (let rule of rules) {
+    const match = matchTags(leftSide, rule.left, varMap);
     if (match) {
       //todo can I avoid merging and flattening here??
-      const merged = replace(leftSide, rightSide[i], match);
+      const merged = replace(leftSide, rule.right, match);
       const flat = flatten(merged.tags, merged.map, merged.varMap);
-      return resolve(flat, middleSide, rightSide, {});
+      return resolve(flat, rules, {});
     }
   }
   return leftSide;
@@ -165,9 +164,8 @@ function resolve(leftSide, middleSide, rightSide, varMap) {
 
 export class HashDotsRouteMap {
   constructor(routeMap) {
-    let rules = routeMap.map(str => parseHashDots(str));
-    this.leftRules = rules.map(rule => rule.left);
-    this.rightRules = rules.map(rule => rule.right);
+    this.rules = routeMap.map(str => parseHashDots(str));
+    this.reverseRules = this.rules.map(rule => ({left: rule.right, right: rule.left}));
   }
 
   right(hashdots) {
@@ -179,11 +177,11 @@ export class HashDotsRouteMap {
   }
 
   rightParsed(middle) {
-    return resolve(middle, this.leftRules, this.rightRules, {});
+    return resolve(middle, this.rules, {});
   }
 
   leftParsed(middle) {
-    return resolve(middle, this.rightRules, this.leftRules, {});
+    return resolve(middle, this.reverseRules, {});
   }
 }
 
