@@ -129,24 +129,24 @@ function replace(left, right, match) {
   }
 }
 
-function flatten(tags, allArgs, varMappings) {      //todo .map
+function flatten(allArgs, varMappings) {
   if (!varMappings)
-    return {tags, args: allArgs};
+    return allArgs;
   const flatArgs = [];
   for (let i = 0; i < allArgs.length; i++) {
     let args = allArgs[i];
     if (!Array.isArray(args)) args = resolveVariable(args, varMappings);
     flatArgs[i] = Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
   }
-  return {tags, args: flatArgs};
+  return flatArgs;
 }
 
 export function hashDotsToString({tags, args, varMap}) {
-  let flat = flatten(tags, args, varMap);
+  const allArgs = flatten(args, varMap);
   let str = "";
-  for (let i = 0; i < flat.tags.length; i++) {
-    let tag = flat.tags[i];
-    let args = flat.args[i];
+  for (let i = 0; i < tags.length; i++) {
+    let tag = tags[i];
+    let args = allArgs[i];
     str += tag;
     if (Array.isArray(args))
       for (let arg of args) str += arg;
@@ -167,8 +167,8 @@ function resolve(leftSide, rules, varMap) {
       //strategy 2. trim the varMap here.
       //i don't like this strategy
       const merged = replace(leftSide, rule.right, match);
-      const flat = flatten(merged.tags, merged.args, merged.varMap);  //todo .map
-      return resolve(flat, rules, {});
+      const args = flatten(merged.args, merged.varMap);
+      return resolve({tags: merged.tags, args}, rules, {});
     }
   }
   return leftSide;
