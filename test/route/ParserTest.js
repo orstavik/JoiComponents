@@ -147,6 +147,13 @@ describe("HashDotsRouteMap", function () {
     const left = routeMap.left("#yellow.ye");
     expect(hashDotsToString(left)).to.be.equal("#red.ye");
   });
+  it("Rule order is preserved and given priority: #a:X <=> #aa:X && #b:X <=> #bb:X && #a:X#b:Y <=> #cc:X:Y", function () {
+    const routeMap = new HashDotsRouteMap(["#a:A <=> #aa:A", "#b:B <=> #bb:B", "#a:A#b:B <=> #cc:A:B"]);
+    const right = routeMap.right("#a.1#b.2");
+    expect(hashDotsToString(right)).to.be.equal("#aa.1#bb.2");
+    const left = routeMap.left("#cc.1.2");
+    expect(hashDotsToString(left)).to.be.equal("#a.1#b.2");
+  });
 });
 
 describe("Syntactic errors (parseHashDots())", function () {
