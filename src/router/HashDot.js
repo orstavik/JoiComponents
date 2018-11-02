@@ -11,50 +11,52 @@ export function flatValue(key) {
 }
 
 let variableCounter = 0;
+
 export function parseHashDots(input) {
   const varCounter = variableCounter++;
   if (!input.startsWith("#"))
     throw new SyntaxError(`HashDot sequence must start with #.\nInput:  ${input}\nError:  ↑`);
   const hashOrDot = /#[\w]+|\.[\w]+|::?[\w]+|\."(\\.|[^"])*"|\.'(\\.|[^'])*'|\s*(<=>)\s*|(.+)/g;
-  const rule = {left: {tags: [], map: {}}};
+  const rule = {left: {tags: [], args: []}};
   let tags = rule.left.tags;
-  let map = rule.left.map;
-  let key;
+  let args = rule.left.args;
+  let tagPos = -1, argPos = 0;
   for (let next; (next = hashOrDot.exec(input)) !== null;) {
     if (next[4]) {
       const errorPos = hashOrDot.lastIndex - next[4].length + 1;
       throw new SyntaxError(`HashDot syntax error:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
     }
     if (next[3] === "<=>") {
-      rule.right = {tags: [], map: {}};
+      rule.right = {tags: [], args: [], map: {}};
       tags = rule.right.tags;
-      map = rule.right.map;
-      key = undefined;
-    } else if (next[0].startsWith("#")) {
-      key = next[0];
-      if (map[key]) {
-        const errorPos = hashOrDot.lastIndex - next[0].length + 1;
-        throw new SyntaxError(`HashDot syntax error: A HashDot sequence cannot have two tags with the same name:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
-      }
-      map[key] = [];
-      tags.push(key);
-    } else if (next[0].startsWith("::")) {
-      if (map[key].length) {
-        const errorPos = hashOrDot.lastIndex - next[0].length + 1;
-        throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
-      }
-      map[key] = next[0] + "-" + varCounter;
-    } else {
-      if (map[key] instanceof String) {
-        const errorPos = hashOrDot.lastIndex - next[0].length + 1;
-        throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
-      }
-      if (next[0].startsWith(":")) {
-        map[key].push(next[0] + "-" + varCounter);
-      } else {  //"."
-        map[key].push(next[0]);
-      }
+      args = rule.right.args;
+      tagPos = -1;
+      continue;
     }
+    let word = next[0];
+    if (word.startsWith("#")) {
+      ++tagPos;
+      tags[tagPos] = word;
+      args[tagPos] = [];
+      argPos = 0;
+      continue;
+    }
+    if (tagPos === -1) {
+      const errorPos = hashOrDot.lastIndex - word.length + 1;
+      throw new SyntaxError(`HashDot syntax error. HashDot sequence must start with '#':\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
+    }
+    if (word.startsWith("::")) {
+      if (argPos !== 0) {
+        const errorPos = hashOrDot.lastIndex - word.length + 1;
+        throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
+      }
+      args[tagPos] = word + "-" + varCounter;
+      argPos++;
+      continue;
+    }
+    if (word.startsWith(":"))
+      word += "-" + varCounter;
+    args[tagPos][argPos++] = word;
   }
   return rule;
 }
@@ -107,40 +109,45 @@ export function matchTags(left, right, varMap) {
     let leftTag = left.tags[start + i];
     if (rightTag !== leftTag)
       return null;
-    if (!matchArguments(left.map[leftTag], right.map[rightTag], varMap))
+    if (!matchArguments(left.args[start + i], right.args[i], varMap))
       return null;
   }
   return {start, stop, varMap};
 }
 
+function pureSplice(origin, match, added) {
+  const tags = [].concat(origin);
+  tags.splice(match.start, match.stop, ...added);
+  return tags;
+}
+
 function replace(left, right, match) {
-  const tags = [].concat(left.tags);           //todo make a better splice: Array.prototype.splice.call([], ...) ??
-  tags.splice(match.start, match.stop, ...right.tags);
   return {
-    tags,
-    map: Object.assign({}, left.map, right.map),
+    tags: pureSplice(left.tags, match, right.tags),
+    args: pureSplice(left.args, match, right.args),
     varMap: match.varMap
   }
 }
 
-function flatten(tags, map, varMappings) {
+function flatten(tags, allArgs, varMappings) {      //todo .map
   if (!varMappings)
-    return {tags, map};
-  const flatMap = {};
-  for (let tag of tags) {
-    let args = map[tag];
+    return {tags, args: allArgs};
+  const flatArgs = [];
+  for (let i = 0; i < allArgs.length; i++) {
+    let args = allArgs[i];
     if (!Array.isArray(args)) args = resolveVariable(args, varMappings);
-    flatMap[tag] = Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
+    flatArgs[i] = Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
   }
-  return {tags, map: flatMap};
+  return {tags, args: flatArgs};
 }
 
-export function hashDotsToString({tags, map, varMap}) {
-  let flat = flatten(tags, map, varMap);
+export function hashDotsToString({tags, args, varMap}) {
+  let flat = flatten(tags, args, varMap);
   let str = "";
-  for (let tag of flat.tags) {
+  for (let i = 0; i < flat.tags.length; i++) {
+    let tag = flat.tags[i];
+    let args = flat.args[i];
     str += tag;
-    let args = flat.map[tag];
     if (Array.isArray(args))
       for (let arg of args) str += arg;
     else
@@ -151,11 +158,16 @@ export function hashDotsToString({tags, map, varMap}) {
 
 function resolve(leftSide, rules, varMap) {
   for (let rule of rules) {
+    //strategy 1. make a new / clear the varMap each run. This will ensure that the varMap is emptied each time.
+    //after this, when there is a match, the varMap only has to be merged. And flattening can be done at the end.
+    //if this is the strategy, then making matchTags produce the varMap was the best??
     const match = matchTags(leftSide, rule.left, varMap);
     if (match) {
       //todo can I avoid merging and flattening here??
+      //strategy 2. trim the varMap here.
+      //i don't like this strategy
       const merged = replace(leftSide, rule.right, match);
-      const flat = flatten(merged.tags, merged.map, merged.varMap);
+      const flat = flatten(merged.tags, merged.args, merged.varMap);  //todo .map
       return resolve(flat, rules, {});
     }
   }

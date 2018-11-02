@@ -12,47 +12,41 @@ describe("parseHashDot", function () {
     const res = parseHashDots("#omg.what.is.'this:!#...#'#wtf#OMG123.123").left;
 
     expect(res.tags).to.deep.equal(["#omg", "#wtf", "#OMG123"]);
-    expect(res.map).to.deep.equal({
-      "#omg": [".what", ".is", ".'this:!#...#'"],
-      "#wtf": [],
-      "#OMG123": [".123"],
-    });
+    expect(res.args).to.deep.equal([
+      [".what", ".is", ".'this:!#...#'"],
+      [],
+      [".123"]
+    ]);
   });
 
   it("parameter: #omg:what", function () {
     const res = parseHashDots("#omg:what").left;
     expect(res.tags).to.deep.equal(["#omg"]);
-    expect(res.map).to.deep.equal({
-      "#omg": [":what-1"]
-    });
+    expect(res.args).to.deep.equal([[":what-1"]]);
   });
 
   it("parameter: #wtf::A", function () {
     const res = parseHashDots("#wtf::A").left;
     expect(res.tags).to.deep.equal(["#wtf"]);
-    assert(res.map["#wtf"].match(/::A-\d+/));
+    assert(res.args[0].match(/::A-\d+/));
   });
   it(`String: #singlestring.'\\''`, function () {
     const res = parseHashDots(`#singlestring.'\\''`).left;
     expect(res.tags).to.deep.equal(["#singlestring"]);
-    expect(res.map).to.deep.equal({
-      "#singlestring": [".'\\''"]
-    });
+    expect(res.args).to.deep.equal([[".'\\''"]]);
   });
   it(`String: #doublestring."\\""`, function () {
     const res = parseHashDots(`#doublestring."\\""`).left;
     expect(res.tags).to.deep.equal(["#doublestring"]);
-    expect(res.map).to.deep.equal({
-      "#doublestring": ['."\\""']
-    });
+    expect(res.args).to.deep.equal([['."\\""']]);
   });
   it("#one.'a single \\' string?¤#'.end", function () {
     const res = parseHashDots("#one.'a single \\' string?¤#'.end").left;
-    expect(flatValue(res.map["#one"][0])).to.be.equal("a single ' string?¤#");
+    expect(flatValue(res.args[0][0])).to.be.equal("a single ' string?¤#");
   });
   it('#one."a double \\" string?¤#".end', function () {
     const res = parseHashDots('#one."a double \\" string?¤#".end').left;
-    expect(flatValue(res.map["#one"][0])).to.be.equal('a double " string?¤#');
+    expect(flatValue(res.args[0][0])).to.be.equal('a double " string?¤#');
   });
 });
 
@@ -109,7 +103,7 @@ describe("HashDotsRouteMap", function () {
   it("new HashDotsRouteMap()", function () {
     const map = new HashDotsRouteMap(["#one:A:B <=> #two:A#three:B"]);
     expect(map.rules[0].left.tags[0]).to.be.equal("#one");
-    expect(map.reverseRules[0].left.map["#three"][0]).to.be.equal(":B-31");
+    expect(map.reverseRules[0].left.args[1][0]).to.be.equal(":B-31");
   });
 
   it("#one:A:B <=> #two:A#three:B", function () {
@@ -158,6 +152,19 @@ describe("HashDotsRouteMap", function () {
     const routeMap = new HashDotsRouteMap(["#b:A <=> #c:A", "#a:A <=> #b:A"]);
     const right = routeMap.right("#a.1");
     expect(hashDotsToString(right)).to.be.equal("#c.1");
+  });
+  it("Need to run a rule twice: #x <=> #y && #a <=> #x && #b <=> #x", function () {
+    const routeMap = new HashDotsRouteMap(["#x <=> #y", "#a <=> #x", "#b <=> #x"]);
+    const right = routeMap.right("#a#b");
+    expect(hashDotsToString(right)).to.be.equal("#y#y");
+  });
+  it("Need to output the same hashtag with different parameters: #a#x <=> #y.1 && #c#x <=> #y.2 && #b <=> #x && #d <=> #x", function () {
+    const routeMap = new HashDotsRouteMap(["#a#x <=> #y.1", "#c#x <=> #y.2", "#b <=> #x", "#d <=> #x"]);
+    const right = routeMap.right("#a#b#c#d");
+    expect(hashDotsToString(right)).to.be.equal("#y.1#y.2");
+    //todo the bug is #y2.#y.2 because the parseHashDots produce a map that only accepts a single entry per hashtag name
+    //todo the fix is to make the map use the name + tag position of the hashtag for its arguments.
+    //todo or.. only the position? As a map
   });
 });
 
