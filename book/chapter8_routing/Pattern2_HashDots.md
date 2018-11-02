@@ -45,8 +45,8 @@ As a running function it looks like this:
 ```javascript
 const test = "#shoes.42.black#menswear#search.'socks'";
 const test1 = "#shoes::ALL#search:Q";
-let res = parseHashDots(test);
-let res2 = parseHashDots(test2);
+let res = HashDots.parse(test).tree;
+let res2 = HashDots.parse(test2).tree;
 res === [
   {
     keyword: "shoes",
@@ -76,10 +76,10 @@ res2 === [
 ```
 For now, HashDots is strict and unforgiving. Attempting to parse these hashlocations will throw an Error.
 ```javascript
-parseHashDots("#no #whitespace #inBetween");
-parseHashDots("#no##missing.keywords");
-parseHashDots("#no#missing..arguments");
-parseHashDots("#no#illegal.characters?%&!¤,;:-_");
+HashDots.parse("#no #whitespace #inBetween");
+HashDots.parse("#no##missing.keywords");
+HashDots.parse("#no#missing..arguments");
+HashDots.parse("#no#illegal.characters?%&!¤,;:-_");
 ```
 
 ## Implementation
@@ -100,7 +100,7 @@ A full implementation of HashDot parser in JS looks like this:
 todo update this..
 
 ```javascript
-function parseHashDots(hashString) {
+function HashDots.parse(hashString) {
 
   function tokenType(c) {
     if (c === "'" || c === '"') return "'";

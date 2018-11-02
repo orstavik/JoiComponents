@@ -1,6 +1,6 @@
 <script type="module">
 
-  import {HashDotsRouter, hashDotsToString} from "../../src/router/HashDot.js";
+  import {HashDotsRouter, HashDots} from "../../src/router/HashDot.js";
 
   const router = new HashDotsRouter([
     "#red:A <=> #orange:A",
@@ -14,9 +14,9 @@
   window.addEventListener("routechange", e => {
     const dump = document.querySelector("#dump");
     console.log(e.detail.right);
-    dump.innerText = "left: " + hashDotsToString(e.detail.left) + "\n";
-    dump.innerText += "middle: " + hashDotsToString(e.detail.middle) + "\n";
-    dump.innerText += "right: " + hashDotsToString(e.detail.right) + "\n";
+    dump.innerText = "left: " + HashDots.toString(e.detail.left) + "\n";
+    dump.innerText += "middle: " + HashDots.toString(e.detail.middle) + "\n";
+    dump.innerText += "right: " + HashDots.toString(e.detail.right) + "\n";
   });
 </script>
 
