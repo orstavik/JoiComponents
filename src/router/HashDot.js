@@ -4,7 +4,40 @@ function pureSplice(origin, start, stop, added) {
   return tags;
 }
 
+function resolveVariable(key, map) {
+  let next;
+  while (next = map[key])
+    key = next;
+  return key;
+}
+
+function checkAndAddToVarMap(a, b, varMap) {
+  a = resolveVariable(a, varMap);
+  if (a.startsWith(":"))
+    return varMap[a] = b;
+  b = resolveVariable(b, varMap);
+  if (b.startsWith(":"))
+    return varMap[b] = a;
+  return a === b;
+}
+
+function matchArguments(as, bs, varMap) {
+  as = resolveVariable(as, varMap);
+  if (!Array.isArray(as))
+    return varMap[as] = bs;
+  bs = resolveVariable(bs, varMap);
+  if (!Array.isArray(bs))
+    return varMap[bs] = as;
+  if (as.length !== bs.length)
+    return false;
+  for (let i = 0; i < as.length; i++)
+    if (!checkAndAddToVarMap(as[i], bs[i], varMap))
+      return false;
+  return true;
+}
+
 let variableCounter = 0;
+const flatValues = {};              //todo this is locking in all strings forever..
 
 export class HashDots {
   static parse(input){
@@ -80,7 +113,7 @@ export class HashDots {
   }
 
   static toString({tags, args, varMap}) {
-    const allArgs = flatten(args, varMap);
+    const allArgs = HashDots.flatten(args, varMap);
     let str = "";
     for (let i = 0; i < tags.length; i++) {
       let tag = tags[i];
@@ -94,100 +127,60 @@ export class HashDots {
     return str;
   }
 
-}
-
-const flatValues = {};              //todo this is locking in all strings forever..
-export function flatValue(key) {
-  let old = flatValues[key];
-  if (old)
-    return old;
-  if (key.startsWith(".'"))
-    return flatValues[key] = key.substring(2, key.length - 1).replace(/\\'/, "'");
-  if (key.startsWith('."'))
-    return flatValues[key] = key.substring(2, key.length - 1).replace(/\\"/, '"');
-  return flatValues[key] = key.substring(1);
-}
-
-function resolveVariable(key, map) {
-  let next;
-  while (next = map[key])
-    key = next;
-  return key;
-}
-
-function checkAndAddToVarMap(a, b, varMap) {
-  a = resolveVariable(a, varMap);
-  if (a.startsWith(":"))
-    return varMap[a] = b;
-  b = resolveVariable(b, varMap);
-  if (b.startsWith(":"))
-    return varMap[b] = a;
-  return a === b;
-}
-
-function matchArguments(as, bs, varMap) {
-  as = resolveVariable(as, varMap);
-  if (!Array.isArray(as))
-    return varMap[as] = bs;
-  bs = resolveVariable(bs, varMap);
-  if (!Array.isArray(bs))
-    return varMap[bs] = as;
-  if (as.length !== bs.length)
-    return false;
-  for (let i = 0; i < as.length; i++)
-    if (!checkAndAddToVarMap(as[i], bs[i], varMap))
-      return false;
-  return true;
-}
-
 //todo should this be mutable??
-function flatten(arrayOfArgs, varMappings) {
-  if (!varMappings)
-    return arrayOfArgs;
-  const flatArgs = [];
-  for (let i = 0; i < arrayOfArgs.length; i++) {
-    let args = arrayOfArgs[i];
-    if (!Array.isArray(args)) args = resolveVariable(args, varMappings);
-    flatArgs[i] = Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
-  }
-  return flatArgs;
-}
-
-function resolve(leftSide, rules) {
-  for (let rule of rules) {
-    const match = HashDots.match(leftSide, rule.left);
-    if (match) {
-      //todo can I avoid merging and flattening here??
-      let tags = pureSplice(leftSide.tags, match.start, match.stop, rule.right.tags);
-      let args = pureSplice(leftSide.args, match.start, match.stop, rule.right.args);
-      args = flatten(args, match.varMap);
-      return resolve({tags, args}, rules);
+  static flatten(arrayOfArgs, varMappings) {
+    if (!varMappings)
+      return arrayOfArgs;
+    const flatArgs = [];
+    for (let i = 0; i < arrayOfArgs.length; i++) {
+      let args = arrayOfArgs[i];
+      if (!Array.isArray(args)) args = resolveVariable(args, varMappings);
+      flatArgs[i] = Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
     }
+    return flatArgs;
   }
-  return leftSide;
+  static flatValue(key) {
+    let old = flatValues[key];
+    if (old)
+      return old;
+    if (key.startsWith(".'"))
+      return flatValues[key] = key.substring(2, key.length - 1).replace(/\\'/, "'");
+    if (key.startsWith('."'))
+      return flatValues[key] = key.substring(2, key.length - 1).replace(/\\"/, '"');
+    return flatValues[key] = key.substring(1);
+  }
 }
 
-export class HashDotsRouteMap {
+export class HashDotMap {
   constructor(routeMap) {
     this.rules = routeMap.map(str => HashDots.parse(str));
     this.reverseRules = this.rules.map(rule => ({left: rule.right, right: rule.left}));
   }
 
   right(hashdots) {
-    return this.rightParsed(HashDots.parse(hashdots).left);
+    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots).left);
+    return HashDotMap.resolve(hashdots, this.rules);
   }
 
   left(hashdots) {
-    return this.leftParsed(HashDots.parse(hashdots).left);
+    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots).left);
+    return HashDotMap.resolve(hashdots, this.reverseRules);
   }
 
-  rightParsed(middle) {
-    return resolve(middle, this.rules);
+  static resolve(leftSide, rules) {
+    for (let rule of rules) {
+      const match = HashDots.match(leftSide, rule.left);
+      if (match) {
+        //todo can I avoid merging and HashDots.flattening here??
+        let tags = pureSplice(leftSide.tags, match.start, match.stop, rule.right.tags);
+        let args = pureSplice(leftSide.args, match.start, match.stop, rule.right.args);
+        args = HashDots.flatten(args, match.varMap);
+        return HashDotMap.resolve({tags, args}, rules);
+      }
+    }
+    return leftSide;
   }
 
-  leftParsed(middle) {
-    return resolve(middle, this.reverseRules);
-  }
 }
 
 export class HashDotsRouter {
@@ -196,7 +189,7 @@ export class HashDotsRouter {
     this.left = undefined;
     this.right = undefined;
     this.lastEvent = null;
-    this.map = new HashDotsRouteMap(routes);
+    this.map = new HashDotMap(routes);
     window.addEventListener("hashchange", () => this._onHashchange());
     //dispatch an initial routechange event at the first raf after startup
     requestAnimationFrame(() => this._onHashchange());
@@ -207,11 +200,11 @@ export class HashDotsRouter {
     if (this.middle === currentHash || this.left === currentHash || this.right === currentHash)
       return window.location.hash = this.left;
     const middle = HashDots.parse(currentHash).left;
-    let left = this.map.leftParsed(middle);
+    let left = this.map.left(middle);
     let leftStr = HashDots.toString(left);
     if (leftStr === this.left)
       return window.location.hash = this.left;
-    let right = this.map.rightParsed(middle);
+    let right = this.map.right(middle);
     let rightStr = HashDots.toString(right);
     this.left = leftStr;
     this.right = rightStr;
