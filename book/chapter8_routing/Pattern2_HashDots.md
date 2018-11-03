@@ -62,130 +62,28 @@ Left: #one.abc#two.d.e.f#three  Right: #two::Y  {Y=> \[d, e, f]}
 Left: #one.abc#two::Z#three     Right: #two.1.2.3  {Z=> \[1, 2, 3]}
 Left: #one.abc#two::Z#three     Right: #two:A:B.3  {Z=> \[:A, :B, 3]}
 
-## HashDot rules
+## HashDot rules: <=>
 
-## DEMO time, go max!!!
+A HashDot rule is a statement that says that one sequence of hashdots can be replaced by another.
+The HashDot rule consists of two HashDot sequences (left and right) separated by the HashDot rule sign "<=>".
+If a first HashDot sequence matches the left-hand side of a HashDot rule, 
+then the matching HashDots in the first sequence can be replaced by the HashDots on the right-hand side of the rule
+(with the given variable values).
 
-ATT!! This demo only illustrate how to parse HashDots. It does not match them. 
-I have no matching algorithm for only two HashDot lists.
+diagram 5a:
+First sequence: #one.abc#two.d.e.f#three  Rule: #one:X <=> #four:X.123  
+Result: {X=> \[abc]} and #four:X#two.d.e.f#three 
+Result (flattened): #four.abc#two.d.e.f#three 
 
-Basically, it is just a unit test.
+HashDot rules work both ways.
+By matching a HashDot sequence with the right-hand side of a rule, 
+the matching sequence can be replaced by the left-hand side of the rule.
 
-As a running function it looks like this:
-```javascript
-const test = "#shoes.42.black#menswear#search.'socks'";
-const test1 = "#shoes::ALL#search:Q";
-let res = HashDots.parse(test).tree;
-let res2 = HashDots.parse(test2).tree;
-res === [
-  {
-    keyword: "shoes",
-    arguments: ["42", "black"],
-    argumentTypes: ["42", "black"],
-  }, {
-    keyword: "menswear",
-    arguments: [],
-  }, {
-    keyword: "search",
-    arguments: ["'socks'"],
-  }
-];
-res2 === [
-  {
-    keyword: "shoes",
-    arguments: ["ALL"],
-    argumentTypes: ["::"],
-  }, {
-    keyword: "menswear",
-    arguments: [],
-  }, {
-    keyword: "search",
-    arguments: ["'socks'"],
-  }
-];
-```
-For now, HashDots is strict and unforgiving. Attempting to parse these hashlocations will throw an Error.
-```javascript
-HashDots.parse("#no #whitespace #inBetween");
-HashDots.parse("#no##missing.keywords");
-HashDots.parse("#no#missing..arguments");
-HashDots.parse("#no#illegal.characters?%&!¤,;:-_");
-```
-
-## Implementation
-
-The syntax of HashDots can be summarized in the following pseudo form:
-```
-HashDotSequence := <HashDot>+
-HashDot := <HashTag>(<DotOrDoubleDot>)*
-HashTag := [#]<Keyword>
-DotOrDoubleDot := Dot|DoubleDot|DoubleDoubleDot
-Dot := [.](<Keyword>|<"double quoted" string>|<'single quoted' string>)
-DoubleDot := [:]<Keyword>
-DoubleDoubleDot := [::]<Keyword>
-Keyword := [\w]+
-```
-
-A full implementation of HashDot parser in JS looks like this:
-todo update this..
-
-```javascript
-function HashDots.parse(hashString) {
-
-  function tokenType(c) {
-    if (c === "'" || c === '"') return "'";
-    if (/[\d\w]/.test(c)) return "w";
-    if (c === "#") return "#";
-    if (c === ".") return ".";
-    return "u";
-  }
-
-  const toks = /("|')((?:\\\1|(?:(?!\1).))*)\1|\.|#|[\d\w]+/g;
-  const res = [];
-  let one = undefined;
-  let hashtag;
-
-  for (let t = toks.exec(hashString); t !== null; t = toks.exec(hashString)) {
-    let w = t[0];
-    let c = w[0];
-    let two = tokenType(c);
-    if (!one) {
-      one = two;
-      continue;
-    }
-    if (one === "#") {
-      if (two === "w") {
-        hashtag = {keyword: w, arguments: [], argumentString: ""};
-        res.push(hashtag);
-      } else {
-        throw new SyntaxError("A HashTag must start with a keyword.");
-      }
-    }
-    if (one === ".") {
-      if (two === "w" || two === "'") {
-        hashtag.arguments.push(w);
-        hashtag.argumentString += "." + w;
-      } else {
-        throw new SyntaxError(
-          "A HashTag argument starting with . must be followed by a digitword or a \"/'string."
-        );
-      }
-    }
-    if (one !== "." && one !== "#") {
-      throw new SyntaxError(
-        "A HashDot sequence must begin with either a '#' or a '.'"
-      );
-    }
-    one = undefined;
-  }
-  return res;
-}
-```
+diagram 5b:
+Left: #two.d.e.f#three#four.abc.123  Rule: #one:X <=> #three#four:X.123 
+Result: {X=> \[abc]} and #two.d.e.f#one:X
+Result (flattened): #two.d.e.f#one.abc
 
 # References
 
- * [HTML spec on links](https://www.w3.org/TR/html4/struct/links.html)
- * [path-to-regexp](https://github.com/pillarjs/path-to-regexp)
- * [Article on routing](http://krasimirtsonev.com/blog/article/deep-dive-into-client-side-routing-navigo-pushstate-hash)
- * [Video on routing strategies](https://codecraft.tv/courses/angular/routing/routing-strategies/)
- * [Demo of pushstate and popstate](https://geeklaunch.net/pushstate-and-popstate/)
+ * dunno
