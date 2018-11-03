@@ -1,38 +1,68 @@
 # Pattern: HashDot
 
-**HashDot** is a new, hybrid format synthesizing hashtag and filename conventions.
-The purpose of HashDots is to make links that:
+**HashDot** is a hybrid format combining the URL convention with hashtags.
+The purpose of HashDot is to describe and route links that:
  * are familiar and user-readable
  * have a form that represent their content
  * scale functionally to enable developers to build more powerful client-side applications
    with less complexity.
 
-## HashDot
+## A HashDot is a #-tag with .-arguments
 
-diagram 1. that illustrate some basic hashdots.
-What is what.
-
-HashDots can be listed as a non-space delineated sequence of HashDots.
-All HashDots starts with a hashtag.
-If you need to specify something about the hashtag, you can add a "Dot" to it.
+A HashDot is at minimum a hashtag, ie. "#keyword". Often, this is enough. 
+But, if you need to specify something about the hashtag, you can add a "Dot" to it.
 The "dot" is a simple argument value prefixed with `.`. It very much resemble filetypes in filenames.
-The value of Dots can be either text, numbers (as text) or quoted strings.
+The value of Dots can be either a word, a number or a quote.
+
+diagram 1. Illustration of a HashDot.
+
+## HashDot sequences
+Several HashDots can be listed side by side as a sequence, ie. "#shoes#men".
+As hashtags in a tweet, this enables an author to point to several hashtags at the same time.
+
+diagram 2. Illustration of a HashDot sequence.
 
 ## Matching HashDots
 
-A sequence of HashDots can be matched with another sequence of HashDots.
-When two HashDots are matched, variables in either HashDot will be filled with the corresponding
-values in the other HashDot.
+One HashDot sequence can be matched with another HashDot sequence.
+In order for one sequence to match another sequence, 
+the second, "right-side" sequence must be a subset of the first sequence.
 
-diagram 2.
+diagram 3a. Illustration of one HashDot sequence being a subset of another HashDot sequence.
+Left: #one.abc#two.d.e.f#three  Right: #two.d.e.f#three
 
-Variables in HashDots are called "DoubleDots".
-DoubleDots look like Dots, except that they are prefixed with `:` and have alphanumeric names.
-If you need to specify all the arguments of a hashtag as a variable, you use the "DoubleDoubleDot",
-a DoubleDot with two colons as prefix instead of one `::`.
+diagram 3b. Not matching sequences.
+Left: #one.abc#two.d.e.f#three  Right: #one
+Left: #one.abc#two.d.e.f#three  Right: #one.abc#three
+Left: #one.abc#two.d.e.f#three  Right: #one.abc#two
+Left: #one.abc#two.d.e.f#three  Right: #three.g
 
-diagram 3.
+## DoubleDot: HashDot variables
+A HashDot variable is a HashDot argument that starts with a double-dot ':', and not a dot '.'.
+HashDot variables are called "DoubleDot arguments", and regular HashDot value arguments that are
+prefixed with '.' are called "SingleDot arguments".
+DoubleDots look like SingleDots, except that they are prefixed with `:` and cannot be quotes.
+When two HashDots are matched, 
+an unassigned DoubleDot argument will match any SingleDot or DoubleDot on the opposite side.
 
+diagram 4. Matching sequences with variables
+Left: #one.abc#two.d.e.f#three  Right: #one:X  {:X => abc}
+Left: #one:X#two.world  Right: #one.hello#two:Y  {X => hello, Y => world}
+Left: #one.abc#two.d.e.f#three  Right: #one.abc#two:X:Y:Z  {:X => d, :Y => e, :Z => f}
+
+## DoubleDoubleDot: HashDot group variables
+A HashDot DoubleDoubleDot is a variable that can capture all the arguments on the opposite side.
+The DoubleDoubleDot is prefixed with `::`.
+When the DoubleDoubleDot argument is used, no other arguments can be added to the hashtag;
+the DoubleDoubleDot must stand alone on the hashtag.
+
+diagram 4:
+Left: #one.abc#two.d.e.f#three  Right: #one::X  {X=> \[abc]}
+Left: #one.abc#two.d.e.f#three  Right: #two::Y  {Y=> \[d, e, f]}
+Left: #one.abc#two::Z#three     Right: #two.1.2.3  {Z=> \[1, 2, 3]}
+Left: #one.abc#two::Z#three     Right: #two:A:B.3  {Z=> \[:A, :B, 3]}
+
+## HashDot rules
 
 ## DEMO time, go max!!!
 
