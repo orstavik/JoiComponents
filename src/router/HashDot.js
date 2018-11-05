@@ -43,11 +43,17 @@ class HashDot {
   constructor(full, flat) {
     this.tagName = full;
     this.tagValue = flat;
-    this.args = [];
-    this.flatArgs = [];
+    this.args = undefined;
+    this.flatArgs = undefined;
   }
 
   addArgument(full, flat) {
+    if (this.args && (full.startsWith("::") || !Array.isArray(this.args)))
+        throw new Error(`DoubleDots '::' must be the only argument.`);
+    if (!this.args){
+      this.args = [];
+      this.flatArgs = [];
+    }
     this.args.push(full);
     this.flatArgs.push(flat);
   }
@@ -61,14 +67,18 @@ class HashDot {
     return res;
   }
 
-  //todo put the flat value in the varMap when they match?
+  //todo make varMap immutable?
   match(otherDot, varMap) {
     if (this.tagValue !== otherDot.tagValue)
       return false;
-    let as = this.args
-    //mutates the varMap??
-    //should this only
+    //todo should matchArguments use the flatValues??
+    if (!matchArguments(this.args, otherDot.args, varMap))
+      return false;
     return varMap;
+  }
+
+  toString(){
+    return this.tagName + (Array.isArray(this.args) ? this.args.join() : this.args);
   }
 }
 
