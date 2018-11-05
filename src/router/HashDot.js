@@ -11,7 +11,7 @@ function resolveVariable(key, map) {
   return key;
 }
 
-function checkAndAddToVarMap(a, b, varMap) {
+function matchArgument(a, b, varMap) {
   a = resolveVariable(a, varMap);
   if (a.startsWith(":"))
     return varMap[a] = b;
@@ -31,12 +31,52 @@ function matchArguments(as, bs, varMap) {
   if (as.length !== bs.length)
     return false;
   for (let i = 0; i < as.length; i++)
-    if (!checkAndAddToVarMap(as[i], bs[i], varMap))
+    if (!matchArgument(as[i], bs[i], varMap))
       return false;
   return true;
 }
 
 let variableCounter = 0;
+
+
+class HashDot {
+  constructor(full, flat) {
+    this.tagName = full;
+    this.tagValue = flat;
+    this.args = [];
+    this.flatArgs = [];
+  }
+
+  addArgument(full, flat) {
+    this.args.push(full);
+    this.flatArgs.push(flat);
+  }
+
+  flattenArgs(varMap) {
+    const res = [];
+    for (let i = 0; i < this.flatArgs.length; i++) {
+      let flat = this.flatArgs[i];
+      res.push(flat ? flat : resolveVariable(this.args[i], varMap));
+    }
+    return res;
+  }
+
+  //todo put the flat value in the varMap when they match?
+  match(otherDot, varMap) {
+    if (this.tagValue !== otherDot.tagValue)
+      return false;
+    let as = this.args
+    //mutates the varMap??
+    //should this only
+    return varMap;
+  }
+}
+
+function flattenArgs(args, varMappings) {
+  if (!Array.isArray(args))
+    args = resolveVariable(args, varMappings);
+  return Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
+}
 
 export class HashDots {
   static parse(input) {
@@ -91,7 +131,7 @@ export class HashDots {
         argPos++;
         continue;
       }
-      if (word.startsWith(":")){
+      if (word.startsWith(":")) {
         word += "-" + varCounter;
       }
       args[tagPos][argPos] = word;
@@ -102,6 +142,7 @@ export class HashDots {
     return rule;
   }
 
+  //todo this is broken in test match(#one#two#three#one#four, #one#four)
   static match(left, right) {
     let start = 0;
     let first = right.tags[0];
@@ -126,31 +167,19 @@ export class HashDots {
   }
 
   static toString({tags, args, varMap}) {
-    const allArgs = HashDots.flatten(args, varMap);
     let str = "";
     for (let i = 0; i < tags.length; i++) {
       let tag = tags[i];
-      let args = allArgs[i];
+      let args2 = args[i];
+      if (varMap)
+        args2 = flattenArgs(args2, varMap);
       str += tag;
-      if (Array.isArray(args))
-        for (let arg of args) str += arg;
+      if (Array.isArray(args2))
+        for (let arg of args2) str += arg;
       else
-        str += args.substring(0, args.indexOf("-"));
+        str += args2.substring(0, args2.indexOf("-"));
     }
     return str;
-  }
-
-//todo should this be mutable??
-  static flatten(arrayOfArgs, varMappings) {
-    if (!varMappings)
-      return arrayOfArgs;
-    const flatArgs = [];
-    for (let i = 0; i < arrayOfArgs.length; i++) {
-      let args = arrayOfArgs[i];
-      if (!Array.isArray(args)) args = resolveVariable(args, varMappings);
-      flatArgs[i] = Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
-    }
-    return flatArgs;
   }
 }
 
@@ -177,7 +206,7 @@ export class HashDotMap {
         //todo can I avoid merging and HashDots.flattening here??
         let tags = pureSplice(leftSide.tags, match.start, match.stop, rule.right.tags);
         let args = pureSplice(leftSide.args, match.start, match.stop, rule.right.args);
-        args = HashDots.flatten(args, match.varMap);
+        args = args.map(args => flattenArgs(args, match.varMap));
         return HashDotMap.resolve({tags, args}, rules);
       }
     }

@@ -101,13 +101,19 @@ describe("HashDotMatch", function () {
     expect(res.stop).to.be.equal(2);
     expect(res.varMap).to.deep.equal({':A-33': '.c', ':A-34': '.b'});
   });
+  it("HashDots.match on the second occurence: #one#two#three#one#four, #one#four", function () {
+    const res = HashDots.match(HashDots.parse("#one#two#three#one#four").left, HashDots.parse("#one#four").left, {});
+    expect(res.start).to.be.equal(3);
+    expect(res.stop).to.be.equal(2);
+    expect(res.varMap).to.deep.equal({});
+  });
 });
 
 describe("HashDotMap", function () {
   it("new HashDotMap()", function () {
     const map = new HashDotMap(["#one:A:B <=> #two:A#three:B"]);
     expect(map.rules[0].left.tags[0]).to.be.equal("#one");
-    expect(map.reverseRules[0].left.args[1][0]).to.be.equal(":B-35");
+    expect(map.reverseRules[0].left.args[1][0]).to.be.equal(":B-37");
   });
 
   it("#one:A:B <=> #two:A#three:B", function () {
