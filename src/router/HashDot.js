@@ -45,23 +45,28 @@ export class HashDots {
     input = input.trim();
     if (!(input.startsWith("#") || input.startsWith("/") || input.startsWith("!")))
       throw new SyntaxError(`HashDot sequence must start with #,!, or /.\nInput:  ${input}\nError:  ↑`);
-    const hashOrDot = /[#/!]+[\w]+|\.[\w]+|::?[\w]+|\."(\\.|[^"])*"|\.'(\\.|[^'])*'|<=>|\s+|(.+)/g;
-    const rule = {left: {tags: [], args: []}};
+    const hashOrDot = /[#/!]+([\w]+)|\.([\w]+)|\."((\\.|[^"])*)"|\.'((\\.|[^'])*)'|::?[\w]+|<=>|\s+|(.+)/g;
+    const rule = {left: {tags: [], flatTags: [], args: [], flatArgs: []}};
     let tags = rule.left.tags;
     let args = rule.left.args;
+    let flatTags = rule.left.flatTags;
+    let flatArgs = rule.left.flatArgs;
     let tagPos = -1, argPos = 0;
     for (let next; (next = hashOrDot.exec(input)) !== null;) {
-      if (next[3]) {
-        const errorPos = hashOrDot.lastIndex - next[3].length + 1;
+      if (next[7]) {
+        const errorPos = hashOrDot.lastIndex - next[7].length + 1;
         throw new SyntaxError(`HashDot syntax error:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
       let word = next[0];
+      let flat = next[1] || next[2] || (next[3] && next[3].replace(/\\"/, '"')) || (next[5] && next[5].replace(/\\'/, "'"));
       if (word[0].match(/\s/))
         continue;
       if (word === "<=>") {
-        rule.right = {tags: [], args: [], map: {}};
+        rule.right = {tags: [], flatTags: [], args: [], flatArgs: []};
         tags = rule.right.tags;
         args = rule.right.args;
+        flatTags = rule.right.flatTags;
+        flatArgs = rule.right.flatArgs;
         tagPos = -1;
         continue;
       }
@@ -69,6 +74,8 @@ export class HashDots {
         ++tagPos;
         tags[tagPos] = word;
         args[tagPos] = [];
+        flatTags[tagPos] = flat;
+        flatArgs[tagPos] = [];
         argPos = 0;
         continue;
       }
@@ -85,9 +92,11 @@ export class HashDots {
         argPos++;
         continue;
       }
-      if (word.startsWith(":"))
+      if (word.startsWith(":")){
         word += "-" + varCounter;
-      args[tagPos][argPos++] = word;
+      }
+      args[tagPos][argPos] = word;
+      flatArgs[tagPos][argPos++] = flat;
     }
     // if (rule.right === undefined)
     //   return rule.left;
