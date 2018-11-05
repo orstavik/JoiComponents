@@ -1,11 +1,9 @@
 # Pattern: HashDot
 
-**HashDot** is a hybrid format combining the URL convention with hashtags.
-The purpose of HashDot is to describe and route links that:
- * are familiar and user-readable
- * have a form that represent their content
- * scale functionally to enable developers to build more powerful client-side applications
-   with less complexity.
+**HashDot** is a hybrid format combining the "hashtag" and "folder/file.type" conventions.
+The purpose of HashDot is:
+ * to describe links in a familiar and user-readable format and
+ * enable developers to in links directly express multiple, deep targets with less complexity.
 
 ## A HashDot is a #-tag with .-arguments
 
@@ -17,6 +15,7 @@ The value of Dots can be either a word, a number or a quote.
 diagram 1. Illustration of a HashDot.
 
 ## HashDot sequences
+
 Several HashDots can be listed side by side as a sequence, ie. "#shoes#men".
 As hashtags in a tweet, this enables an author to point to several hashtags at the same time.
 
@@ -38,6 +37,7 @@ Left: #one.abc#two.d.e.f#three  Right: #one.abc#two
 Left: #one.abc#two.d.e.f#three  Right: #three.g
 
 ## DoubleDot: HashDot variables
+
 A HashDot variable is a HashDot argument that starts with a double-dot ':', and not a dot '.'.
 HashDot variables are called "DoubleDot arguments", and regular HashDot value arguments that are
 prefixed with '.' are called "SingleDot arguments".
@@ -51,6 +51,7 @@ Left: #one:X#two.world  Right: #one.hello#two:Y  {X => hello, Y => world}
 Left: #one.abc#two.d.e.f#three  Right: #one.abc#two:X:Y:Z  {:X => d, :Y => e, :Z => f}
 
 ## DoubleDoubleDot: HashDot group variables
+
 A HashDot DoubleDoubleDot is a variable that can capture all the arguments on the opposite side.
 The DoubleDoubleDot is prefixed with `::`.
 When the DoubleDoubleDot argument is used, no other arguments can be added to the hashtag;
@@ -71,7 +72,7 @@ then the matching HashDots in the first sequence can be replaced by the HashDots
 (with the given variable values).
 
 diagram 5a:
-First sequence: #one.abc#two.d.e.f#three  Rule: #one:X <=> #four:X.123  
+First sequence: #one.abc#two.d.e.f#three  Rule: #one:X<=>#four:X.123  
 Result: {X=> \[abc]} and #four:X#two.d.e.f#three 
 Result (flattened): #four.abc#two.d.e.f#three 
 
@@ -80,10 +81,29 @@ By matching a HashDot sequence with the right-hand side of a rule,
 the matching sequence can be replaced by the left-hand side of the rule.
 
 diagram 5b:
-Left: #two.d.e.f#three#four.abc.123  Rule: #one:X <=> #three#four:X.123 
+First sequence: #two.d.e.f#three#four.abc.123  Rule: #one:X<=>#three#four:X.123 
 Result: {X=> \[abc]} and #two.d.e.f#one:X
 Result (flattened): #two.d.e.f#one.abc
 
+## Hash Bang Slash
+
+A HashDot can be prefixed with both hash, bang and slash: all three symbols `# ! /` function identically.
+Furthermore, multiples of hash bang slash next to each other will be considered as one.
+
+diagram 6. 
+Left: #!/one.abc/two.d.e.f/three
+Returns: `[{"#!/one": [".abc"]},{"/two": [".d",".e",".f"]}, {"/three": []}]`
+
+## Whitespace is ignored
+
+Whitespace `\s` between HashDots and rule symbols are ignored.
+Technically, whitespace around arguments are also ignored, but by convention 
+you should not use whitespace in front of arguments.
+
+diagram 7:
+Input: ` #one:X <=> #three #four:X.123`
+works just fine.
+
 # References
 
- * dunno
+ * [Unicode spaces](http://jkorpela.fi/chars/spaces.html)

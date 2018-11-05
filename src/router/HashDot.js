@@ -40,29 +40,32 @@ let variableCounter = 0;
 const flatValues = {};              //todo this is locking in all strings forever..
 
 export class HashDots {
-  static parse(input){
+  static parse(input) {
     const varCounter = variableCounter++;
-    if (!input.startsWith("#"))
-      throw new SyntaxError(`HashDot sequence must start with #.\nInput:  ${input}\nError:  ↑`);
-    const hashOrDot = /#[\w]+|\.[\w]+|::?[\w]+|\."(\\.|[^"])*"|\.'(\\.|[^'])*'|\s*(<=>)\s*|(.+)/g;
+    input = input.trim();
+    if (!(input.startsWith("#") || input.startsWith("/") || input.startsWith("!")))
+      throw new SyntaxError(`HashDot sequence must start with #,!, or /.\nInput:  ${input}\nError:  ↑`);
+    const hashOrDot = /[#/!]+[\w]+|\.[\w]+|::?[\w]+|\."(\\.|[^"])*"|\.'(\\.|[^'])*'|<=>|\s+|(.+)/g;
     const rule = {left: {tags: [], args: []}};
     let tags = rule.left.tags;
     let args = rule.left.args;
     let tagPos = -1, argPos = 0;
     for (let next; (next = hashOrDot.exec(input)) !== null;) {
-      if (next[4]) {
-        const errorPos = hashOrDot.lastIndex - next[4].length + 1;
+      if (next[3]) {
+        const errorPos = hashOrDot.lastIndex - next[3].length + 1;
         throw new SyntaxError(`HashDot syntax error:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
-      if (next[3] === "<=>") {
+      let word = next[0];
+      if (word[0].match(/\s/))
+        continue;
+      if (word === "<=>") {
         rule.right = {tags: [], args: [], map: {}};
         tags = rule.right.tags;
         args = rule.right.args;
         tagPos = -1;
         continue;
       }
-      let word = next[0];
-      if (word.startsWith("#")) {
+      if (word.startsWith("#") || word.startsWith("/") || word.startsWith("!")) {
         ++tagPos;
         tags[tagPos] = word;
         args[tagPos] = [];
@@ -86,6 +89,8 @@ export class HashDots {
         word += "-" + varCounter;
       args[tagPos][argPos++] = word;
     }
+    // if (rule.right === undefined)
+    //   return rule.left;
     return rule;
   }
 
@@ -139,6 +144,7 @@ export class HashDots {
     }
     return flatArgs;
   }
+
   static flatValue(key) {
     let old = flatValues[key];
     if (old)

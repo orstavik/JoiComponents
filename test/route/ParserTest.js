@@ -1,11 +1,11 @@
 import {HashDots, HashDotMap} from "../../src/router/HashDot.js";
 
 describe("parseHashDot", function () {
-  it("basic test: #omg.what.is.'this:!#...#'#wtf#OMG123.123", function () {
+  it("basic test: #omg.what.is.'this:!#...#'##wtf/OMG123.123", function () {
 
-    const res = HashDots.parse("#omg.what.is.'this:!#...#'#wtf#OMG123.123").left;
+    const res = HashDots.parse("#omg.what.is.'this:!#...#'##wtf/OMG123.123").left;
 
-    expect(res.tags).to.deep.equal(["#omg", "#wtf", "#OMG123"]);
+    expect(res.tags).to.deep.equal(["#omg", "##wtf", "/OMG123"]);
     expect(res.args).to.deep.equal([
       [".what", ".is", ".'this:!#...#'"],
       [],
@@ -13,16 +13,26 @@ describe("parseHashDot", function () {
     ]);
   });
 
-  it("parameter: #omg:what", function () {
-    const res = HashDots.parse("#omg:what").left;
-    expect(res.tags).to.deep.equal(["#omg"]);
+  it("parameter: !omg:what", function () {
+    const res = HashDots.parse("!omg:what").left;
+    expect(res.tags).to.deep.equal(["!omg"]);
     expect(res.args).to.deep.equal([[":what-1"]]);
   });
 
-  it("parameter: #wtf::A", function () {
-    const res = HashDots.parse("#wtf::A").left;
-    expect(res.tags).to.deep.equal(["#wtf"]);
+  it("parameter: #!/wtf::A", function () {
+    const res = HashDots.parse("#!/wtf::A").left;
+    expect(res.tags).to.deep.equal(["#!/wtf"]);
     assert(res.args[0].match(/::A-\d+/));
+  });
+  it("Whitespace", () => {
+    const a = HashDots.parse(" #white.abc#inBetween");
+    const b = HashDots.parse("#white.abc#inBetween ");
+    expect(a).to.deep.equal(b);
+    const c = HashDots.parse("#white.abc #inBetween");
+    expect(a).to.deep.equal(c);
+    const d = HashDots.parse("#white .abc#inBetween");
+    expect(a).to.deep.equal(d);
+
   });
   it(`String: #singlestring.'\\''`, function () {
     const res = HashDots.parse(`#singlestring.'\\''`).left;
@@ -48,17 +58,17 @@ describe("HashDotMatch", function () {
   it("HashDots.match(#one:A:B, #one.a.b)", function () {
     const res = HashDots.match(HashDots.parse("#one:A:B").left, HashDots.parse("#one.a.b").left, {});
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A-7": ".a", ":B-7": ".b"});
+    expect(res.varMap).to.deep.equal({":A-11": ".a", ":B-11": ".b"});
   });
   it("HashDots.match(#one.a.b, #one:A:B)", function () {
     const res = HashDots.match(HashDots.parse("#one.a.b").left, HashDots.parse("#one:A:B").left, {});
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A-10": ".a", ":B-10": ".b"});
+    expect(res.varMap).to.deep.equal({":A-14": ".a", ":B-14": ".b"});
   });
   it("HashDots.match(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
     const res = HashDots.match(HashDots.parse("#one.a.b.c#two.lala").left, HashDots.parse("#one:A:B:C#two:LALA").left, {});
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A-12": ".a", ":B-12": ".b", ":C-12": ".c", ":LALA-12": ".lala"});
+    expect(res.varMap).to.deep.equal({":A-16": ".a", ":B-16": ".b", ":C-16": ".c", ":LALA-16": ".lala"});
   });
   it("HashDots.match(#one.a.b.с#two.lala, #one::ALL)", function () {
     const res = HashDots.match(HashDots.parse("#one.a.b.c#two.lala").left, HashDots.parse("#one::ALL").left, {});
@@ -89,7 +99,7 @@ describe("HashDotMatch", function () {
     const res = HashDots.match(HashDots.parse("#one:A#two.b").left, HashDots.parse("#one.c#two:A").left, {});
     expect(res.start).to.be.equal(0);
     expect(res.stop).to.be.equal(2);
-    expect(res.varMap).to.deep.equal({':A-29': '.c', ':A-30': '.b'});
+    expect(res.varMap).to.deep.equal({':A-33': '.c', ':A-34': '.b'});
   });
 });
 
@@ -97,7 +107,7 @@ describe("HashDotMap", function () {
   it("new HashDotMap()", function () {
     const map = new HashDotMap(["#one:A:B <=> #two:A#three:B"]);
     expect(map.rules[0].left.tags[0]).to.be.equal("#one");
-    expect(map.reverseRules[0].left.args[1][0]).to.be.equal(":B-31");
+    expect(map.reverseRules[0].left.args[1][0]).to.be.equal(":B-35");
   });
 
   it("#one:A:B <=> #two:A#three:B", function () {
@@ -156,9 +166,6 @@ describe("HashDotMap", function () {
     const routeMap = new HashDotMap(["#a#x <=> #y.1", "#c#x <=> #y.2", "#b <=> #x", "#d <=> #x"]);
     const right = routeMap.right("#a#b#c#d");
     expect(HashDots.toString(right)).to.be.equal("#y.1#y.2");
-    //todo the bug is #y2.#y.2 because the HashDots.parse produce a map that only accepts a single entry per hashtag name
-    //todo the fix is to make the map use the name + tag position of the hashtag for its arguments.
-    //todo or.. only the position? As a map
   });
 });
 
@@ -166,6 +173,7 @@ describe("Syntactic errors (HashDots.parse())", function () {
   it("Several universal parameters", () => {
     try {
       HashDots.parse("#a::B::C");
+      assert(false);
     } catch (err) {
       expect(err.message).to.deep.equal("HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  #a::B::C\nError:       ↑");
     }
@@ -173,69 +181,47 @@ describe("Syntactic errors (HashDots.parse())", function () {
   it("Line start with different symbol", () => {
     try {
       HashDots.parse(".error");
+      assert(false);
     } catch (err) {
-      expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:  .error\nError:  ↑");
+      expect(err.message).to.deep.equal("HashDot sequence must start with #,!, or /.\nInput:  .error\nError:  ↑");
     }
   });
   it("Line start without # and ends with different symbol", () => {
     try {
       HashDots.parse("error@");
+      assert(false);
     } catch (err) {
-      expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:  error@\nError:  ↑");
+      expect(err.message).to.deep.equal("HashDot sequence must start with #,!, or /.\nInput:  error@\nError:  ↑");
     }
   });
   it("Empty #", () => {
     try {
       HashDots.parse("#empty#");
+      assert(false);
     } catch (err) {
       expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #empty#\nError:        ↑");
-    }
-    try {
-      HashDots.parse("#no##missing.keywords");
-    } catch (err) {
-      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no##missing.keywords\nError:     ↑");
     }
   });
   it("Empty .", () => {
     try {
       HashDots.parse("#empty.");
+      assert(false);
     } catch (err) {
       expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #empty.\nError:        ↑");
     }
     try {
       HashDots.parse("#no.missing.#args");
+      assert(false);
     } catch (err) {
       expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no.missing.#args\nError:             ↑");
-    }
-  });
-  //todo maybe we should allow whitespace in the format, make it simpler to write the rules?
-  it("No whitespace", () => {
-    try {
-      HashDots.parse("#a.b c#d");
-    } catch (err) {
-      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:      ↑");
-    }
-    try {
-      HashDots.parse(" #a.b");
-    } catch (err) {
-      expect(err.message).to.deep.equal("HashDot sequence must start with #.\nInput:   #a.b\nError:  ↑");
-    }
-    try {
-      HashDots.parse("#no #whitespace #inBetween");
-    } catch (err) {
-      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no #whitespace #inBetween\nError:     ↑");
-    }
-    try {
-      HashDots.parse("#no.w .inBetween");
-    } catch (err) {
-      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #no.w .inBetween\nError:       ↑");
     }
   });
   it("HashDot wrong sequence", () => {
     try {
       HashDots.parse("#a.b c#d");
+      assert(false);
     } catch (err) {
-      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:      ↑");
+      expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:       ↑");
     }
   });
   // HashDots.parse("#no#illegal.characters?%&!¤,;:-_").left;
