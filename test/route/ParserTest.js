@@ -46,11 +46,11 @@ describe("parseHashDot", function () {
   });
   it("#one.'a single \\' string?¤#'.end", function () {
     const res = HashDots.parse("#one.'a single \\' string?¤#'.end").left;
-    expect(HashDots.flatValue(res.args[0][0])).to.be.equal("a single ' string?¤#");
+    expect(res.flatArgs[0][0]).to.be.equal("a single ' string?¤#");
   });
   it('#one."a double \\" string?¤#".end', function () {
     const res = HashDots.parse('#one."a double \\" string?¤#".end').left;
-    expect(HashDots.flatValue(res.args[0][0])).to.be.equal('a double " string?¤#');
+    expect(res.flatArgs[0][0]).to.be.equal('a double " string?¤#');
   });
 });
 

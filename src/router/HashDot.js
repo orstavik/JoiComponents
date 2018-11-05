@@ -37,7 +37,6 @@ function matchArguments(as, bs, varMap) {
 }
 
 let variableCounter = 0;
-const flatValues = {};              //todo this is locking in all strings forever..
 
 export class HashDots {
   static parse(input) {
@@ -152,17 +151,6 @@ export class HashDots {
       flatArgs[i] = Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
     }
     return flatArgs;
-  }
-
-  static flatValue(key) {
-    let old = flatValues[key];
-    if (old)
-      return old;
-    if (key.startsWith(".'"))
-      return flatValues[key] = key.substring(2, key.length - 1).replace(/\\'/, "'");
-    if (key.startsWith('."'))
-      return flatValues[key] = key.substring(2, key.length - 1).replace(/\\"/, '"');
-    return flatValues[key] = key.substring(1);
   }
 }
 
