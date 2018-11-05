@@ -55,54 +55,54 @@ describe("parseHashDot", function () {
 });
 
 describe("HashDotMatch", function () {
-  it("HashDots.match(#one:A:B, #one.a.b)", function () {
-    const res = HashDots.match(HashDots.parse("#one:A:B").left, HashDots.parse("#one.a.b").left, {});
+  it("HashDots.subsetMatch(#one:A:B, #one.a.b)", function () {
+    const res = HashDots.subsetMatch(HashDots.parse("#one:A:B").left, HashDots.parse("#one.a.b").left, {});
     expect(res.start).to.be.equal(0);
     expect(res.varMap).to.deep.equal({":A-11": ".a", ":B-11": ".b"});
   });
-  it("HashDots.match(#one.a.b, #one:A:B)", function () {
-    const res = HashDots.match(HashDots.parse("#one.a.b").left, HashDots.parse("#one:A:B").left, {});
+  it("HashDots.subsetMatch(#one.a.b, #one:A:B)", function () {
+    const res = HashDots.subsetMatch(HashDots.parse("#one.a.b").left, HashDots.parse("#one:A:B").left, {});
     expect(res.start).to.be.equal(0);
     expect(res.varMap).to.deep.equal({":A-14": ".a", ":B-14": ".b"});
   });
-  it("HashDots.match(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
-    const res = HashDots.match(HashDots.parse("#one.a.b.c#two.lala").left, HashDots.parse("#one:A:B:C#two:LALA").left, {});
+  it("HashDots.subsetMatch(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
+    const res = HashDots.subsetMatch(HashDots.parse("#one.a.b.c#two.lala").left, HashDots.parse("#one:A:B:C#two:LALA").left, {});
     expect(res.start).to.be.equal(0);
     expect(res.varMap).to.deep.equal({":A-16": ".a", ":B-16": ".b", ":C-16": ".c", ":LALA-16": ".lala"});
   });
-  it("HashDots.match(#one.a.b.с#two.lala, #one::ALL)", function () {
-    const res = HashDots.match(HashDots.parse("#one.a.b.c#two.lala").left, HashDots.parse("#one::ALL").left, {});
+  it("HashDots.subsetMatch(#one.a.b.с#two.lala, #one::ALL)", function () {
+    const res = HashDots.subsetMatch(HashDots.parse("#one.a.b.c#two.lala").left, HashDots.parse("#one::ALL").left, {});
     expect(res.start).to.be.equal(0);
     expect(res.stop).to.be.equal(1);
     assert(Object.keys(res.varMap)[0].match(/::ALL-\d+/));
     expect(Object.values(res.varMap)[0]).to.deep.equal([".a", ".b", ".c"]);
   });
-  it("HashDots.match: equal tag names, but unequal tag length", function () {
-    let res = HashDots.match(HashDots.parse("#one.a#two.b.error").left, HashDots.parse("#one:A#two:B:C:D").left, {});
+  it("HashDots.subsetMatch: equal tag names, but unequal tag length", function () {
+    let res = HashDots.subsetMatch(HashDots.parse("#one.a#two.b.error").left, HashDots.parse("#one:A#two:B:C:D").left, {});
     expect(res).to.be.equal(null);
-    res = HashDots.match(HashDots.parse("#one.a.b").left, HashDots.parse("#one.a.b.c").left, {});
+    res = HashDots.subsetMatch(HashDots.parse("#one.a.b").left, HashDots.parse("#one.a.b.c").left, {});
     expect(res).to.be.equal(null);
-    res = HashDots.match(HashDots.parse("#one:A.b").left, HashDots.parse("#one.a:B.c").left, {});
+    res = HashDots.subsetMatch(HashDots.parse("#one:A.b").left, HashDots.parse("#one.a:B.c").left, {});
     expect(res).to.be.equal(null);
-    res = HashDots.match(HashDots.parse("#one:A:B").left, HashDots.parse("#one.a:B:C").left, {});
+    res = HashDots.subsetMatch(HashDots.parse("#one:A:B").left, HashDots.parse("#one.a:B:C").left, {});
     expect(res).to.be.equal(null);
-    res = HashDots.match(HashDots.parse("#one").left, HashDots.parse("#one.a").left, {});
+    res = HashDots.subsetMatch(HashDots.parse("#one").left, HashDots.parse("#one.a").left, {});
     expect(res).to.be.equal(null);
-    res = HashDots.match(HashDots.parse("#one").left, HashDots.parse("#one:A").left, {});
-    expect(res).to.be.equal(null);
-  });
-  it("HashDots.match: equal tag names, but unequal parity", function () {
-    const res = HashDots.match(HashDots.parse("#one.a#two.b.error").left, HashDots.parse("#one:A#two:B:C:D").left, {});
+    res = HashDots.subsetMatch(HashDots.parse("#one").left, HashDots.parse("#one:A").left, {});
     expect(res).to.be.equal(null);
   });
-  it("HashDots.match with the same variable name on both sides: #one:A#two.b <=> #one.c#two:A", function () {
-    const res = HashDots.match(HashDots.parse("#one:A#two.b").left, HashDots.parse("#one.c#two:A").left, {});
+  it("HashDots.subsetMatch: equal tag names, but unequal parity", function () {
+    const res = HashDots.subsetMatch(HashDots.parse("#one.a#two.b.error").left, HashDots.parse("#one:A#two:B:C:D").left, {});
+    expect(res).to.be.equal(null);
+  });
+  it("HashDots.subsetMatch with the same variable name on both sides: #one:A#two.b <=> #one.c#two:A", function () {
+    const res = HashDots.subsetMatch(HashDots.parse("#one:A#two.b").left, HashDots.parse("#one.c#two:A").left, {});
     expect(res.start).to.be.equal(0);
     expect(res.stop).to.be.equal(2);
     expect(res.varMap).to.deep.equal({':A-33': '.c', ':A-34': '.b'});
   });
-  it("HashDots.match on the second occurence: #one#two#three#one#four, #one#four", function () {
-    const res = HashDots.match(HashDots.parse("#one#two#three#one#four").left, HashDots.parse("#one#four").left, {});
+  it("HashDots.subsetMatch on the second occurence: #one#two#three#one#four, #one#four", function () {
+    const res = HashDots.subsetMatch(HashDots.parse("#one#two#three#one#four").left, HashDots.parse("#one#four").left, {});
     expect(res.start).to.be.equal(3);
     expect(res.stop).to.be.equal(2);
     expect(res.varMap).to.deep.equal({});

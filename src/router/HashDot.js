@@ -152,28 +152,34 @@ export class HashDots {
     return rule;
   }
 
-  //todo this is broken in test match(#one#two#three#one#four, #one#four)
-  static match(left, right) {
-    let start = 0;
-    let first = right.tags[0];
-    while (true) {
-      if (left.tags[start] === first)
-        break;
-      if (start === left.tags.length - 1)
-        return null;
-      start++;
+  static subsetMatch(left, right) {
+    for (let i = 0; i < left.tags.length; i++) {
+      let leftTag = left.tags[i];
+      let leftArgs = left.args[i];
+      for (let j = 0; j < right.tags.length; j++) {
+        let varMap = {};
+        let rightTag = right.tags[j];
+        let rightArgs = right.args[j];
+        if (rightTag === leftTag && matchArguments(leftArgs, rightArgs, varMap)){
+          varMap = HashDots.headMatch(left, right, i, j, varMap);
+          if (varMap)
+            return {start: i, stop: right.tags.length, varMap};
+        }
+      }
     }
-    let varMap = {};
-    const stop = right.tags.length;
-    for (let i = 0; i < stop; i++) {
-      let rightTag = right.tags[i];
-      let leftTag = left.tags[start + i];
-      if (rightTag !== leftTag)
-        return null;
-      if (!matchArguments(left.args[start + i], right.args[i], varMap))
+    return null;
+  }
+
+  static headMatch(left, right, i, j, varMap){
+    for (let k = 1; k < right.tags.length; k++) {
+      let leftTag = left.tags[i+k];
+      let leftArgs = left.args[i+k];
+      let rightTag = right.tags[j+k];
+      let rightArgs = right.args[j+k];
+      if (rightTag !== leftTag || !matchArguments(leftArgs, rightArgs, varMap))
         return null;
     }
-    return {start, stop, varMap};
+    return varMap;
   }
 
   static toString({tags, args, varMap}) {
@@ -211,7 +217,7 @@ export class HashDotMap {
 
   static resolve(leftSide, rules) {
     for (let rule of rules) {
-      const match = HashDots.match(leftSide, rule.left);
+      const match = HashDots.subsetMatch(leftSide, rule.left);
       if (match) {
         //todo can I avoid merging and HashDots.flattening here??
         let tags = pureSplice(leftSide.tags, match.start, match.stop, rule.right.tags);
