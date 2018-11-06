@@ -22,12 +22,6 @@ describe("parseHashDot", function () {
         "flatArgs": ["123"]
       }
     ]);
-    // expect(res.tags).to.deep.equal(["#omg", "##wtf", "/OMG123"]);
-    // expect(res.args).to.deep.equal([
-    //   [".what", ".is", ".'this:!#...#'"],
-    //   [],
-    //   [".123"]
-    // ]);
   });
 
   it("parameter: !omg:what", function () {
@@ -39,8 +33,6 @@ describe("parseHashDot", function () {
         "args": [":what-1"],
         "flatArgs": [undefined]
       }]);
-    // expect(res.tags).to.deep.equal(["!omg"]);
-    // expect(res.args).to.deep.equal([[":what-1"]]);
   });
 
   it("parameter: #!/wtf::A", function () {
@@ -52,8 +44,6 @@ describe("parseHashDot", function () {
         "args": "::A-2",
         "flatArgs": []
       }]);
-    // expect(res.tags).to.deep.equal(["#!/wtf"]);
-    // assert(res.args[0].match(/::A-\d+/));
   });
   it("Whitespace", () => {
     const a = HashDots.parse(" #white.abc#inBetween");
@@ -73,8 +63,6 @@ describe("parseHashDot", function () {
       "args": [".'\\''"],
       "flatArgs": ["'"]
     }]);
-    // expect(res.tags).to.deep.equal(["#singlestring"]);
-    // expect(res.args).to.deep.equal([[".'\\''"]]);
   });
   it(`String: #doublestring."\\""`, function () {
     const res = HashDots.parse(`#doublestring."\\""`);
@@ -84,8 +72,6 @@ describe("parseHashDot", function () {
       "args": [".\"\\\"\""],
       "flatArgs": ["\""]
     }]);
-    // expect(res.tags).to.deep.equal(["#doublestring"]);
-    // expect(res.args).to.deep.equal([['."\\""']]);
   });
   it("#one.'a single \\' string?¤#'.end", function () {
     const res = HashDots.parse("#one.'a single \\' string?¤#'.end");
@@ -95,7 +81,6 @@ describe("parseHashDot", function () {
       "args": [".'a single \\' string?¤#'", ".end"],
       "flatArgs": ["a single ' string?¤#", "end"]
     }]);
-    // expect(res.flatArgs[0][0]).to.be.equal("a single ' string?¤#");
   });
   it('#one."a double \\" string?¤#".end', function () {
     const res = HashDots.parse('#one."a double \\" string?¤#".end');
@@ -105,7 +90,6 @@ describe("parseHashDot", function () {
       "args": [".\"a double \\\" string?¤#\"", ".end"],
       "flatArgs": ["a double \" string?¤#", "end"]
     }]);
-    // expect(res.flatArgs[0][0]).to.be.equal('a double " string?¤#');
   });
 });
 
@@ -302,5 +286,5 @@ describe("Syntactic errors (HashDots.parse())", function () {
       expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:       ↑");
     }
   });
-  // HashDots.parse("#no#illegal.characters?%&!¤,;:-_").left;
+  // HashDots.parse("#no#illegal.characters?%&¤,;:-_).left;
 });

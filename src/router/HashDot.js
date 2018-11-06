@@ -180,34 +180,3 @@ export class HashDotMap {
     return main;
   }
 }
-
-export class HashDotsRouter {
-  constructor(routes) {
-    this.middle = undefined;
-    this.left = undefined;
-    this.right = undefined;
-    this.lastEvent = null;
-    this.rules = new HashDotMap(routes);
-    window.addEventListener("hashchange", () => this._onHashchange());
-    //dispatch an initial routechange event at the first raf after startup
-    requestAnimationFrame(() => this._onHashchange());
-  }
-
-  _onHashchange() {
-    let currentHash = window.location.hash;
-    if (this.middle === currentHash || this.left === currentHash || this.right === currentHash)
-      return window.location.hash = this.left;
-    const middle = HashDots.parse(currentHash).left;
-    let left = this.rules.left(middle);
-    let leftStr = left.map(dot => dot.toString()).join("");
-    if (leftStr === this.left)
-      return window.location.hash = this.left;
-    let right = this.rules.right(middle);
-    this.left = leftStr;
-    this.right = right.map(dot => dot.toString()).join("");
-    this.middle = currentHash;
-    this.lastEvent = {left, middle, right};
-    window.location.hash = leftStr;
-    window.dispatchEvent(new CustomEvent("routechange", {detail: this.lastEvent}));
-  }
-}
