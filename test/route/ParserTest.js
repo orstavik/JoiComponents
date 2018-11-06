@@ -22,12 +22,12 @@ describe("parseHashDot", function () {
         "flatArgs": ["123"]
       }
     ]);
-    expect(res.tags).to.deep.equal(["#omg", "##wtf", "/OMG123"]);
-    expect(res.args).to.deep.equal([
-      [".what", ".is", ".'this:!#...#'"],
-      [],
-      [".123"]
-    ]);
+    // expect(res.tags).to.deep.equal(["#omg", "##wtf", "/OMG123"]);
+    // expect(res.args).to.deep.equal([
+    //   [".what", ".is", ".'this:!#...#'"],
+    //   [],
+    //   [".123"]
+    // ]);
   });
 
   it("parameter: !omg:what", function () {
@@ -39,8 +39,8 @@ describe("parseHashDot", function () {
         "args": [":what-1"],
         "flatArgs": [undefined]
       }]);
-    expect(res.tags).to.deep.equal(["!omg"]);
-    expect(res.args).to.deep.equal([[":what-1"]]);
+    // expect(res.tags).to.deep.equal(["!omg"]);
+    // expect(res.args).to.deep.equal([[":what-1"]]);
   });
 
   it("parameter: #!/wtf::A", function () {
@@ -52,8 +52,8 @@ describe("parseHashDot", function () {
         "args": "::A-2",
         "flatArgs": []
       }]);
-    expect(res.tags).to.deep.equal(["#!/wtf"]);
-    assert(res.args[0].match(/::A-\d+/));
+    // expect(res.tags).to.deep.equal(["#!/wtf"]);
+    // assert(res.args[0].match(/::A-\d+/));
   });
   it("Whitespace", () => {
     const a = HashDots.parse(" #white.abc#inBetween");
@@ -67,25 +67,45 @@ describe("parseHashDot", function () {
   });
   it(`String: #singlestring.'\\''`, function () {
     const res = HashDots.parse(`#singlestring.'\\''`).left;
-    expect(res.dots).to.deep.equal([{"tagName":"#singlestring","tagValue":"singlestring","args":[".'\\''"],"flatArgs":["'"]}]);
-    expect(res.tags).to.deep.equal(["#singlestring"]);
-    expect(res.args).to.deep.equal([[".'\\''"]]);
+    expect(res.dots).to.deep.equal([{
+      "tagName": "#singlestring",
+      "tagValue": "singlestring",
+      "args": [".'\\''"],
+      "flatArgs": ["'"]
+    }]);
+    // expect(res.tags).to.deep.equal(["#singlestring"]);
+    // expect(res.args).to.deep.equal([[".'\\''"]]);
   });
   it(`String: #doublestring."\\""`, function () {
     const res = HashDots.parse(`#doublestring."\\""`).left;
-    expect(res.dots).to.deep.equal([{"tagName":"#doublestring","tagValue":"doublestring","args":[".\"\\\"\""],"flatArgs":["\""]}]);
-    expect(res.tags).to.deep.equal(["#doublestring"]);
-    expect(res.args).to.deep.equal([['."\\""']]);
+    expect(res.dots).to.deep.equal([{
+      "tagName": "#doublestring",
+      "tagValue": "doublestring",
+      "args": [".\"\\\"\""],
+      "flatArgs": ["\""]
+    }]);
+    // expect(res.tags).to.deep.equal(["#doublestring"]);
+    // expect(res.args).to.deep.equal([['."\\""']]);
   });
   it("#one.'a single \\' string?¤#'.end", function () {
     const res = HashDots.parse("#one.'a single \\' string?¤#'.end").left;
-    expect(res.dots).to.deep.equal([{"tagName":"#one","tagValue":"one","args":[".'a single \\' string?¤#'",".end"],"flatArgs":["a single ' string?¤#","end"]}]);
-    expect(res.flatArgs[0][0]).to.be.equal("a single ' string?¤#");
+    expect(res.dots).to.deep.equal([{
+      "tagName": "#one",
+      "tagValue": "one",
+      "args": [".'a single \\' string?¤#'", ".end"],
+      "flatArgs": ["a single ' string?¤#", "end"]
+    }]);
+    // expect(res.flatArgs[0][0]).to.be.equal("a single ' string?¤#");
   });
   it('#one."a double \\" string?¤#".end', function () {
     const res = HashDots.parse('#one."a double \\" string?¤#".end').left;
-    expect(res.dots).to.deep.equal([{"tagName":"#one","tagValue":"one","args":[".\"a double \\\" string?¤#\"",".end"],"flatArgs":["a double \" string?¤#","end"]}]);
-    expect(res.flatArgs[0][0]).to.be.equal('a double " string?¤#');
+    expect(res.dots).to.deep.equal([{
+      "tagName": "#one",
+      "tagValue": "one",
+      "args": [".\"a double \\\" string?¤#\"", ".end"],
+      "flatArgs": ["a double \" string?¤#", "end"]
+    }]);
+    // expect(res.flatArgs[0][0]).to.be.equal('a double " string?¤#');
   });
 });
 
@@ -147,8 +167,29 @@ describe("HashDotMatch", function () {
 describe("HashDotMap", function () {
   it("new HashDotMap()", function () {
     const map = new HashDotMap(["#one:A:B <=> #two:A#three:B"]);
-    expect(map.rules[0].left.tags[0]).to.be.equal("#one");
-    expect(map.reverseRules[0].left.args[1][0]).to.be.equal(":B-37");
+    expect(map.rules[0]).to.deep.equal({
+      "left": {
+        "dots": [{
+          "tagName": "#one",
+          "tagValue": "one",
+          "args": [":A-37", ":B-37"],
+          "flatArgs": [undefined, undefined]
+        }]
+      },
+      "right": {
+        "dots": [{
+          "tagName": "#two",
+          "tagValue": "two",
+          "args": [":A-37"],
+          "flatArgs": [undefined]
+        }, {
+          "tagName": "#three",
+          "tagValue": "three",
+          "args": [":B-37"],
+          "flatArgs": [undefined]
+        }]
+      }
+    });
   });
 
   it("#one:A:B <=> #two:A#three:B", function () {
