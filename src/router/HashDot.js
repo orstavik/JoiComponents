@@ -1,9 +1,3 @@
-function pureSplice(origin, start, stop, added) {
-  const tags = [].concat(origin);
-  tags.splice(start, stop, ...added);
-  return tags;
-}
-
 function resolveVariable(key, map) {
   let next;
   while (next = map[key])
@@ -73,6 +67,9 @@ class HashDot {
     return flat;
   }
 
+  //todo 1: make match return a new hybrid HashDot?
+  //todo 2: this hybrid uses the args of the left, but fills its flatArg values for variables with the right side?
+  //todo 3: or does this hybrid object use a varMap?
   //todo make varMap immutable?
   //todo should matchArguments use the flatValues??
   match(otherDot, varMap) {
@@ -139,13 +136,22 @@ export class HashDots {
     return rule;
   }
 
+  static matchAndReplace(leftSide, rule) {
+    const match = HashDots.subsetMatch(leftSide, rule.left);
+    if (!match)
+      return null;
+    //todo can I avoid merging and HashDots.flattening here??
+    let res = [].concat(leftSide);
+    res.splice(match.start, match.stop, ...rule.right);
+    return res.map(dot => dot.flatten(match.varMap));
+  }
+
   static subsetMatch(left, right) {
     for (let i = 0; i < left.length; i++) {
       let leftDot = left[i];
       for (let j = 0; j < right.length; j++) {
         let varMap = {};
-        let rightDot = right[j];
-        if (leftDot.match(rightDot, varMap)) {
+        if (leftDot.match(right[j], varMap)) {
           if (HashDots.headMatch(left, right, i, j, varMap))
             return {start: i, stop: right.length, varMap};
         }
@@ -182,14 +188,10 @@ export class HashDotMap {
   }
 
   static resolve(leftSide, rules) {
+    let next;
     for (let rule of rules) {
-      const match = HashDots.subsetMatch(leftSide, rule.left);
-      if (match) {
-        //todo can I avoid merging and HashDots.flattening here??
-        let dots = pureSplice(leftSide, match.start, match.stop, rule.right);
-        dots = dots.map(dot => dot.flatten(match.varMap));
-        return HashDotMap.resolve(dots, rules);
-      }
+      if (next = HashDots.matchAndReplace(leftSide, rule))
+        return HashDotMap.resolve(next, rules);
     }
     return leftSide;
   }
