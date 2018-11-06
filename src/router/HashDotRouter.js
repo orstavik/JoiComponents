@@ -1,6 +1,7 @@
 import {HashDots as Dots, HashDotMap} from "./HashDot.js";
 
 export const HashDots = Dots;
+
 export class HashDotsRouter {
   constructor(routes) {
     this.middle = undefined;
@@ -32,91 +33,37 @@ export class HashDotsRouter {
   }
 }
 
-
+//depends on new URL, which IE must polyfill
+//https://www.jsdelivr.com/package/npm/url-polyfill
 /**
- * Handle "click" events.
+ *
+ * @param e
+ * @returns undefined if the click is not a link or the link is not highjacked
+ *          otherwise, the {string} highjacked link.
  */
-
-/* jshint +W054 */
-function on_click (e) {
-  if (1 !== this._which(e)) return;
-
-  if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-  if (e.defaultPrevented) return;
-
-  // ensure link
-  // use shadow dom when available if not, fall back to composedPath()
-  // for browsers that only have shady
-  var el = e.target;
-  var eventPath = e.path || (e.composedPath ? e.composedPath() : null);
-
-  if(eventPath) {
-    for (var i = 0; i < eventPath.length; i++) {
-      if (!eventPath[i].nodeName) continue;
-      if (eventPath[i].nodeName.toUpperCase() !== 'A') continue;
-      if (!eventPath[i].href) continue;
-
-      el = eventPath[i];
-      break;
-    }
-  }
-
-  // continue ensure link
-  // el.nodeName for svg links are 'a' instead of 'A'
-  while (el && 'A' !== el.nodeName.toUpperCase()) el = el.parentNode;
-  if (!el || 'A' !== el.nodeName.toUpperCase()) return;
-
-  // check if link is inside an svg
-  // in this case, both href and target are always inside an object
-  var svg = (typeof el.href === 'object') && el.href.constructor.name === 'SVGAnimatedString';
-
-  // Ignore if tag has
-  // 1. "download" attribute
-  // 2. rel="external" attribute
-  if (el.hasAttribute('download') || el.getAttribute('rel') === 'external') return;
-
-  // ensure non-hash for the same path
-  var link = el.getAttribute('href');
-  if(!this._hashbang && this._samePath(el) && (el.hash || '#' === link)) return;
-
-  // Check for mailto: in the href
-  if (link && link.indexOf('mailto:') > -1) return;
-
-  // check target
-  // svg target is an object and its desired value is in .baseVal property
-  if (svg ? el.target.baseVal : el.target) return;
-
-  // x-origin
-  // note: svg links that are not relative don't call click events (and skip page.js)
-  // consequently, all svg links tested inside page.js are relative and in the same origin
-  if (!svg && !this.sameOrigin(el.href)) return;
-
-  // rebuild path
-  // There aren't .pathname and .search properties in svg links, so we use href
-  // Also, svg href is an object and its desired value is in .baseVal property
-  var path = svg ? el.href.baseVal : (el.pathname + el.search + (el.hash || ''));
-
-  path = path[0] !== '/' ? '/' + path : path;
-
-  // strip leading "/[drive letter]:" on NW.js on Windows
-  if (hasProcess && path.match(/^\/[a-zA-Z]:\//)) {
-    path = path.replace(/^\/[a-zA-Z]:\//, '/');
-  }
-
-  // same page
-  var orig = path;
-  var pageBase = this._getBase();
-
-  if (path.indexOf(pageBase) === 0) {
-    path = path.substr(pageBase.length);
-  }
-
-  if (this._hashbang) path = path.replace('#!', '');
-
-  if (pageBase && orig === path && (!isLocation || this._window.location.protocol !== 'file:')) {
+function linkHighJacker(e) {
+  //1. skip all non-left single clicks
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.defaultPrevented)
     return;
-  }
 
-  e.preventDefault();
-  this.show(orig);
-};
+  for (let el = e.target; el; el = el.parentNode) {                 //IE and Edge does not support composedPath()
+    //2. find the first <a href> in the event path
+    if (el.nodeName !== "A" && el.nodeName !== "a")
+      continue;
+    //3a. skip 'download' and 'external'.
+    if (el.hasAttribute('download') || el.getAttribute('rel') === 'external')
+      return;
+    let link = ((typeof el.href === 'object') && el.href.constructor.name === 'SVGAnimatedString') ?
+      el.href.baseVal :
+      el.getAttribute('href');
+    //3b. skip '#...', 'mailto:...' and '' (empty)
+    if (link.startsWith("#") || link.startsWith('mailto:') || "")
+      return;
+    //3c. skip x-origins
+    let url = new URL(link, location);
+    if (url.protocol !== location.protocol || url.port !== location.port || url.host !== location.host)
+      return;
+    e.preventDefault();
+    return link;
+  }
+}
