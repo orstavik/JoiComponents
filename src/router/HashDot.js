@@ -101,8 +101,8 @@ export class HashDots {
     if (!(input.startsWith("#") || input.startsWith("/") || input.startsWith("!")))
       throw new SyntaxError(`HashDot sequence must start with #,!, or /.\nInput:  ${input}\nError:  ↑`);
     const hashOrDot = /[#/!]+([\w]+)|\.([\w]+)|\."((\\.|[^"])*)"|\.'((\\.|[^'])*)'|::?[\w]+|<=>|\s+|(.+)/g;
-    const rule = {left: {dots: []}};
-    let dots = rule.left.dots;
+    const rule = {left: []};
+    let dots = rule.left;
     let dot;
     for (let next; (next = hashOrDot.exec(input)) !== null;) {
       if (next[7]) {
@@ -114,8 +114,8 @@ export class HashDots {
       if (word[0].match(/\s/))
         continue;
       if (word === "<=>") {
-        rule.right = {dots: []};
-        dots = rule.right.dots;
+        rule.right = [];
+        dots = rule.right;
         dot = undefined;
         continue;
       }
@@ -140,15 +140,15 @@ export class HashDots {
   }
 
   static subsetMatch(left, right) {
-    for (let i = 0; i < left.dots.length; i++) {
-      let leftDot = left.dots[i];
-      for (let j = 0; j < right.dots.length; j++) {
+    for (let i = 0; i < left.length; i++) {
+      let leftDot = left[i];
+      for (let j = 0; j < right.length; j++) {
         let varMap = {};
-        let rightDot = right.dots[j];
+        let rightDot = right[j];
         if (leftDot.match(rightDot, varMap)) {
           varMap = HashDots.headMatch(left, right, i, j, varMap);
           if (varMap)
-            return {start: i, stop: right.dots.length, varMap};
+            return {start: i, stop: right.length, varMap};
         }
       }
     }
@@ -156,19 +156,15 @@ export class HashDots {
   }
 
   static headMatch(left, right, i, j, varMap) {
-    if (i + right.dots.length > left.dots.length)
+    if (i + right.length > left.length)
       return null;
-    for (let k = 1; k < right.dots.length; k++) {
-      let rightDot = right.dots[j + k];
-      let leftDot = left.dots[i + k];
+    for (let k = 1; k < right.length; k++) {
+      let rightDot = right[j + k];
+      let leftDot = left[i + k];
       if (!leftDot.match(rightDot, varMap))
         return null;
     }
     return varMap;
-  }
-
-  static toString(seq) {
-    return seq.dots.map(dot => dot.toString()).join("");
   }
 }
 
@@ -193,9 +189,9 @@ export class HashDotMap {
       const match = HashDots.subsetMatch(leftSide, rule.left);
       if (match) {
         //todo can I avoid merging and HashDots.flattening here??
-        let dots = pureSplice(leftSide.dots, match.start, match.stop, rule.right.dots);
+        let dots = pureSplice(leftSide, match.start, match.stop, rule.right);
         dots = dots.map(dot => dot.flatten(match.varMap));
-        return HashDotMap.resolve({dots}, rules);
+        return HashDotMap.resolve(dots, rules);
       }
     }
     return leftSide;
@@ -221,11 +217,11 @@ export class HashDotsRouter {
       return window.location.hash = this.left;
     const middle = HashDots.parse(currentHash).left;
     let left = this.map.left(middle);
-    let leftStr = HashDots.toString(left);
+    let leftStr = left.map(dot => dot.toString()).join("");
     if (leftStr === this.left)
       return window.location.hash = this.left;
     let right = this.map.right(middle);
-    let rightStr = HashDots.toString(right);
+    let rightStr = right.map(dot => dot.toString()).join("");
     this.left = leftStr;
     this.right = rightStr;
     this.middle = currentHash;

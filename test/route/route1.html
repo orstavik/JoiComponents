@@ -14,9 +14,9 @@
   window.addEventListener("routechange", e => {
     const dump = document.querySelector("#dump");
     console.log(e.detail.right);
-    dump.innerText = "left: " + HashDots.toString(e.detail.left) + "\n";
-    dump.innerText += "middle: " + HashDots.toString(e.detail.middle) + "\n";
-    dump.innerText += "right: " + HashDots.toString(e.detail.right) + "\n";
+    dump.innerText = "left: " + e.detail.left.map(dot => dot.toString()).join("") + "\n";
+    dump.innerText += "middle: " + e.detail.middle.map(dot => dot.toString()).join("") + "\n";
+    dump.innerText += "right: " + e.detail.right.map(dot => dot.toString()).join("") + "\n";
   });
 </script>
 

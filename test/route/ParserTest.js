@@ -3,8 +3,8 @@ import {HashDots, HashDotMap} from "../../src/router/HashDot.js";
 describe("parseHashDot", function () {
   it("basic test: #omg.what.is.'this:!#...#'##wtf/OMG123.123", function () {
 
-    const res = HashDots.parse("#omg.what.is.'this:!#...#'##wtf/OMG123.123").left;
-    expect(res.dots).to.deep.equal([
+    const res = HashDots.parse("#omg.what.is.'this:!#...#'##wtf/OMG123.123");
+    expect(res.left).to.deep.equal([
       {
         "tagName": "#omg",
         "tagValue": "omg",
@@ -31,8 +31,8 @@ describe("parseHashDot", function () {
   });
 
   it("parameter: !omg:what", function () {
-    const res = HashDots.parse("!omg:what").left;
-    expect(res.dots).to.deep.equal([
+    const res = HashDots.parse("!omg:what");
+    expect(res.left).to.deep.equal([
       {
         "tagName": "!omg",
         "tagValue": "omg",
@@ -44,8 +44,8 @@ describe("parseHashDot", function () {
   });
 
   it("parameter: #!/wtf::A", function () {
-    const res = HashDots.parse("#!/wtf::A").left;
-    expect(res.dots).to.deep.equal([
+    const res = HashDots.parse("#!/wtf::A");
+    expect(res.left).to.deep.equal([
       {
         "tagName": "#!/wtf",
         "tagValue": "wtf",
@@ -66,8 +66,8 @@ describe("parseHashDot", function () {
 
   });
   it(`String: #singlestring.'\\''`, function () {
-    const res = HashDots.parse(`#singlestring.'\\''`).left;
-    expect(res.dots).to.deep.equal([{
+    const res = HashDots.parse(`#singlestring.'\\''`);
+    expect(res.left).to.deep.equal([{
       "tagName": "#singlestring",
       "tagValue": "singlestring",
       "args": [".'\\''"],
@@ -77,8 +77,8 @@ describe("parseHashDot", function () {
     // expect(res.args).to.deep.equal([[".'\\''"]]);
   });
   it(`String: #doublestring."\\""`, function () {
-    const res = HashDots.parse(`#doublestring."\\""`).left;
-    expect(res.dots).to.deep.equal([{
+    const res = HashDots.parse(`#doublestring."\\""`);
+    expect(res.left).to.deep.equal([{
       "tagName": "#doublestring",
       "tagValue": "doublestring",
       "args": [".\"\\\"\""],
@@ -88,8 +88,8 @@ describe("parseHashDot", function () {
     // expect(res.args).to.deep.equal([['."\\""']]);
   });
   it("#one.'a single \\' string?¤#'.end", function () {
-    const res = HashDots.parse("#one.'a single \\' string?¤#'.end").left;
-    expect(res.dots).to.deep.equal([{
+    const res = HashDots.parse("#one.'a single \\' string?¤#'.end");
+    expect(res.left).to.deep.equal([{
       "tagName": "#one",
       "tagValue": "one",
       "args": [".'a single \\' string?¤#'", ".end"],
@@ -98,8 +98,8 @@ describe("parseHashDot", function () {
     // expect(res.flatArgs[0][0]).to.be.equal("a single ' string?¤#");
   });
   it('#one."a double \\" string?¤#".end', function () {
-    const res = HashDots.parse('#one."a double \\" string?¤#".end').left;
-    expect(res.dots).to.deep.equal([{
+    const res = HashDots.parse('#one."a double \\" string?¤#".end');
+    expect(res.left).to.deep.equal([{
       "tagName": "#one",
       "tagValue": "one",
       "args": [".\"a double \\\" string?¤#\"", ".end"],
@@ -168,86 +168,82 @@ describe("HashDotMap", function () {
   it("new HashDotMap()", function () {
     const map = new HashDotMap(["#one:A:B <=> #two:A#three:B"]);
     expect(map.rules[0]).to.deep.equal({
-      "left": {
-        "dots": [{
-          "tagName": "#one",
-          "tagValue": "one",
-          "args": [":A-37", ":B-37"],
-          "flatArgs": [undefined, undefined]
-        }]
-      },
-      "right": {
-        "dots": [{
-          "tagName": "#two",
-          "tagValue": "two",
-          "args": [":A-37"],
-          "flatArgs": [undefined]
-        }, {
-          "tagName": "#three",
-          "tagValue": "three",
-          "args": [":B-37"],
-          "flatArgs": [undefined]
-        }]
-      }
+      "left": [{
+        "tagName": "#one",
+        "tagValue": "one",
+        "args": [":A-37", ":B-37"],
+        "flatArgs": [undefined, undefined]
+      }],
+      "right": [{
+        "tagName": "#two",
+        "tagValue": "two",
+        "args": [":A-37"],
+        "flatArgs": [undefined]
+      }, {
+        "tagName": "#three",
+        "tagValue": "three",
+        "args": [":B-37"],
+        "flatArgs": [undefined]
+      }]
     });
   });
 
   it("#one:A:B <=> #two:A#three:B", function () {
     const routeMap = new HashDotMap(["#one:A:B <=> #two:A#three:B"]);
     const right = routeMap.right("#one.a.b");
-    expect(HashDots.toString(right)).to.be.equal("#two.a#three.b");
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a#three.b");
     const left = routeMap.left("#two.a#three.b");
-    expect(HashDots.toString(left)).to.be.equal("#one.a.b");
+    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b");
   });
   it("#nothing#one:A:B <=> #two:A#three:B", function () {
     const routeMap = new HashDotMap(["#nothing#one:A:B <=> #two:A#three:B"]);
     const right = routeMap.right("#nothing#one.a.b");
-    expect(HashDots.toString(right)).to.be.equal("#two.a#three.b");
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a#three.b");
     const left = routeMap.left("#two.a#three.b");
-    expect(HashDots.toString(left)).to.be.equal("#nothing#one.a.b");
+    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#nothing#one.a.b");
   });
   it("#one::A <=> #two::A", function () {
     const routeMap = new HashDotMap(["#one::A <=> #two::A"]);
     const right = routeMap.right("#one.a.b");
-    expect(HashDots.toString(right)).to.be.equal("#two.a.b");
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a.b");
     const left = routeMap.left("#two.a.b.c");
-    expect(HashDots.toString(left)).to.be.equal("#one.a.b.c");
+    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b.c");
   });
   it("#red:A <=> #orange:A && #orange:B <=> #yellow:B", function () {
     const routeMap = new HashDotMap(["#red:A <=> #orange:A", "#orange:B <=> #yellow:B"]);
     const right = routeMap.right("#red.re");
-    expect(HashDots.toString(right)).to.be.equal("#yellow.re");
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#yellow.re");
     const left = routeMap.left("#yellow.ye");
-    expect(HashDots.toString(left)).to.be.equal("#red.ye");
+    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
   it("Same variable name across different HashDot statements: #red:A <=> #orange:A && #orange:A <=> #yellow:A", function () {
     const routeMap = new HashDotMap(["#red:A <=> #orange:A", "#orange:A <=> #yellow:A"]);
     const right = routeMap.right("#red.re");
-    expect(HashDots.toString(right)).to.be.equal("#yellow.re");
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#yellow.re");
     const left = routeMap.left("#yellow.ye");
-    expect(HashDots.toString(left)).to.be.equal("#red.ye");
+    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
   it("Rule order is preserved and given priority: #a:X <=> #aa:X && #b:X <=> #bb:X && #a:X#b:Y <=> #cc:X:Y", function () {
     const routeMap = new HashDotMap(["#a:A <=> #aa:A", "#b:B <=> #bb:B", "#a:A#b:B <=> #cc:A:B"]);
     const right = routeMap.right("#a.1#b.2");
-    expect(HashDots.toString(right)).to.be.equal("#aa.1#bb.2");
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#aa.1#bb.2");
     const left = routeMap.left("#cc.1.2");
-    expect(HashDots.toString(left)).to.be.equal("#a.1#b.2");
+    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#a.1#b.2");
   });
   it("Rule order problem for variables: #b:X <=> #c:X && #a:X <=> #b:X", function () {
     const routeMap = new HashDotMap(["#b:A <=> #c:A", "#a:A <=> #b:A"]);
     const right = routeMap.right("#a.1");
-    expect(HashDots.toString(right)).to.be.equal("#c.1");
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#c.1");
   });
   it("Need to run a rule twice: #x <=> #y && #a <=> #x && #b <=> #x", function () {
     const routeMap = new HashDotMap(["#x <=> #y", "#a <=> #x", "#b <=> #x"]);
     const right = routeMap.right("#a#b");
-    expect(HashDots.toString(right)).to.be.equal("#y#y");
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y#y");
   });
   it("Need to output the same hashtag with different parameters: #a#x <=> #y.1 && #c#x <=> #y.2 && #b <=> #x && #d <=> #x", function () {
     const routeMap = new HashDotMap(["#a#x <=> #y.1", "#c#x <=> #y.2", "#b <=> #x", "#d <=> #x"]);
     const right = routeMap.right("#a#b#c#d");
-    expect(HashDots.toString(right)).to.be.equal("#y.1#y.2");
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y.1#y.2");
   });
 });
 
