@@ -4,7 +4,24 @@ describe("parseHashDot", function () {
   it("basic test: #omg.what.is.'this:!#...#'##wtf/OMG123.123", function () {
 
     const res = HashDots.parse("#omg.what.is.'this:!#...#'##wtf/OMG123.123").left;
-
+    expect(res.dots).to.deep.equal([
+      {
+        "tagName": "#omg",
+        "tagValue": "omg",
+        "args": [".what", ".is", ".'this:!#...#'"],
+        "flatArgs": ["what", "is", "this:!#...#"]
+      }, {
+        "tagName": "##wtf",
+        "tagValue": "wtf",
+        args: [],
+        flatArgs: []
+      }, {
+        "tagName": "/OMG123",
+        "tagValue": "OMG123",
+        "args": [".123"],
+        "flatArgs": ["123"]
+      }
+    ]);
     expect(res.tags).to.deep.equal(["#omg", "##wtf", "/OMG123"]);
     expect(res.args).to.deep.equal([
       [".what", ".is", ".'this:!#...#'"],
@@ -15,12 +32,26 @@ describe("parseHashDot", function () {
 
   it("parameter: !omg:what", function () {
     const res = HashDots.parse("!omg:what").left;
+    expect(res.dots).to.deep.equal([
+      {
+        "tagName": "!omg",
+        "tagValue": "omg",
+        "args": [":what-1"],
+        "flatArgs": [undefined]
+      }]);
     expect(res.tags).to.deep.equal(["!omg"]);
     expect(res.args).to.deep.equal([[":what-1"]]);
   });
 
   it("parameter: #!/wtf::A", function () {
     const res = HashDots.parse("#!/wtf::A").left;
+    expect(res.dots).to.deep.equal([
+      {
+        "tagName": "#!/wtf",
+        "tagValue": "wtf",
+        "args": "::A-2",
+        "flatArgs": []
+      }]);
     expect(res.tags).to.deep.equal(["#!/wtf"]);
     assert(res.args[0].match(/::A-\d+/));
   });
@@ -36,20 +67,24 @@ describe("parseHashDot", function () {
   });
   it(`String: #singlestring.'\\''`, function () {
     const res = HashDots.parse(`#singlestring.'\\''`).left;
+    expect(res.dots).to.deep.equal([{"tagName":"#singlestring","tagValue":"singlestring","args":[".'\\''"],"flatArgs":["'"]}]);
     expect(res.tags).to.deep.equal(["#singlestring"]);
     expect(res.args).to.deep.equal([[".'\\''"]]);
   });
   it(`String: #doublestring."\\""`, function () {
     const res = HashDots.parse(`#doublestring."\\""`).left;
+    expect(res.dots).to.deep.equal([{"tagName":"#doublestring","tagValue":"doublestring","args":[".\"\\\"\""],"flatArgs":["\""]}]);
     expect(res.tags).to.deep.equal(["#doublestring"]);
     expect(res.args).to.deep.equal([['."\\""']]);
   });
   it("#one.'a single \\' string?¤#'.end", function () {
     const res = HashDots.parse("#one.'a single \\' string?¤#'.end").left;
+    expect(res.dots).to.deep.equal([{"tagName":"#one","tagValue":"one","args":[".'a single \\' string?¤#'",".end"],"flatArgs":["a single ' string?¤#","end"]}]);
     expect(res.flatArgs[0][0]).to.be.equal("a single ' string?¤#");
   });
   it('#one."a double \\" string?¤#".end', function () {
     const res = HashDots.parse('#one."a double \\" string?¤#".end').left;
+    expect(res.dots).to.deep.equal([{"tagName":"#one","tagValue":"one","args":[".\"a double \\\" string?¤#\"",".end"],"flatArgs":["a double \" string?¤#","end"]}]);
     expect(res.flatArgs[0][0]).to.be.equal('a double " string?¤#');
   });
 });

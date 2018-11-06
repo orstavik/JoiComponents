@@ -43,17 +43,17 @@ class HashDot {
   constructor(full, flat) {
     this.tagName = full;
     this.tagValue = flat;
-    this.args = undefined;
-    this.flatArgs = undefined;
+    this.args = [];
+    this.flatArgs = [];
   }
 
-  addArgument(full, flat) {
-    if (this.args && (full.startsWith("::") || !Array.isArray(this.args)))
-        throw new Error(`DoubleDots '::' must be the only argument.`);
-    if (!this.args){
-      this.args = [];
-      this.flatArgs = [];
-    }
+  addArgument(full, flat, varCounter) {
+    if (!this.args.length && full.startsWith("::"))
+      return this.args = full + "-" + varCounter;
+    if (this.args.length && (full.startsWith("::") || !Array.isArray(this.args)))
+      throw new Error(`DoubleDots '::' must be the only argument.`);
+    if (full.startsWith(":"))
+      full += "-" + varCounter;
     this.args.push(full);
     this.flatArgs.push(flat);
   }
@@ -67,18 +67,24 @@ class HashDot {
     return res;
   }
 
+  flatten(varMap) {
+    let flat = new HashDot(this.tagName, this.tagValue);
+    flat.args = flattenArgs(this.args, varMap);// this.flattenArgs(varMap);
+    return flat;
+  }
+
   //todo make varMap immutable?
+  //todo should matchArguments use the flatValues??
   match(otherDot, varMap) {
     if (this.tagValue !== otherDot.tagValue)
       return false;
-    //todo should matchArguments use the flatValues??
     if (!matchArguments(this.args, otherDot.args, varMap))
       return false;
     return varMap;
   }
 
-  toString(){
-    return this.tagName + (Array.isArray(this.args) ? this.args.join() : this.args);
+  toString() {
+    return this.tagName + (Array.isArray(this.args) ? this.args.join("") : this.args);
   }
 }
 
@@ -96,10 +102,10 @@ export class HashDots {
       throw new SyntaxError(`HashDot sequence must start with #,!, or /.\nInput:  ${input}\nError:  ↑`);
     const hashOrDot = /[#/!]+([\w]+)|\.([\w]+)|\."((\\.|[^"])*)"|\.'((\\.|[^'])*)'|::?[\w]+|<=>|\s+|(.+)/g;
     const rule = {left: {tags: [], flatTags: [], args: [], flatArgs: [], dots: []}};
-    let tags = rule.left.tags;
-    let args = rule.left.args;
-    let flatTags = rule.left.flatTags;
-    let flatArgs = rule.left.flatArgs;
+    // let tags = rule.left.tags;
+    // let args = rule.left.args;
+    // let flatTags = rule.left.flatTags;
+    // let flatArgs = rule.left.flatArgs;
     let dots = rule.left.dots;
     let tagPos = -1, argPos = 0, dot;
     for (let next; (next = hashOrDot.exec(input)) !== null;) {
@@ -113,10 +119,10 @@ export class HashDots {
         continue;
       if (word === "<=>") {
         rule.right = {tags: [], flatTags: [], args: [], flatArgs: [], dots: []};
-        tags = rule.right.tags;
-        args = rule.right.args;
-        flatTags = rule.right.flatTags;
-        flatArgs = rule.right.flatArgs;
+        // tags = rule.right.tags;
+        // args = rule.right.args;
+        // flatTags = rule.right.flatTags;
+        // flatArgs = rule.right.flatArgs;
         dots = rule.right.dots;
         dot = undefined;
         tagPos = -1;
@@ -124,21 +130,21 @@ export class HashDots {
       }
       if (word.startsWith("#") || word.startsWith("/") || word.startsWith("!")) {
         ++tagPos;
-        tags[tagPos] = word;
-        args[tagPos] = [];
-        flatTags[tagPos] = flat;
-        flatArgs[tagPos] = [];
+        // tags[tagPos] = word;
+        // args[tagPos] = [];
+        // flatTags[tagPos] = flat;
+        // flatArgs[tagPos] = [];
         argPos = 0;
         dots.push(dot = new HashDot(word, flat));
         continue;
       }
-      if (tagPos === -1) {
+      if (dot === undefined) {
         const errorPos = hashOrDot.lastIndex - word.length + 1;
         throw new SyntaxError(`HashDot syntax error. HashDot sequence must start with '#':\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
       try {
-        dot.addArgument(word, flat);
-      } catch (err){
+        dot.addArgument(word, flat, varCounter);
+      } catch (err) {
         const errorPos = hashOrDot.lastIndex - word.length + 1;
         throw new SyntaxError(`HashDot syntax error: ${err.message}\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
@@ -147,15 +153,15 @@ export class HashDots {
         //   const errorPos = hashOrDot.lastIndex - word.length + 1;
         //   throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
         // }
-        args[tagPos] = word + "-" + varCounter;
+        // args[tagPos] = word + "-" + varCounter;
         argPos++;
         continue;
       }
       if (word.startsWith(":")) {
         word += "-" + varCounter;
       }
-      args[tagPos][argPos] = word;
-      flatArgs[tagPos][argPos++] = flat;
+      // args[tagPos][argPos] = word;
+      // flatArgs[tagPos][argPos++] = flat;
     }
     // if (rule.right === undefined)
     //   return rule.left;
@@ -163,14 +169,14 @@ export class HashDots {
   }
 
   static subsetMatch(left, right) {
-    for (let i = 0; i < left.tags.length; i++) {
-      let leftTag = left.tags[i];
-      let leftArgs = left.args[i];
-      for (let j = 0; j < right.tags.length; j++) {
+    for (let i = 0; i < left.dots.length; i++) {
+      let leftDot = left.dots[i];
+      // let leftArgs = left.dots[i];
+      for (let j = 0; j < right.dots.length; j++) {
         let varMap = {};
-        let rightTag = right.tags[j];
-        let rightArgs = right.args[j];
-        if (rightTag === leftTag && matchArguments(leftArgs, rightArgs, varMap)){
+        let rightDot = right.dots[j];
+        // let rightArgs = right.args[j];
+        if (leftDot.match(rightDot, varMap)) {
           varMap = HashDots.headMatch(left, right, i, j, varMap);
           if (varMap)
             return {start: i, stop: right.tags.length, varMap};
@@ -180,30 +186,33 @@ export class HashDots {
     return null;
   }
 
-  static headMatch(left, right, i, j, varMap){
-    for (let k = 1; k < right.tags.length; k++) {
-      let leftTag = left.tags[i+k];
-      let leftArgs = left.args[i+k];
-      let rightTag = right.tags[j+k];
-      let rightArgs = right.args[j+k];
-      if (rightTag !== leftTag || !matchArguments(leftArgs, rightArgs, varMap))
+  static headMatch(left, right, i, j, varMap) {
+    if (i + right.dots.length > left.dots.length)
+      return null;
+    for (let k = 1; k < right.dots.length; k++) {
+      let rightDot = right.dots[j + k];
+      let leftDot = left.dots[i + k];
+      // let leftArgs = left.args[i+k];
+      // let rightArgs = right.args[j+k];
+      if (!leftDot.match(rightDot, varMap))//rightTag !== leftTag || !matchArguments(leftArgs, rightArgs, varMap))
         return null;
     }
     return varMap;
   }
 
-  static toString({tags, args, varMap}) {
+  static toString({dots}) {
     let str = "";
-    for (let i = 0; i < tags.length; i++) {
-      let tag = tags[i];
-      let args2 = args[i];
-      if (varMap)
-        args2 = flattenArgs(args2, varMap);
-      str += tag;
-      if (Array.isArray(args2))
-        for (let arg of args2) str += arg;
-      else
-        str += args2.substring(0, args2.indexOf("-"));
+    for (let i = 0; i < dots.length; i++) {
+      let dot = dots[i];
+      str += dot.toString();
+      // let args2 = args[i];
+      // if (varMap)
+      //   args2 = flattenArgs(args2, varMap);
+      // str += tag;
+      // if (Array.isArray(args2))
+      //   for (let arg of args2) str += arg;
+      // else
+      //   str += args2.substring(0, args2.indexOf("-"));
     }
     return str;
   }
@@ -230,10 +239,13 @@ export class HashDotMap {
       const match = HashDots.subsetMatch(leftSide, rule.left);
       if (match) {
         //todo can I avoid merging and HashDots.flattening here??
-        let tags = pureSplice(leftSide.tags, match.start, match.stop, rule.right.tags);
-        let args = pureSplice(leftSide.args, match.start, match.stop, rule.right.args);
-        args = args.map(args => flattenArgs(args, match.varMap));
-        return HashDotMap.resolve({tags, args}, rules);
+        let dots = pureSplice(leftSide.dots, match.start, match.stop, rule.right.dots);
+        dots = dots.map(dot => dot.flatten(match.varMap));
+        //todo how to flatten dots
+        // let tags = pureSplice(leftSide.tags, match.start, match.stop, rule.right.tags);
+        // let args = pureSplice(leftSide.args, match.start, match.stop, rule.right.args);
+        // args = args.map(args => flattenArgs(args, match.varMap));
+        return HashDotMap.resolve({dots}, rules);
       }
     }
     return leftSide;
