@@ -52,18 +52,12 @@ class HashDot {
     this.flatArgs.push(flat);
   }
 
-  flattenArgs(varMap) {
-    const res = [];
-    for (let i = 0; i < this.flatArgs.length; i++) {
-      let flat = this.flatArgs[i];
-      res.push(flat ? flat : resolveVariable(this.args[i], varMap));
-    }
-    return res;
-  }
-
   flatten(varMap) {
     let flat = new HashDot(this.tagName, this.tagValue);
-    flat.args = flattenArgs(this.args, varMap);// this.flattenArgs(varMap);
+    flat.args = this.args;
+    if (!Array.isArray(flat.args))
+      flat.args = resolveVariable(flat.args, varMap);
+    flat.args =  Array.isArray(flat.args) ? flat.args.map(arg => resolveVariable(arg, varMap)) : flat.args;
     return flat;
   }
 
@@ -73,22 +67,12 @@ class HashDot {
   //todo make varMap immutable?
   //todo should matchArguments use the flatValues??
   match(otherDot, varMap) {
-    if (this.tagValue !== otherDot.tagValue)
-      return false;
-    if (!matchArguments(this.args, otherDot.args, varMap))
-      return false;
-    return varMap;
+    return this.tagValue === otherDot.tagValue && matchArguments(this.args, otherDot.args, varMap);
   }
 
   toString() {
     return this.tagName + (Array.isArray(this.args) ? this.args.join("") : this.args);
   }
-}
-
-function flattenArgs(args, varMappings) {
-  if (!Array.isArray(args))
-    args = resolveVariable(args, varMappings);
-  return Array.isArray(args) ? args.map(arg => resolveVariable(arg, varMappings)) : args;
 }
 
 export class HashDots {
