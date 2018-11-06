@@ -30,9 +30,6 @@ function matchArguments(as, bs, varMap) {
   return true;
 }
 
-let variableCounter = 0;
-
-
 class HashDot {
   constructor(full, flat) {
     this.tagName = full;
@@ -57,7 +54,7 @@ class HashDot {
     flat.args = this.args;
     if (!Array.isArray(flat.args))
       flat.args = resolveVariable(flat.args, varMap);
-    flat.args =  Array.isArray(flat.args) ? flat.args.map(arg => resolveVariable(arg, varMap)) : flat.args;
+    flat.args = Array.isArray(flat.args) ? flat.args.map(arg => resolveVariable(arg, varMap)) : flat.args;
     return flat;
   }
 
@@ -75,6 +72,7 @@ class HashDot {
   }
 }
 
+let variableCounter = 0;
 export class HashDots {
   static parse(input) {
     const varCounter = variableCounter++;
@@ -171,15 +169,16 @@ export class HashDotMap {
     return HashDotMap.resolve(hashdots, this.reverseRules);
   }
 
-  static resolve(leftSide, rules) {
-    let next;
-    for (let rule of rules) {
-      if (next = HashDots.matchAndReplace(leftSide, rule))
-        return HashDotMap.resolve(next, rules);
+  static resolve(main, rules) {
+    for (let i = 0; i < rules.length; i++) {
+      let next = HashDots.matchAndReplace(main, rules[i]);
+      if (next) {
+        i = -1;
+        main = next;
+      }
     }
-    return leftSide;
+    return main;
   }
-
 }
 
 export class HashDotsRouter {
