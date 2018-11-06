@@ -146,8 +146,7 @@ export class HashDots {
         let varMap = {};
         let rightDot = right[j];
         if (leftDot.match(rightDot, varMap)) {
-          varMap = HashDots.headMatch(left, right, i, j, varMap);
-          if (varMap)
+          if (HashDots.headMatch(left, right, i, j, varMap))
             return {start: i, stop: right.length, varMap};
         }
       }
@@ -157,14 +156,12 @@ export class HashDots {
 
   static headMatch(left, right, i, j, varMap) {
     if (i + right.length > left.length)
-      return null;
+      return false;
     for (let k = 1; k < right.length; k++) {
-      let rightDot = right[j + k];
-      let leftDot = left[i + k];
-      if (!leftDot.match(rightDot, varMap))
-        return null;
+      if (!left[i + k].match(right[j + k], varMap))
+        return false;
     }
-    return varMap;
+    return true;
   }
 }
 
@@ -205,7 +202,7 @@ export class HashDotsRouter {
     this.left = undefined;
     this.right = undefined;
     this.lastEvent = null;
-    this.map = new HashDotMap(routes);
+    this.rules = new HashDotMap(routes);
     window.addEventListener("hashchange", () => this._onHashchange());
     //dispatch an initial routechange event at the first raf after startup
     requestAnimationFrame(() => this._onHashchange());
@@ -216,14 +213,13 @@ export class HashDotsRouter {
     if (this.middle === currentHash || this.left === currentHash || this.right === currentHash)
       return window.location.hash = this.left;
     const middle = HashDots.parse(currentHash).left;
-    let left = this.map.left(middle);
+    let left = this.rules.left(middle);
     let leftStr = left.map(dot => dot.toString()).join("");
     if (leftStr === this.left)
       return window.location.hash = this.left;
-    let right = this.map.right(middle);
-    let rightStr = right.map(dot => dot.toString()).join("");
+    let right = this.rules.right(middle);
     this.left = leftStr;
-    this.right = rightStr;
+    this.right = right.map(dot => dot.toString()).join("");
     this.middle = currentHash;
     this.lastEvent = {left, middle, right};
     window.location.hash = leftStr;
