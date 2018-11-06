@@ -181,7 +181,7 @@ describe("Syntactic errors (HashDots.parse())", function () {
       HashDots.parse("#a::B::C");
       assert(false);
     } catch (err) {
-      expect(err.message).to.deep.equal("HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  #a::B::C\nError:       ↑");
+      expect(err.message).to.deep.equal("HashDot syntax error: DoubleDots '::' must be the only argument.\nInput:  #a::B::C\nError:       ↑");
     }
   });
   it("Line start with different symbol", () => {

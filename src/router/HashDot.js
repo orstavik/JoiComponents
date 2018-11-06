@@ -95,12 +95,13 @@ export class HashDots {
     if (!(input.startsWith("#") || input.startsWith("/") || input.startsWith("!")))
       throw new SyntaxError(`HashDot sequence must start with #,!, or /.\nInput:  ${input}\nError:  ↑`);
     const hashOrDot = /[#/!]+([\w]+)|\.([\w]+)|\."((\\.|[^"])*)"|\.'((\\.|[^'])*)'|::?[\w]+|<=>|\s+|(.+)/g;
-    const rule = {left: {tags: [], flatTags: [], args: [], flatArgs: []}};
+    const rule = {left: {tags: [], flatTags: [], args: [], flatArgs: [], dots: []}};
     let tags = rule.left.tags;
     let args = rule.left.args;
     let flatTags = rule.left.flatTags;
     let flatArgs = rule.left.flatArgs;
-    let tagPos = -1, argPos = 0;
+    let dots = rule.left.dots;
+    let tagPos = -1, argPos = 0, dot;
     for (let next; (next = hashOrDot.exec(input)) !== null;) {
       if (next[7]) {
         const errorPos = hashOrDot.lastIndex - next[7].length + 1;
@@ -111,11 +112,13 @@ export class HashDots {
       if (word[0].match(/\s/))
         continue;
       if (word === "<=>") {
-        rule.right = {tags: [], flatTags: [], args: [], flatArgs: []};
+        rule.right = {tags: [], flatTags: [], args: [], flatArgs: [], dots: []};
         tags = rule.right.tags;
         args = rule.right.args;
         flatTags = rule.right.flatTags;
         flatArgs = rule.right.flatArgs;
+        dots = rule.right.dots;
+        dot = undefined;
         tagPos = -1;
         continue;
       }
@@ -126,17 +129,24 @@ export class HashDots {
         flatTags[tagPos] = flat;
         flatArgs[tagPos] = [];
         argPos = 0;
+        dots.push(dot = new HashDot(word, flat));
         continue;
       }
       if (tagPos === -1) {
         const errorPos = hashOrDot.lastIndex - word.length + 1;
         throw new SyntaxError(`HashDot syntax error. HashDot sequence must start with '#':\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
+      try {
+        dot.addArgument(word, flat);
+      } catch (err){
+        const errorPos = hashOrDot.lastIndex - word.length + 1;
+        throw new SyntaxError(`HashDot syntax error: ${err.message}\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
+      }
       if (word.startsWith("::")) {
-        if (argPos !== 0) {
-          const errorPos = hashOrDot.lastIndex - word.length + 1;
-          throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
-        }
+        // if (argPos !== 0) {
+        //   const errorPos = hashOrDot.lastIndex - word.length + 1;
+        //   throw new SyntaxError(`HashDot syntax error. DoubleDots '::' must be the only argument:\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
+        // }
         args[tagPos] = word + "-" + varCounter;
         argPos++;
         continue;
