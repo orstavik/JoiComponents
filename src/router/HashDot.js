@@ -73,6 +73,7 @@ class HashDot {
 }
 
 let variableCounter = 0;
+
 export class HashDots {
   static parse(input) {
     const varCounter = variableCounter++;
@@ -168,6 +169,14 @@ export class HashDotMap {
     (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots).left);
     return HashDotMap.resolve(hashdots, this.reverseRules);
   }
+
+  interpret(newLocation) {
+    const middle = HashDots.parse(newLocation).left;
+    let left = this.left(middle);
+    let right = this.right(middle);
+    let rootLink = left.map(dot => dot.toString()).join("");
+    return {rootLink, left, middle, right};
+  };
 
   static resolve(main, rules) {
     for (let i = 0; i < rules.length; i++) {
