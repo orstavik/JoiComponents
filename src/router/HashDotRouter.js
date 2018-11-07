@@ -19,19 +19,18 @@ export class HashDotsRouter {
   }
 }
 
-//todo pattern: how to make a link click that bubbles up to the window absolute in all browsers? document.baseURI??
-
 export class SlashDotsRouter {
   constructor(routes) {
     this.routes = {};
     this.rules = new HashDotMap(routes);
     window.addEventListener("click", (ev) => {
-      let filteredClick = linkHighJacker(ev);
+      const base = getBaseHref();
+      let filteredClick = highjackLink(ev, base);
       if (filteredClick)
-        this._routeClick(filteredClick);
+        this._routeClick(filteredClick, base);
     });
-    window.addEventListener("popstate", (ev) => this._routeClick(window.location));
-    requestAnimationFrame(() => this._routeClick(window.location));   //startup routechange event at first rAF
+    window.addEventListener("popstate", (ev) => this._routeClick(window.location.href, getBaseHref()));
+    requestAnimationFrame(() => this._routeClick(window.location.href, getBaseHref()));   //startup routechange event at first rAF
   }
 
   makeAbsolute(link) {
@@ -39,34 +38,47 @@ export class SlashDotsRouter {
     return url.substr(document.baseURI.toString().length - 1);
   }
 
-  _routeClick(link) {
+  _routeClick(full, base) {
+    debugger;
+    let link = full.substr(base.length-1);
     if (this.routes.rootLink === link)
       return;
-    //1. find the tail of the link using the base.    //2. how to get the base
-    debugger;
-    let url = new URL(link, document.baseURI).toString();
-    //2. exclude the base in order to get the tail
-    url = url.substr(document.baseURI.toString().length - 1);
-    const newRoute = this.rules.interpret(url);
+    const newRoute = this.rules.interpret(link);
     if (this.routes.rootLink !== newRoute.rootLink)
       window.dispatchEvent(new CustomEvent("routechange", {detail: this.routes = newRoute}));
-    const locationOnServer = window.location.pathname + window.location.search + (window.location.hash || "");
-    if (!locationOnServer.endsWith(newRoute.rootLink)) {
-      const a = newRoute.rootLink.substring(1);
-      history.pushState(undefined, undefined, new URL(a, document.baseURI).toString());
+    const newFull = base.substr(0, base.length-1) + newRoute.rootLink;
+    if (window.location.href !== newFull) {
+      history.pushState(undefined, undefined, newFull);
     }
   }
 }
 
-//depends on new URL, which IE must polyfill
-//https://www.jsdelivr.com/package/npm/url-polyfill
+//In IE, neither URL nor document.baseURI is used. IE falls back to creating an a-tag in ie.
+//https://stackoverflow.com/questions/470832/getting-an-absolute-url-from-a-relative-one-ie6-issue
+function qualifyURL(url) {
+  if (URL)
+    return new URL(url, document.baseURI).href;
+  var a = document.createElement('a');
+  a.href = url;
+  return a.cloneNode(false).href;
+}
+
+function getBaseHref(){
+  debugger;
+  if (document.baseURI)
+    return document.baseURI.substring(0, document.baseURI.lastIndexOf("/")+1);
+  var base = document.querySelector('base');
+  if (base)
+    return base.href;
+  return window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+}
+
 /**
  *
  * @param e
- * @returns undefined if the click is not a link or the link is not highjacked
- *          otherwise, the {string} highjacked link.
+ * @returns {string} link as seen from the base when highjacked, otherwise undefined
  */
-function linkHighJacker(e) {
+function highjackLink(e, base) {
   //1. skip all non-left single clicks
   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.defaultPrevented)
     return;
@@ -84,12 +96,12 @@ function linkHighJacker(e) {
     //3b. skip '#...', 'mailto:...' and '' (empty)
     if (link.startsWith("#") || link.startsWith('mailto:') || "")
       return;
+
     //3c. skip x-origins
-    let url = new URL(link, document.baseURI);
-    const base = new URL(document.baseURI);
-    if (url.protocol !== base.protocol || url.port !== base.port || url.host !== base.host)
+    let url = qualifyURL(link);
+    if(!url.startsWith(base))
       return;
     e.preventDefault();
-    return link;
+    return url;
   }
 }
