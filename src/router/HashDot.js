@@ -49,12 +49,29 @@ class HashDot {
     this.flatArgs.push(flat);
   }
 
+  static _flattenArgs(args) {
+    return args.map(arg => {
+      if (arg.startsWith(":"))
+        return arg;
+      if (arg.startsWith(".'"))
+        return arg.substring(2, arg.length - 1).replace(/\\'/, "'");
+      if (arg.startsWith('."'))
+        return arg.substring(2, arg.length - 1).replace(/\\"/, '"');
+      return arg.substring(1);
+    });
+  }
+
   flatten(varMap) {
     let flat = new HashDot(this.tagName, this.tagValue);
     flat.args = this.args;
     if (!Array.isArray(flat.args))
       flat.args = resolveVariable(flat.args, varMap);
-    flat.args = Array.isArray(flat.args) ? flat.args.map(arg => resolveVariable(arg, varMap)) : flat.args;
+    if (!Array.isArray(flat.args)){
+      flat.flatArgs = flat.args;
+      return flat;
+    }
+    flat.args = flat.args.map(arg => resolveVariable(arg, varMap));
+    flat.flatArgs = HashDot._flattenArgs(flat.args);
     return flat;
   }
 
@@ -76,10 +93,13 @@ let variableCounter = 0;
 
 export class HashDots {
   static parse(input) {
-    const varCounter = variableCounter++;
     input = input.trim();
+    if (input.length === 0)
+      return {left: []};
     if (!(input.startsWith("#") || input.startsWith("/") || input.startsWith("!")))
       throw new SyntaxError(`HashDot sequence must start with #,!, or /.\nInput:  ${input}\nError:  ↑`);
+
+    const varCounter = variableCounter++;
     const hashOrDot = /[#/!]+([\w]+)|\.([\w]+)|\."((\\.|[^"])*)"|\.'((\\.|[^'])*)'|::?[\w]+|<=>|\s+|(.+)/g;
     const rule = {left: []};
     let dots = rule.left;

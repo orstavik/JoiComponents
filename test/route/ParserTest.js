@@ -1,6 +1,11 @@
 import {HashDots, HashDotMap} from "../../src/router/HashDot.js";
 
 describe("parseHashDot", function () {
+
+  it("empty test", function () {
+    expect(HashDots.parse("").left).to.deep.equal([]);
+  });
+
   it("basic test: #omg.what.is.'this:!#...#'##wtf/OMG123.123", function () {
 
     const res = HashDots.parse("#omg.what.is.'this:!#...#'##wtf/OMG123.123");
@@ -9,7 +14,7 @@ describe("parseHashDot", function () {
         "tagName": "#omg",
         "tagValue": "omg",
         "args": [".what", ".is", ".'this:!#...#'"],
-        "flatArgs": ["what", "is", "this:!#...#"]
+        flatArgs: ["what", "is", "this:!#...#"]
       }, {
         "tagName": "##wtf",
         "tagValue": "wtf",
@@ -99,15 +104,20 @@ describe("HashDotMatch", function () {
     expect(res.start).to.be.equal(0);
     expect(res.varMap).to.deep.equal({":A-11": ".a", ":B-11": ".b"});
   });
+  it(`HashDots.subsetMatch(#one:A:B, #one.'hello'."world")`, function () {
+    const res = HashDots.subsetMatch(HashDots.parse("#one:A:B").left, HashDots.parse(`#one.'hello'."world"`).left);
+    expect(res.start).to.be.equal(0);
+    expect(res.varMap).to.deep.equal({":A-13": ".'hello'", ":B-13": '."world"'});
+  });
   it("HashDots.subsetMatch(#one.a.b, #one:A:B)", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one.a.b").left, HashDots.parse("#one:A:B").left);
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A-14": ".a", ":B-14": ".b"});
+    expect(res.varMap).to.deep.equal({":A-16": ".a", ":B-16": ".b"});
   });
   it("HashDots.subsetMatch(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one.a.b.c#two.lala").left, HashDots.parse("#one:A:B:C#two:LALA").left);
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A-16": ".a", ":B-16": ".b", ":C-16": ".c", ":LALA-16": ".lala"});
+    expect(res.varMap).to.deep.equal({":A-18": ".a", ":B-18": ".b", ":C-18": ".c", ":LALA-18": ".lala"});
   });
   it("HashDots.subsetMatch(#one.a.b.с#two.lala, #one::ALL)", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one.a.b.c#two.lala").left, HashDots.parse("#one::ALL").left);
@@ -138,7 +148,7 @@ describe("HashDotMatch", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one:A#two.b").left, HashDots.parse("#one.c#two:A").left);
     expect(res.start).to.be.equal(0);
     expect(res.stop).to.be.equal(2);
-    expect(res.varMap).to.deep.equal({':A-33': '.c', ':A-34': '.b'});
+    expect(res.varMap).to.deep.equal({':A-35': '.c', ':A-36': '.b'});
   });
   it("HashDots.subsetMatch on the second occurence: #one#two#three#one#four, #one#four", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one#two#three#one#four").left, HashDots.parse("#one#four").left);
@@ -155,18 +165,18 @@ describe("HashDotMap", function () {
       "left": [{
         "tagName": "#one",
         "tagValue": "one",
-        "args": [":A-37", ":B-37"],
+        "args": [":A-39", ":B-39"],
         "flatArgs": [undefined, undefined]
       }],
       "right": [{
         "tagName": "#two",
         "tagValue": "two",
-        "args": [":A-37"],
+        "args": [":A-39"],
         "flatArgs": [undefined]
       }, {
         "tagName": "#three",
         "tagValue": "three",
-        "args": [":B-37"],
+        "args": [":B-39"],
         "flatArgs": [undefined]
       }]
     });
@@ -178,6 +188,14 @@ describe("HashDotMap", function () {
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a#three.b");
     const left = routeMap.left("#two.a#three.b");
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b");
+  });
+  it("#one:A:B <=> #two:A#three:B", function () {
+    const routeMap = new HashDotMap(["#one:A:B <=> #two:A#three:B"]);
+    const right = routeMap.right(`#one.'hello'."world"`);
+    expect(right.map(dot => dot.toString()).join("")).to.be.equal(`#two.'hello'#three."world"`);
+    const left = routeMap.left(`#two.'hello'#three."world"`);
+    expect(left.map(dot => dot.toString()).join("")).to.be.equal(`#one.'hello'."world"`);
+    expect(left[0].flatArgs).to.deep.equal(["hello", "world"]);
   });
   it("#nothing#one:A:B <=> #two:A#three:B", function () {
     const routeMap = new HashDotMap(["#nothing#one:A:B <=> #two:A#three:B"]);

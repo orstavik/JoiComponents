@@ -44,6 +44,7 @@ function highjackLink(e, base) {
     if (link.startsWith("#") || link.startsWith('mailto:') || "")
       return;
 
+    //todo brittle.. I need a function that checks same origin of a url.
     //3c. skip x-origins
     let url = fullUrl(link);
     if(!url.startsWith(base))
@@ -72,6 +73,10 @@ export class HashDotsRouter {
   }
 }
 
+//pushState is supported by ie10.
+//edge supports pushState and URL
+//IE10-11 supports pushState, but not URL
+//we need to do a test of what polyfills are needed to run this in IE.
 export class SlashDotsRouter {
   constructor(routes) {
     this.routes = {};
@@ -87,13 +92,14 @@ export class SlashDotsRouter {
   }
 
   _navigate(full, base) {
-    let link = full.substr(base.length-1);
+    const baseXlastSlash = base.substr(0, base.length-1);
+    let link = full.substr(baseXlastSlash.length);
     if (this.routes.rootLink === link)
       return;
     const newRoute = this.rules.interpret(link);
     if (this.routes.rootLink !== newRoute.rootLink)
       window.dispatchEvent(new CustomEvent("routechange", {detail: this.routes = newRoute}));
-    const newFull = base.substr(0, base.length-1) + newRoute.rootLink;
+    const newFull = baseXlastSlash + newRoute.rootLink;
     if (window.location.href !== newFull) {
       history.pushState(undefined, undefined, newFull);
     }
