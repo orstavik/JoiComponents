@@ -10,7 +10,7 @@ function fullUrl(url) {
   return a.cloneNode(false).href;
 }
 
-function getBaseHref(){
+export function getBaseHref(){
   if (document.baseURI)
     return document.baseURI.substring(0, document.baseURI.lastIndexOf("/")+1);
   var base = document.querySelector('base');
@@ -25,7 +25,7 @@ function getBaseHref(){
  * @param base
  * @returns {string} link as seen from the base when highjacked, otherwise undefined
  */
-function highjackLink(e, base) {
+export function highjackLink(e, base) {
   //1. skip all non-left single clicks
   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.defaultPrevented)
     return;
