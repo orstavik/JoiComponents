@@ -40,8 +40,8 @@ export function highjackLink(e, base) {
     let link = ((typeof el.href === 'object') && el.href.constructor.name === 'SVGAnimatedString') ?
       el.href.baseVal :
       el.getAttribute('href');
-    //3b. skip '#...', 'mailto:...' and '' (empty)
-    if (link.startsWith("#") || link.startsWith('mailto:') || "")
+    //3b. skip '#...', 'mailto:...', javascript:
+    if (link.startsWith("#") || link.startsWith('mailto:') ||link.startsWith('javascript:'))
       return;
 
     //todo brittle.. I need a function that checks same origin of a url.
