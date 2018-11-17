@@ -7,10 +7,14 @@ function createA(attributes) {
   return a;
 }
 
+
 function click(a, detail) {
   const event = new MouseEvent("click1", Object.assign({}, {bubbles: true, cancelable: true}, detail));
   a.dispatchEvent(event);
 }
+
+let output = getBaseHref().split(/[/]+/);
+
 
 describe("HighjackLink IN", () => {
 
@@ -60,11 +64,145 @@ describe("HighjackLink IN", () => {
     window.removeEventListener("click1", listener);
   });
 
-  //todo need more examples of links that are filtered in.
-  //  sameFile.name
-  //  ./sameFile.name
-  //  ../../sameDir/sameDir/sameFile.name
-  //?something
+  it("Link start from the base + /fileneme", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal("http://localhost:63342/Router/test/ClickLinkFilter/filename.html");
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "http://localhost:63342/Router/test/ClickLinkFilter/filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
+
+  it("Link start from the /filename", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal(undefined);
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "/filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
+
+
+  it("Link start from the ./filename", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal(getBaseHref() + "filename.html");
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "./filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
+  it("Link start from the ../filename", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal(undefined);
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "../filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
+
+  it("Link start from the /sameFolder/fileneme", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal(undefined);
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "/" + output[output.length - 2] + "/filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
+
+  it("Link start from the ././filename", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal(getBaseHref() + "filename.html");
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "././filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
+
+  it("Link start from the ../../filename", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal(undefined);
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "../filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
+
+  it("Link start from the /sameFolder/sameFolder/fileneme", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal(undefined);
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "/" + output[output.length - 3] + "/" + output[output.length - 2] + "/filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
+
+  it("Link start from the ./././filename", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal(getBaseHref() + "filename.html");
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "./././filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
+
+  it("Link start from the /sameFolder/sameFolder/sameFolder/fileneme", (done) => {
+    const listener = e => {
+      const result = highjackLink(e, getBaseHref());
+      expect(result).to.be.equal(undefined);
+      done();
+    };
+    window.addEventListener("click1", listener);
+    const element = createA({href: "/test/ClickLinkFilter/filename.html"});
+    document.body.appendChild(element);
+    click(element, {});
+    document.body.removeChild(element);
+    window.removeEventListener("click1", listener);
+  });
 
   //svg link inside the same base
   //
@@ -202,6 +340,7 @@ describe("HighjackLink OUT", () => {
     document.body.removeChild(element);
     window.removeEventListener("click1", listener);
   });
+
   it("Href starts with javascript:", (done) => {
     const listener = e => {
       const result = highjackLink(e, getBaseHref());
@@ -215,18 +354,23 @@ describe("HighjackLink OUT", () => {
     document.body.removeChild(element);
     window.removeEventListener("click1", listener);
   });
-  //todo here we should not use createA
+
   it("Object href", (done) => {
     const listener = e => {
-      const result = highjackLink(e, getBaseHref());
-      expect(result).to.be.equal(undefined);
+      const result = highjackLink(e, "");
+      expect(result).to.be.equal("http://localhost:63342/Router/test/ClickLinkFilter/lala");
+      let svgParent = document.getElementById("svg-parent");
       done();
     };
     window.addEventListener("click1", listener);
-    const element = createA({href: {}});
+    const element = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    element.innerHTML = `<polygon id="my-polygon" fill="red" stroke="black"  points="360.5,406 62.757,371.5 61.125,72 360.5,89.5"/><a id="test-a" href="lala"></a>
+`;
+    element.href = element.children[1].href;
     document.body.appendChild(element);
-    click(element, {suka: SVGAnimatedString});
+    click(element, {});
     document.body.removeChild(element);
     window.removeEventListener("click1", listener);
   });
+
 });
