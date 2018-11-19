@@ -10,9 +10,9 @@ function fullUrl(url) {
   return a.cloneNode(false).href;
 }
 
-export function getBaseHref(){
+export function getBaseHref() {
   if (document.baseURI)
-    return document.baseURI.substring(0, document.baseURI.lastIndexOf("/")+1);
+    return document.baseURI.substring(0, document.baseURI.lastIndexOf("/") + 1);
   var base = document.querySelector('base');
   if (base)
     return base.href;
@@ -38,16 +38,18 @@ export function highjackLink(e, base) {
     if (el.hasAttribute('download') || el.getAttribute('rel') === 'external')
       return;
     let link = ((typeof el.href === 'object') && el.href.constructor.name === 'SVGAnimatedString') ?
-      el.href.baseVal :
+      el.href.animVal || el.href.baseVal :  //<--Max2 (maybe some browsers don't support animVal?? or don't update it when it is not animated??)
+      //el.href.animVal : <--Max1   //Ivar..
+      //el.href.baseVal : <--Page.js
       el.getAttribute('href');
-    //3b. skip '#...', 'mailto:...', javascript:
-    if (link.startsWith("#") || link.startsWith('mailto:') ||link.startsWith('javascript:'))
+    //3b. skip 'mailto:...', javascript:
+    if (link.startsWith('mailto:') || link.startsWith('javascript:'))
       return;
 
     //todo brittle.. I need a function that checks same origin of a url.
     //3c. skip x-origins
     let url = fullUrl(link);
-    if(!url.startsWith(base))
+    if (!url.startsWith(base))
       return;
     e.preventDefault();
     return url;
@@ -92,7 +94,7 @@ export class SlashDotsRouter {
   }
 
   _navigate(full, base) {
-    const baseXlastSlash = base.substr(0, base.length-1);
+    const baseXlastSlash = base.substr(0, base.length - 1);
     let link = full.substr(baseXlastSlash.length);
     if (this.routes.rootLink === link)
       return;
