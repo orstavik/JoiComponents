@@ -357,20 +357,22 @@ describe("HighjackLink", function () {
       window.removeEventListener("click1", listener);
     });
 
-    it("animated href", (done) => {
+it("animated href", (done) => {
       const listener = e => {
-        const result = highjackLink(e, "");
-        expect(result).to.be.equal("https://example.com/what/ever/filename.html");
-        done();
+        setTimeout(()=>{
+          const result = highjackLink(e, "");
+          expect(result).to.be.equal("https://example.com/what/ever/animated.html");
+          document.body.removeChild(element);
+          done();
+        },500)
       };
       window.addEventListener("click1", listener);
       const element = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       //todo animate the ref continously
-      element.innerHTML = `<a id="test-a" href="filename.html"><polygon id="my-polygon" fill="red" stroke="black"  points="360.5,406 62.757,371.5 61.125,72 360.5,89.5"/></a>`;
+      element.innerHTML = `<a id="test-a" href="filename.html"><polygon fill="red" stroke="black"  points="360.5,406 62.757,371.5 61.125,72 360.5,89.5"/><animate id="anim1" xlink:href="#test-a" attributeName="href" from="filename.html" to="animated.html" dur="1s" begin="0s; anim2.end" </a><animate id="anim2" xlink:href="#test-a" attributeName="href" from="animated.html" to="animated.html" dur="1s" begin="anim1.end" </a>`;
       document.body.appendChild(element);
       setTimeout(function(){
         click(element.children[0].children[0]);
-        document.body.removeChild(element);
         window.removeEventListener("click1", listener);
       }, 200);
     });
