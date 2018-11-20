@@ -23,22 +23,43 @@ describe("HighjackLink", function () {
     original ? original.insertBefore(forTest) : document.querySelector("body").appendChild(forTest);
   });
 
-  describe("IN", function () {
-
+  describe("getBaseHref()", function () {
     it("getBaseHref()", () => {
       expect(getBaseHref()).to.be.equal("https://example.com/what/ever/");
     });
 
-    it("getBaseHref() with no slash on root segment", () => {
+    it("https://example.com (missing slash on root segment is added)", () => {
       forTest.setAttribute("href", "https://example.com");
       expect(getBaseHref()).to.be.equal("https://example.com/");
     });
 
-    it("getBaseHref() only returns upto the last slash", () => {
+    it("https://example.com/what/ever/omg.html (exclude filename)", () => {
       forTest.setAttribute("href", "https://example.com/what/ever/omg.html");
       expect(getBaseHref()).to.be.equal("https://example.com/what/ever/");
-      forTest.setAttribute("href", "https://example.com/what/ever/");
     });
+
+    it("https://example.com/what/ever/?query=this (exclude query)", () => {
+      forTest.setAttribute("href", "https://example.com/what/ever/?query=this");
+      expect(getBaseHref()).to.be.equal("https://example.com/what/ever/");
+    });
+    it("https://example.com/what/ever/#abc (exclude hash)", () => {
+      forTest.setAttribute("href", "https://example.com/what/ever/#abc");
+      expect(getBaseHref()).to.be.equal("https://example.com/what/ever/");
+    });
+    it("https://example.com/what/ever/?query=th/is (exclude query with slash)", () => {
+      forTest.setAttribute("href", "https://example.com/what/ever/?query=th/is");
+      expect(getBaseHref()).to.be.equal("https://example.com/what/ever/");
+    });
+    it("https://example.com/what/ever/#abc/def (exclude hash with slash)", () => {
+      forTest.setAttribute("href", "https://example.com/what/ever/#abc/def");
+      expect(getBaseHref()).to.be.equal("https://example.com/what/ever/");
+    });
+    after(function(){
+      forTest.setAttribute("href", "https://example.com/what/ever/");
+    })
+
+  });
+  describe("IN", function () {
 
     it("filename.html", (done) => {
       const listener = e => {
@@ -379,7 +400,7 @@ describe("HighjackLink", function () {
         click(element.children[1].children[0]);
         window.removeEventListener("click", listener);
         document.body.removeChild(element);
-      }, 300);
+      }, 300);                    //we need to wait approx 250ms for svg <animate> to kick in..
     });
   });
 

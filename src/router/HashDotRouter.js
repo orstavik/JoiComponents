@@ -1,8 +1,15 @@
 import {HashDotMap} from "./HashDot.js";
 
 export function getBaseHref() {
-  if (document.baseURI)
-    return document.baseURI.substring(0, document.baseURI.lastIndexOf("/") + 1);    //todo does not handle queries and # if they contain a slash
+  //todo this if clause is brittle, I have not fully researched this
+  if (document.baseURI) {
+    var s = document.baseURI;
+    var q = s.indexOf("?"), h = s.indexOf("#");
+    var x = h === -1 ? q : (q === -1 ? h : Math.min(q, h));
+    if (x > 0)
+      s = s.substring(0, x);
+    return s.substring(0, s.lastIndexOf("/") + 1);
+  }
   var base = document.querySelector('base');
   if (base)
     return base.href;
@@ -89,7 +96,7 @@ export class SlashDotsRouter {
         return;
       const base = getBaseHref();
       let filteredClick = highjackLink(ev, base);
-      if (filteredClick){
+      if (filteredClick) {
         this._navigate(filteredClick, base);
         ev.preventDefault();
       }
