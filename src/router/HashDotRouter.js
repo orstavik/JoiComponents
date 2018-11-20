@@ -18,6 +18,8 @@ export function getBaseHref() {
  * HighjackLink only works with does not check same origin of the base for interpreting the url.
  * Thus, this can be manipulated by the router.
  *
+ * HighJackLink DOES not check for .defaultPrevented nor trigger .preventDefault() on any event.
+ *
  * https://www.w3.org/TR/SVG2/linking.html#AElementHrefAttribute
  *
  * @param e
@@ -27,7 +29,7 @@ export function getBaseHref() {
  */
 export function highjackLink(e, base) {
   //1. skip all non-left single clicks
-  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.defaultPrevented)
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey)
     return;
 
   for (let el = e.target; el; el = el.parentNode) {                 //IE and Edge does not support composedPath()
@@ -82,11 +84,14 @@ export class SlashDotsRouter {
     this.routes = {};
     this.rules = new HashDotMap(routes);
     window.addEventListener("click", (ev) => {
+      //If the click event has already been .defaultPrevented, the router does nothing.
+      if (ev.defaultPrevented)
+        return;
       const base = getBaseHref();
       let filteredClick = highjackLink(ev, base);
       if (filteredClick){
-        ev.preventDefault();
         this._navigate(filteredClick, base);
+        ev.preventDefault();
       }
     });
     window.addEventListener("popstate", (ev) => this._navigate(window.location.href, getBaseHref()));
