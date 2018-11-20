@@ -2,11 +2,11 @@ import {HashDotMap} from "./HashDot.js";
 
 export function getBaseHref() {
   if (document.baseURI)
-    return document.baseURI.substring(0, document.baseURI.lastIndexOf("/") + 1);
+    return document.baseURI.substring(0, document.baseURI.lastIndexOf("/") + 1);    //todo does not handle queries and # if they contain a slash
   var base = document.querySelector('base');
   if (base)
     return base.href;
-  return window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+  return window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + '/';
 }
 
 /**

@@ -8,7 +8,8 @@ function createA(attributes) {
 }
 
 function click(a, detail) {
-  const event = new MouseEvent("click1", Object.assign({}, {bubbles: true, cancelable: true}, detail));
+  const event = new MouseEvent("click", Object.assign({}, {bubbles: true, cancelable: true}, detail));
+  event.preventDefault();
   a.dispatchEvent(event);
 }
 
@@ -45,14 +46,13 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/filename.html");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
-
 
     //on empty string, see:
     //https://stackoverflow.com/questions/5637969/is-an-empty-href-valid#answer-43340108
@@ -62,12 +62,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: " "});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("/what/ever/filename.html", (done) => {
@@ -76,12 +76,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/filename.html");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "/what/ever/filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("./filename.html", (done) => {
@@ -90,12 +90,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/filename.html");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "./filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("../ever/filename.html", (done) => {
@@ -104,12 +104,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/filename.html");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "../ever/filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("../../what/ever/filename.html", (done) => {
@@ -118,12 +118,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/filename.html");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "../../what/ever/filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("./././filename.html", (done) => {
@@ -132,12 +132,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/filename.html");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "./././filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("?query=this", (done) => {
@@ -146,12 +146,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/?query=this");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "?query=this"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("#abc", (done) => {
@@ -160,12 +160,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/#abc");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "#abc"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("e.defaultPrevented", function (done) {
@@ -175,12 +175,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/filename.html");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
   });
 
@@ -191,12 +191,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({});
       document.body.appendChild(element);
       click(element, {button: 1});
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("e.metaKey", function (done) {
@@ -205,12 +205,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({});
       document.body.appendChild(element);
       click(element, {metaKey: true});
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("e.ctrlKey", function (done) {
@@ -219,12 +219,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({});
       document.body.appendChild(element);
       click(element, {ctrlKey: true});
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("e.shiftKey", function (done) {
@@ -233,12 +233,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({});
       document.body.appendChild(element);
       click(element, {shiftKey: true});
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("download attribute", (done) => {
@@ -247,12 +247,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({download: "url"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("rel='external'", (done) => {
@@ -261,12 +261,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({rel: "external"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("mailto:", (done) => {
@@ -275,12 +275,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "mailto:abc"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("javascript:", (done) => {
@@ -289,12 +289,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "javascript:alert('omg..')"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("Link start from the /sameFolder/sameFolder/sameFolder/fileneme", (done) => {
@@ -303,12 +303,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "/test/ClickLinkFilter/filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("/filename.html  (wrong root folder)", (done) => {
@@ -317,12 +317,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "/filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("../filename.html  (wrong root folder)", (done) => {
@@ -331,12 +331,12 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal(undefined);
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = createA({href: "../filename.html"});
       document.body.appendChild(element);
       click(element);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
   });
 
@@ -348,7 +348,7 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/filename.html");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       element.innerHTML = `
 <a id="test-a" href="filename.html">
@@ -357,7 +357,7 @@ describe("HighjackLink", function () {
       document.body.appendChild(element);
       click(element.children[0].children[0]);
       document.body.removeChild(element);
-      window.removeEventListener("click1", listener);
+      window.removeEventListener("click", listener);
     });
 
     it("animated href", (done) => {
@@ -366,7 +366,7 @@ describe("HighjackLink", function () {
         expect(result).to.be.equal("https://example.com/what/ever/animated.html");
         done();
       };
-      window.addEventListener("click1", listener);
+      window.addEventListener("click", listener);
       const element = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       element.innerHTML = `
 <animate xlink:href="#test-a" attributeName="href" from="filename.html" to="animated.html" dur="1ms" begin="0s" fill="freeze"/>
@@ -377,7 +377,7 @@ describe("HighjackLink", function () {
       document.body.appendChild(element);
       setTimeout(() => {
         click(element.children[1].children[0]);
-        window.removeEventListener("click1", listener);
+        window.removeEventListener("click", listener);
         document.body.removeChild(element);
       }, 300);
     });
