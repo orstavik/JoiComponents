@@ -276,7 +276,9 @@ describe("HashDotMap", function () {
     const right = routeMap.right("#a#b#c#d");
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y.1#y.2");
   });
+});
 
+describe("new Resolvers", function () {
   it("resolveRight: #book = #chp.1#chp.2#chp.3 ; #chp.1 = #chp.1.1#chp.1.2#chp.1.3", function () {
     const routeMap = new HashDotMap("#book = #chp.1#chp.2#chp.3; #chp.1 = #chp.1.1#chp.1.2#chp.1.3");
     const right = routeMap.resolveRight("#book");
@@ -285,6 +287,27 @@ describe("HashDotMap", function () {
     expect(right2.map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3#test.abc");
     const right3 = routeMap.resolveRight("#test.abc#book");
     expect(right3.map(dot => dot.toString()).join("")).to.be.equal("#test.abc#chp.1#chp.2#chp.3");
+  });
+
+  it("HashDotMap.resolver('#chp:X')", function () {
+    const routeMap = new HashDotMap("#chp.1 = #txt.hello; #chp.2 = #txt.world; #chp.1.1 = #txt.go; #chp.1.2 = #txt.figure");
+    const right = routeMap.rightResolver("#chp:X");
+    expect(right.next().toString()).to.be.equal("#chp.1");
+    expect(right.next().toString()).to.be.equal("#chp.2");
+    expect(right.next()).to.be.equal(null);
+    expect(right.next()).to.be.equal(null);
+    const right2 = routeMap.rightResolver("#chp:X:Y");
+    expect(right2.next().toString()).to.be.equal("#chp.1.1");
+    expect(right2.next().toString()).to.be.equal("#chp.1.2");
+    expect(right2.next()).to.be.equal(null);
+    expect(right2.next()).to.be.equal(null);
+    const right3 = routeMap.rightResolver("#chp::X");
+    expect(right3.next().toString()).to.be.equal("#chp.1");
+    expect(right3.next().toString()).to.be.equal("#chp.2");
+    expect(right3.next().toString()).to.be.equal("#chp.1.1");
+    expect(right3.next().toString()).to.be.equal("#chp.1.2");
+    expect(right3.next()).to.be.equal(null);
+    expect(right3.next()).to.be.equal(null);
   });
 });
 

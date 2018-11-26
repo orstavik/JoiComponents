@@ -121,7 +121,7 @@ export class HashDots {
         continue;
       }
       if (word === ";") {
-        if (rule.left.length !== 0){
+        if (rule.left.length !== 0) {
           rules.push(rule);
           rule = {left: []};
           dots = rule.left;
@@ -181,6 +181,16 @@ export class HashDots {
     }
     return true;
   }
+
+  static exactMatch(left, right, varMap) {
+    if (left.length !== right.length)
+      return false;
+    for (let i = 0; i < left.length; i++) {
+      if (!left[i].match(right[i], varMap))
+        return false;
+    }
+    return true;
+  }
 }
 
 //todo Should queries get their own symbols like:
@@ -213,8 +223,8 @@ export class HashDotMap {
     return {rootLink, left, middle, right};
   };
 
-  static resolve(main, rules) {
-    for (let i = 0; i < rules.length; i++) {
+  static resolve(main, rules, i = 0) {
+    for (/*let i = 0*/; i < rules.length; i++) {
       let next = HashDots.matchAndReplace(main, rules[i]);
       if (next) {
         i = -1;
@@ -224,7 +234,35 @@ export class HashDotMap {
     return main;
   }
 
-  //todo make tests
+  rightResolver(hashdots){
+    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
+    return HashDotMap.resolver(hashdots, this.rules);
+  }
+
+  static resolver(main, rules) {
+    const hits = [];
+    let i = 0;
+    return {
+      next() {
+        if (main === null)
+          return null;
+        while (i < rules.length) {
+          let varMap = {};
+          const ruleLeftSide = rules[i++].left;
+          if (HashDots.exactMatch(main, ruleLeftSide, varMap)) {
+            let res = main.map(dot => dot.flatten(varMap));
+            hits.push(res);
+            return res;
+          }
+        }
+        if (!hits.length)
+          return main = null;
+        main = hits.shift();
+        return this.next();
+      }
+    };
+  }
+
   resolveRight(hashdots) {
     (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
     for (let rule of this.rules) {
