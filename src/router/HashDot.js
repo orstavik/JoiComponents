@@ -66,7 +66,7 @@ class HashDot {
     flat.args = this.args;
     if (!Array.isArray(flat.args))
       flat.args = resolveVariable(flat.args, varMap);
-    if (!Array.isArray(flat.args)){
+    if (!Array.isArray(flat.args)) {
       flat.flatArgs = flat.args;
       return flat;
     }
@@ -95,13 +95,15 @@ export class HashDots {
   static parse(input) {
     input = input.trim();
     if (input.length === 0)
-      return {left: []};
+      return [];
     if (!(input.startsWith("#") || input.startsWith("/") || input.startsWith("!")))
       throw new SyntaxError(`HashDot sequence must start with #,!, or /.\nInput:  ${input}\nError:  ↑`);
 
     const varCounter = variableCounter++;
-    const hashOrDot = /[#/!]+([\w]+)|\.([\w]+)|\."((\\.|[^"])*)"|\.'((\\.|[^'])*)'|::?[\w]+|<=>|\s+|(.+)/g;
-    const rule = {left: []};
+    const hashOrDot = /[#/!]+([\w]+)|\.([\w]+)|\."((\\.|[^"])*)"|\.'((\\.|[^'])*)'|::?[\w]+|=|;|\s+|(.+)/g;
+    const rules = [];
+    let rule = {left: []};
+    rules.push(rule);
     let dots = rule.left;
     let dot;
     for (let next; (next = hashOrDot.exec(input)) !== null;) {
@@ -113,10 +115,16 @@ export class HashDots {
       let flat = next[1] || next[2] || (next[3] && next[3].replace(/\\"/, '"')) || (next[5] && next[5].replace(/\\'/, "'"));
       if (word[0].match(/\s/))
         continue;
-      if (word === "<=>") {
+      if (word === "=") {
         rule.right = [];
         dots = rule.right;
         dot = undefined;
+        continue;
+      }
+      if (word === ";") {
+        rule = {left: []};
+        rules.push(rule);
+        dots = rule.left;
         continue;
       }
       if (word.startsWith("#") || word.startsWith("/") || word.startsWith("!")) {
@@ -134,9 +142,7 @@ export class HashDots {
         throw new SyntaxError(`HashDot syntax error: ${err.message}\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
     }
-    // if (rule.right === undefined)
-    //   return rule.left;
-    return rule;
+    return rules;
   }
 
   static matchAndReplace(leftSide, rule) {
@@ -180,33 +186,24 @@ export class HashDots {
 //     "#book ?" would ask for a single right resolution of #book
 //     "? #book" would ask for a single left resolution of #book
 
-//todo Should different rules be separated by ";" So that a list of rules could be set up as a text file?
-//     That way one could write
-//     #book <=>
-//       #chp.1
-//       #chp.2
-//       #chp.3
-
-//todo Should the '<=>' be simplified to '=' or ':='? I think that the '=' might work.
-
 export class HashDotMap {
   constructor(routeMap) {
-    this.rules = routeMap.map(str => HashDots.parse(str));
+    this.rules = HashDots.parse(routeMap);
     this.reverseRules = this.rules.map(rule => ({left: rule.right, right: rule.left}));
   }
 
   right(hashdots) {
-    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots).left);
+    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
     return HashDotMap.resolve(hashdots, this.rules);
   }
 
   left(hashdots) {
-    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots).left);
+    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
     return HashDotMap.resolve(hashdots, this.reverseRules);
   }
 
   interpret(newLocation) {
-    const middle = HashDots.parse(newLocation).left;
+    const middle = HashDots.parse(newLocation)[0].left;
     let left = this.left(middle);
     let right = this.right(middle);
     let rootLink = left.map(dot => dot.toString()).join("");
@@ -226,7 +223,7 @@ export class HashDotMap {
 
   //todo make tests
   resolveRight(hashdots) {
-    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots).left);
+    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
     for (let rule of this.rules) {
       let next = HashDots.matchAndReplace(hashdots, rule);
       if (next)

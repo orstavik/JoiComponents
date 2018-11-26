@@ -11,8 +11,8 @@ As a running function it looks like this:
 ```javascript
 const test = "#shoes.42.black#menswear#search.'socks'";
 const test1 = "#shoes::ALL#search:Q";
-let res = HashDots.parse(test).tree;
-let res2 = HashDots.parse(test2).tree;
+let res = HashDots.parse(test)[0].left.tree;
+let res2 = HashDots.parse(test2)[0].left.tree;
 res === [
   {
     keyword: "shoes",
@@ -40,12 +40,13 @@ res2 === [
   }
 ];
 ```
+Todo here there should be a reference to the unit test. I should make a unit-test component.
+The unit tests will then explicitly 
+
 For now, HashDots is strict and unforgiving. Attempting to parse these hashlocations will throw an Error.
 ```javascript
-HashDots.parse("#no #whitespace #inBetween");
-HashDots.parse("#no##missing.keywords");
 HashDots.parse("#no#missing..arguments");
-HashDots.parse("#no#illegal.characters?%&!¤,;:-_");
+HashDots.parse("#no#illegal.characters?%&¤,;-_");
 ```
 
 ## Implementation

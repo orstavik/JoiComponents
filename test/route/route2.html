@@ -3,13 +3,13 @@
   import {SlashDotsRouter} from "../../src/router/HashDotRouter.js";
 
   const router = new SlashDotsRouter([
-    "/red:A <=> /orange:A",
-    "/orange:A <=> /yellow:A",
-    "/chp2 <=> /chp2_1/chp2_2",
-    "/chp2_1 <=> /intro_mixin/ex_mixin_basic/ref.mix1.johnG.IvarO",
-    "/chp2_2 <=> /mixin_global/ex_mixin_global/ref.mix1.IvarO.MaxH",
-    "/black <=> /grey",
-    "/grey <=> /white"
+    "/red:A = /orange:A",
+    "/orange:A = /yellow:A",
+    "/chp2 = /chp2_1/chp2_2",
+    "/chp2_1 = /intro_mixin/ex_mixin_basic/ref.mix1.johnG.IvarO",
+    "/chp2_2 = /mixin_global/ex_mixin_global/ref.mix1.IvarO.MaxH",
+    "/black = /grey",
+    "/grey = /white"
   ]);
   window.addEventListener("routechange", e => {
     const dump = document.querySelector("#dump");

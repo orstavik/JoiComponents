@@ -3,9 +3,9 @@
 ## Intro: RouteMap
 
 //todo: Commonly, the router does three tasks: 
-1. parse the given path into a data object.
-2. Convert shortcuts into full paths based on a set of rules
-3. link the path with an actionable object.
+//1. parse the given path into a data object.
+//2. Convert shortcuts into full paths based on a set of rules
+//3. link the path with an actionable object.
 
 Principally, a "route" is a translation of one path into another path.
 "Routing" is beneficial as it support:
@@ -37,7 +37,7 @@ But, in the beginning, this order is beneficial.))
 ```
 RouteMap
 
-simple <=> complex
+simple = complex
 ```
 
 When routes have arguments, rules are matched on signature.
@@ -45,8 +45,8 @@ The most basic rule of matching would be to add the number of arguments with the
 All these arguments must be matched from left to right, and vice versa.
 
 Example:
-The rule: `one.A.B <=> two.A, three.B`
-Has the signature: `one/2 <=> two/1, three/1`
+The rule: `one.A.B = two.A, three.B`
+Has the signature: `one/2 = two/1, three/1`
 And from left to right match `one.hello.world`, but not `one.hello` nor `one.hello.beautiful.world`.
 And from right to left match `two.hello, three.world`, but not `two.hello.world, three`, etc.
 When the examples match, `A = hello` and `B = world`.
@@ -55,8 +55,8 @@ To grab all the arguments of a hashtag, use A*.
 This is especially beneficial when routes are used to simply extend a simpler expression.
 
 Example:
-The rule: `one.A* <=> one.A*, three`
-Has the signature: `one/n <=> one/n, three/0`
+The rule: `one.A* = one.A*, three`
+Has the signature: `one/n = one/n, three/0`
 And from left to right match `one.hello.world`, `one.hello` and `one`.
 And from right to left match `one.hello.world, three`, but not `one.hello, three.world`, etc.
 When the examples match, `A* = hello.world`(1,4), `A* = hello`(2), and `A* = ""`(3).
@@ -80,10 +80,10 @@ You specify the HashDotsRouteMap as a declarative map with two sides:
 
 Below is an example of a HashDotsRouteMap in JS.
 ```javascript
-routeMap = {
-  "#one:A:B": "#two:A#three:B",
-  "#one?A": "#one?A#four"
-}
+routeMap = [
+  "#one:A:B = #two:A#three:B",
+  "#one::A = #one::A#four"
+];
 ```
 The HashDotsRouteMap is converted into *two* PathReplaceFunctions-sets:
  * leftToRight
