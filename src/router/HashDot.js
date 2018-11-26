@@ -174,6 +174,21 @@ export class HashDots {
   }
 }
 
+//todo Should queries get their own symbols like:
+//     "#book ??" would ask for the rightmost resolution of #book
+//     "?? #book" would ask for the leftmost resolution of #book
+//     "#book ?" would ask for a single right resolution of #book
+//     "? #book" would ask for a single left resolution of #book
+
+//todo Should different rules be separated by ";" So that a list of rules could be set up as a text file?
+//     That way one could write
+//     #book <=>
+//       #chp.1
+//       #chp.2
+//       #chp.3
+
+//todo Should the '<=>' be simplified to '=' or ':='? I think that the '=' might work.
+
 export class HashDotMap {
   constructor(routeMap) {
     this.rules = routeMap.map(str => HashDots.parse(str));
@@ -207,5 +222,16 @@ export class HashDotMap {
       }
     }
     return main;
+  }
+
+  //todo make tests
+  resolveRight(hashdots) {
+    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots).left);
+    for (let rule of this.rules) {
+      let next = HashDots.matchAndReplace(hashdots, rule);
+      if (next)
+        return next;
+    }
+    return undefined;
   }
 }

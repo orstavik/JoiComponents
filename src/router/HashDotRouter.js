@@ -1,13 +1,19 @@
 import {HashDotMap} from "./HashDot.js";
 
+function stripQueryHash(url){
+  var q = url.indexOf("?");
+  var h = url.indexOf("#");
+  if (q === -1 && h === -1)
+    return url;
+  if (h === -1) return url.substring(0, q);
+  if (q === -1) return url.substring(0, h);
+  return url.substring(0, Math.min(q, h));
+}
+
 export function getBaseHref() {
   //todo this if clause is brittle, I have not fully researched this
   if (document.baseURI) {
-    var s = document.baseURI;
-    var q = s.indexOf("?"), h = s.indexOf("#");
-    var x = h === -1 ? q : (q === -1 ? h : Math.min(q, h));
-    if (x > 0)
-      s = s.substring(0, x);
+    const s = stripQueryHash(document.baseURI);
     return s.substring(0, s.lastIndexOf("/") + 1);
   }
   var base = document.querySelector('base');
