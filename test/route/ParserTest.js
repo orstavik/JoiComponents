@@ -96,28 +96,57 @@ describe("parseHashDot", function () {
       "flatArgs": ["a double \" string?¤#", "end"]
     }]);
   });
+  it('#one;#two', function () {
+    const res = HashDots.parse('#one;#two');
+    expect(res).to.deep.equal([{
+      left: [{
+        tagName: "#one",
+        tagValue: "one",
+        args: [],
+        flatArgs: []
+      }]
+    }, {
+      left: [{
+        tagName: "#two",
+        tagValue: "two",
+        args: [],
+        flatArgs: []
+      }]
+    }]);
+  });
+  it(';#one;', function () {
+    const res = HashDots.parse(';#one;');
+    expect(res).to.deep.equal([{
+      left: [{
+        tagName: "#one",
+        tagValue: "one",
+        args: [],
+        flatArgs: []
+      }]
+    }]);
+  });
 });
 
 describe("HashDotMatch", function () {
   it("HashDots.subsetMatch(#one:A:B, #one.a.b)", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one:A:B")[0].left, HashDots.parse("#one.a.b")[0].left);
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A-11": ".a", ":B-11": ".b"});
+    expect(res.varMap).to.deep.equal({":A-13": ".a", ":B-13": ".b"});
   });
   it(`HashDots.subsetMatch(#one:A:B, #one.'hello'."world")`, function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one:A:B")[0].left, HashDots.parse(`#one.'hello'."world"`)[0].left);
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A-13": ".'hello'", ":B-13": '."world"'});
+    expect(res.varMap).to.deep.equal({":A-15": ".'hello'", ":B-15": '."world"'});
   });
   it("HashDots.subsetMatch(#one.a.b, #one:A:B)", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one.a.b")[0].left, HashDots.parse("#one:A:B")[0].left);
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A-16": ".a", ":B-16": ".b"});
+    expect(res.varMap).to.deep.equal({":A-18": ".a", ":B-18": ".b"});
   });
   it("HashDots.subsetMatch(#one.a.b.с#two.lala, #one:A:B:C#two:LALA)", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one.a.b.c#two.lala")[0].left, HashDots.parse("#one:A:B:C#two:LALA")[0].left);
     expect(res.start).to.be.equal(0);
-    expect(res.varMap).to.deep.equal({":A-18": ".a", ":B-18": ".b", ":C-18": ".c", ":LALA-18": ".lala"});
+    expect(res.varMap).to.deep.equal({":A-20": ".a", ":B-20": ".b", ":C-20": ".c", ":LALA-20": ".lala"});
   });
   it("HashDots.subsetMatch(#one.a.b.с#two.lala, #one::ALL)", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one.a.b.c#two.lala")[0].left, HashDots.parse("#one::ALL")[0].left);
@@ -148,7 +177,7 @@ describe("HashDotMatch", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one:A#two.b")[0].left, HashDots.parse("#one.c#two:A")[0].left);
     expect(res.start).to.be.equal(0);
     expect(res.stop).to.be.equal(2);
-    expect(res.varMap).to.deep.equal({':A-35': '.c', ':A-36': '.b'});
+    expect(res.varMap).to.deep.equal({':A-37': '.c', ':A-38': '.b'});
   });
   it("HashDots.subsetMatch on the second occurence: #one#two#three#one#four, #one#four", function () {
     const res = HashDots.subsetMatch(HashDots.parse("#one#two#three#one#four")[0].left, HashDots.parse("#one#four")[0].left);
@@ -165,18 +194,18 @@ describe("HashDotMap", function () {
       "left": [{
         "tagName": "#one",
         "tagValue": "one",
-        "args": [":A-39", ":B-39"],
+        "args": [":A-41", ":B-41"],
         "flatArgs": [undefined, undefined]
       }],
       "right": [{
         "tagName": "#two",
         "tagValue": "two",
-        "args": [":A-39"],
+        "args": [":A-41"],
         "flatArgs": [undefined]
       }, {
         "tagName": "#three",
         "tagValue": "three",
-        "args": [":B-39"],
+        "args": [":B-41"],
         "flatArgs": [undefined]
       }]
     });
@@ -273,7 +302,7 @@ describe("Syntactic errors (HashDots.parse())", function () {
       HashDots.parse(".error");
       assert(false);
     } catch (err) {
-      expect(err.message).to.deep.equal("HashDot sequence must start with #,!, or /.\nInput:  .error\nError:  ↑");
+      expect(err.message).to.deep.equal("HashDot sequence must start with #,!,/ or ;.\nInput:  .error\nError:  ↑");
     }
   });
   it("Line start without # and ends with different symbol", () => {
@@ -281,7 +310,7 @@ describe("Syntactic errors (HashDots.parse())", function () {
       HashDots.parse("error@");
       assert(false);
     } catch (err) {
-      expect(err.message).to.deep.equal("HashDot sequence must start with #,!, or /.\nInput:  error@\nError:  ↑");
+      expect(err.message).to.deep.equal("HashDot sequence must start with #,!,/ or ;.\nInput:  error@\nError:  ↑");
     }
   });
   it("Empty #", () => {

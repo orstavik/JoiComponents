@@ -96,14 +96,13 @@ export class HashDots {
     input = input.trim();
     if (input.length === 0)
       return [];
-    if (!(input.startsWith("#") || input.startsWith("/") || input.startsWith("!")))
-      throw new SyntaxError(`HashDot sequence must start with #,!, or /.\nInput:  ${input}\nError:  ↑`);
+    if (!(input.startsWith("#") || input.startsWith("/") || input.startsWith("!") || input.startsWith(";")))
+      throw new SyntaxError(`HashDot sequence must start with #,!,/ or ;.\nInput:  ${input}\nError:  ↑`);
 
     const varCounter = variableCounter++;
     const hashOrDot = /[#/!]+([\w]+)|\.([\w]+)|\."((\\.|[^"])*)"|\.'((\\.|[^'])*)'|::?[\w]+|=|;|\s+|(.+)/g;
     const rules = [];
     let rule = {left: []};
-    rules.push(rule);
     let dots = rule.left;
     let dot;
     for (let next; (next = hashOrDot.exec(input)) !== null;) {
@@ -122,9 +121,11 @@ export class HashDots {
         continue;
       }
       if (word === ";") {
-        rule = {left: []};
-        rules.push(rule);
-        dots = rule.left;
+        if (rule.left.length !== 0){
+          rules.push(rule);
+          rule = {left: []};
+          dots = rule.left;
+        }
         continue;
       }
       if (word.startsWith("#") || word.startsWith("/") || word.startsWith("!")) {
@@ -142,6 +143,8 @@ export class HashDots {
         throw new SyntaxError(`HashDot syntax error: ${err.message}\nInput:  ${input}\nError:  ${Array(errorPos).join(" ")}↑`);
       }
     }
+    if (rule.left.length !== 0)
+      rules.push(rule);
     return rules;
   }
 
@@ -181,7 +184,7 @@ export class HashDots {
 }
 
 //todo Should queries get their own symbols like:
-//     "#book ??" would ask for the rightmost resolution of #book
+//     "#book ??" would ask for the rightmost resolution of #book, ie. HashDotMap.query("#book ??") instead of HashDotMap.right("#book")
 //     "?? #book" would ask for the leftmost resolution of #book
 //     "#book ?" would ask for a single right resolution of #book
 //     "? #book" would ask for a single left resolution of #book
