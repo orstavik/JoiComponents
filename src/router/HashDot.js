@@ -236,29 +236,22 @@ export class HashDotMap {
 
   rightResolver(hashdots){
     (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
-    return HashDotMap.resolver(hashdots, this.rules);
+    return HashDotMap.resolver(HashDots.exactMatch, hashdots, this.rules);
   }
 
-  static resolver(main, rules) {
-    const hits = [];
-    let i = 0;
+  static resolver(matchFunction, main, rules, reverse) {
     return {
+      i: 0,
       next() {
-        if (main === null)
-          return null;
-        while (i < rules.length) {
+        while (this.i < rules.length) {
+          const rule = rules[this.i++];
+          const ruleHitSide = reverse ? rule.right : rule.left;
           let varMap = {};
-          const ruleLeftSide = rules[i++].left;
-          if (HashDots.exactMatch(main, ruleLeftSide, varMap)) {
-            let res = main.map(dot => dot.flatten(varMap));
-            hits.push(res);
-            return res;
+          if (matchFunction(main, ruleHitSide, varMap)){
+            return main.map(dot => dot.flatten(varMap));
           }
         }
-        if (!hits.length)
-          return main = null;
-        main = hits.shift();
-        return this.next();
+        return null;
       }
     };
   }
