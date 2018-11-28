@@ -297,31 +297,29 @@ describe("new Resolvers", function () {
       #chp.1.1 = #txt.go; 
       #chp.1.2 = #txt.figure`;
     const routeMap = new HashDotMap(rules);
-    const right = routeMap.rightResolver("#chp:X");
-    expect(right.next().toString()).to.be.equal("#chp.1");
-    expect(right.next().toString()).to.be.equal("#chp.2");
-    expect(right.next()).to.be.equal(null);
-    expect(right.next()).to.be.equal(null);
-    const right2 = routeMap.rightResolver("#chp:X:Y");
-    expect(right2.next().toString()).to.be.equal("#chp.1.1");
-    expect(right2.next().toString()).to.be.equal("#chp.1.2");
-    expect(right2.next()).to.be.equal(null);
-    expect(right2.next()).to.be.equal(null);
-    const right2a = routeMap.rightResolver("#chp.1:Y");
-    expect(right2a.next().toString()).to.be.equal("#chp.1.1");
-    expect(right2a.next().toString()).to.be.equal("#chp.1.2");
-    expect(right2a.next()).to.be.equal(null);
-    expect(right2a.next()).to.be.equal(null);
-    const right2b = routeMap.rightResolver("#chp.2:Y");
-    expect(right2b.next()).to.be.equal(null);
-    expect(right2b.next()).to.be.equal(null);
-    const right3 = routeMap.rightResolver("#chp::X");
-    expect(right3.next().toString()).to.be.equal("#chp.1");
-    expect(right3.next().toString()).to.be.equal("#chp.2");
-    expect(right3.next().toString()).to.be.equal("#chp.1.1");
-    expect(right3.next().toString()).to.be.equal("#chp.1.2");
-    expect(right3.next()).to.be.equal(null);
-    expect(right3.next()).to.be.equal(null);
+
+    let res = ["#chp.1", "#chp.2"];
+    for (let r of routeMap.matchEquals("#chp:X"))
+      expect(r.res().toString()).to.be.equal(res.shift());
+
+    res = ["#chp.1.1", "#chp.1.2"];
+    for (let r of routeMap.matchEquals("#chp:X:Y"))
+      expect(r.res().toString()).to.be.equal(res.shift());
+
+    res = ["#chp.1.1"];
+    for (let r of routeMap.matchEquals("#chp:X:X"))
+      expect(r.res().toString()).to.be.equal(res.shift());
+
+    res = ["#chp.1.1", "#chp.1.2"];
+    for (let r of routeMap.matchEquals("#chp.1:Y"))
+      expect(r.res().toString()).to.be.equal(res.shift());
+
+    res = ["#chp.1", "#chp.2", "#chp.1.1", "#chp.1.2"];
+    for (let r of routeMap.matchEquals("#chp::X"))
+      expect(r.res().toString()).to.be.equal(res.shift());
+
+    for (let r of routeMap.matchEquals("#chp.2:Y"))
+      assert(false);
   });
 });
 

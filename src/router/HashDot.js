@@ -234,24 +234,32 @@ export class HashDotMap {
     return main;
   }
 
-  rightResolver(hashdots){
-    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
-    return HashDotMap.resolver(HashDots.exactMatch, hashdots, this.rules);
+  matchEquals(hashdots) {
+    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseHashDots(hashdots), this.rules);
   }
 
-  static resolver(matchFunction, main, rules, reverse) {
+  static parseHashDots(hashdots) {
+    if (typeof hashdots === "string" || hashdots instanceof String)
+      return HashDots.parse(hashdots)[0].left;
+    return hashdots;
+  }
+
+  static resolver(matchFunction, input, rules, reverse) {
     return {
       i: 0,
       next() {
         while (this.i < rules.length) {
-          const rule = rules[this.i++];
-          const ruleHitSide = reverse ? rule.right : rule.left;
+          let rule = rules[this.i++];
+          let hitSide = reverse ? rule.right : rule.left;
+          let replaceSide = reverse ? rule.left : rule.right;
           let varMap = {};
-          if (matchFunction(main, ruleHitSide, varMap)){
-            return main.map(dot => dot.flatten(varMap));
-          }
+          if (matchFunction(input, hitSide, varMap))
+            return {done: false, value: new MatchResult(input, hitSide, replaceSide, varMap)};
         }
-        return null;
+        return {done: true};
+      },
+      [Symbol.iterator]: function () {
+        return this;
       }
     };
   }
@@ -264,5 +272,18 @@ export class HashDotMap {
         return next;
     }
     return undefined;
+  }
+}
+
+class MatchResult {
+  constructor(input, hitSide, replaceSide, varMap) {
+    this.input = input;
+    this.hitSide = hitSide;
+    this.replaceSide = replaceSide;
+    this.varMap = varMap;
+  }
+
+  res() {
+    return this.input.map(dot => dot.flatten(this.varMap));
   }
 }
