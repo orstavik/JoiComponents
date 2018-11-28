@@ -325,6 +325,46 @@ describe("new Resolvers", function () {
   });
 });
 
+describe("HashDotMap.resolver 2", function () {
+  const rules = `
+    #book = #chp1#chp2;
+    
+    #chp.1 = #txt.hello#h1.something; 
+    #chp.2 = #txt.world; 
+    
+    #chp.1.1 = #txt.go; 
+    #chp.1.2 = #txt.figure;
+                                                          
+    #title#chp.1 = #long.'hello world';
+    
+    `;
+
+
+  // #chp.1 ?< ...
+  //
+  //All the operations are described looking at the map from left to right.
+  //But everything can be performed right to left, in reverse.
+
+  //We have the matching first:
+  // a) match exactly                             .matchAsEquals("#chp1")       => #chp.1
+  // c) match the input as a subset of the rule   .matchAsSub("#chp1")          => #title#chp.1 & #chp.1
+  // b) match the rule as a subset of the input   .matchAsSuper("#title#chp1")  => #title#chp.1 & #chp.1
+
+  //                                              .matchAsEquals("#chp1", true)       => #chp.1
+  //                                              .matchAsSub("#chp1", true)          => #title#chp.1 & #chp.1
+  //                                              .matchAsSuper("#title#chp1", true)  => #title#chp.1 & #chp.1
+
+  //The match returned is an:
+  // x) an iterable result. Thus, I should implement the result as a Iterable js entity.
+  // y) when we have the result, we can ask for the input, rule hit side, rule replace side (both original and flattened).
+  // z) we can also ask for the input with the matching rule replaced within it as a subset.
+  //    The match result must here internally contain the start and stop position and the variable map of the input where the match occurs.
+  // w) when we want to run to completion, we simply make a loop that says,
+  //    while there is a new result, use this result to make a new query from scratch until there are no more results available.
+  //    This probably should not be part of the HashDotMap?? Just a pattern of how to use it??
+  //    But how heavy is this thing?? Should I do as told and not consider performance until later?? yes, probably..
+});
+
 describe("Syntactic errors (HashDots.parse())", function () {
   it("Several universal parameters", () => {
     try {
