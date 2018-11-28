@@ -290,7 +290,13 @@ describe("new Resolvers", function () {
   });
 
   it("HashDotMap.resolver('#chp:X')", function () {
-    const routeMap = new HashDotMap("#chp.1 = #txt.hello; #chp.2 = #txt.world; #chp.1.1 = #txt.go; #chp.1.2 = #txt.figure");
+    const rules = `
+      #chp.1 = #txt.hello; 
+      #chp.2 = #txt.world; 
+      
+      #chp.1.1 = #txt.go; 
+      #chp.1.2 = #txt.figure`;
+    const routeMap = new HashDotMap(rules);
     const right = routeMap.rightResolver("#chp:X");
     expect(right.next().toString()).to.be.equal("#chp.1");
     expect(right.next().toString()).to.be.equal("#chp.2");
@@ -301,6 +307,14 @@ describe("new Resolvers", function () {
     expect(right2.next().toString()).to.be.equal("#chp.1.2");
     expect(right2.next()).to.be.equal(null);
     expect(right2.next()).to.be.equal(null);
+    const right2a = routeMap.rightResolver("#chp.1:Y");
+    expect(right2a.next().toString()).to.be.equal("#chp.1.1");
+    expect(right2a.next().toString()).to.be.equal("#chp.1.2");
+    expect(right2a.next()).to.be.equal(null);
+    expect(right2a.next()).to.be.equal(null);
+    const right2b = routeMap.rightResolver("#chp.2:Y");
+    expect(right2b.next()).to.be.equal(null);
+    expect(right2b.next()).to.be.equal(null);
     const right3 = routeMap.rightResolver("#chp::X");
     expect(right3.next().toString()).to.be.equal("#chp.1");
     expect(right3.next().toString()).to.be.equal("#chp.2");
