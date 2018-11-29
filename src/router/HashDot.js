@@ -150,36 +150,30 @@ export class HashDots {
 
   static subsetMatch(left, right) {
     for (let i = 0; i < left.length; i++) {
-      let leftDot = left[i];
       for (let j = 0; j < right.length; j++) {
         let varMap = {};
-        if (leftDot.match(right[j], varMap)) {
-          if (HashDots.headMatch(left, right, i, j, varMap))
-            return {start: i, stop: right.length, varMap};
-        }
+        if (HashDots.headMatch(left, right, i, j, varMap))
+          return {start: i, stop: right.length, varMap};
       }
     }
     return null;
   }
 
   static headMatch(left, right, i, j, varMap) {
-    if (i + right.length > left.length)
+    if (right.length > left.length - i)
       return false;
-    for (let k = 1; k < right.length; k++) {
+    for (let k = 0; k < right.length; k++) {
       if (!left[i + k].match(right[j + k], varMap))
         return false;
     }
     return true;
   }
 
-  static exactMatch(left, right, varMap) {
-    if (left.length !== right.length)
-      return null;
-    for (let i = 0; i < left.length; i++) {
-      if (!left[i].match(right[i], varMap))
-        return null;
-    }
-    return {start: 0, stop: left.length, varMap};
+  static exactMatch(left, right) {
+    let varMap = {};
+    if (left.length === right.length && HashDots.headMatch(left, right, 0, 0, varMap))
+      return {start: 0, stop: left.length, varMap};
+    return null;
   }
 }
 
@@ -213,7 +207,7 @@ export class HashDotMap {
 
   static resolve(main, rules, i = 0) {
     let next = main;
-    while (next){
+    while (next) {
       const resolver = HashDotMap.resolver(HashDots.subsetMatch, main, rules);
       next = resolver.next().value;
       if (!next)
@@ -244,8 +238,7 @@ export class HashDotMap {
           let rule = rules[this.i++];
           let hitSide = reverse ? rule.right : rule.left;
           let replaceSide = reverse ? rule.left : rule.right;
-          let varMap = {};
-          let res = matchFunction(input, hitSide, varMap);
+          let res = matchFunction(input, hitSide, replaceSide);
           if (res)
             return {done: false, value: new MatchResult(input, hitSide, replaceSide, res.varMap, res)};
         }
