@@ -205,7 +205,7 @@ export class HashDotMap {
     return {rootLink, left, middle, right};
   };
 
-  static resolve(main, rules, i = 0) {
+  static resolve(main, rules) {
     let next = main;
     while (next) {
       const resolver = HashDotMap.resolver(HashDots.subsetMatch, main, rules);
@@ -230,14 +230,14 @@ export class HashDotMap {
     return hashdots;
   }
 
-  static resolver(matchFunction, input, rules, reverse) {
+  static resolver(matchFunction, input, rules) {
     return {
       i: 0,
       next() {
         while (this.i < rules.length) {
           let rule = rules[this.i++];
-          let hitSide = reverse ? rule.right : rule.left;
-          let replaceSide = reverse ? rule.left : rule.right;
+          let hitSide = rule.left;
+          let replaceSide = rule.right;
           let res = matchFunction(input, hitSide, replaceSide);
           if (res)
             return {done: false, value: new MatchResult(input, hitSide, replaceSide, res.varMap, res)};
