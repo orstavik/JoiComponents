@@ -230,12 +230,30 @@ export class HashDotMap {
     this.reverseRules = this.rules.map(rule => ({left: rule.right, right: rule.left}));
   }
 
+  //matchSubset + replace in input, and repeat until it cannot be altered any more
+  //todo these for loops should have finite borders.
+  //todo this kind of looping could produce a list of all results.
   right(hashdots) {
-    return this.loop(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.rules);
+    hashdots = HashDotMap.parseHashDots(hashdots);
+    for (let next; next = this.rightOne(hashdots); hashdots = next);
+    return hashdots;
   }
 
   left(hashdots) {
-    return this.loop(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.reverseRules);
+    hashdots = HashDotMap.parseHashDots(hashdots);
+    for (let next; next = this.leftOne(hashdots); hashdots = next);
+    return hashdots;
+  }
+
+  //matchSubset + replace in input
+  rightOne(hashdots) {
+    const next = HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.rules).next().value;
+    return next ? next.inputReplaced() : null;
+  }
+
+  leftOne(hashdots) {
+    const next = HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.reverseRules).next().value;
+    return next ? next.inputReplaced() : null;
   }
 
   interpret(newLocation) {
@@ -245,11 +263,6 @@ export class HashDotMap {
     let rootLink = left.map(dot => dot.toString()).join("");
     return {rootLink, left, middle, right};
   };
-
-  loop(func, hashdots, rules) {
-    let next = HashDotMap.resolver(func, hashdots, rules).next().value;
-    return next ? this.loop(func, next.inputReplaced(), rules) : hashdots;
-  }
 
   matchEquals(hashdots, rules) {
     rules = rules || this.rules;
