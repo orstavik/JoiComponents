@@ -89,6 +89,32 @@ class HashDot {
   }
 }
 
+class MatchResult {
+  constructor(input, hitSide, replaceSide, result) {
+    this.input = input;
+    this.hitSide = hitSide;
+    this.replaceSide = replaceSide;
+    this.varMap = result.varMap;
+    this.result = result;
+    this.start = result.start;
+    this.stop = result.stop;
+  }
+
+  res() {
+    return this.input.map(dot => dot.flatten(this.varMap));
+  }
+
+  replaceSideFlat() {
+    return this.replaceSide.map(dot => dot.flatten(this.varMap));
+  }
+
+  inputReplaced() {
+    let res = [].concat(this.input);
+    res.splice(this.start, this.stop, ...this.replaceSide);
+    return res.map(dot => dot.flatten(this.varMap));
+  }
+}
+
 let variableCounter = 0;
 
 export class HashDots {
@@ -148,12 +174,12 @@ export class HashDots {
     return rules;
   }
 
-  static subsetMatch(left, right) {
+  static subsetMatch(left, right, replace) {
     for (let i = 0; i < left.length; i++) {
       for (let j = 0; j < right.length; j++) {
         let varMap = {};
         if (HashDots.headMatch(left, right, i, j, varMap))
-          return {start: i, stop: right.length, varMap};
+          return new MatchResult(left, right, replace,{start: i, stop: right.length, varMap});
       }
     }
     return null;
@@ -169,10 +195,10 @@ export class HashDots {
     return true;
   }
 
-  static exactMatch(left, right) {
+  static exactMatch(left, right, replace) {
     let varMap = {};
     if (left.length === right.length && HashDots.headMatch(left, right, 0, 0, varMap))
-      return {start: 0, stop: left.length, varMap};
+      return new MatchResult(left, right, replace,{start: 0, stop: left.length, varMap});
     return null;
   }
 }
@@ -240,7 +266,7 @@ export class HashDotMap {
           let replaceSide = rule.right;
           let res = matchFunction(input, hitSide, replaceSide);
           if (res)
-            return {done: false, value: new MatchResult(input, hitSide, replaceSide, res)};
+            return {done: false, value: res};
         }
         return {done: true};
       },
@@ -248,31 +274,5 @@ export class HashDotMap {
         return this;
       }
     };
-  }
-}
-
-class MatchResult {
-  constructor(input, hitSide, replaceSide, result) {
-    this.input = input;
-    this.hitSide = hitSide;
-    this.replaceSide = replaceSide;
-    this.varMap = result.varMap;
-    this.result = result;
-    this.start = result.start;
-    this.stop = result.stop;
-  }
-
-  res() {
-    return this.input.map(dot => dot.flatten(this.varMap));
-  }
-
-  replaceSideFlat() {
-    return this.replaceSide.map(dot => dot.flatten(this.varMap));
-  }
-
-  inputReplaced() {
-    let res = [].concat(this.input);
-    res.splice(this.start, this.stop, ...this.replaceSide);
-    return res.map(dot => dot.flatten(this.varMap));
   }
 }
