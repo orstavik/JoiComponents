@@ -148,16 +148,6 @@ export class HashDots {
     return rules;
   }
 
-  static matchAndReplace(leftSide, rule) {
-    const match = HashDots.subsetMatch(leftSide, rule.left);
-    if (!match)
-      return null;
-    //todo can I avoid merging and HashDots.flattening here??
-    let res = [].concat(leftSide);
-    res.splice(match.start, match.stop, ...rule.right);
-    return res.map(dot => dot.flatten(match.varMap));
-  }
-
   static subsetMatch(left, right) {
     for (let i = 0; i < left.length; i++) {
       let leftDot = left[i];
@@ -184,12 +174,12 @@ export class HashDots {
 
   static exactMatch(left, right, varMap) {
     if (left.length !== right.length)
-      return false;
+      return null;
     for (let i = 0; i < left.length; i++) {
       if (!left[i].match(right[i], varMap))
-        return false;
+        return null;
     }
-    return true;
+    return {start: 0, stop: left.length, varMap};
   }
 }
 
@@ -206,13 +196,11 @@ export class HashDotMap {
   }
 
   right(hashdots) {
-    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
-    return HashDotMap.resolve(hashdots, this.rules);
+    return HashDotMap.resolve(HashDotMap.parseHashDots(hashdots), this.rules);
   }
 
   left(hashdots) {
-    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
-    return HashDotMap.resolve(hashdots, this.reverseRules);
+    return HashDotMap.resolve(HashDotMap.parseHashDots(hashdots), this.reverseRules);
   }
 
   interpret(newLocation) {
@@ -224,18 +212,22 @@ export class HashDotMap {
   };
 
   static resolve(main, rules, i = 0) {
-    for (/*let i = 0*/; i < rules.length; i++) {
-      let next = HashDots.matchAndReplace(main, rules[i]);
-      if (next) {
-        i = -1;
-        main = next;
-      }
+    let next = main;
+    while (next){
+      const resolver = HashDotMap.resolver(HashDots.subsetMatch, main, rules);
+      next = resolver.next().value;
+      if (!next)
+        return main;
+      main = next.inputReplaced();
     }
-    return main;
   }
 
   matchEquals(hashdots) {
     return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseHashDots(hashdots), this.rules);
+  }
+
+  matchSubset(hashdots) {
+    return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.rules);
   }
 
   static parseHashDots(hashdots) {
@@ -253,8 +245,9 @@ export class HashDotMap {
           let hitSide = reverse ? rule.right : rule.left;
           let replaceSide = reverse ? rule.left : rule.right;
           let varMap = {};
-          if (matchFunction(input, hitSide, varMap))
-            return {done: false, value: new MatchResult(input, hitSide, replaceSide, varMap)};
+          let res = matchFunction(input, hitSide, varMap);
+          if (res)
+            return {done: false, value: new MatchResult(input, hitSide, replaceSide, res.varMap, res)};
         }
         return {done: true};
       },
@@ -263,27 +256,28 @@ export class HashDotMap {
       }
     };
   }
-
-  resolveRight(hashdots) {
-    (typeof hashdots === "string" || hashdots instanceof String) && (hashdots = HashDots.parse(hashdots)[0].left);
-    for (let rule of this.rules) {
-      let next = HashDots.matchAndReplace(hashdots, rule);
-      if (next)
-        return next;
-    }
-    return undefined;
-  }
 }
 
 class MatchResult {
-  constructor(input, hitSide, replaceSide, varMap) {
+  constructor(input, hitSide, replaceSide, varMap, result) {
     this.input = input;
     this.hitSide = hitSide;
     this.replaceSide = replaceSide;
     this.varMap = varMap;
+    this.result = result;
   }
 
   res() {
     return this.input.map(dot => dot.flatten(this.varMap));
+  }
+
+  replaceSideFlat() {
+    return this.replaceSide.map(dot => dot.flatten(this.varMap));
+  }
+
+  inputReplaced() {
+    let res = [].concat(this.input);
+    res.splice(this.result.start, this.result.stop, ...this.replaceSide);
+    return res.map(dot => dot.flatten(this.varMap));
   }
 }

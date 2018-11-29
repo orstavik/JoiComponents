@@ -281,12 +281,15 @@ describe("HashDotMap", function () {
 describe("new Resolvers", function () {
   it("resolveRight: #book = #chp.1#chp.2#chp.3 ; #chp.1 = #chp.1.1#chp.1.2#chp.1.3", function () {
     const routeMap = new HashDotMap("#book = #chp.1#chp.2#chp.3; #chp.1 = #chp.1.1#chp.1.2#chp.1.3");
-    const right = routeMap.resolveRight("#book");
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3");
-    const right2 = routeMap.resolveRight("#book#test.abc");
-    expect(right2.map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3#test.abc");
-    const right3 = routeMap.resolveRight("#test.abc#book");
-    expect(right3.map(dot => dot.toString()).join("")).to.be.equal("#test.abc#chp.1#chp.2#chp.3");
+
+    for (let r of routeMap.matchEquals("#book"))
+      expect(r.replaceSideFlat().map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3");
+
+    for (let r of routeMap.matchSubset("#book#test.abc"))
+      expect(r.inputReplaced().map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3#test.abc");
+
+    for (let r of routeMap.matchSubset("#test.abc#book"))
+      expect(r.inputReplaced().map(dot => dot.toString()).join("")).to.be.equal("#test.abc#chp.1#chp.2#chp.3");
   });
 
   it("HashDotMap.resolver('#chp:X')", function () {
@@ -353,7 +356,7 @@ describe("HashDotMap.resolver 2", function () {
   //                                              .matchAsSuper("#title#chp1", true)  => #title#chp.1 & #chp.1
 
   //The match returned is an:
-  // x) an iterable result. Thus, I should implement the result as a Iterable js entity.
+  // x) an iterable result.
   // y) when we have the result, we can ask for the input, rule hit side, rule replace side (both original and flattened).
   // z) we can also ask for the input with the matching rule replaced within it as a subset.
   //    The match result must here internally contain the start and stop position and the variable map of the input where the match occurs.
