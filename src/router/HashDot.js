@@ -186,6 +186,19 @@ export class HashDots {
     return null;
   }
 
+  // static supersetMatch(a, b, c) {
+  //   for (let i = 0; i < b.length; i++) {
+  //     if (b.length - i < a.length)
+  //       return null;
+  //     for (let j = 0; j < a.length; j++) {
+  //       let varMap = HashDots._matchImpl(b, a, i, j);
+  //       if (varMap)
+  //         return new MatchResult(a, b, c, i, a.length, varMap);
+  //     }
+  //   }
+  //   return null;
+  // }
+  //
   static exactMatch(a, b, c) {
     if (a.length !== b.length)
       return null;
@@ -218,11 +231,11 @@ export class HashDotMap {
   }
 
   right(hashdots) {
-    return HashDotMap.resolve(HashDotMap.parseHashDots(hashdots), this.rules);
+    return this.loop(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.rules);
   }
 
   left(hashdots) {
-    return HashDotMap.resolve(HashDotMap.parseHashDots(hashdots), this.reverseRules);
+    return this.loop(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.reverseRules);
   }
 
   interpret(newLocation) {
@@ -233,23 +246,19 @@ export class HashDotMap {
     return {rootLink, left, middle, right};
   };
 
-  static resolve(main, rules) {
-    let next = main;
-    while (next) {
-      const resolver = HashDotMap.resolver(HashDots.subsetMatch, main, rules);
-      next = resolver.next().value;
-      if (!next)
-        return main;
-      main = next.inputReplaced();
-    }
+  loop(func, hashdots, rules) {
+    let next = HashDotMap.resolver(func, hashdots, rules).next().value;
+    return next ? this.loop(func, next.inputReplaced(), rules) : hashdots;
   }
 
-  matchEquals(hashdots) {
-    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseHashDots(hashdots), this.rules);
+  matchEquals(hashdots, rules) {
+    rules = rules || this.rules;
+    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseHashDots(hashdots), rules);
   }
 
-  matchSubset(hashdots) {
-    return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.rules);
+  matchSubset(hashdots, rules) {
+    rules = rules || this.rules;
+    return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), rules);
   }
 
   static parseHashDots(hashdots) {
