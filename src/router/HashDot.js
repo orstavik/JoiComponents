@@ -90,14 +90,13 @@ class HashDot {
 }
 
 class MatchResult {
-  constructor(input, hitSide, replaceSide, result) {
+  constructor(input, hitSide, replaceSide, start, stop, varMap) {
     this.input = input;
     this.hitSide = hitSide;
     this.replaceSide = replaceSide;
-    this.varMap = result.varMap;
-    this.result = result;
-    this.start = result.start;
-    this.stop = result.stop;
+    this.varMap = varMap;
+    this.start = start;
+    this.stop = stop;
   }
 
   res() {
@@ -181,9 +180,18 @@ export class HashDots {
       for (let j = 0; j < b.length; j++) {
         let varMap = HashDots._matchImpl(a, b, i, j);
         if (varMap)
-          return new MatchResult(a, b, c, {start: i, stop: b.length, varMap});
+          return new MatchResult(a, b, c, i, b.length, varMap);
       }
     }
+    return null;
+  }
+
+  static exactMatch(a, b, c) {
+    if (a.length !== b.length)
+      return null;
+    let varMap = HashDots._matchImpl(a, b, 0, 0);
+    if (varMap)
+      return new MatchResult(a, b, c, 0, a.length, varMap);
     return null;
   }
 
@@ -194,15 +202,6 @@ export class HashDots {
         return null;
     }
     return varMap;
-  }
-
-  static exactMatch(a, b, c) {
-    if (a.length !== b.length)
-      return null;
-    let varMap = HashDots._matchImpl(a, b, 0, 0);
-    if (varMap)
-      return new MatchResult(a, b, c, {start: 0, stop: a.length, varMap});
-    return null;
   }
 }
 
