@@ -174,31 +174,34 @@ export class HashDots {
     return rules;
   }
 
-  static subsetMatch(left, right, replace) {
-    for (let i = 0; i < left.length; i++) {
-      for (let j = 0; j < right.length; j++) {
-        let varMap = {};
-        if (HashDots.headMatch(left, right, i, j, varMap))
-          return new MatchResult(left, right, replace,{start: i, stop: right.length, varMap});
+  static subsetMatch(a, b, c) {
+    for (let i = 0; i < a.length; i++) {
+      if (a.length - i < b.length)
+        return null;
+      for (let j = 0; j < b.length; j++) {
+        let varMap = HashDots._matchImpl(a, b, i, j);
+        if (varMap)
+          return new MatchResult(a, b, c, {start: i, stop: b.length, varMap});
       }
     }
     return null;
   }
 
-  static headMatch(left, right, i, j, varMap) {
-    if (right.length > left.length - i)
-      return false;
-    for (let k = 0; k < right.length; k++) {
-      if (!left[i + k].match(right[j + k], varMap))
-        return false;
+  static _matchImpl(a, b, i, j) {
+    let varMap = {};
+    for (let k = 0; k < b.length; k++) {
+      if (!a[i + k].match(b[j + k], varMap))
+        return null;
     }
-    return true;
+    return varMap;
   }
 
-  static exactMatch(left, right, replace) {
-    let varMap = {};
-    if (left.length === right.length && HashDots.headMatch(left, right, 0, 0, varMap))
-      return new MatchResult(left, right, replace,{start: 0, stop: left.length, varMap});
+  static exactMatch(a, b, c) {
+    if (a.length !== b.length)
+      return null;
+    let varMap = HashDots._matchImpl(a, b, 0, 0);
+    if (varMap)
+      return new MatchResult(a, b, c, {start: 0, stop: a.length, varMap});
     return null;
   }
 }
@@ -262,11 +265,9 @@ export class HashDotMap {
       next() {
         while (this.i < rules.length) {
           let rule = rules[this.i++];
-          let hitSide = rule.left;
-          let replaceSide = rule.right;
-          let res = matchFunction(input, hitSide, replaceSide);
-          if (res)
-            return {done: false, value: res};
+          let value = matchFunction(input, rule.left, rule.right);
+          if (value)
+            return {done: false, value};
         }
         return {done: true};
       },
