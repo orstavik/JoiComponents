@@ -240,7 +240,7 @@ export class HashDotMap {
           let replaceSide = rule.right;
           let res = matchFunction(input, hitSide, replaceSide);
           if (res)
-            return {done: false, value: new MatchResult(input, hitSide, replaceSide, res.varMap, res)};
+            return {done: false, value: new MatchResult(input, hitSide, replaceSide, res)};
         }
         return {done: true};
       },
@@ -252,12 +252,14 @@ export class HashDotMap {
 }
 
 class MatchResult {
-  constructor(input, hitSide, replaceSide, varMap, result) {
+  constructor(input, hitSide, replaceSide, result) {
     this.input = input;
     this.hitSide = hitSide;
     this.replaceSide = replaceSide;
-    this.varMap = varMap;
+    this.varMap = result.varMap;
     this.result = result;
+    this.start = result.start;
+    this.stop = result.stop;
   }
 
   res() {
@@ -270,7 +272,7 @@ class MatchResult {
 
   inputReplaced() {
     let res = [].concat(this.input);
-    res.splice(this.result.start, this.result.stop, ...this.replaceSide);
+    res.splice(this.start, this.stop, ...this.replaceSide);
     return res.map(dot => dot.flatten(this.varMap));
   }
 }
