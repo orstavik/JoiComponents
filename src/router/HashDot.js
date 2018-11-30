@@ -267,7 +267,7 @@ export class HashDotMap {
   }
 
   rulesThatMatch(input) {
-    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(input), this[rules], MatchResult.find);
+    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(input), this[rules]);
   }
 
   translateRulesMatch(input) {
@@ -331,6 +331,19 @@ export class HashDotMap {
           next: function () {
             let mainNext = mainIterator.next();
             !mainNext.done && (mainNext.value = MatchResult.translate(mainNext.value));
+            return mainNext;
+          },
+          [Symbol.iterator]: function () {
+            return this;
+          }
+        }
+      },
+      find: function () {
+        const mainIterator = this;
+        return {
+          next: function () {
+            let mainNext = mainIterator.next();
+            !mainNext.done && (mainNext.value = MatchResult.find(mainNext.value));
             return mainNext;
           },
           [Symbol.iterator]: function () {

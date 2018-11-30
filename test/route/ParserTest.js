@@ -282,7 +282,7 @@ describe("new Resolvers", function () {
   it("resolveRight: #book = #chp.1#chp.2#chp.3 ; #chp.1 = #chp.1.1#chp.1.2#chp.1.3", function () {
     const routeMap = HashDotMap.make("#book = #chp.1#chp.2#chp.3; #chp.1 = #chp.1.1#chp.1.2#chp.1.3");
 
-    for (let r of routeMap.translateRulesMatch("#book").translate())
+    for (let r of routeMap.rulesThatMatch("#book").translate())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3");
 
     for (let r of routeMap.transform("#book#test.abc"))
@@ -302,26 +302,26 @@ describe("new Resolvers", function () {
     const routeMap = HashDotMap.make(rules);
 
     let res = ["#chp.1", "#chp.2"];
-    for (let r of routeMap.rulesThatMatch("#chp:X"))
+    for (let r of routeMap.rulesThatMatch("#chp:X").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
     res = ["#chp.1.1", "#chp.1.2"];
-    for (let r of routeMap.rulesThatMatch("#chp:X:Y"))
+    for (let r of routeMap.rulesThatMatch("#chp:X:Y").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
     res = ["#chp.1.1"];
-    for (let r of routeMap.rulesThatMatch("#chp:X:X"))
+    for (let r of routeMap.rulesThatMatch("#chp:X:X").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
     res = ["#chp.1.1", "#chp.1.2"];
-    for (let r of routeMap.rulesThatMatch("#chp.1:Y"))
+    for (let r of routeMap.rulesThatMatch("#chp.1:Y").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
     res = ["#chp.1", "#chp.2", "#chp.1.1", "#chp.1.2"];
-    for (let r of routeMap.rulesThatMatch("#chp::X"))
+    for (let r of routeMap.rulesThatMatch("#chp::X").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
-    for (let r of routeMap.rulesThatMatch("#chp.2:Y"))
+    for (let r of routeMap.rulesThatMatch("#chp.2:Y").find())
       assert(false);
   });
 });
