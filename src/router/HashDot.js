@@ -99,18 +99,18 @@ class MatchResult {
     this.stop = stop;
   }
 
-  res() {
-    return this.input.map(dot => dot.flatten(this.varMap));
+  static transform(thiz) {
+    let res = [].concat(thiz.input);
+    res.splice(thiz.start, thiz.stop, ...thiz.replaceSide);
+    return res.map(dot => dot.flatten(thiz.varMap));
   }
 
-  replaceSideFlat() {
-    return this.replaceSide.map(dot => dot.flatten(this.varMap));
+  static find(thiz) {
+    return thiz.hitSide.map(dot => dot.flatten(thiz.varMap));
   }
 
-  inputReplaced() {
-    let res = [].concat(this.input);
-    res.splice(this.start, this.stop, ...this.replaceSide);
-    return res.map(dot => dot.flatten(this.varMap));
+  static translate(thiz) {
+    return thiz.replaceSide.map(dot => dot.flatten(thiz.varMap));
   }
 }
 
@@ -229,7 +229,7 @@ const reverse = Symbol("reverse");
 
 export class HashDotMap {
 
-  static make(routeMap){
+  static make(routeMap) {
     const parsed = HashDots.parse(routeMap);
     const res = new HashDotMap(parsed);
     res[reverse] = new HashDotMap(parsed.map(rule => ({left: rule.right, right: rule.left})));
@@ -242,28 +242,64 @@ export class HashDotMap {
     this[reverse] = null;
   }
 
-  reverse(){
+  reverse() {
     return this[reverse];
   }
 
+  //rules.reverse().matchEquals("input").translate()
+  //rules.reverse().matchSubset("input").transform()
+  //rules.reverse().matchSuperset("input").find()
+
+  //reverse() -> make the rules go in opposite direction.
+
+  //find, finds the rules that fulfill the matching criteria
+  //translate, finds the opposite side of the rule that match the criteria
+  //transform, replaces the opposite side of the rule with the matching side of the rule in the criteria
+
+  //matching methods:
+  // equals: the input equals the rule a-side,
+  // subset: the input is a superset of the rule a-side
+  // superset: the input is a subset of the rule a-side
+
   /*match rules that equals, is a subset of the input, is a superset of the input*/
-  matchEquals(hashdots) {
-    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(hashdots), this[rules]);
+  matchEquals(input) {
+    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(input), this[rules]);
   }
 
-  matchSubset(hashdots) {
-    return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseQuery(hashdots), this[rules]);
+  rulesThatMatch(input) {
+    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(input), this[rules], MatchResult.find);
   }
 
-  matchSuperset(hashdots) {
-    return HashDotMap.resolver(HashDots.supersetMatch, HashDotMap.parseQuery(hashdots), this[rules]);
+  rulesThatMatchFirst(input) {
+    return this.rulesThatMatch(input).next().value;
   }
+
+  translateRulesMatch(input){
+    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(input), this[rules], MatchResult.translate);
+  }
+
+  translateRulesMatchFirst(input){
+    return this.translateMatch(input).next().value;
+  }
+
+  //most commonly used in transform
+  matchSubset(input) {
+    return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseQuery(input), this[rules]);
+  }
+
+  // matchSuperset(input) {
+  //   return HashDotMap.resolver(HashDots.supersetMatch, HashDotMap.parseQuery(input), this[rules]);
+  // }
 
   /*find exact rules, find rules that include input, find rules that is included in the input*/
-  //matchSubset + replace in input
-  transform(input) {
-    const next = this.matchSubset(input).next().value;
-    return next ? next.inputReplaced() : null;
+
+  //matchSubset + replace
+  transform(input){
+    return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseQuery(input), this[rules], MatchResult.transform);
+  }
+
+  transformFirst(input) {
+    return this.transform(input).next().value;
   }
 
   /*loop all the rules*/
@@ -271,7 +307,7 @@ export class HashDotMap {
   //todo a check could be added to ensure that no next will be added to the list if it is
   transformAll(hashdots) {
     const res = [];
-    for (let next = HashDotMap.parseQuery(hashdots); next; next = this.transform(next))
+    for (let next = HashDotMap.parseQuery(hashdots); next; next = this.transformFirst(next))
       res.push(next);
     return res;
   }
@@ -282,7 +318,7 @@ export class HashDotMap {
     return hashdots;
   }
 
-  static resolver(matchFunction, input, rules) {
+  static resolver(matchFunction, input, rules, resultFunction) {
     return {
       i: 0,
       next() {
@@ -290,7 +326,7 @@ export class HashDotMap {
           let rule = rules[this.i++];
           let value = matchFunction(input, rule.left, rule.right);
           if (value)
-            return {done: false, value};
+            return {done: false, value: resultFunction ? resultFunction(value) : value};
         }
         return {done: true};
       },
