@@ -296,13 +296,14 @@ export class HashDotMap {
 
   static resolver(matchFunction, input, rules) {
     return {
+      interpreter: undefined,
       i: 0,
       next() {
         while (this.i < rules.length) {
           let rule = rules[this.i++];
           let value = matchFunction(input, rule.left, rule.right);
           if (value)
-            return {done: false, value};
+            return {done: false, value: this.interpreter ? this.interpreter(value) : value};
         }
         return {done: true};
       },
@@ -313,56 +314,17 @@ export class HashDotMap {
         this.i = 0;
         return this.next().value;
       },
-      translate: function () {
-        const mainIterator = this;
-        return {
-          next: function () {
-            let mainNext = mainIterator.next();
-            !mainNext.done && (mainNext.value = MatchResult.translate(mainNext.value));
-            return mainNext;
-          },
-          [Symbol.iterator]: function () {
-            return this;
-          },
-          first: function () {
-            this.i = 0;
-            return this.next().value;
-          }
-        }
-      },
       find: function () {
-        const mainIterator = this;
-        return {
-          next: function () {
-            let mainNext = mainIterator.next();
-            !mainNext.done && (mainNext.value = MatchResult.find(mainNext.value));
-            return mainNext;
-          },
-          [Symbol.iterator]: function () {
-            return this;
-          },
-          first: function () {
-            this.i = 0;
-            return this.next().value;
-          }
-        }
+        this.interpreter = MatchResult.find;
+        return this;
+      },
+      translate: function () {
+        this.interpreter = MatchResult.translate;
+        return this;
       },
       transform: function () {
-        const mainIterator = this;
-        return {
-          next: function () {
-            let mainNext = mainIterator.next();
-            !mainNext.done && (mainNext.value = MatchResult.transform(mainNext.value));
-            return mainNext;
-          },
-          [Symbol.iterator]: function () {
-            return this;
-          },
-          first: function () {
-            this.i = 0;
-            return this.next().value;
-          }
-        }
+        this.interpreter = MatchResult.transform;
+        return this;
       }
     };
   }
