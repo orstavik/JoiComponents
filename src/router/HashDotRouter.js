@@ -71,10 +71,10 @@ export function highjackLink(e, base) {
 }
 
 function interpret(newLocation, rules) {
-  let paths = rules.reverse().transformAll(newLocation).reverse();
+  let paths = rules.reverse().rulesThatArePartOf(newLocation).transform().tillTheEnd().reverse();
   let middle= paths[paths.length-1];
   let left = paths[0];
-  let rightPath = rules.transformAll(middle);
+  let rightPath = rules.rulesThatArePartOf(middle).transform().tillTheEnd();
   let right = rightPath.pop();
   paths = paths.concat(rightPath);
   let rootLink = left.map(dot => dot.toString()).join("");

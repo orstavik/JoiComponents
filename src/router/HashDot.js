@@ -278,6 +278,8 @@ export class HashDotMap {
     return HashDotMap.resolver(HashDots.supersetMatch, HashDotMap.parseQuery(input), this[rules]);
   }
 
+  //.rulesThatArePartOf(next).transform().tillTheEnd()
+
   /*loop all the rules*/
   //todo these for loops should have finite borders.
   //todo a check could be added to ensure that no next will be added to the list if it is
@@ -294,9 +296,9 @@ export class HashDotMap {
     return hashdots;
   }
 
-  static resolver(matchFunction, input, rules) {
+  static resolver(matchFunction, input, rules, interpreter) {
     return {
-      interpreter: undefined,
+      interpreter: interpreter,
       i: 0,
       next() {
         while (this.i < rules.length) {
@@ -325,6 +327,12 @@ export class HashDotMap {
       transform: function () {
         this.interpreter = MatchResult.transform;
         return this;
+      },
+      tillTheEnd: function () {
+        const res = [];
+        for (let next = input; next; next = HashDotMap.resolver(matchFunction, next, rules, this.interpreter).first())
+          res.push(next);
+        return res;
       }
     };
   }

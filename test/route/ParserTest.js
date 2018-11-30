@@ -242,38 +242,38 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
   });
   it("#red:A = #orange:A ; #orange:B = #yellow:B", function () {
     const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:B = #yellow:B");
-    const right = routeMap.transformAll("#red.re").pop();
+    const right = routeMap.rulesThatArePartOf("#red.re").transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#yellow.re");
-    const left = routeMap.reverse().transformAll("#yellow.ye").pop();
+    const left = routeMap.reverse().rulesThatArePartOf("#yellow.ye").transform().tillTheEnd().pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
   it("#red:A = #orange:A ; #orange:A = #yellow:A   (Same variable name across different HashDot statements)", function () {
     const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:A = #yellow:A");
-    const right = routeMap.transformAll("#red.re").pop();
+    const right = routeMap.rulesThatArePartOf("#red.re").transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#yellow.re");
-    const left = routeMap.reverse().transformAll("#yellow.ye").pop();
+    const left = routeMap.reverse().rulesThatArePartOf("#yellow.ye").transform().tillTheEnd().pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
   it("#a:X = #aa:X ; #b:X = #bb:X ; #a:X#b:Y = #cc:X:Y  (Rule order is preserved and given priority)", function () {
     const routeMap = HashDotMap.make("#a:A = #aa:A; #b:B = #bb:B; #a:A#b:B = #cc:A:B");
-    const right = routeMap.transformAll("#a.1#b.2").pop();
+    const right = routeMap.rulesThatArePartOf("#a.1#b.2").transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#aa.1#bb.2");
-    const left = routeMap.reverse().transformAll("#cc.1.2").pop();
+    const left = routeMap.reverse().rulesThatArePartOf("#cc.1.2").transform().tillTheEnd().pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#a.1#b.2");
   });
   it("#b:X = #c:X ; #a:X = #b:X  (Rule order problem for variables)", function () {
     const routeMap = HashDotMap.make("#b:A = #c:A; #a:A = #b:A");
-    const right = routeMap.transformAll("#a.1").pop();
+    const right = routeMap.rulesThatArePartOf("#a.1").transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#c.1");
   });
   it("#x = #y ; #a = #x ; #b = #a  (Need to run the same rule twice)", function () {
     const routeMap = HashDotMap.make("#x = #y; #a = #x; #b = #a");
-    const right = routeMap.transformAll("#a#b").pop();
+    const right = routeMap.rulesThatArePartOf("#a#b").transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y#y");
   });
   it("#a#x = #y.1 ; #c#x = #y.2 ; #b = #x ; #d = #x  (Need to output the same hashtag with different parameters)", function () {
     const routeMap = HashDotMap.make("#a#x = #y.1; #c#x = #y.2; #b = #x; #d = #x");
-    const right = routeMap.transformAll("#a#b#c#d").pop();
+    const right = routeMap.rulesThatArePartOf("#a#b#c#d").transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y.1#y.2");
   });
 });
