@@ -187,100 +187,100 @@ describe("HashDotMatch", function () {
   });
 });
 
-describe("HashDotMap", function () {
-  it("new HashDotMap()", function () {
-    const map = new HashDotMap("#one:A:B = #two:A#three:B");
-    expect(map.rules[0]).to.deep.equal({
-      "left": [{
-        "tagName": "#one",
-        "tagValue": "one",
-        "args": [":A-41", ":B-41"],
-        "flatArgs": [undefined, undefined]
-      }],
-      "right": [{
-        "tagName": "#two",
-        "tagValue": "two",
-        "args": [":A-41"],
-        "flatArgs": [undefined]
-      }, {
-        "tagName": "#three",
-        "tagValue": "three",
-        "args": [":B-41"],
-        "flatArgs": [undefined]
-      }]
-    });
+describe("HashDotMap.transform & .transform", function () {
+  it("HashDotMap.make()", function () {
+    const map = HashDotMap.make("#one:A:B = #two:A#three:B");
+    // expect(map.rules[0]).to.deep.equal({
+    //   "left": [{
+    //     "tagName": "#one",
+    //     "tagValue": "one",
+    //     "args": [":A-41", ":B-41"],
+    //     "flatArgs": [undefined, undefined]
+    //   }],
+    //   "right": [{
+    //     "tagName": "#two",
+    //     "tagValue": "two",
+    //     "args": [":A-41"],
+    //     "flatArgs": [undefined]
+    //   }, {
+    //     "tagName": "#three",
+    //     "tagValue": "three",
+    //     "args": [":B-41"],
+    //     "flatArgs": [undefined]
+    //   }]
+    // });
   });
 
   it("#one:A:B = #two:A#three:B", function () {
-    const routeMap = new HashDotMap("#one:A:B = #two:A#three:B");
-    const right = routeMap.rightOne("#one.a.b");
+    const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
+    const right = routeMap.transform("#one.a.b");
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a#three.b");
-    const left = routeMap.leftOne("#two.a#three.b");
+    const left = routeMap.reverse().transform("#two.a#three.b");
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b");
   });
   it("#one:A:B = #two:A#three:B", function () {
-    const routeMap = new HashDotMap("#one:A:B = #two:A#three:B");
-    const right = routeMap.rightOne(`#one.'hello'."world"`);
+    const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
+    const right = routeMap.transform(`#one.'hello'."world"`);
     expect(right.map(dot => dot.toString()).join("")).to.be.equal(`#two.'hello'#three."world"`);
-    const left = routeMap.leftOne(`#two.'hello'#three."world"`);
+    const left = routeMap.reverse().transform(`#two.'hello'#three."world"`);
     expect(left.map(dot => dot.toString()).join("")).to.be.equal(`#one.'hello'."world"`);
     expect(left[0].flatArgs).to.deep.equal(["hello", "world"]);
   });
   it("#nothing#one:A:B = #two:A#three:B", function () {
-    const routeMap = new HashDotMap("#nothing#one:A:B = #two:A#three:B");
-    const right = routeMap.rightOne("#nothing#one.a.b");
+    const routeMap = HashDotMap.make("#nothing#one:A:B = #two:A#three:B");
+    const right = routeMap.transform("#nothing#one.a.b");
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a#three.b");
-    const left = routeMap.leftOne("#two.a#three.b");
+    const left = routeMap.reverse().transform("#two.a#three.b");
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#nothing#one.a.b");
   });
   it("#one::A = #two::A", function () {
-    const routeMap = new HashDotMap("#one::A = #two::A");
-    const right = routeMap.rightOne("#one.a.b");
+    const routeMap = HashDotMap.make("#one::A = #two::A");
+    const right = routeMap.transform("#one.a.b");
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a.b");
-    const left = routeMap.leftOne("#two.a.b.c");
+    const left = routeMap.reverse().transform("#two.a.b.c");
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b.c");
   });
   it("#red:A = #orange:A ; #orange:B = #yellow:B", function () {
-    const routeMap = new HashDotMap("#red:A = #orange:A; #orange:B = #yellow:B");
-    const right = routeMap.right("#red.re");
+    const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:B = #yellow:B");
+    const right = routeMap.transformAll("#red.re").pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#yellow.re");
-    const left = routeMap.left("#yellow.ye");
+    const left = routeMap.reverse().transformAll("#yellow.ye").pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
   it("#red:A = #orange:A ; #orange:A = #yellow:A   (Same variable name across different HashDot statements)", function () {
-    const routeMap = new HashDotMap("#red:A = #orange:A; #orange:A = #yellow:A");
-    const right = routeMap.right("#red.re");
+    const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:A = #yellow:A");
+    const right = routeMap.transformAll("#red.re").pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#yellow.re");
-    const left = routeMap.left("#yellow.ye");
+    const left = routeMap.reverse().transformAll("#yellow.ye").pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
   it("#a:X = #aa:X ; #b:X = #bb:X ; #a:X#b:Y = #cc:X:Y  (Rule order is preserved and given priority)", function () {
-    const routeMap = new HashDotMap("#a:A = #aa:A; #b:B = #bb:B; #a:A#b:B = #cc:A:B");
-    const right = routeMap.right("#a.1#b.2");
+    const routeMap = HashDotMap.make("#a:A = #aa:A; #b:B = #bb:B; #a:A#b:B = #cc:A:B");
+    const right = routeMap.transformAll("#a.1#b.2").pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#aa.1#bb.2");
-    const left = routeMap.left("#cc.1.2");
+    const left = routeMap.reverse().transformAll("#cc.1.2").pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#a.1#b.2");
   });
   it("#b:X = #c:X ; #a:X = #b:X  (Rule order problem for variables)", function () {
-    const routeMap = new HashDotMap("#b:A = #c:A; #a:A = #b:A");
-    const right = routeMap.right("#a.1");
+    const routeMap = HashDotMap.make("#b:A = #c:A; #a:A = #b:A");
+    const right = routeMap.transformAll("#a.1").pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#c.1");
   });
   it("#x = #y ; #a = #x ; #b = #a  (Need to run the same rule twice)", function () {
-    const routeMap = new HashDotMap("#x = #y; #a = #x; #b = #a");
-    const right = routeMap.right("#a#b");
+    const routeMap = HashDotMap.make("#x = #y; #a = #x; #b = #a");
+    const right = routeMap.transformAll("#a#b").pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y#y");
   });
   it("#a#x = #y.1 ; #c#x = #y.2 ; #b = #x ; #d = #x  (Need to output the same hashtag with different parameters)", function () {
-    const routeMap = new HashDotMap("#a#x = #y.1; #c#x = #y.2; #b = #x; #d = #x");
-    const right = routeMap.right("#a#b#c#d");
+    const routeMap = HashDotMap.make("#a#x = #y.1; #c#x = #y.2; #b = #x; #d = #x");
+    const right = routeMap.transformAll("#a#b#c#d").pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y.1#y.2");
   });
 });
 
 describe("new Resolvers", function () {
   it("resolveRight: #book = #chp.1#chp.2#chp.3 ; #chp.1 = #chp.1.1#chp.1.2#chp.1.3", function () {
-    const routeMap = new HashDotMap("#book = #chp.1#chp.2#chp.3; #chp.1 = #chp.1.1#chp.1.2#chp.1.3");
+    const routeMap = HashDotMap.make("#book = #chp.1#chp.2#chp.3; #chp.1 = #chp.1.1#chp.1.2#chp.1.3");
 
     for (let r of routeMap.matchEquals("#book"))
       expect(r.replaceSideFlat().map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3");
@@ -299,7 +299,7 @@ describe("new Resolvers", function () {
       
       #chp.1.1 = #txt.go; 
       #chp.1.2 = #txt.figure`;
-    const routeMap = new HashDotMap(rules);
+    const routeMap = HashDotMap.make(rules);
 
     let res = ["#chp.1", "#chp.2"];
     for (let r of routeMap.matchEquals("#chp:X"))

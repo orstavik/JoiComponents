@@ -219,62 +219,64 @@ export class HashDots {
 }
 
 //todo Should queries get their own symbols like:
-//     "#book ??" would ask for the rightmost resolution of #book, ie. HashDotMap.query("#book ??") instead of HashDotMap.right("#book")
+//     "#book ??" would ask for the rightmost resolution of #book, ie. HashDotMap.query("#book ??") instead of HashDotMap.transformAll("#book")
 //     "?? #book" would ask for the leftmost resolution of #book
 //     "#book ?" would ask for a single right resolution of #book
 //     "? #book" would ask for a single left resolution of #book
 
+const rules = Symbol("rules");
+const reverse = Symbol("reverse");
+
 export class HashDotMap {
-  constructor(routeMap) {
-    this.rules = HashDots.parse(routeMap);
-    this.reverseRules = this.rules.map(rule => ({left: rule.right, right: rule.left}));
+
+  static make(routeMap){
+    const parsed = HashDots.parse(routeMap);
+    const res = new HashDotMap(parsed);
+    res[reverse] = new HashDotMap(parsed.map(rule => ({left: rule.right, right: rule.left})));
+    res[reverse][reverse] = res;
+    return res;
   }
 
-  //matchSubset + replace in input, and repeat until it cannot be altered any more
-  //todo these for loops should have finite borders.
-  //todo this kind of looping could produce a list of all results.
-  right(hashdots) {
-    hashdots = HashDotMap.parseHashDots(hashdots);
-    for (let next; next = this.rightOne(hashdots); hashdots = next);
-    return hashdots;
+  constructor(routes) {
+    this[rules] = routes;
+    this[reverse] = null;
   }
 
-  left(hashdots) {
-    hashdots = HashDotMap.parseHashDots(hashdots);
-    for (let next; next = this.leftOne(hashdots); hashdots = next);
-    return hashdots;
+  reverse(){
+    return this[reverse];
   }
 
+  /*match rules that equals, is a subset of the input, is a superset of the input*/
+  matchEquals(hashdots) {
+    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(hashdots), this[rules]);
+  }
+
+  matchSubset(hashdots) {
+    return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseQuery(hashdots), this[rules]);
+  }
+
+  matchSuperset(hashdots) {
+    return HashDotMap.resolver(HashDots.supersetMatch, HashDotMap.parseQuery(hashdots), this[rules]);
+  }
+
+  /*find exact rules, find rules that include input, find rules that is included in the input*/
   //matchSubset + replace in input
-  rightOne(hashdots) {
-    const next = HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.rules).next().value;
+  transform(input) {
+    const next = this.matchSubset(input).next().value;
     return next ? next.inputReplaced() : null;
   }
 
-  leftOne(hashdots) {
-    const next = HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), this.reverseRules).next().value;
-    return next ? next.inputReplaced() : null;
+  /*loop all the rules*/
+  //todo these for loops should have finite borders.
+  //todo a check could be added to ensure that no next will be added to the list if it is
+  transformAll(hashdots) {
+    const res = [];
+    for (let next = HashDotMap.parseQuery(hashdots); next; next = this.transform(next))
+      res.push(next);
+    return res;
   }
 
-  interpret(newLocation) {
-    const middle = HashDots.parse(newLocation)[0].left;
-    let left = this.left(middle);
-    let right = this.right(middle);
-    let rootLink = left.map(dot => dot.toString()).join("");
-    return {rootLink, left, middle, right};
-  };
-
-  matchEquals(hashdots, rules) {
-    rules = rules || this.rules;
-    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseHashDots(hashdots), rules);
-  }
-
-  matchSubset(hashdots, rules) {
-    rules = rules || this.rules;
-    return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseHashDots(hashdots), rules);
-  }
-
-  static parseHashDots(hashdots) {
+  static parseQuery(hashdots) {
     if (typeof hashdots === "string" || hashdots instanceof String)
       return HashDots.parse(hashdots)[0].left;
     return hashdots;

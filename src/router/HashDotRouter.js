@@ -16,7 +16,7 @@ export function getBaseHref() {
     const s = stripQueryHash(document.baseURI);
     return s.substring(0, s.lastIndexOf("/") + 1);
   }
-  var base = document.querySelector('base');
+  var base = document.querySelector('base[href]');
   if (base)
     return base.href;
   return window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + '/';
@@ -70,10 +70,21 @@ export function highjackLink(e, base) {
   }
 }
 
+function interpret(newLocation, rules) {
+  let paths = rules.reverse().transformAll(newLocation).reverse();
+  let middle= paths[paths.length-1];
+  let left = paths[0];
+  let rightPath = rules.transformAll(middle);
+  let right = rightPath.pop();
+  paths = paths.concat(rightPath);
+  let rootLink = left.map(dot => dot.toString()).join("");
+  return {rootLink, left, middle, right, paths};
+}
+
 export class HashDotsRouter {
   constructor(routes) {
     this.routes = {};
-    this.rules = new HashDotMap(routes);
+    this.rules = HashDotMap.make(routes);
     window.addEventListener("hashchange", () => this._navigate());
     requestAnimationFrame(() => this._navigate());                    //startup routechange event at first rAF
   }
@@ -81,7 +92,7 @@ export class HashDotsRouter {
   _navigate() {
     if (this.routes.rootLink === window.location.hash)
       return;
-    const newRoute = this.rules.interpret(window.location.hash);
+    const newRoute = interpret(window.location.hash, this.rules);
     if (this.routes.rootLink !== newRoute.rootLink)
       window.dispatchEvent(new CustomEvent("routechange", {detail: this.routes = newRoute}));
     if (newRoute.rootLink !== window.location.hash)
@@ -95,7 +106,7 @@ export class HashDotsRouter {
 export class SlashDotsRouter {
   constructor(routes) {
     this.routes = {};
-    this.rules = new HashDotMap(routes);
+    this.rules = HashDotMap.make(routes);
     window.addEventListener("click", (ev) => {
       //If the click event has already been .defaultPrevented, the router does nothing.
       if (ev.defaultPrevented)
@@ -116,7 +127,7 @@ export class SlashDotsRouter {
     let link = full.substr(baseXlastSlash.length);
     if (this.routes.rootLink === link)
       return;
-    const newRoute = this.rules.interpret(link);
+    const newRoute = interpret(window.location.hash, this.rules);
     if (this.routes.rootLink !== newRoute.rootLink)
       window.dispatchEvent(new CustomEvent("routechange", {detail: this.routes = newRoute}));
     const newFull = baseXlastSlash + newRoute.rootLink;
