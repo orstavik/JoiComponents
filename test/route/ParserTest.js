@@ -282,7 +282,7 @@ describe("new Resolvers", function () {
   it("resolveRight: #book = #chp.1#chp.2#chp.3 ; #chp.1 = #chp.1.1#chp.1.2#chp.1.3", function () {
     const routeMap = HashDotMap.make("#book = #chp.1#chp.2#chp.3; #chp.1 = #chp.1.1#chp.1.2#chp.1.3");
 
-    for (let r of routeMap.translateRulesMatch("#book"))
+    for (let r of routeMap.translateRulesMatch("#book").translate())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3");
 
     for (let r of routeMap.transform("#book#test.abc"))

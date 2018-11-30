@@ -270,16 +270,8 @@ export class HashDotMap {
     return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(input), this[rules], MatchResult.find);
   }
 
-  rulesThatMatchFirst(input) {
-    return this.rulesThatMatch(input).next().value;
-  }
-
-  translateRulesMatch(input){
-    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(input), this[rules], MatchResult.translate);
-  }
-
-  translateRulesMatchFirst(input){
-    return this.translateMatch(input).next().value;
+  translateRulesMatch(input) {
+    return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(input), this[rules]);
   }
 
   //most commonly used in transform
@@ -294,12 +286,8 @@ export class HashDotMap {
   /*find exact rules, find rules that include input, find rules that is included in the input*/
 
   //matchSubset + replace
-  transform(input){
+  transform(input) {
     return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseQuery(input), this[rules], MatchResult.transform);
-  }
-
-  transformFirst(input) {
-    return this.transform(input).first();
   }
 
   /*loop all the rules*/
@@ -333,9 +321,22 @@ export class HashDotMap {
       [Symbol.iterator]: function () {
         return this;
       },
-      first: function(){
+      first: function () {
         this.i = 0;
         return this.next().value;
+      },
+      translate: function () {
+        const mainIterator = this;
+        return {
+          next: function () {
+            let mainNext = mainIterator.next();
+            !mainNext.done && (mainNext.value = MatchResult.translate(mainNext.value));
+            return mainNext;
+          },
+          [Symbol.iterator]: function () {
+            return this;
+          }
+        }
       }
     };
   }
