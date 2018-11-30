@@ -186,19 +186,19 @@ export class HashDots {
     return null;
   }
 
-  // static supersetMatch(a, b, c) {
-  //   for (let i = 0; i < b.length; i++) {
-  //     if (b.length - i < a.length)
-  //       return null;
-  //     for (let j = 0; j < a.length; j++) {
-  //       let varMap = HashDots._matchImpl(b, a, i, j);
-  //       if (varMap)
-  //         return new MatchResult(a, b, c, i, a.length, varMap);
-  //     }
-  //   }
-  //   return null;
-  // }
-  //
+  static supersetMatch(a, b, c) {
+    for (let i = 0; i < b.length; i++) {
+      if (b.length - i < a.length)
+        return null;
+      for (let j = 0; j < a.length; j++) {
+        let varMap = HashDots._matchImpl(b, a, i, j);
+        if (varMap)
+          return new MatchResult(a, b, c, i, a.length, varMap);
+      }
+    }
+    return null;
+  }
+
   static exactMatch(a, b, c) {
     if (a.length !== b.length)
       return null;
@@ -246,9 +246,9 @@ export class HashDotMap {
     return this[reverse];
   }
 
-  //rules.reverse().matchEquals("input").translate()    //rules.reverse().translate().equals("input")
-  //rules.reverse().matchSubset("input").transform()    //rules.reverse().transform().subset("input")
-  //rules.reverse().matchSuperset("input").find()       //rules.reverse().find().superset("input")
+  //rules.reverse().ruleEqualsQuery("input").translate()        //rules.reverse().translate().equals("input")
+  //rules.reverse().ruleIsSubsetOfQuery("input").transform()    //rules.reverse().transform().subset("input")
+  //rules.reverse().queryIsSubsetOfRule("input").find()         //rules.reverse().find().superset("input")
 
   //reverse() -> make the rules go in opposite direction.
 
@@ -262,32 +262,19 @@ export class HashDotMap {
   // superset: the input is a subset of the rule a-side
 
   //.first()
-  //.repeat()  ?? or .last()  ??  or .end()  ??
-  //.all()
+  //.tillTheEnd()
+  //Array.from()
 
-  /*match rules that equals, is a subset of the input, is a superset of the input*/
-  rulesThatMatch(input) {
+  ruleEqualsQuery(input) {
     return HashDotMap.resolver(HashDots.exactMatch, HashDotMap.parseQuery(input), this[rules]);
   }
 
-  rulesThatArePartOf(input) {
+  ruleIsSubsetOfQuery(input) {
     return HashDotMap.resolver(HashDots.subsetMatch, HashDotMap.parseQuery(input), this[rules]);
   }
 
-  rulesThatInclude(input) {
+  queryIsSubsetOfRule(input) {
     return HashDotMap.resolver(HashDots.supersetMatch, HashDotMap.parseQuery(input), this[rules]);
-  }
-
-  //.rulesThatArePartOf(next).transform().tillTheEnd()
-
-  /*loop all the rules*/
-  //todo these for loops should have finite borders.
-  //todo a check could be added to ensure that no next will be added to the list if it is
-  transformAll(hashdots) {
-    const res = [];
-    for (let next = HashDotMap.parseQuery(hashdots); next; next = this.rulesThatArePartOf(next).transform().first())
-      res.push(next);
-    return res;
   }
 
   static parseQuery(hashdots) {
@@ -296,10 +283,26 @@ export class HashDotMap {
     return hashdots;
   }
 
+  //todo add the possibility of retrieving the whole rule?
   static resolver(matchFunction, input, rules, interpreter) {
     return {
       interpreter: interpreter,
       i: 0,
+      find: function () {                                //todo rename to show
+        this.interpreter = MatchResult.find;
+        return this;
+      },
+      translate: function () {
+        this.interpreter = MatchResult.translate;
+        return this;
+      },
+      transform: function () {                           //todo rename to convert
+        this.interpreter = MatchResult.transform;
+        return this;
+      },
+      [Symbol.iterator]: function () {
+        return this;
+      },
       next() {
         while (this.i < rules.length) {
           let rule = rules[this.i++];
@@ -309,25 +312,12 @@ export class HashDotMap {
         }
         return {done: true};
       },
-      [Symbol.iterator]: function () {
-        return this;
-      },
       first: function () {
         this.i = 0;
         return this.next().value;
       },
-      find: function () {
-        this.interpreter = MatchResult.find;
-        return this;
-      },
-      translate: function () {
-        this.interpreter = MatchResult.translate;
-        return this;
-      },
-      transform: function () {
-        this.interpreter = MatchResult.transform;
-        return this;
-      },
+      //todo these for loops should have finite borders.
+      //todo a check could be added to ensure that no next will be added to the list if it is
       tillTheEnd: function () {
         const res = [];
         for (let next = input; next; next = HashDotMap.resolver(matchFunction, next, rules, this.interpreter).first())
