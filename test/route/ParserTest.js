@@ -426,5 +426,11 @@ describe("Syntactic errors (HashDots.parse())", function () {
       expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:       ↑");
     }
   });
-  // HashDots.parse("#no#illegal.characters?%&¤,;:-_);
+  it("Different number of the arguments in the exactMatch()", function () {
+    const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
+    const right = routeMap.ruleEqualsQuery(`#one.'hello'."world" #two.'goodbye'`).transform().first();
+    expect(right).to.be.equal(undefined);
+    const left = routeMap.reverse().ruleEqualsQuery(`#two.'hello'."world" #three."world"."abc"`).transform().first();
+    expect(left).to.be.equal(undefined);
+  });
 });
