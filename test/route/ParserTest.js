@@ -426,5 +426,34 @@ describe("Syntactic errors (HashDots.parse())", function () {
       expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:       ↑");
     }
   });
-  // HashDots.parse("#no#illegal.characters?%&¤,;:-_);
+ it("ruleIsSubsetofQuerry() input is not a string", function () {
+    const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
+    const one = routeMap.ruleIsSubsetOfQuery(123).transform().first();
+    expect(one).to.be.equal(undefined);
+    const two = routeMap.reverse().ruleIsSubsetOfQuery({abc: "#one.a.b"}).transform().first();
+    expect(two).to.be.equal(undefined);
+    const three = routeMap.reverse().ruleIsSubsetOfQuery(["#one.a.b"]).transform().first();
+    expect(three).to.be.equal(undefined);
+  });
+  it("Different number of the arguments in the exactMatch()", function () {
+    const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
+    const right = routeMap.ruleEqualsQuery(`#one.'hello'."world" #two.'goodbye'`).transform().first();
+    expect(right).to.be.equal(undefined);
+    const left = routeMap.reverse().ruleEqualsQuery(`#two.'hello'."world" #three."world"."abc"`).transform().first();
+    expect(left).to.be.equal(undefined);
+  });
+  it("Different number of the arguments in the supersetMatch()", function () {
+    const routeMap = HashDotMap.make("#one:A:B#two:C = #three:D#four:F");
+    const right = routeMap.ruleIsSubsetOfQuery(`#one.'hello'`).transform().first();
+    expect(right).to.be.equal(undefined);
+    const left = routeMap.reverse().ruleIsSubsetOfQuery(`#one.'hello'`).transform().first();
+    expect(left).to.be.equal(undefined);
+  });
+  it("Different number of the arguments in the queryIsSubsetOfRule()", function () {
+    const routeMap = HashDotMap.make("#one:A:B#two:C = #three:D#four:F");
+    const right = routeMap.queryIsSubsetOfRule(`#one.'hello'`).transform().first();
+    expect(right).to.be.equal(undefined);
+    const left = routeMap.reverse().queryIsSubsetOfRule(`#two.'hello'`).transform().first();
+    expect(left).to.be.equal(undefined);
+  });
 });
