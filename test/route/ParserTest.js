@@ -218,16 +218,22 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     const left = routeMap.reverse().ruleIsSubsetOfQuery("#two.a#three.b").transform().first();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b");
   });
+
+  //todo
   it("#one:A:B = #two:A#three:B; #alpha = #one::X#x", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B; #alpha = #one::X#x");
-    const left = routeMap.reverse().queryIsSubsetOfRule("#three.b").translate().first();
-    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one:A-45.b");
+    const left = routeMap.reverse().queryIsSubsetOfRule("#three.b").translate().tillTheEnd();
+    expect(left[1].map(dot => dot.toString()).join("")).to.be.equal("#one:A-45.b");
+    expect(left[2].map(dot => dot.toString()).join("")).to.be.equal("#alpha");
+    expect(left.length).to.be.equal(3);
   });
+
+
   it("#one:A:B = #two:A#three:B", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
-    const right = routeMap.ruleEqualsQuery(`#one.'hello'."world"`).transform().first();
+    const right = routeMap.query(`#one.'hello'."world"`).transform().first();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal(`#two.'hello'#three."world"`);
-    const left = routeMap.reverse().ruleEqualsQuery(`#two.'hello'#three."world"`).transform().first();
+    const left = routeMap.reverse().query(`#two.'hello'#three."world"`).transform().first();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal(`#one.'hello'."world"`);
     expect(left[0].flatArgs).to.deep.equal(["hello", "world"]);
   });
@@ -287,7 +293,7 @@ describe("new Resolvers", function () {
   it("resolveRight: #book = #chp.1#chp.2#chp.3 ; #chp.1 = #chp.1.1#chp.1.2#chp.1.3", function () {
     const routeMap = HashDotMap.make("#book = #chp.1#chp.2#chp.3; #chp.1 = #chp.1.1#chp.1.2#chp.1.3");
 
-    for (let r of routeMap.ruleEqualsQuery("#book").translate())
+    for (let r of routeMap.query("#book").translate())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3");
 
     for (let r of routeMap.ruleIsSubsetOfQuery("#book#test.abc").transform())
@@ -307,26 +313,26 @@ describe("new Resolvers", function () {
     const routeMap = HashDotMap.make(rules);
 
     let res = ["#chp.1", "#chp.2"];
-    for (let r of routeMap.ruleEqualsQuery("#chp:X").find())
+    for (let r of routeMap.query("#chp:X").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
     res = ["#chp.1.1", "#chp.1.2"];
-    for (let r of routeMap.ruleEqualsQuery("#chp:X:Y").find())
+    for (let r of routeMap.query("#chp:X:Y").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
     res = ["#chp.1.1"];
-    for (let r of routeMap.ruleEqualsQuery("#chp:X:X").find())
+    for (let r of routeMap.query("#chp:X:X").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
     res = ["#chp.1.1", "#chp.1.2"];
-    for (let r of routeMap.ruleEqualsQuery("#chp.1:Y").find())
+    for (let r of routeMap.query("#chp.1:Y").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
     res = ["#chp.1", "#chp.2", "#chp.1.1", "#chp.1.2"];
-    for (let r of routeMap.ruleEqualsQuery("#chp::X").find())
+    for (let r of routeMap.query("#chp::X").find())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal(res.shift());
 
-    for (let r of routeMap.ruleEqualsQuery("#chp.2:Y").find())
+    for (let r of routeMap.query("#chp.2:Y").find())
       assert(false);
   });
 });
