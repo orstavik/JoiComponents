@@ -71,15 +71,18 @@ export function highjackLink(e, base) {
 }
 
 function interpret(newLocation, rules) {
-  const query = rules.query(newLocation).reverse().ruleIsSubsetOfQuery().transform();
-  let paths = query.tillTheEnd();
+  const query = rules.query(newLocation).reverse().ruleIsSubsetOfQuery().transform().recursive();
+  let lefts = Array.from(query);
+  let rights = Array.from(query.reset().reverse());
   let middle = query.original;
-  let left = paths[paths.length - 1];
-  let rightPath = rules.query(middle).ruleIsSubsetOfQuery().transform().tillTheEnd();
-  let right = rightPath.pop();
-  paths = paths.reverse().concat(rightPath);
-  let rootLink = left.map(dot => dot.toString()).join("");
-  return {rootLink, left, middle, right, paths};
+  let paths = lefts.reverse().concat([middle]).concat(rights);
+  return {
+    rootLink: paths[0].map(dot => dot.toString()).join(""),
+    left: paths[0],
+    middle,
+    right: paths[paths.length - 1],
+    paths
+  };
 }
 
 export class HashDotsRouter {

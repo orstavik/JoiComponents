@@ -228,6 +228,8 @@ export class HashDotMap {
     this._rules = HashDots.parse(routeMap);
   }
 
+  //todo when rules are added or modified mid-flight, then they should do so on immutable this._rules object,
+  //todo so as to not alter the other .query() - iterators already out there.
   query(input) {
     if (typeof input === "string" || input instanceof String)
       input = HashDots.parse(input)[0].left;
@@ -236,28 +238,33 @@ export class HashDotMap {
 }
 
 class HashDotQuery {
-  constructor(input, rules) {
-    this.input = input;
-    this.original = input;
-    this._recursive = false;
+  constructor(query, rules) {
+    this.original = query;
+    this.rules = rules;
+    this.query = query;
+    this.i = 0;
+
     this.interpreter = MatchResult.translate;
     this.matchFunction = HashDots.exactMatch;
-    this.i = 0;
-    this.rules = rules;
-    this._reverse = false;
+    this._recursive = false;
+    this._inverted = false;
   }
 
-  find() {                                //todo rename to show
+  [Symbol.iterator]() {
+    return this;
+  }
+                                          //front
+  find() {                                //todo rename to frontSide
     this.interpreter = MatchResult.find;
     return this;
   }
 
   translate() {
-    this.interpreter = MatchResult.translate;
+    this.interpreter = MatchResult.translate;   //todo convert?
     return this;
   }
 
-  transform() {                           //todo rename to convert
+  transform() {                                 //todo merge?
     this.interpreter = MatchResult.transform;
     return this;
   }
@@ -279,31 +286,27 @@ class HashDotQuery {
     return this;
   }
 
-  [Symbol.iterator]() {
-    return this;
-  }
-
   recursive() {
     this._recursive = true;
     return this;
   }
 
   reverse() {
-    this._reverse = !this._reverse;
+    this._inverted = !this._inverted;
     return this;
   }
 
   next() {
     while (this.i < this.rules.length) {
       let rule = this.rules[this.i++];
-      let value = this._reverse ? this.matchFunction(this.input, rule.right, rule.left) : this.matchFunction(this.input, rule.left, rule.right);
+      let value = this._inverted ? this.matchFunction(this.query, rule.right, rule.left) : this.matchFunction(this.query, rule.left, rule.right);
       if (!value)
         continue;
       if (this.interpreter)
         value = this.interpreter(value);
       if (this._recursive) {
         this.i = 0;
-        this.input = value;
+        this.query = value;
       }
       return {done: false, value: value};
     }
@@ -313,6 +316,12 @@ class HashDotQuery {
   first() {
     this.i = 0;
     return this.next().value;
+  }
+
+  reset(){
+    this.i = 0;
+    this.input = this.original;
+    return this;
   }
 
   //todo these for loops should have finite borders.
