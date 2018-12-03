@@ -71,8 +71,9 @@ export function highjackLink(e, base) {
 }
 
 function interpret(newLocation, rules) {
-  let paths = rules.query(newLocation).reverse().ruleIsSubsetOfQuery().transform().tillTheEnd();
-  let middle = paths[0];
+  const query = rules.query(newLocation).reverse().ruleIsSubsetOfQuery().transform();
+  let paths = query.tillTheEnd();
+  let middle = query.original;
   let left = paths[paths.length - 1];
   let rightPath = rules.query(middle).ruleIsSubsetOfQuery().transform().tillTheEnd();
   let right = rightPath.pop();
