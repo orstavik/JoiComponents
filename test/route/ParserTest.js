@@ -211,12 +211,12 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     // });
   });
 
-  it("#one:A:B = #two:A#three:B", function () {
+   it("#one:A:B = #two:A#three:B", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
-    const right = routeMap.query("#one.a.b").ruleIsSubsetOfQuery().transform().first();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a#three.b");
-    const left = routeMap.query("#two.a#three.b").reverse().ruleIsSubsetOfQuery().transform().first();
-    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b");
+    let res = Array.from(routeMap.query("#one.a.b").ruleIsSubsetOfQuery().transform().first());
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#two.a', '#three.b']);
+    res = routeMap.query("#two.a#three.b").reverse().ruleIsSubsetOfQuery().transform().first();
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#one.a.b']);
   });
 
   it("#one:A:B = #two:A#three:B; #alpha = #one::X#x", function () {
@@ -225,28 +225,27 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     expect(res.map(dot => dot.toString())).to.deep.equal(["#one:A-45.b", "#alpha"]);
   });
 
-  //todo Array.from
   it("#one:A:B = #two:A#three:B", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
-    const right = routeMap.query(`#one.'hello'."world"`).transform().first();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal(`#two.'hello'#three."world"`);
-    const left = routeMap.query(`#two.'hello'#three."world"`).reverse().transform().first();
-    expect(left.map(dot => dot.toString()).join("")).to.be.equal(`#one.'hello'."world"`);
-    expect(left[0].flatArgs).to.deep.equal(["hello", "world"]);
+    let res = Array.from(routeMap.query(`#one."hello"."world"`).transform().first());
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#two."hello"', '#three."world"']);
+    res = Array.from(routeMap.query(`#two.'hello'#three."world"`).reverse().transform().first());
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#one.\'hello\'."world"']);
+    expect(res[0].flatArgs).to.deep.equal(["hello", "world"]);
   });
   it("#nothing#one:A:B = #two:A#three:B", function () {
     const routeMap = HashDotMap.make("#nothing#one:A:B = #two:A#three:B");
-    const right = routeMap.query("#nothing#one.a.b").ruleIsSubsetOfQuery().transform().first();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a#three.b");
-    const left = routeMap.query("#two.a#three.b").reverse().ruleIsSubsetOfQuery().transform().first();
-    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#nothing#one.a.b");
+    let res = Array.from(routeMap.query("#nothing#one.a.b").ruleIsSubsetOfQuery().transform().first());
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#two.a', '#three.b']);
+    res = Array.from(routeMap.query("#two.a#three.b").reverse().ruleIsSubsetOfQuery().transform().first());
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#nothing', '#one.a.b']);
   });
   it("#one::A = #two::A", function () {
     const routeMap = HashDotMap.make("#one::A = #two::A");
-    const right = routeMap.query("#one.a.b").ruleIsSubsetOfQuery().transform().first();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a.b");
-    const left = routeMap.query("#two.a.b.c").reverse().ruleIsSubsetOfQuery().transform().first();
-    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b.c");
+    let res = Array.from(routeMap.query("#one.a.b").ruleIsSubsetOfQuery().transform().first());
+    expect(res.map(dot => dot.toString())).to.deep.equal(["#two.a.b"]);
+    res = Array.from(routeMap.query("#two.a.b.c").reverse().ruleIsSubsetOfQuery().transform().first());
+    expect(res.map(dot => dot.toString())).to.deep.equal(["#one.a.b.c"]);
   });
   it("#red:A = #orange:A ; #orange:B = #yellow:B", function () {
     const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:B = #yellow:B");
@@ -255,29 +254,27 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     res = Array.from(routeMap.query("#yellow.ye").reverse().ruleIsSubsetOfQuery().transform().recursive());
     expect(res.map(dot => dot.toString())).to.deep.equal(["#orange.ye", "#red.ye"]);
   });
-  //todo Array.from
   it("#red:A = #orange:A ; #orange:A = #yellow:A   (Same variable name across different HashDot statements)", function () {
     const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:A = #yellow:A");
-    const right = routeMap.query("#red.re").ruleIsSubsetOfQuery().transform().recursive();
-    const res = Array.from(right);
-    expect(res.map(dot => dot.toString())).to.deep.equal(["#orange.re","#yellow.re"]);
-    const left = routeMap.query("#yellow.ye").reverse().ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
-    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
+    let res = Array.from(routeMap.query("#red.re").ruleIsSubsetOfQuery().transform().recursive());
+    expect(res.map(dot => dot.toString())).to.deep.equal(["#orange.re", "#yellow.re"]);
+    res = Array.from(routeMap.query("#yellow.ye").reverse().ruleIsSubsetOfQuery().transform().recursive());
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#orange.ye', '#red.ye']);
   });
   //todo Array.from
   it("#a:X = #aa:X ; #b:X = #bb:X ; #a:X#b:Y = #cc:X:Y  (Rule order is preserved and given priority)", function () {
     const routeMap = HashDotMap.make("#a:A = #aa:A; #b:B = #bb:B; #a:A#b:B = #cc:A:B");
-    const right = routeMap.query("#a.1#b.2").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#aa.1#bb.2");
-    const left = routeMap.query("#cc.1.2").reverse().ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
-    expect(left.map(dot => dot.toString()).join("")).to.be.equal("#a.1#b.2");
+    let res = Array.from(routeMap.query("#a.1#b.2").ruleIsSubsetOfQuery().transform().recursive());
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#aa.1,#b.2', '#aa.1,#bb.2']);
+    res = Array.from(routeMap.query("#cc.1.2").reverse().ruleIsSubsetOfQuery().transform().recursive());
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#a.1,#b.2']);
   });
-  //todo Array.from
   it("#b:X = #c:X ; #a:X = #b:X  (Rule order problem for variables)", function () {
     const routeMap = HashDotMap.make("#b:A = #c:A; #a:A = #b:A");
-    const right = routeMap.query("#a.1").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#c.1");
+    let res = Array.from(routeMap.query("#a.1").ruleIsSubsetOfQuery().transform().recursive());
+    expect(res.map(dot => dot.toString())).to.deep.equal(['#b.1', '#c.1']);
   });
+  // 
   //todo Array.from
   it("#x = #y ; #a = #x ; #b = #a  (Need to run the same rule twice)", function () {
     const routeMap = HashDotMap.make("#x = #y; #a = #x; #b = #a");
