@@ -190,25 +190,25 @@ describe("HashDotMatch", function () {
 describe("HashDotMap.transform & .transform(..).first()", function () {
   it("HashDotMap.make()", function () {
     const map = HashDotMap.make("#one:A:B = #two:A#three:B");
-    // expect(map.rules[0]).to.deep.equal({
-    //   "left": [{
-    //     "tagName": "#one",
-    //     "tagValue": "one",
-    //     "args": [":A-41", ":B-41"],
-    //     "flatArgs": [undefined, undefined]
-    //   }],
-    //   "right": [{
-    //     "tagName": "#two",
-    //     "tagValue": "two",
-    //     "args": [":A-41"],
-    //     "flatArgs": [undefined]
-    //   }, {
-    //     "tagName": "#three",
-    //     "tagValue": "three",
-    //     "args": [":B-41"],
-    //     "flatArgs": [undefined]
-    //   }]
-    // });
+    expect(map._rules[0]).to.deep.equal({
+      "left": [{
+        "tagName": "#one",
+        "tagValue": "one",
+        "args": [":A-41", ":B-41"],
+        "flatArgs": [undefined, undefined]
+      }],
+      "right": [{
+        "tagName": "#two",
+        "tagValue": "two",
+        "args": [":A-41"],
+        "flatArgs": [undefined]
+      }, {
+        "tagName": "#three",
+        "tagValue": "three",
+        "args": [":B-41"],
+        "flatArgs": [undefined]
+      }]
+    });
   });
 
    it("#one:A:B = #two:A#three:B", function () {
@@ -261,7 +261,6 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     res = Array.from(routeMap.query("#yellow.ye").reverse().ruleIsSubsetOfQuery().transform().recursive());
     expect(res.map(dot => dot.toString())).to.deep.equal(['#orange.ye', '#red.ye']);
   });
-  //todo Array.from
   it("#a:X = #aa:X ; #b:X = #bb:X ; #a:X#b:Y = #cc:X:Y  (Rule order is preserved and given priority)", function () {
     const routeMap = HashDotMap.make("#a:A = #aa:A; #b:B = #bb:B; #a:A#b:B = #cc:A:B");
     let res = Array.from(routeMap.query("#a.1#b.2").ruleIsSubsetOfQuery().transform().recursive());
@@ -274,18 +273,18 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     let res = Array.from(routeMap.query("#a.1").ruleIsSubsetOfQuery().transform().recursive());
     expect(res.map(dot => dot.toString())).to.deep.equal(['#b.1', '#c.1']);
   });
-  // 
-  //todo Array.from
   it("#x = #y ; #a = #x ; #b = #a  (Need to run the same rule twice)", function () {
     const routeMap = HashDotMap.make("#x = #y; #a = #x; #b = #a");
-    const right = routeMap.query("#a#b").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y#y");
+    const right = routeMap.query("#a#b").ruleIsSubsetOfQuery().transform().recursive();
+    const res = Array.from(right);
+    expect(res.map(dots => dots.map(dot => dot.toString()).join(""))).to.deep.equal(["#x#b", "#y#b", "#y#a", "#y#x", "#y#y"]);
   });
-  //todo Array.from
   it("#a#x = #y.1 ; #c#x = #y.2 ; #b = #x ; #d = #x  (Need to output the same hashtag with different parameters)", function () {
     const routeMap = HashDotMap.make("#a#x = #y.1; #c#x = #y.2; #b = #x; #d = #x");
-    const right = routeMap.query("#a#b#c#d").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y.1#y.2");
+    const right = routeMap.query("#a#b#c#d").ruleIsSubsetOfQuery().transform().recursive();
+    const res = Array.from(right);
+    const map = res.map(dots => dots.map(dot => dot.toString()).join(""));
+    expect(map).to.deep.equal(["#a#x#c#d","#y.1#c#d", "#y.1#c#x", "#y.1#y.2"]);
   });
 });
 
