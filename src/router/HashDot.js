@@ -323,10 +323,4 @@ class HashDotQuery {
     this.input = this.original;
     return this;
   }
-
-  //todo these for loops should have finite borders.
-  //todo a check could be added to ensure that no next will be added to the list if it is
-  tillTheEnd() {
-    return [this.original].concat(Array.from(this.recursive()));
-  }
 }
