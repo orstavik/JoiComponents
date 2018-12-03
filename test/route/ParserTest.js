@@ -274,18 +274,15 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     let res = Array.from(routeMap.query("#a.1").ruleIsSubsetOfQuery().transform().recursive());
     expect(res.map(dot => dot.toString())).to.deep.equal(['#b.1', '#c.1']);
   });
-  // 
-  //todo Array.from
-  it("#x = #y ; #a = #x ; #b = #a  (Need to run the same rule twice)", function () {
+    it("#x = #y ; #a = #x ; #b = #a  (Need to run the same rule twice)", function () {
     const routeMap = HashDotMap.make("#x = #y; #a = #x; #b = #a");
-    const right = routeMap.query("#a#b").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y#y");
+    const res = Array.from(routeMap.query("#a#b").ruleIsSubsetOfQuery().transform().recursive());
+    expect(res.map(dot => dot.toString())).to.deep.equal(["#x,#b","#y,#b","#y,#a","#y,#x","#y,#y"]);
   });
-  //todo Array.from
   it("#a#x = #y.1 ; #c#x = #y.2 ; #b = #x ; #d = #x  (Need to output the same hashtag with different parameters)", function () {
     const routeMap = HashDotMap.make("#a#x = #y.1; #c#x = #y.2; #b = #x; #d = #x");
-    const right = routeMap.query("#a#b#c#d").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y.1#y.2");
+    let res = Array.from(routeMap.query("#a#b#c#d").ruleIsSubsetOfQuery().transform().recursive());
+    expect(res.map(dot => dot.toString())).to.deep.equal(["#a,#x,#c,#d","#y.1,#c,#d","#y.1,#c,#x","#y.1,#y.2"]);
   });
 });
 
