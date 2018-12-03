@@ -219,16 +219,13 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b");
   });
 
-  //todo
   it("#one:A:B = #two:A#three:B; #alpha = #one::X#x", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B; #alpha = #one::X#x");
-    const left = routeMap.query("#three.b").reverse().queryIsSubsetOfRule().tillTheEnd();
-    expect(left[1].map(dot => dot.toString()).join("")).to.be.equal("#one:A-45.b");
-    expect(left[2].map(dot => dot.toString()).join("")).to.be.equal("#alpha");
-    expect(left.length).to.be.equal(3);
+    const res = Array.from(routeMap.query("#three.b").reverse().queryIsSubsetOfRule().recursive());
+    expect(res.map(dot => dot.toString())).to.deep.equal(["#one:A-45.b", "#alpha"]);
   });
 
-
+  //todo Array.from
   it("#one:A:B = #two:A#three:B", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
     const right = routeMap.query(`#one.'hello'."world"`).transform().first();
@@ -258,6 +255,7 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     res = Array.from(routeMap.query("#yellow.ye").reverse().ruleIsSubsetOfQuery().transform().recursive());
     expect(res.map(dot => dot.toString())).to.deep.equal(["#orange.ye", "#red.ye"]);
   });
+  //todo Array.from
   it("#red:A = #orange:A ; #orange:A = #yellow:A   (Same variable name across different HashDot statements)", function () {
     const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:A = #yellow:A");
     const right = routeMap.query("#red.re").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
@@ -265,6 +263,7 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     const left = routeMap.query("#yellow.ye").reverse().ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
+  //todo Array.from
   it("#a:X = #aa:X ; #b:X = #bb:X ; #a:X#b:Y = #cc:X:Y  (Rule order is preserved and given priority)", function () {
     const routeMap = HashDotMap.make("#a:A = #aa:A; #b:B = #bb:B; #a:A#b:B = #cc:A:B");
     const right = routeMap.query("#a.1#b.2").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
@@ -272,16 +271,19 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     const left = routeMap.query("#cc.1.2").reverse().ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#a.1#b.2");
   });
+  //todo Array.from
   it("#b:X = #c:X ; #a:X = #b:X  (Rule order problem for variables)", function () {
     const routeMap = HashDotMap.make("#b:A = #c:A; #a:A = #b:A");
     const right = routeMap.query("#a.1").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#c.1");
   });
+  //todo Array.from
   it("#x = #y ; #a = #x ; #b = #a  (Need to run the same rule twice)", function () {
     const routeMap = HashDotMap.make("#x = #y; #a = #x; #b = #a");
     const right = routeMap.query("#a#b").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y#y");
   });
+  //todo Array.from
   it("#a#x = #y.1 ; #c#x = #y.2 ; #b = #x ; #d = #x  (Need to output the same hashtag with different parameters)", function () {
     const routeMap = HashDotMap.make("#a#x = #y.1; #c#x = #y.2; #b = #x; #d = #x");
     const right = routeMap.query("#a#b#c#d").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
