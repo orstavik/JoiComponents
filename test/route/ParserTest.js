@@ -215,7 +215,7 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
     let res = Array.from(routeMap.query("#one.a.b").ruleIsSubsetOfQuery().transform().first());
     expect(res.map(dot => dot.toString())).to.deep.equal(['#two.a', '#three.b']);
-    res = routeMap.query("#two.a#three.b").reverse().ruleIsSubsetOfQuery().transform().first();
+    res = Array.from(routeMap.query("#two.a#three.b").reverse().ruleIsSubsetOfQuery().transform().first());
     expect(res.map(dot => dot.toString())).to.deep.equal(['#one.a.b']);
   });
 
