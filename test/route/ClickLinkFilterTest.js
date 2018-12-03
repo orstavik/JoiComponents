@@ -400,7 +400,7 @@ describe("HighjackLink", function () {
         click(element.children[1].children[0]);
         window.removeEventListener("click", listener);
         document.body.removeChild(element);
-      }, 300);                    //we need to wait approx 250ms for svg <animate> to kick in..
+      }, 500);                    //we need to wait approx 250ms for svg <animate> to kick in..
     });
   });
 

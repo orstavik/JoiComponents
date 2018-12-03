@@ -1,6 +1,6 @@
 import {HashDotMap} from "./HashDot.js";
 
-function stripQueryHash(url){
+function stripQueryHash(url) {
   var q = url.indexOf("?");
   var h = url.indexOf("#");
   if (q === -1 && h === -1)
@@ -71,12 +71,12 @@ export function highjackLink(e, base) {
 }
 
 function interpret(newLocation, rules) {
-  let paths = rules.reverse().ruleIsSubsetOfQuery(newLocation).transform().tillTheEnd().reverse();
-  let middle= paths[paths.length-1];
-  let left = paths[0];
-  let rightPath = rules.ruleIsSubsetOfQuery(middle).transform().tillTheEnd();
+  let paths = rules.query(newLocation).reverse().ruleIsSubsetOfQuery().transform().tillTheEnd();
+  let middle = paths[0];
+  let left = paths[paths.length - 1];
+  let rightPath = rules.query(middle).ruleIsSubsetOfQuery().transform().tillTheEnd();
   let right = rightPath.pop();
-  paths = paths.concat(rightPath);
+  paths = paths.reverse().concat(rightPath);
   let rootLink = left.map(dot => dot.toString()).join("");
   return {rootLink, left, middle, right, paths};
 }

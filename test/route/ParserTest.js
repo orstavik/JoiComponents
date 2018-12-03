@@ -213,16 +213,16 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
 
   it("#one:A:B = #two:A#three:B", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
-    const right = routeMap.ruleIsSubsetOfQuery("#one.a.b").transform().first();
+    const right = routeMap.query("#one.a.b").ruleIsSubsetOfQuery().transform().first();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a#three.b");
-    const left = routeMap.reverse().ruleIsSubsetOfQuery("#two.a#three.b").transform().first();
+    const left = routeMap.query("#two.a#three.b").reverse().ruleIsSubsetOfQuery().transform().first();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b");
   });
 
   //todo
   it("#one:A:B = #two:A#three:B; #alpha = #one::X#x", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B; #alpha = #one::X#x");
-    const left = routeMap.reverse().queryIsSubsetOfRule("#three.b").translate().tillTheEnd();
+    const left = routeMap.query("#three.b").reverse().queryIsSubsetOfRule().tillTheEnd();
     expect(left[1].map(dot => dot.toString()).join("")).to.be.equal("#one:A-45.b");
     expect(left[2].map(dot => dot.toString()).join("")).to.be.equal("#alpha");
     expect(left.length).to.be.equal(3);
@@ -233,58 +233,58 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
     const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
     const right = routeMap.query(`#one.'hello'."world"`).transform().first();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal(`#two.'hello'#three."world"`);
-    const left = routeMap.reverse().query(`#two.'hello'#three."world"`).transform().first();
+    const left = routeMap.query(`#two.'hello'#three."world"`).reverse().transform().first();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal(`#one.'hello'."world"`);
     expect(left[0].flatArgs).to.deep.equal(["hello", "world"]);
   });
   it("#nothing#one:A:B = #two:A#three:B", function () {
     const routeMap = HashDotMap.make("#nothing#one:A:B = #two:A#three:B");
-    const right = routeMap.ruleIsSubsetOfQuery("#nothing#one.a.b").transform().first();
+    const right = routeMap.query("#nothing#one.a.b").ruleIsSubsetOfQuery().transform().first();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a#three.b");
-    const left = routeMap.reverse().ruleIsSubsetOfQuery("#two.a#three.b").transform().first();
+    const left = routeMap.query("#two.a#three.b").reverse().ruleIsSubsetOfQuery().transform().first();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#nothing#one.a.b");
   });
   it("#one::A = #two::A", function () {
     const routeMap = HashDotMap.make("#one::A = #two::A");
-    const right = routeMap.ruleIsSubsetOfQuery("#one.a.b").transform().first();
+    const right = routeMap.query("#one.a.b").ruleIsSubsetOfQuery().transform().first();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#two.a.b");
-    const left = routeMap.reverse().ruleIsSubsetOfQuery("#two.a.b.c").transform().first();
+    const left = routeMap.query("#two.a.b.c").reverse().ruleIsSubsetOfQuery().transform().first();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#one.a.b.c");
   });
   it("#red:A = #orange:A ; #orange:B = #yellow:B", function () {
     const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:B = #yellow:B");
-    const right = routeMap.ruleIsSubsetOfQuery("#red.re").transform().tillTheEnd().pop();
+    const right = routeMap.query("#red.re").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#yellow.re");
-    const left = routeMap.reverse().ruleIsSubsetOfQuery("#yellow.ye").transform().tillTheEnd().pop();
+    const left = routeMap.query("#yellow.ye").reverse().ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
   it("#red:A = #orange:A ; #orange:A = #yellow:A   (Same variable name across different HashDot statements)", function () {
     const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:A = #yellow:A");
-    const right = routeMap.ruleIsSubsetOfQuery("#red.re").transform().tillTheEnd().pop();
+    const right = routeMap.query("#red.re").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#yellow.re");
-    const left = routeMap.reverse().ruleIsSubsetOfQuery("#yellow.ye").transform().tillTheEnd().pop();
+    const left = routeMap.query("#yellow.ye").reverse().ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
   it("#a:X = #aa:X ; #b:X = #bb:X ; #a:X#b:Y = #cc:X:Y  (Rule order is preserved and given priority)", function () {
     const routeMap = HashDotMap.make("#a:A = #aa:A; #b:B = #bb:B; #a:A#b:B = #cc:A:B");
-    const right = routeMap.ruleIsSubsetOfQuery("#a.1#b.2").transform().tillTheEnd().pop();
+    const right = routeMap.query("#a.1#b.2").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#aa.1#bb.2");
-    const left = routeMap.reverse().ruleIsSubsetOfQuery("#cc.1.2").transform().tillTheEnd().pop();
+    const left = routeMap.query("#cc.1.2").reverse().ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#a.1#b.2");
   });
   it("#b:X = #c:X ; #a:X = #b:X  (Rule order problem for variables)", function () {
     const routeMap = HashDotMap.make("#b:A = #c:A; #a:A = #b:A");
-    const right = routeMap.ruleIsSubsetOfQuery("#a.1").transform().tillTheEnd().pop();
+    const right = routeMap.query("#a.1").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#c.1");
   });
   it("#x = #y ; #a = #x ; #b = #a  (Need to run the same rule twice)", function () {
     const routeMap = HashDotMap.make("#x = #y; #a = #x; #b = #a");
-    const right = routeMap.ruleIsSubsetOfQuery("#a#b").transform().tillTheEnd().pop();
+    const right = routeMap.query("#a#b").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y#y");
   });
   it("#a#x = #y.1 ; #c#x = #y.2 ; #b = #x ; #d = #x  (Need to output the same hashtag with different parameters)", function () {
     const routeMap = HashDotMap.make("#a#x = #y.1; #c#x = #y.2; #b = #x; #d = #x");
-    const right = routeMap.ruleIsSubsetOfQuery("#a#b#c#d").transform().tillTheEnd().pop();
+    const right = routeMap.query("#a#b#c#d").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(right.map(dot => dot.toString()).join("")).to.be.equal("#y.1#y.2");
   });
 });
@@ -293,13 +293,13 @@ describe("new Resolvers", function () {
   it("resolveRight: #book = #chp.1#chp.2#chp.3 ; #chp.1 = #chp.1.1#chp.1.2#chp.1.3", function () {
     const routeMap = HashDotMap.make("#book = #chp.1#chp.2#chp.3; #chp.1 = #chp.1.1#chp.1.2#chp.1.3");
 
-    for (let r of routeMap.query("#book").translate())
+    for (let r of routeMap.query("#book"))
       expect(r.map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3");
 
-    for (let r of routeMap.ruleIsSubsetOfQuery("#book#test.abc").transform())
+    for (let r of routeMap.query("#book#test.abc").ruleIsSubsetOfQuery().transform())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal("#chp.1#chp.2#chp.3#test.abc");
 
-    for (let r of routeMap.ruleIsSubsetOfQuery("#test.abc#book").transform())
+    for (let r of routeMap.query("#test.abc#book").ruleIsSubsetOfQuery().transform())
       expect(r.map(dot => dot.toString()).join("")).to.be.equal("#test.abc#chp.1#chp.2#chp.3");
   });
 

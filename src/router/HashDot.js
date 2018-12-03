@@ -277,26 +277,27 @@ and from topToBottom() and bottomToTop() in the ruleset (is most likely thought 
  */
 
 const rules = Symbol("rules");
-const reverse = Symbol("reverse");
+
+// const reverse = Symbol("reverse");
 
 export class HashDotMap {
 
   static make(routeMap) {
     const parsed = HashDots.parse(routeMap);
     const res = new HashDotMap(parsed);
-    res[reverse] = new HashDotMap(parsed.map(rule => ({left: rule.right, right: rule.left})));
-    res[reverse][reverse] = res;
+    // res[reverse] = new HashDotMap(parsed.map(rule => ({left: rule.right, right: rule.left})));
+    // res[reverse][reverse] = res;
     return res;
   }
 
   constructor(routes) {
     this[rules] = routes;
-    this[reverse] = null;
+    // this[reverse] = null;
   }
 
-  reverse() {
-    return this[reverse];
-  }
+  // reverse() {
+  //   return this[reverse];
+  // }
 
   //rules.reverse().query("input").translate()        //rules.reverse().translate().equals("input")
   //rules.reverse().ruleIsSubsetOfQuery("input").transform()    //rules.reverse().transform().subset("input")
@@ -318,15 +319,7 @@ export class HashDotMap {
   //Array.from()
 
   query(input) {
-    return HashDotMap.resolver(HashDotMap.parseQuery(input), this[rules]);
-  }
-
-  ruleIsSubsetOfQuery(input) {
-    return this.query(input).subset();
-  }
-
-  queryIsSubsetOfRule(input) {
-    return this.query(input).superset();
+    return new HashDotQuery(HashDotMap.parseQuery(input), this[rules]);
   }
 
   static parseQuery(hashdots) {
@@ -334,71 +327,90 @@ export class HashDotMap {
       return HashDots.parse(hashdots)[0].left;
     return hashdots;
   }
+}
+
+class HashDotQuery {
+  constructor(input, rules) {
+    this.input = input;
+    this._recursive = false;
+    this.interpreter = MatchResult.translate;
+    this.matchFunction = HashDots.exactMatch;
+    this.i = 0;
+    this.rules = rules;
+    this._reverse = false;
+  }
+
+  find() {                                //todo rename to show
+    this.interpreter = MatchResult.find;
+    return this;
+  }
+
+  translate() {
+    this.interpreter = MatchResult.translate;
+    return this;
+  }
+
+  transform() {                           //todo rename to convert
+    this.interpreter = MatchResult.transform;
+    return this;
+  }
 
   //todo add the possibility of retrieving the whole rule?
-  static resolver(input, rules, interpreter) {
-    return {
-      input: input,
-      _recursive: false,
-      interpreter: interpreter,
-      matchFunction: HashDots.exactMatch,
-      i: 0,
-      find: function () {                                //todo rename to show
-        this.interpreter = MatchResult.find;
-        return this;
-      },
-      translate: function () {
-        this.interpreter = MatchResult.translate;
-        return this;
-      },
-      transform: function () {                           //todo rename to convert
-        this.interpreter = MatchResult.transform;
-        return this;
-      },
-      subset: function(){
-        this.matchFunction = HashDots.subsetMatch;
-        return this;
-      },
-      superset: function(){
-        this.matchFunction = HashDots.supersetMatch;
-        return this;
-      },
-      exact: function(){
-        this.matchFunction = HashDots.exactMatch;
-        return this;
-      },
-      [Symbol.iterator]: function () {
-        return this;
-      },
-      recursive: function(){
-        this._recursive = true;
-        return this;
-      },
-      next() {
-        while (this.i < rules.length) {
-          let rule = rules[this.i++];
-          let value = this.matchFunction(this.input, rule.left, rule.right);
-          if (!value)
-            continue;
-          if (this.interpreter)
-            value = this.interpreter(value);
-          if (this._recursive){
-            this.i = 0;
-            this.input = value;
-          }
-          return {done: false, value: value};
-        }
-        return {done: true};
-      },
-      first: function () {
+
+  ruleIsSubsetOfQuery() {
+    this.matchFunction = HashDots.subsetMatch;
+    return this;
+  }
+
+  queryIsSubsetOfRule() {
+    this.matchFunction = HashDots.supersetMatch;
+    return this;
+  }
+
+  queryIsExactRule() {
+    this.matchFunction = HashDots.exactMatch;
+    return this;
+  }
+
+  [Symbol.iterator]() {
+    return this;
+  }
+
+  recursive() {
+    this._recursive = true;
+    return this;
+  }
+
+  reverse() {
+    this._reverse = !this._reverse;
+    return this;
+  }
+
+  next() {
+    while (this.i < this.rules.length) {
+      let rule = this.rules[this.i++];
+      let value = this._reverse ? this.matchFunction(this.input, rule.right, rule.left) : this.matchFunction(this.input, rule.left, rule.right);
+      if (!value)
+        continue;
+      if (this.interpreter)
+        value = this.interpreter(value);
+      if (this._recursive) {
         this.i = 0;
-        return this.next().value;
-      },
-      //todo these for loops should have finite borders.
-      //todo a check could be added to ensure that no next will be added to the list if it is
-      tillTheEnd: function () {
-        return [this.input].concat(Array.from(this.recursive()));
+        this.input = value;
       }
-    };
+      return {done: false, value: value};
+    }
+    return {done: true};
+  }
+
+  first() {
+    this.i = 0;
+    return this.next().value;
+  }
+
+  //todo these for loops should have finite borders.
+  //todo a check could be added to ensure that no next will be added to the list if it is
+  tillTheEnd() {
+    return [this.input].concat(Array.from(this.recursive()));
   }
 }
