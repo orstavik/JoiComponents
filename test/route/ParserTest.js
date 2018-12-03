@@ -258,8 +258,9 @@ describe("HashDotMap.transform & .transform(..).first()", function () {
   //todo Array.from
   it("#red:A = #orange:A ; #orange:A = #yellow:A   (Same variable name across different HashDot statements)", function () {
     const routeMap = HashDotMap.make("#red:A = #orange:A; #orange:A = #yellow:A");
-    const right = routeMap.query("#red.re").ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
-    expect(right.map(dot => dot.toString()).join("")).to.be.equal("#yellow.re");
+    const right = routeMap.query("#red.re").ruleIsSubsetOfQuery().transform().recursive();
+    const res = Array.from(right);
+    expect(res.map(dot => dot.toString())).to.deep.equal(["#orange.re","#yellow.re"]);
     const left = routeMap.query("#yellow.ye").reverse().ruleIsSubsetOfQuery().transform().tillTheEnd().pop();
     expect(left.map(dot => dot.toString()).join("")).to.be.equal("#red.ye");
   });
