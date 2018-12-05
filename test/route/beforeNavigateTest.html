@@ -1,0 +1,30 @@
+<script src="../../src/router/beforeNavigate.js"></script>
+
+<a href="omg.html" download>hello</a>
+
+<script>
+  window.addEventListener("beforeNavigate", function(e){
+    console.log(e.detail);
+    e.preventDefault();
+  });
+
+  //test1
+  setTimeout(function(){
+    document.querySelector("a").click();
+  }, 100);
+
+  //test2
+  setTimeout(function(){
+    const a = document.querySelector("a");
+    a.focus({preventScroll:false});
+    var keyboardEvent = new KeyboardEvent('keypress', {
+      code: 'Enter',
+      key: 'Enter',
+      charKode: 13,
+      keyCode: 13,
+      bubbles: true
+    });
+    a.dispatchEvent(keyboardEvent);
+  }, 200);
+
+</script>
