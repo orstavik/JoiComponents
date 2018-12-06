@@ -2,21 +2,51 @@
 
 <a href="omg.html" download>hello</a>
 
+<svg>
+  <animate xlink:href="#test-a" attributeName="href" from="filename.html" to="animated.html" dur="1ms" begin="0s"
+           fill="freeze"/>
+  <a id="test-a" href="filename.html">
+    <polygon id="boo" fill="red" stroke="black" points="360.5,406 62.757,371.5 61.125,72 360.5,89.5"/>
+  </a>
+</svg>
+
+<map name="infographic">
+  <area shape="poly" coords="130,147,200,107,254,219,130,228"
+        href="https://developer.mozilla.org/docs/Web/HTML"
+        target="_blank" alt="HTML" accesskey="p"/>
+  <area shape="poly" coords="130,147,130,228,6,219,59,107"
+        href="https://developer.mozilla.org/docs/Web/CSS"
+        target="_blank" alt="CSS"/>
+  <area shape="poly" coords="130,147,200,107,130,4,59,107"
+        href="https://developer.mozilla.org/docs/Web/JavaScript"
+        target="_blank" alt="JavaScript"/>
+</map>
+<img usemap="#infographic" src="https://interactive-examples.mdn.mozilla.net/media/examples/mdn-info2.png"
+     alt="MDN infographic"/>
+
 <script>
-  window.addEventListener("beforeNavigate", function(e){
+  window.addEventListener("beforeNavigate", function (e) {
     console.log(e.detail);
     e.preventDefault();
   });
 
   //test1
-  setTimeout(function(){
+  setTimeout(function () {
+    document.querySelector("#boo").dispatchEvent(new MouseEvent("click", {bubbles: true, cancelable: true}));
+  }, 99);
+
+  setTimeout(function () {
     document.querySelector("a").click();
   }, 100);
 
+  setTimeout(function () {
+    document.querySelector("area[shape='poly']").click();
+  }, 101);
+
   //test2
-  setTimeout(function(){
+  setTimeout(function () {
     const a = document.querySelector("a");
-    a.focus({preventScroll:false});
+    a.focus({preventScroll: false});
     var keyboardEvent = new KeyboardEvent('keypress', {
       code: 'Enter',
       key: 'Enter',
@@ -25,6 +55,6 @@
       bubbles: true
     });
     a.dispatchEvent(keyboardEvent);
-  }, 200);
+  }, 102);
 
 </script>

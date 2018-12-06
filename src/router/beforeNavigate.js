@@ -21,19 +21,64 @@
  *  * protocol: the protocol for the resolved href
  *  * method: "get"(default) | "post"
  *  *
+ *
+ * Problem 1: How to dispatch a navigation event from a custom element?
+ * Answer 1: Make an <a href> or <form> inside the shadow dom of an element and "click()" it.
+ * Drawback: Very verbose, very convoluted.
+ *
+ * Problem 2: How to intercept navigation events in a browser?
+ * Answer 2: Listen for the more fundamental events of keypress and click on the window.
+ * The event listener must then retrace the event path, go back to interpret the target.
+ * Go back to the iframe from which it came, to discover the appropriate target frame,
+ * in order to discover the appropriate BASE from where to interpret the link.
+ * Drawback 2: the event path is traversed twice.
+ * First up with the click, then again when the target and base is recalculated.
+
+ * Proposal:
+ * 1. add a navigate event with all the details necessary for the browser to interpret a navigation action/task.
+ * 2. instead of having the click event travel all the way up to the window, and then be interpreted,
+ *    have this new navigation event travel directly from the element (<a> and <form>) clicked.
+ * 3. As this navigation event hits documents (the top level or iframes),
+ *    its targets and base can be altered. This makes the process of interpreting the navigation
+ *    action more akin to common conception.
+ * 4. In order to preserve backward functionality, the navigation event does not replace the old "click()" event,
+ *    but runs as a second process. This means that the existing click and keypress events first runs to completion,
+ *    which can be stopped and altered as today, before a new navigation event is re-triggered from the target.
+ *    This should preserve backwards compatibility for as long as needed.
+ * 5. new custom elements that want can implement the new navigate event directly. This relieves them of the task of
+ *    wrapping navigation in shadowDOM.
+ * 6. New apps that want to listen to navigate can do so directly, without bothering with the click and keypress listeners.
+ * 7. a. The proposal will support much simpler routing in SPA that use the path segments for within-app navigation.
+ *    b. The proposal can support other navigation use cases such as
+ *       1. white- or black-listing links on the navigation level, very useful when the content of the web app is
+ *       not controlled by the developer, but either user or machine generated.
+ *    c. The proposal will greatly simplify the standard and implementation of both browsers and apps long term.
+ *    d. The proposal will be wastly more efficient for all usecases, as there will be no redundant filtering
+ *       and processing of the clicks in JS that is also done in the "users follows a link" algorithm already performed by the browser.
+ *
+ *  navigate
+ *
+ *  Translate the navigate event and dispatch it not on the window, but
+ *  on the triggering element (a, area, or form).
+ *  Then, if there are documents, the documents can intercept and reroute the navigation to different targets and
+ *  find the relevant base elements for that navigation event.
+ *
+ *  This can operate "post"-click in the beginning, thus allowing old websites with the clicks listeners that intercept
+ *  navigation to be gradually faced out with newer browsers.
+ *
  */
 
 //  https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target
 function getTarget(el) {
-  if (el.target)
-    return el.target;
+  return el.target ? el.target : getTarget2(el);
+}
+function getTarget2(el){
   const res = el.getAttribute("target");
   if (res)
     return res;
   let base = el.ownerDocument.querySelector("base[target]");
   return base ? base.getAttribute("target") || "" : "";
 }
-
 function makeDetailHtmlA(el) {
   return {
     download: el.download || el.hasAttribute("download"),
@@ -47,15 +92,19 @@ function makeDetailHtmlA(el) {
 }
 
 function makeDetailSvgA(el) {
-  const rel = el.rel.trim() || el.getAttribute("rel").trim();   //todo do I need trim()?
+  debugger;
+  const rel = el.getAttribute("rel");
+  const origHref = el.href.animVal;
+  const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
+  const href = new URL(origHref, baseHref).href;
   return {
     download: el.download || el.hasAttribute("download"),
-    relList: rel ? rel.split(" ") : [],
-    target: getTarget(el),
-    originalHref: el.getAttribute("href"),
-    baseHref: (el.ownerDocument.querySelector('base[href]') || window.location).href,
-    href: el.href.animVal.href,
-    protocol: el.href.animVal.protocol
+    relList: rel ? rel.trim().split(" ") : [],
+    target: getTarget2(el),
+    originalHref: origHref,
+    baseHref: baseHref,
+    href: href,
+    protocol: href.substring(0, href.indexOf(":"))
   };
 }
 
