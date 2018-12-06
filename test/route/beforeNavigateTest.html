@@ -1,6 +1,6 @@
 <script src="../../src/router/beforeNavigate.js"></script>
 
-<a id="one" href="omg.html" download rel="noopener">hello</a>
+<a id="one" href="omg.html" download rel="noopener blabla">hello</a>
 
 <svg>
   <animate xlink:href="#test-a" attributeName="href" from="filename.html" to="animated.html" dur="1ms" begin="0s"
@@ -13,19 +13,14 @@
 <map name="infographic">
   <area shape="poly" coords="130,147,200,107,254,219,130,228"
         id="three"
+        rel="noopener blabla"
         href="https://developer.mozilla.org/docs/Web/HTML"
         target="_blank" alt="HTML" accesskey="p"/>
-  <area shape="poly" coords="130,147,130,228,6,219,59,107"
-        href="https://developer.mozilla.org/docs/Web/CSS"
-        target="_blank" alt="CSS"/>
-  <area shape="poly" coords="130,147,200,107,130,4,59,107"
-        href="https://developer.mozilla.org/docs/Web/JavaScript"
-        target="_blank" alt="JavaScript"/>
 </map>
 <img usemap="#infographic" src="https://interactive-examples.mdn.mozilla.net/media/examples/mdn-info2.png"
      alt="MDN infographic"/>
 
-<form action="wtf.html" method="get">
+<form rel="noopener blabla" action="wtf.html" method="get">
   <input type="text" name="a" value="omg"/>
   <input type="text" name="b" value="wtf"/>
   <button id="four" type="submit"></button>
@@ -33,7 +28,7 @@
 
 <script>
 
-  function pressEnter(a){
+  function pressEnter(a) {
     a.focus({preventScroll: false});
     var keyboardEvent = new KeyboardEvent('keypress', {
       code: 'Enter',

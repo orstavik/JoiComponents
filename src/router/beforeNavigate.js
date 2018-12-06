@@ -1,26 +1,44 @@
 /**
  * https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks
  *
+ * Global event composition. We take in click and keypress events, and
+ * we turn some of those events into beforeNavigate events.
+ * todo what about the submit event?? this we need to test and research.
+ *
  * The `beforeNavigate` event intercepts navigation from:
  * 1. `<a href="...">`-links in both HTML and SVG documents,
  * 2. `<area href="">`-links in image maps, and
- * 3. `<form>`-submissions.
+ * 3. `<form>`-submissions (except form submissions triggered by the HTMLFormElement.submit() method).
  *
  * The navigation can be initiated by:
  * a. the user clicking on element,
- * b. pressing enter when the element is in focus, or
- * c. scripts simulating such user action via APIs such as `click()`, `.dispatchEvent(...)`, etc.
+ * b. pressing enter when the element is in focus or an accesskey which will trigger a click event on the element, or
+ * c. scripts simulating such user action via APIs such as `click()`, `.dispatchEvent(...)`, etc.,
+ * d. but not via HTMLFormElement.submit() method.
  *
  * The `beforeNavigate` event contains an event `detail` with the following data:
  *  * download: if true, the browser should download the resource instead of navigating to it (false by default)
- *  * relList: a list of strings with the `rel` properties
- *  * target: "_blank" | "_self"(default) | "_parent" | "_top"
+ *  * relList: a list of strings with the `rel` properties   todo research
+ *  * target: "_blank" | "_self"(default) | "_parent" | "_top" | frame-name
+ *  //todo target: targetDocument?? Do we want to turn this into a reference to the actual document node??
+ *  //todo I think yes. This requires a lot of processing of rel and target based on the DOM.
  *  * originalHref: a string with the href as it was given in the element
- *  * baseHref: the associated base href for the navigate event
+ *  * baseHref: the associated base href for the navigate event   todo research
  *  * href: the resolved originalHref based on the baseHref
- *  * protocol: the protocol for the resolved href
- *  * method: "get"(default) | "post"
- *  *
+ *  * protocol: the protocol for the resolved href  todo research
+ *  * url: the href as a URL() object, that contains the protocol.
+ *  * method: "get"(default) | "post" | "delete" | "put" | xxx  todo research
+ *  * encryptionType: todo research
+ *  * content: data from post request todo research ?query1=value&two=somethingElse
+ *  * todo maybe we want to add the navigating element: a, area form
+ *  * todo are we missing some important aspects here??
+ *
+ * todo 0. research if the submit event needs to be listened for, or can be listened for.
+ * todo 1. can post submits contain BOTH query parameters in the link ?query1=value&two=somethingElse AND values in the post body.
+ * todo 2. set up the url object instead of the href, protocol, and maybe content based on the answer from question 1.
+ * todo 3. replace target with the actual element. write the algorithm for that. I think yes.
+ * todo 4. are there parts of the relList that can be removed once we know the target document? I think not.
+ * todo 5. start to see which browser specific problems we are going to encounter.
  *
  * We cannot capture the HTMLFormElement.submit() method.
  * Triggering this method will bypass the beforeNavigate event. Unfortunately.
@@ -98,8 +116,8 @@ function makeDetailObject(download,
     baseHref,
     href,
     protocol,
-    encryptionType,
-    method
+    method,
+    encryptionType
   };
 }
 
@@ -131,6 +149,7 @@ function makeDetailSvgA(el) {
 }
 
 function makeDetailForm(el) {
+  //todo do we need to validate the form data here?? I think not. research this.
   const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
   const download = el.download || el.hasAttribute("download");
   const target = el.target || getTarget(el);
@@ -158,7 +177,7 @@ function makeDetailArea(el) {
   const method = "get";
   const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
   const encryptionType = "omgSomething";
-  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method);
+  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
 }
 
 function makeNavigationDetail(el) {
@@ -185,7 +204,7 @@ function dispatchEventObject(e, detail) {
 
 //https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
 function filterClickForNavigation(e) {
-  if (e.metaKey)           //todo this i think is needed. Any modifying key will block the navigation I suspect.
+  if (e.metaKey)
     return;
   for (let el = e.target; el; el = el.parentNode) {
     const detail = makeNavigationDetail(el);
@@ -202,8 +221,9 @@ function filterKeyPressForNavigation(e) {
     dispatchEventObject(e, detail);
 }
 
+//todo should we implement this??
 function submitListener(e) {
-  console.log("yelo! " + e);
+  console.log("submit event!! ", e);
 }
 
 window.addEventListener("submit", submitListener);
