@@ -22,6 +22,10 @@
  *  * method: "get"(default) | "post"
  *  *
  *
+ * We cannot capture the HTMLFormElement.submit() method.
+ * Triggering this method will bypass the beforeNavigate event. Unfortunately.
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/submit
+ *
  * Problem 1: How to dispatch a navigation event from a custom element?
  * Answer 1: Make an <a href> or <form> inside the shadow dom of an element and "click()" it.
  * Drawback: Very verbose, very convoluted.
@@ -85,7 +89,8 @@ function makeDetailHtmlA(el) {
     originalHref: el.getAttribute("href"),
     baseHref: (el.ownerDocument.querySelector('base[href]') || window.location).href,
     href: el.href || new URL(this.originalHref, this.baseHref).href,
-    protocol: el.protocol || this.href.substring(0, this.href.indexOf(":"))
+    protocol: el.protocol || this.href.substring(0, this.href.indexOf(":")),
+    method: "get"
   };
 }
 
@@ -101,11 +106,13 @@ function makeDetailSvgA(el) {
     originalHref: origHref,
     baseHref: baseHref,
     href: href,
-    protocol: href.substring(0, href.indexOf(":"))
+    protocol: href.substring(0, href.indexOf(":")),
+    method: "get"
   };
 }
 
 function makeDetailForm(el) {
+  debugger;
   return {
     download: el.download || el.hasAttribute("download"),
     target: el.target || getTarget(el),
@@ -114,8 +121,8 @@ function makeDetailForm(el) {
     resolvedHref: el.href,
     protocol: el.protocol,
     action: el.action,
-    accesskey: el.accessKey,
-    method: el.method,
+    encriptionType: el.encriptionType || "default",
+    method: el.method || "get",
     name: el.name,
   };
 }
@@ -133,8 +140,8 @@ function makeDetailArea(el) {
     resolvedHref: el.href,
     protocol: el.protocol,
     action: el.action,
-    accesskey: el.accessKey,
-    method: el.method,
+    method: "get",
+    encriptionType: "someDefault",
     name: el.name,
   };
 }
@@ -146,8 +153,12 @@ function makeNavigationDetail(el) {
     return makeDetailSvgA(el);
   else if (el.nodeName === "AREA")
     return makeDetailArea(el);
-  else if (el.nodeName === "FORM")
+  else if ((el.nodeName === "BUTTON" || el.nodeName === "INPUT") && el.type.toLowerCase() === "submit") {
+    el = el.parentNode;
+    while (el.nodeName !== "FORM")
+      el = el.parentNode;
     return makeDetailForm(el);
+  }
   return null;
 }
 
@@ -157,6 +168,7 @@ function dispatchEventObject(e, detail) {
   window.dispatchEvent(res);
 }
 
+//https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
 function filterClickForNavigation(e) {
   if (e.metaKey)           //todo this i think is needed. Any modifying key will block the navigation I suspect.
     return;
@@ -175,5 +187,10 @@ function filterKeyPressForNavigation(e) {
     dispatchEventObject(e, detail);
 }
 
+function submitListener(e){
+  console.log("yelo! " + e);
+}
+
+window.addEventListener("submit", submitListener);
 window.addEventListener("click", filterClickForNavigation);
 window.addEventListener("keypress", filterKeyPressForNavigation);

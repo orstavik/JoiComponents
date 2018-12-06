@@ -24,6 +24,12 @@
 <img usemap="#infographic" src="https://interactive-examples.mdn.mozilla.net/media/examples/mdn-info2.png"
      alt="MDN infographic"/>
 
+<form action="wtf.html" method="get">
+  <input type="text" name="a" value="omg"/>
+  <input type="text" name="b" value="omg"/>
+  <button type="submit"></button>
+</form>
+
 <script>
   window.addEventListener("beforeNavigate", function (e) {
     console.log(e.detail);
@@ -42,6 +48,16 @@
   setTimeout(function () {
     document.querySelector("area[shape='poly']").click();
   }, 101);
+
+  setTimeout(function () {
+    document.querySelector("button").click();
+  }, 101);
+
+//  setTimeout(function () {
+//    const el = document.querySelector("form");
+//    el.addEventListener("submit", e => console.log(e)); //calling .submit() will not trigger the submit event. nor click event.
+//    el.submit();
+//  }, 101);
 
   //test2
   setTimeout(function () {
