@@ -81,50 +81,67 @@ function getTarget(el) {
   return base ? base.getAttribute("target") || "" : "";
 }
 
-function makeDetailHtmlA(el) {
+function makeDetailObject(download,
+                          relList,
+                          target,
+                          originalHref,
+                          baseHref,
+                          href,
+                          protocol,
+                          method,
+                          encryptionType) {
   return {
-    download: el.download || el.hasAttribute("download"),
-    relList: el.relList || el.rel.trim().split(" "),    //todo do I need trim()?
-    target: el.target || getTarget(el),
-    originalHref: el.getAttribute("href"),
-    baseHref: (el.ownerDocument.querySelector('base[href]') || window.location).href,
-    href: el.href || new URL(this.originalHref, this.baseHref).href,
-    protocol: el.protocol || this.href.substring(0, this.href.indexOf(":")),
-    method: "get"
+    download,
+    relList,
+    target,
+    originalHref,
+    baseHref,
+    href,
+    protocol,
+    encryptionType,
+    method
   };
+}
+
+function makeDetailHtmlA(el) {
+  const method = "get";
+  const protocol = el.protocol || this.href.substring(0, this.href.indexOf(":"));
+  const href = el.href || new URL(this.originalHref, this.baseHref).href;
+  const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
+  const originalHref = el.getAttribute("href");
+  const target = el.target || getTarget(el);
+  const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
+  const download = el.download || el.hasAttribute("download");
+  const encryptionType = "omgSomething";
+  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
 }
 
 function makeDetailSvgA(el) {
   const rel = el.getAttribute("rel");
-  const origHref = el.href.animVal;
+  const originalHref = el.href.animVal;
   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
-  const href = new URL(origHref, baseHref).href;
-  return {
-    download: el.download || el.hasAttribute("download"),
-    relList: rel ? rel.trim().split(" ") : [],
-    target: el.target || getTarget(el),
-    originalHref: origHref,
-    baseHref: baseHref,
-    href: href,
-    protocol: href.substring(0, href.indexOf(":")),
-    method: "get"
-  };
+  const href = new URL(originalHref, baseHref).href;
+  const download = el.download || el.hasAttribute("download");
+  const relList = rel ? rel.trim().split(" ") : [];
+  const target = el.target || getTarget(el);
+  const protocol = href.substring(0, href.indexOf(":"));
+  const method = "get";
+  const encryptionType = "omgSomething";
+  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
 }
 
 function makeDetailForm(el) {
-  debugger;
-  return {
-    download: el.download || el.hasAttribute("download"),
-    target: el.target || getTarget(el),
-    originalHref: el.getAttribute("href"),
-    baseHref: (el.ownerDocument.querySelector('base[href]') || window.location).href,
-    resolvedHref: el.href,
-    protocol: el.protocol,
-    action: el.action,
-    encriptionType: el.encriptionType || "default",
-    method: el.method || "get",
-    name: el.name,
-  };
+  const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
+  const download = el.download || el.hasAttribute("download");
+  const target = el.target || getTarget(el);
+  const originalHref = el.getAttribute("href");
+  const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
+  const href = el.href;
+  const protocol = el.protocol;
+  const encryptionType = el.encryptionType || "default";
+  const method = el.method || "get";
+  // const content = process(el.elements);
+  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
 }
 
 function makeDetailArea(el) {
@@ -132,18 +149,16 @@ function makeDetailArea(el) {
   // a U+002C COMMA character (,), and the value of y expressed as a base-ten integer using ASCII digits.
   // ASCII digits are the characters in the range U+0030 DIGIT ZERO (0) to U+0039 DIGIT NINE (9).
 
-  return {
-    download: el.download || el.hasAttribute("download"),
-    target: el.target || getTarget(el),
-    originalHref: el.getAttribute("href"),
-    baseHref: (el.ownerDocument.querySelector('base[href]') || window.location).href,
-    resolvedHref: el.href,
-    protocol: el.protocol,
-    action: el.action,
-    method: "get",
-    encriptionType: "someDefault",
-    name: el.name,
-  };
+  const download = el.download || el.hasAttribute("download");
+  const target = el.target || getTarget(el);
+  const originalHref = el.getAttribute("href");
+  const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
+  const href = el.href;
+  const protocol = el.protocol;
+  const method = "get";
+  const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
+  const encryptionType = "omgSomething";
+  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method);
 }
 
 function makeNavigationDetail(el) {
@@ -187,7 +202,7 @@ function filterKeyPressForNavigation(e) {
     dispatchEventObject(e, detail);
 }
 
-function submitListener(e){
+function submitListener(e) {
   console.log("yelo! " + e);
 }
 

@@ -1,17 +1,18 @@
 <script src="../../src/router/beforeNavigate.js"></script>
 
-<a href="omg.html" download>hello</a>
+<a id="one" href="omg.html" download rel="noopener">hello</a>
 
 <svg>
   <animate xlink:href="#test-a" attributeName="href" from="filename.html" to="animated.html" dur="1ms" begin="0s"
            fill="freeze"/>
-  <a id="test-a" href="filename.html">
+  <a id="two" href="filename.html">
     <polygon id="boo" fill="red" stroke="black" points="360.5,406 62.757,371.5 61.125,72 360.5,89.5"/>
   </a>
 </svg>
 
 <map name="infographic">
   <area shape="poly" coords="130,147,200,107,254,219,130,228"
+        id="three"
         href="https://developer.mozilla.org/docs/Web/HTML"
         target="_blank" alt="HTML" accesskey="p"/>
   <area shape="poly" coords="130,147,130,228,6,219,59,107"
@@ -26,51 +27,60 @@
 
 <form action="wtf.html" method="get">
   <input type="text" name="a" value="omg"/>
-  <input type="text" name="b" value="omg"/>
-  <button type="submit"></button>
+  <input type="text" name="b" value="wtf"/>
+  <button id="four" type="submit"></button>
 </form>
 
 <script>
+
+  function pressEnter(a){
+    a.focus({preventScroll: false});
+    var keyboardEvent = new KeyboardEvent('keypress', {
+      code: 'Enter',
+      key: 'Enter',
+      charCode: 13,
+      keyCode: 13,
+      bubbles: true
+    });
+    a.dispatchEvent(keyboardEvent);
+  }
+
   window.addEventListener("beforeNavigate", function (e) {
     console.log(e.detail);
     e.preventDefault();
   });
 
-  //test1
+  //test1 clicking all navigation triggering elements.
+  setTimeout(function () {
+    document.querySelector("#one").click();
+  }, 0);
+
   setTimeout(function () {
     document.querySelector("#boo").dispatchEvent(new MouseEvent("click", {bubbles: true, cancelable: true}));
-  }, 99);
+  }, 0);
 
   setTimeout(function () {
-    document.querySelector("a").click();
-  }, 100);
+    document.querySelector("#three").click();
+  }, 0);
 
   setTimeout(function () {
-    document.querySelector("area[shape='poly']").click();
-  }, 101);
+    document.querySelector("#four").click();
+  }, 0);
 
+  //test2 keypress invoking all navigation triggering elements.
   setTimeout(function () {
-    document.querySelector("button").click();
-  }, 101);
+    pressEnter(document.querySelector("#one"));
+  }, 0);
 
-//  setTimeout(function () {
-//    const el = document.querySelector("form");
-//    el.addEventListener("submit", e => console.log(e)); //calling .submit() will not trigger the submit event. nor click event.
-//    el.submit();
-//  }, 101);
+  //todo
 
-  //test2
-  setTimeout(function () {
-    const a = document.querySelector("a");
-    a.focus({preventScroll: false});
-    var keyboardEvent = new KeyboardEvent('keypress', {
-      code: 'Enter',
-      key: 'Enter',
-      charKode: 13,
-      keyCode: 13,
-      bubbles: true
-    });
-    a.dispatchEvent(keyboardEvent);
-  }, 102);
+  //test 3 other invocations
+  //calling .submit() will not trigger the submit event. nor click event.
+  //  setTimeout(function () {
+  //    const el = document.querySelector("form");
+  //    el.addEventListener("submit", e => console.log(e));
+  //    el.submit();
+  //  }, 101);
+
 
 </script>
