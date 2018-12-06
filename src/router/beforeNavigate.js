@@ -70,20 +70,18 @@
 
 //  https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target
 function getTarget(el) {
-  return el.target ? el.target : getTarget2(el);
-}
-function getTarget2(el){
   const res = el.getAttribute("target");
   if (res)
     return res;
   let base = el.ownerDocument.querySelector("base[target]");
   return base ? base.getAttribute("target") || "" : "";
 }
+
 function makeDetailHtmlA(el) {
   return {
     download: el.download || el.hasAttribute("download"),
     relList: el.relList || el.rel.trim().split(" "),    //todo do I need trim()?
-    target: getTarget(el),
+    target: el.target || getTarget(el),
     originalHref: el.getAttribute("href"),
     baseHref: (el.ownerDocument.querySelector('base[href]') || window.location).href,
     href: el.href || new URL(this.originalHref, this.baseHref).href,
@@ -92,7 +90,6 @@ function makeDetailHtmlA(el) {
 }
 
 function makeDetailSvgA(el) {
-  debugger;
   const rel = el.getAttribute("rel");
   const origHref = el.href.animVal;
   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
@@ -100,7 +97,7 @@ function makeDetailSvgA(el) {
   return {
     download: el.download || el.hasAttribute("download"),
     relList: rel ? rel.trim().split(" ") : [],
-    target: getTarget2(el),
+    target: el.target || getTarget(el),
     originalHref: origHref,
     baseHref: baseHref,
     href: href,
@@ -111,7 +108,7 @@ function makeDetailSvgA(el) {
 function makeDetailForm(el) {
   return {
     download: el.download || el.hasAttribute("download"),
-    target: getTarget(el),
+    target: el.target || getTarget(el),
     originalHref: el.getAttribute("href"),
     baseHref: (el.ownerDocument.querySelector('base[href]') || window.location).href,
     resolvedHref: el.href,
@@ -128,9 +125,9 @@ function makeDetailArea(el) {
   // a U+002C COMMA character (,), and the value of y expressed as a base-ten integer using ASCII digits.
   // ASCII digits are the characters in the range U+0030 DIGIT ZERO (0) to U+0039 DIGIT NINE (9).
 
-    return {
+  return {
     download: el.download || el.hasAttribute("download"),
-    target: getTarget(el),
+    target: el.target || getTarget(el),
     originalHref: el.getAttribute("href"),
     baseHref: (el.ownerDocument.querySelector('base[href]') || window.location).href,
     resolvedHref: el.href,
