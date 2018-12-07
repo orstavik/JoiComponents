@@ -148,14 +148,17 @@ function findBrowsingContext(frameName, originDocument) {
   else if (target === "_top")
     return window.document;
   else {
-    let parentDocument = getParentDocument(originDocument); //todo this is wastly simplified
-    let target = window.document.querySelector("iframe[name='target']");
-    if (target)
-      chosen = target.document;
+    // let parentDocument = getParentDocument(originDocument);
+    for (let pd = originDocument;pd; pd = getParentDocument(pd)){
+      let nearestFrame = window.document.querySelector("iframe[name='"+frameName+"']");
+      if (nearestFrame)
+        return nearestFrame.document;
+    }
+    return null;
   }
-  return chosen;
 }
 
+//todo does this bubble??
 function getTargetAttribute(el) {
   const res = el.getAttribute("target");
   if (res)
