@@ -101,6 +101,12 @@
 function makeNavigationEvent(el, e) {
   if (el.nodeName === "A") {
     const ev2 = makeEvent(e, el);
+    //https://www.w3.org/html/wg/spec/text-level-semantics.html#text-level-semantics
+    if (e.target.nodeName === "IMG" && e.target.hasAttribute("ismap")) {
+      const x = "maX";
+      const y = "maY";
+      ev2.hyperlinkSuffix = "?"+x+"," +y;
+    }
     ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
     return ev2;
   } else if (el.nodeName === "a") {
@@ -108,10 +114,6 @@ function makeNavigationEvent(el, e) {
     ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
     return ev2;
   } else if (el.nodeName === "AREA") {
-    //todo calculate the position of the click
-    // Let the hyperlink suffix be a U+003F QUESTION MARK character, the value of x expressed as a base-ten integer using ASCII digits,
-    // a U+002C COMMA character (,), and the value of y expressed as a base-ten integer using ASCII digits.
-    // ASCII digits are the characters in the range U+0030 DIGIT ZERO (0) to U+0039 DIGIT NINE (9).
     const ev2 = makeEvent(e, el);
     ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
     return ev2;
