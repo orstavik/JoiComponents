@@ -103,9 +103,11 @@ function makeNavigationEvent(el, e) {
     const ev2 = makeEvent(e, el);
     //https://www.w3.org/html/wg/spec/text-level-semantics.html#text-level-semantics
     if (e.target.nodeName === "IMG" && e.target.hasAttribute("ismap")) {
-      const x = "maX";
-      const y = "maY";
-      ev2.hyperlinkSuffix = "?"+x+"," +y;
+      ev2.hyperlinkSuffix = function(){
+        const x = "maX";
+        const y = "maY";
+        return "?"+x+"," +y;
+      }
     }
     ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
     return ev2;
