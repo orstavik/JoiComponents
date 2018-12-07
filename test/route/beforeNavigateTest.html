@@ -1,5 +1,9 @@
 <script src="../../src/router/beforeNavigate.js"></script>
 
+<a href="withIsmap.html">
+  <img id="zero" src="http://programmerbook.ru/examples/images/figures.png" width="450px" height="360px" ismap alt="find a nice picture here">
+</a>
+
 <a id="one" href="omg.html" download rel="noopener blabla">hello</a>
 
 <svg>
@@ -26,9 +30,11 @@
   <button id="four" type="submit"></button>
 </form>
 
-<a href="withIsmap.html">
-  <img src="aPicture" ismap alt="find a nice picture here">
-</a>
+<iframe src="iframes/a.html" name="frame_a" frameborder="0"></iframe>
+<iframe src="iframes/b.html" frameborder="0"></iframe>
+<iframe src="iframes/c.html" frameborder="0"></iframe>
+<iframe src="iframes/d.html" frameborder="0"></iframe>
+<iframe src="iframes/e.html" frameborder="0"></iframe>
 
 <script>
 
@@ -46,10 +52,16 @@
 
   window.addEventListener("beforeNavigate", function (e) {
     console.log(e);
+    if (e.hyperlinkSuffix)
+      console.log(e.hyperlinkSuffix());
     e.preventDefault();
   });
 
   //test1 clicking all navigation triggering elements.
+  setTimeout(function () {
+    document.querySelector("#zero").dispatchEvent(new MouseEvent("click", {clientX: 100, clientY: 100, bubbles: true, cancelable: true}));
+  }, 1000);
+
   setTimeout(function () {
     document.querySelector("#one").click();
   }, 0);

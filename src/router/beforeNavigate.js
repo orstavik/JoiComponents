@@ -103,11 +103,9 @@ function makeNavigationEvent(el, e) {
     const ev2 = makeEvent(e, el);
     //https://www.w3.org/html/wg/spec/text-level-semantics.html#text-level-semantics
     if (e.target.nodeName === "IMG" && e.target.hasAttribute("ismap")) {
-      ev2.hyperlinkSuffix = function(){
-        const x = "maX";
-        const y = "maY";
-        return "?"+x+"," +y;
-      }
+      ev2.hyperlinkSuffix = function () {
+        return "?" + e.offsetX + "," + e.offsetY;
+      };
     }
     ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
     return ev2;
@@ -124,6 +122,40 @@ function makeNavigationEvent(el, e) {
   }
 }
 
+function getParentDocument(current) {
+  return current.parentNode && current.parentNode.ownerDocument ? current.parentNode.ownerDocument : null;
+}
+
+/**
+ * https://html.spec.whatwg.org/multipage/browsers.html#the-rules-for-choosing-a-browsing-context-given-a-browsing-context-name
+ *
+ * This is a simplified version of the choosing-a-browsing-context algorithm.
+ *
+ * 1. <frame> and <frameset> are not supported as they are deprecated.
+ * 2. There is no security checks imposed when the navigate event is created.
+ *    Security is performed in the interpretation of the navigation event.
+ *
+ * @param frameName
+ * @param originDocument
+ * @returns {*}
+ */
+function findBrowsingContext(frameName, originDocument) {
+  const target = frameName.toLowerCase();
+  if (target === "_self" || target === "" || target === "_blank")
+    return originDocument;
+  else if (target === "_parent")
+    return getParentDocument(originDocument) || originDocument;
+  else if (target === "_top")
+    return window.document;
+  else {
+    let parentDocument = getParentDocument(originDocument); //todo this is wastly simplified
+    let target = window.document.querySelector("iframe[name='target']");
+    if (target)
+      chosen = target.document;
+  }
+  return chosen;
+}
+
 function getTargetAttribute(el) {
   const res = el.getAttribute("target");
   if (res)
@@ -137,16 +169,17 @@ function makeEvent(e, target) {
   res.preventDefault = () => e.preventDefault();
   res.defaultPrevented = e.defaultPrevented;
   res.baseHref = function () {
-    const targetDocument = this.targetDocument();
+    const targetDocument = this.browsingContext();
     const base = targetDocument.querySelector("base[href]");
     return (base || window.location).href;
   };
   //  https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target
-  res.targetDocument = function () {
-    const targetAttrib = getTargetAttribute(this.target);
-    const targetedFrame =
-      targetAttrib === "_top" ? window : this.target.ownerDocument;
-    return targetedFrame;
+  res.browsingContext = function () {
+    let source = el.ownerDocument;
+    let noopener = el.relList.contains("noopener") || el.relList.contains("noreferrer");
+    let targetAttribute = getTargetAttribute(el);
+    let targetDocument = findBrowsingContext(targetAttribute, source, noopener);
+    return targetDocument;
   };
   res.url = function () {
     let a = this.target.href;
