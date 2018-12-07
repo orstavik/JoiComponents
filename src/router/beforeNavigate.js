@@ -27,32 +27,19 @@
  *  * .base(): the base for the navigation.
  *  * .targetDocument(): the target document for the navigation (usually the main document, but it can also be an iframe).
  *  * .download: the download option
- *  * .relList: other options (undefined for `<form>`-submit)
- *  * .method: "GET" (default) | "POST" (always "GET" for `<a>` and `<area>` tags).
- *  * .encryptionType: the method of encryption of `<form>`-submit "POST" content (undefined for `<a>` and `<area>` tags).
- *  * .elements: the DOM elements with "POST" content for `<form>`-submit, both "POST" and "GET" (undefined for `<a>` and `<area>` tags).
- *  download: if true, the browser should download the resource instead of navigating to it (false by default)
- *  * relList: a list of strings with the `rel` properties   todo research
- *  * target: "_blank" | "_self"(default) | "_parent" | "_top" | frame-name
- *  //todo target: targetDocument?? Do we want to turn this into a reference to the actual document node??
- *  //todo I think yes. This requires a lot of processing of rel and target based on the DOM.
- *  * originalHref: a string with the href as it was given in the element
- *  * baseHref: the associated base href for the navigate event   todo research  .baseURI on the targetDocument()?
- *  * href: the resolved originalHref based on the baseHref
- *  * url: the href as a URL() object, that contains the protocol.
- *  * method: "get"(default) | "post" | "delete" | "put" | xxx  todo research
- *  * encryptionType: todo research
- *  * content: data from post request
- *  * todo maybe we want to add the navigating element: a, area form
- *  * todo are we missing some important aspects here??
+ *  * .bubbles: true,
+ *  * .composed: true,
+ *  * .relList: (only <a> and <area>) link relationship options, see https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types
+ *  * .method: (only <form>-submits) "GET" (default) | "POST"
+ *  * .encryptionType: (only <form>-submits) the method of encryption of `<form>`-submit "POST" content
+ *  * .elements: (only <form>-submits) the DOM elements with "POST" content for `<form>`-submit, both "POST" and "GET"
  *
- * todo 1. A navigation request can contain both POST data and GET query parameters.
- *         This is 'wrong', but who knows what some servers need.
- * todo 2. set up the url object instead of the href, protocol.
- * todo 3. replace target with the actual element. write the algorithm for that. I think yes.
+ *
+ * A navigation request can contain both POST data and GET query parameters.
+ * This is 'wrong', but who knows what some servers need.
+ *
+ * todo 3. replace target with the actual element. write the algorithm for that. I think yes
  *         make getTarget(), and then have the baseURI from that target() when you make the URL
- * todo 4. are there parts of the relList that can be removed once we know the target document? I think not.
- *         it is annoying that download is not part of the relList. I think the relList should be considered like options.
  * todo 5. start to see which browser specific problems we are going to encounter.
  *
  * We cannot capture the HTMLFormElement.submit() method.
@@ -105,124 +92,65 @@
  *
  */
 
-//  https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target
-function getTarget(el) {
+//todo question 1? should I dispatch the event from the el as the target?
+//todo I would then be able to alter the properties of the navigation.
+//todo That would only apply to the event if event.preventDefault().
+//todo It would not have any effect if it went to the default action.
+
+
+function makeNavigationEvent(el, e) {
+  if (el.nodeName === "A") {
+    const ev2 = makeEvent(e, el);
+    ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
+    return ev2;
+  } else if (el.nodeName === "a") {
+    const ev2 = makeEvent(e, el);
+    ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
+    return ev2;
+  } else if (el.nodeName === "AREA") {
+    //todo calculate the position of the click
+    // Let the hyperlink suffix be a U+003F QUESTION MARK character, the value of x expressed as a base-ten integer using ASCII digits,
+    // a U+002C COMMA character (,), and the value of y expressed as a base-ten integer using ASCII digits.
+    // ASCII digits are the characters in the range U+0030 DIGIT ZERO (0) to U+0039 DIGIT NINE (9).
+    const ev2 = makeEvent(e, el);
+    ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
+    return ev2;
+  } else {
+    return null;
+  }
+}
+
+function getTargetAttribute(el) {
   const res = el.getAttribute("target");
   if (res)
     return res;
   let base = el.ownerDocument.querySelector("base[target]");
-  return base ? base.getAttribute("target") || "" : "";
+  return base ? base.getAttribute("target") : "";
 }
 
-function makeDetailObject(download,
-                          relList,
-                          target,
-                          originalHref,
-                          baseHref,
-                          href,
-                          protocol,
-                          method,
-                          encryptionType) {
-  return {
-    download,
-    relList,
-    target,
-    originalHref,
-    baseHref,
-    href,
-    protocol,
-    method,
-    encryptionType
-  };
-}
-
-function makeDetailHtmlA(el) {
-  const method = "get";
-  const protocol = el.protocol || this.href.substring(0, this.href.indexOf(":"));
-  const href = el.href || new URL(this.originalHref, this.baseHref).href;
-  const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
-  const originalHref = el.getAttribute("href");
-  const target = el.target || getTarget(el);
-  const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
-  const download = el.download || el.hasAttribute("download");
-  const encryptionType = "omgSomething";
-  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
-}
-
-function makeDetailSvgA(el) {
-  const rel = el.getAttribute("rel");
-  const originalHref = el.href.animVal;
-  const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
-  const href = new URL(originalHref, baseHref).href;
-  const download = el.download || el.hasAttribute("download");
-  const relList = rel ? rel.trim().split(" ") : [];
-  const target = el.target || getTarget(el);
-  const protocol = href.substring(0, href.indexOf(":"));
-  const method = "get";
-  const encryptionType = "omgSomething";
-  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
-}
-
-function makeDetailForm(el) {
-  //todo do we need to validate the form data here?? I think not. research this.
-  const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
-  const download = el.download || el.hasAttribute("download");
-  const target = el.target || getTarget(el);
-  const originalHref = el.getAttribute("href");
-  const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
-  const href = el.href;
-  const protocol = el.protocol;
-  const encryptionType = el.encryptionType || "default";
-  const method = el.method || "get";
-  // const content = process(el.elements);
-  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
-}
-
-function makeDetailArea(el) {
-  // Let the hyperlink suffix be a U+003F QUESTION MARK character, the value of x expressed as a base-ten integer using ASCII digits,
-  // a U+002C COMMA character (,), and the value of y expressed as a base-ten integer using ASCII digits.
-  // ASCII digits are the characters in the range U+0030 DIGIT ZERO (0) to U+0039 DIGIT NINE (9).
-
-  const download = el.download || el.hasAttribute("download");
-  const target = el.target || getTarget(el);
-  const originalHref = el.getAttribute("href");
-  const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
-  const href = el.href;
-  const protocol = el.protocol;
-  const method = "get";
-  const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
-  const encryptionType = "omgSomething";
-  return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
-}
-
-function makeNavigationDetail(el) {
-  if (el.nodeName === "A")
-    return makeDetailHtmlA(el);
-  else if (el.nodeName === "a")
-    return makeDetailSvgA(el);
-  else if (el.nodeName === "AREA")
-    return makeDetailArea(el);
-  else
-    return null;
-}
-
-function makeEvent(e, target, detail) {
-  const res = new CustomEvent("beforeNavigate", {detail});
-  res.target = target;
+function makeEvent(e, target) {
+  const res = new CustomEvent("beforeNavigate", {bubbles: e.bubbles, composed: true});
   res.preventDefault = () => e.preventDefault();
   res.defaultPrevented = e.defaultPrevented;
-  res.bubbles = e.bubbles;  //todo check this
-  res.baseURI = function(){
-    return this.targetDocument().baseURI();
+  res.baseHref = function () {
+    const targetDocument = this.targetDocument();
+    const base = targetDocument.querySelector("base[href]");
+    return (base || window.location).href;
   };
-  res.targetDocument = function(){
-    return this.target.ownerDocument;
+  //  https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target
+  res.targetDocument = function () {
+    const targetAttrib = getTargetAttribute(this.target);
+    const targetedFrame =
+      targetAttrib === "_top" ? window : this.target.ownerDocument;
+    return targetedFrame;
   };
-  res.url = function(){
-    return new URL(this.target.href, this.baseURI());
+  res.url = function () {
+    let a = this.target.href;
+    if (a.animVal)
+      a = a.animVal;
+    return new URL(a, this.baseHref());
   };
   res.download = target.hasAttribute("download");
-  res.relList = target.relList || (target.rel ? target.rel.trim().split(" ") : []);
   res.method = "GET";
   return res;
 }
@@ -232,28 +160,132 @@ function filterClickForNavigation(e) {
   if (e.metaKey)
     return;
   for (let el = e.target; el; el = el.parentNode) {
-    const detail = makeNavigationDetail(el);
-    if (detail)
-      return window.dispatchEvent(makeEvent(e, el, detail));
+    const ev2 = makeNavigationEvent(el, e);
+    if (ev2)
+      return el.dispatchEvent(ev2);
   }
 }
 
 function filterKeyPressForNavigation(e) {
   if (e.key !== "Enter" || e.metaKey)
     return;
-  const detail = makeNavigationDetail(e.target);
-  if (detail)
-    window.dispatchEvent(makeEvent(e, e.target, detail));
+  const ev2 = makeNavigationEvent(e.target, e);
+  if (ev2)
+    return e.target.dispatchEvent(ev2);
 }
 
 function submitListener(e) {
-  const event = makeEvent(e, e.target, makeDetailForm(e.target));
+  const event = makeEvent(e, e.target);
   event.method = e.target.method || event.method;
   event.elements = e.target.elements;
   event.encryptionType = e.target.encryptionType;
-  window.dispatchEvent(event);
+  e.target.dispatchEvent(event);
 }
 
 window.addEventListener("submit", submitListener);
 window.addEventListener("click", filterClickForNavigation);
 window.addEventListener("keypress", filterKeyPressForNavigation);
+
+
+// function getTarget(el) {
+//   const res = el.getAttribute("target");
+//   if (res)
+//     return res;
+//   let base = el.ownerDocument.querySelector("base[target]");
+//   return base ? base.getAttribute("target") || "" : "";
+// }
+//
+// function makeDetailObject(download,
+//                           relList,
+//                           target,
+//                           originalHref,
+//                           baseHref,
+//                           href,
+//                           protocol,
+//                           method,
+//                           encryptionType) {
+//   return {
+//     download,
+//     relList,
+//     target,
+//     originalHref,
+//     baseHref,
+//     href,
+//     protocol,
+//     method,
+//     encryptionType
+//   };
+// }
+//
+// function makeDetailHtmlA(el) {
+//   const method = "get";
+//   const protocol = el.protocol || this.href.substring(0, this.href.indexOf(":"));
+//   const href = el.href || new URL(this.originalHref, this.baseHref).href;
+//   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
+//   const originalHref = el.getAttribute("href");
+//   const target = el.target || getTarget(el);
+//   const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
+//   const download = el.download || el.hasAttribute("download");
+//   const encryptionType = "omgSomething";
+//   return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
+// }
+//
+// function makeDetailSvgA(el) {
+//   const rel = el.getAttribute("rel");
+//   const originalHref = el.href.animVal;
+//   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
+//   const href = new URL(originalHref, baseHref).href;
+//   const download = el.download || el.hasAttribute("download");
+//   const relList = rel ? rel.trim().split(" ") : [];
+//   const target = el.target || getTarget(el);
+//   const protocol = href.substring(0, href.indexOf(":"));
+//   const method = "get";
+//   const encryptionType = "omgSomething";
+//   return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
+// }
+//
+// function makeDetailForm(el) {
+//   //todo do we need to validate the form data here?? I think not. research this.
+//   const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
+//   const download = el.download || el.hasAttribute("download");
+//   const target = el.target || getTarget(el);
+//   const originalHref = el.getAttribute("href");
+//   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
+//   const href = el.href;
+//   const protocol = el.protocol;
+//   const encryptionType = el.encryptionType || "default";
+//   const method = el.method || "get";
+//   // const content = process(el.elements);
+//   return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
+// }
+//
+// function makeDetailArea(el) {
+//
+//   const download = el.download || el.hasAttribute("download");
+//   const target = el.target || getTarget(el);
+//   const originalHref = el.getAttribute("href");
+//   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
+//   const href = el.href;
+//   const protocol = el.protocol;
+//   const method = "get";
+//   const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
+//   const encryptionType = "omgSomething";
+//   return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
+// }
+
+/*
+*  download: if true, the browser should download the resource instead of navigating to it (false by default)
+*  * relList: a list of strings with the `rel` properties   todo research
+*  * target: "_blank" | "_self"(default) | "_parent" | "_top" | frame-name
+*  //todo target: targetDocument?? Do we want to turn this into a reference to the actual document node??
+*  //todo I think yes. This requires a lot of processing of rel and target based on the DOM.
+*  * originalHref: a string with the href as it was given in the element
+*  * baseHref: the associated base href for the navigate event   todo research  .baseURI on the targetDocument()?
+*  * href: the resolved originalHref based on the baseHref
+*  * url: the href as a URL() object, that contains the protocol.
+*  * method: "get"(default) | "post" | "delete" | "put" | xxx  todo research
+*  * encryptionType: todo research
+*  * content: data from post request
+*  * todo maybe we want to add the navigating element: a, area form
+*  * todo are we missing some important aspects here??
+*/
