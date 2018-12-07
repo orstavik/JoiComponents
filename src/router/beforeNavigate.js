@@ -1,43 +1,58 @@
 /**
  * https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks
  *
- * Global event composition. We take in click and keypress events, and
+ * Global event composition. We listen for click, keypress, and submit events, and then
  * we turn some of those events into beforeNavigate events.
- * todo what about the submit event?? this we need to test and research.
  *
  * The `beforeNavigate` event intercepts navigation from:
  * 1. `<a href="...">`-links in both HTML and SVG documents,
  * 2. `<area href="">`-links in image maps, and
- * 3. `<form>`-submissions (except form submissions triggered by the HTMLFormElement.submit() method).
+ * 3. `<form>`-submissions.
  *
  * The navigation can be initiated by:
- * a. the user clicking on element,
+ * a. the user clicking on element ,
  * b. pressing enter when the element is in focus or an accesskey which will trigger a click event on the element, or
  * c. scripts simulating such user action via APIs such as `click()`, `.dispatchEvent(...)`, etc.,
- * d. but not via HTMLFormElement.submit() method.
+ * d. but not via .
  *
- * The `beforeNavigate` event contains an event `detail` with the following data:
- *  * download: if true, the browser should download the resource instead of navigating to it (false by default)
+ * ATT!! There is one caveat:
+ * When <form> submissions are triggered by the `HTMLFormElement.submit()` method,
+ * no navigation event will be triggered. `HTMLFormElement.submit()` has a custom
+ * logic that specifically makes bypass any validation and event processing to be
+ * executed no matter what.
+ *
+ * The `beforeNavigate` event contains the following methods:
+ *  * .preventDefault(): stops the browser from triggering its navigating behavior.
+ *  * .url(): the url object of the navigation.
+ *  * .base(): the base for the navigation.
+ *  * .targetDocument(): the target document for the navigation (usually the main document, but it can also be an iframe).
+ *  * .download: the download option
+ *  * .relList: other options (undefined for `<form>`-submit)
+ *  * .method: "GET" (default) | "POST" (always "GET" for `<a>` and `<area>` tags).
+ *  * .encryptionType: the method of encryption of `<form>`-submit "POST" content (undefined for `<a>` and `<area>` tags).
+ *  * .elements: the DOM elements with "POST" content for `<form>`-submit, both "POST" and "GET" (undefined for `<a>` and `<area>` tags).
+ *  download: if true, the browser should download the resource instead of navigating to it (false by default)
  *  * relList: a list of strings with the `rel` properties   todo research
  *  * target: "_blank" | "_self"(default) | "_parent" | "_top" | frame-name
  *  //todo target: targetDocument?? Do we want to turn this into a reference to the actual document node??
  *  //todo I think yes. This requires a lot of processing of rel and target based on the DOM.
  *  * originalHref: a string with the href as it was given in the element
- *  * baseHref: the associated base href for the navigate event   todo research
+ *  * baseHref: the associated base href for the navigate event   todo research  .baseURI on the targetDocument()?
  *  * href: the resolved originalHref based on the baseHref
- *  * protocol: the protocol for the resolved href  todo research
  *  * url: the href as a URL() object, that contains the protocol.
  *  * method: "get"(default) | "post" | "delete" | "put" | xxx  todo research
  *  * encryptionType: todo research
- *  * content: data from post request todo research ?query1=value&two=somethingElse
+ *  * content: data from post request
  *  * todo maybe we want to add the navigating element: a, area form
  *  * todo are we missing some important aspects here??
  *
- * todo 0. research if the submit event needs to be listened for, or can be listened for.
- * todo 1. can post submits contain BOTH query parameters in the link ?query1=value&two=somethingElse AND values in the post body.
- * todo 2. set up the url object instead of the href, protocol, and maybe content based on the answer from question 1.
+ * todo 1. A navigation request can contain both POST data and GET query parameters.
+ *         This is 'wrong', but who knows what some servers need.
+ * todo 2. set up the url object instead of the href, protocol.
  * todo 3. replace target with the actual element. write the algorithm for that. I think yes.
+ *         make getTarget(), and then have the baseURI from that target() when you make the URL
  * todo 4. are there parts of the relList that can be removed once we know the target document? I think not.
+ *         it is annoying that download is not part of the relList. I think the relList should be considered like options.
  * todo 5. start to see which browser specific problems we are going to encounter.
  *
  * We cannot capture the HTMLFormElement.submit() method.
@@ -187,19 +202,29 @@ function makeNavigationDetail(el) {
     return makeDetailSvgA(el);
   else if (el.nodeName === "AREA")
     return makeDetailArea(el);
-  else if ((el.nodeName === "BUTTON" || el.nodeName === "INPUT") && el.type.toLowerCase() === "submit") {
-    el = el.parentNode;
-    while (el.nodeName !== "FORM")
-      el = el.parentNode;
-    return makeDetailForm(el);
-  }
-  return null;
+  else
+    return null;
 }
 
-function dispatchEventObject(e, detail) {
+function makeEvent(e, target, detail) {
   const res = new CustomEvent("beforeNavigate", {detail});
+  res.target = target;
   res.preventDefault = () => e.preventDefault();
-  window.dispatchEvent(res);
+  res.defaultPrevented = e.defaultPrevented;
+  res.bubbles = e.bubbles;  //todo check this
+  res.baseURI = function(){
+    return this.targetDocument().baseURI();
+  };
+  res.targetDocument = function(){
+    return this.target.ownerDocument;
+  };
+  res.url = function(){
+    return new URL(this.target.href, this.baseURI());
+  };
+  res.download = target.hasAttribute("download");
+  res.relList = target.relList || (target.rel ? target.rel.trim().split(" ") : []);
+  res.method = "GET";
+  return res;
 }
 
 //https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
@@ -209,7 +234,7 @@ function filterClickForNavigation(e) {
   for (let el = e.target; el; el = el.parentNode) {
     const detail = makeNavigationDetail(el);
     if (detail)
-      return dispatchEventObject(e, detail);
+      return window.dispatchEvent(makeEvent(e, el, detail));
   }
 }
 
@@ -218,12 +243,15 @@ function filterKeyPressForNavigation(e) {
     return;
   const detail = makeNavigationDetail(e.target);
   if (detail)
-    dispatchEventObject(e, detail);
+    window.dispatchEvent(makeEvent(e, e.target, detail));
 }
 
-//todo should we implement this??
 function submitListener(e) {
-  console.log("submit event!! ", e);
+  const event = makeEvent(e, e.target, makeDetailForm(e.target));
+  event.method = e.target.method || event.method;
+  event.elements = e.target.elements;
+  event.encryptionType = e.target.encryptionType;
+  window.dispatchEvent(event);
 }
 
 window.addEventListener("submit", submitListener);
