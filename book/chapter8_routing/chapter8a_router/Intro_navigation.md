@@ -14,29 +14,30 @@ just by clicking. For comparison, the web is estimated to contain only 2 trillio
 Add on top of the links the socio-semantic algorithms of search-engines and social media,
 and you will find exactly what you want in a couple of seconds or even before you even knew it.
 
-So, if the internet is humanities new hive-mind, the digital network is the skull keeping 
+So, if the internet is humanity's new hive-mind, the digital network is the skull keeping 
 everything together in one place while the links are the neurons that make up the brain.
 In short, the link is the defining feature of both the web and the browser.
 
-## Making links
+## Links and navigating events
 
 Let's not stop here. Let's extrapolate this logical argument.
 If links make up humanity's new hive-mind, then the makers of links are.. making life!
 Make two links and you are 1 trillionth divinity.
-Make an algorithm like Google search or Facebook like, and you are.. a God.
+Make an algorithm like Google search or Facebook like, and you are of course a God.
 
-Ok, so how exactly is this divinity wielded? What did God do when he made light?
+Ok, so how exactly is this divinity wielded? What did God do when she made light?
 It was likely something like this: `<a href="http://www.example.com/public/light.html">`.
 Remember, in the early days, `https` did not exist.
 
 Now, this fact is usually a bit disappointing. 
 Something as important and powerful as links *should be* more complex than a dumb `<a href>`-tag.
-Is that all it comes down to? And, can't we do *more* than that?
+Is that all it comes down to? Can't we do *more than that*?
 
-The final, principal answer to this question is no. Links are really that dumb.
-Links are simply just `<a href>` tags, nothing more.
-However, technically, links can be made using both `<a href>`, `<area href>`, `<form>` and SVG `<a href>` tags.
-More on this is [HowTo: make links](HowTo_makeLinks.md).
+Technically, the answer is that we can do more. There are actually four ways to make links:
+`<a href>`, `<area href>`, `<form>` and SVG `<a href>` tags.
+More on this is in the next chapter [HowTo: make links](HowTo_makeLinks.md).
+However, the final, principal answer to this question is "no". We really can't do more than that.
+Links are really that dumb, only minor variations of `<a href>` tags.
 
 ## Interpreting links
 
