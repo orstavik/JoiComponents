@@ -11,7 +11,7 @@ There are four different HTML/SVG elements (link elements) that can trigger navi
 `<a href>`, `<area href>`, and `<form>` from HTML and `<a xlink:href>` from SVG.
 This chapter lists these link elements and describe how and when they trigger navigating events.
 
-## `click` on an `<a href="...">` 
+## `click` and `keypress` on an `<a href="...">` 
 
 ```html
 <a id="one" href="#YesWeCan">Can we ever get enough of HTML examples?</a>
@@ -36,7 +36,7 @@ other `<a>` elements.
 `click` events can also be generated:
  * from JS script using either 
    * `HTMLElement.click()` or
-   * `HTMLElement.dispatchEvent(new MouseEvent("click", {bubbles: true,cancelable: true}))`.
+   * `HTMLElement.dispatchEvent(new MouseEvent("click", {bubbles: true, composed: true, cancelable: true}))`.
  * using a shortcut key specified with the `accesskey` attribute on an element 
    (for instance, `<a href="#down" accesskey="d">scroll down</a`> will trigger a `click` event
    when the user presses `alt`+ `d`.)
@@ -62,6 +62,44 @@ If all these criteria are met, then the `click` event is considered a navigating
 the browser to que a navigation task in the micro-task que. (or in the event loop?? todo Test this using messages).
 This will cause the browser to load a new DOM.
 
+### `Enter keypress` on an `<a href="...">`
+
+When the user selects an element via the `accesskey` attribute, 
+the `keypress` event is automatically translated into a `click` event. (todo after the first keypress event has completed bubbling?)
+However, the keyboard can also trigger a navigating event by:
+1. pressing the `enter` key
+2. when an `<a>` element or a child of an `<a>` element is in focus.
+
+The `keypress` event can also be triggered from the JS API via a `.dispatchEvent`;
+```javascript
+el.focus({preventScroll: false});
+el.dispatchEvent(new KeyboardEvent('keypress', {code: 'Enter', key: 'Enter', charCode: 13, keyCode: 13, bubbles: true, composed: true, cancelable: true}));
+```
+
+But, while the accesskey-keypress event is translated into a `click` event, 
+the enter-on-focused-element-keypress event remains a native `keypress` event throughout.
+So, once the enter-on-focused-element `keypress` events has completed bubbling,
+the act of identifying which `keypress` events are navigating events echoes that of `click` events.
+The key pressed must be `code: 'Enter', key: 'Enter', charCode: 13, keyCode: 13` and 
+no meta-key `ctrl`, `shift`, or `meta` can be active.
+But once this hurdle is cleared, the act of identifying an active `<a>` element in the 
+composed path of the `keypress` event's `target` is the same for `keypress` events as for `click`s.
+
+### ismap: `<a href="..."><img ismap src="..."/></a>`
+
+When I said there is nothing you can do with `<a href>` links, I meant *almost* nothing.
+If you wrap an `<a href>` element around an `<img>` element, and then add the `ismap` attribute to 
+the `<img>`element (att! not the `<a href>` element), 
+then the coordinates of the mouse cursor on the format of `?x,y` will be appended to the `href` of the link.
+
+```html
+<a href="inYourDreams.html">
+  <img src="http://maps.com/world.jps" width="450px" height="360px" ismap alt="the place to be">
+</a>
+```
+In the example above, if the user clicks with his pointing device at the center of the linked image,
+then the `href` in the navigating `click` event will be interpreted to be `inYourDreams.html?222,180`.
+ 
 ## `click` on an `<a xlink:href="...">` in inline SVG documents
 
 ```html
@@ -103,7 +141,6 @@ with the following exception:
 
 //so far, so good
 
-## `keypress` on an `<a href="...">`
 
 the elements coming from clicking on 
 The browser recognizes any `click`  
@@ -146,6 +183,11 @@ Third example:
 
 ## Implementation tips
 
+ * Identifying and filtering `click` and `keypress` events for navigating events is a pure function.
+   You do not need any contextual information to identify which events are potential navigation. 
+   You do need contextual information about the `<base>`, but that is needed when links are interpreted, 
+   not created and navigating events initially dispatched.
+
  * `.preventDefault()` must be called synchronously when the navigating event is first caught.
 If the processing of the navigating event The act of blocking the native router from Take care Avoid testing navigation events in Mocha.
 as it is difficult to call `.preventDefault()` in the right locations.
@@ -154,12 +196,15 @@ as it is difficult to call `.preventDefault()` in the right locations.
 
 ## References
 
- * [MDN: `click()`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click)
+ * [MDN: `.click()`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click)
  * [MDN: `MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
+ * [MDN: `KeyboardEvent`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)
  * [MDN: `<a>` in SVG](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a)
  * [Nested links](https://www.kizu.ru/nested-links/)
  * [Whatwg: `<a>` in HTML](https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-a-element)
  * [MDN: `<a>` in SVG](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a)
  * [Whatwg: Interactive elements](https://html.spec.whatwg.org/multipage/interactive-elements.html)
  * [w3.org: Interactive content](https://www.w3.org/TR/html5/dom.html#interactive-content)
+ * [MDN: `.focus()`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus)
+ 
  
