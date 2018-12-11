@@ -37,10 +37,11 @@ other `<a>` elements.
  * from JS script using either 
    * `HTMLElement.click()` or
    * `HTMLElement.dispatchEvent(new MouseEvent("click", {bubbles: true, composed: true, cancelable: true}))`.
- * using a shortcut key specified with the `accesskey` attribute on an element 
+ * using a shortcut specified with the `accesskey` attribute on an element 
    (for instance, `<a href="#down" accesskey="d">scroll down</a`> will trigger a `click` event
    when the user presses `alt`+ `d`.)
-
+    (todo does the accesskey shortcut first bubble as a keypress?? or is it translated into a click *before* it enters the browser's JS context??)
+                                                                        
 To identify which `click` events are navigating events, 
 the browser must analyze all `click` events that has completed bubbling.
 `click` events has completed bubbling when the event has either:
@@ -65,7 +66,7 @@ This will cause the browser to load a new DOM.
 ### `Enter keypress` on an `<a href="...">`
 
 When the user selects an element via the `accesskey` attribute, 
-the `keypress` event is automatically translated into a `click` event. (todo after the first keypress event has completed bubbling?)
+the `keypress` event is automatically translated into a `click` event.
 However, the keyboard can also trigger a navigating event by:
 1. pressing the `enter` key
 2. when an `<a>` element or a child of an `<a>` element is in focus.
@@ -139,7 +140,8 @@ with the following exception:
 > Att! Links in SVG documents loaded from `<img src="something.svg" />` is not triggered by the browser.
 > Navigating events can *only* be triggered from inline SVG documents.
 
-//so far, so good
+## `<area href>`
+
 
 
 the elements coming from clicking on 
