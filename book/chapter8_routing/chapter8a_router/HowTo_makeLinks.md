@@ -1,14 +1,23 @@
 # HowTo: make links
 
-## Navigating events
+## The hypothetical "navigating" events
 
-A navigating event is any event that will cause the browser to load a new page.
-In practice, a navigating event can be one of three native events: `click`, `keypress` and `submit`.
+A navigating event[todo](this is hard to understand is not a real event just a figment of ivars imagination.We need to fix that in the text.)
+is any event that will cause the browser to load a new page.
+In practice, a navigating event can be only one of three native events [todo](I cannot find the specification that says that no other events/actions can trigger navigation.): 
+ * `click` [MDN]() / [WHATWG]() 
+ * `keypress` [MDN]() / [WHATWG]()
+ * `submit` [MDN]() / [WHATWG]()
+
 However, not all `click`, `keypress` and `submit` events cause the browser to navigate, and 
 here we will describe how and when navigating events occur and what they look like.
 
-There are four different HTML/SVG elements (link elements) that can trigger navigating events: 
-`<a href>`, `<area href>`, and `<form>` from HTML and `<a xlink:href>` from SVG.
+There are four different HTML/SVG elements (link elements) that can trigger navigating events:
+ * `<a href="...">` [MDN]() / [WHATWG]() 
+ * `<area href="...">` [MDN]() / [WHATWG]()
+ * `<form>` [MDN]() / [WHATWG]()
+ * SVG `<a xlink:href="...">` [MDN]() / [w3.org](https://www.w3.org/TR/SVG/linking.html#AElement)
+
 This chapter lists these link elements and describe how and when they trigger navigating events.
 
 ## `click` and `keypress` on an `<a href="...">` 
@@ -24,7 +33,7 @@ Second, a link is wrapped around another HTML element, a `<div>`.
 To navigate the user can click on the nodes inside the link with a pointer device, 
 ie. the text or the div. 
 This will generate a `click` event that bubbles upwards, 
-passing shadowDom borders, but not `<iframe>` borders.
+passing shadowDom borders, but not `<iframe>` document borders.
 The `click` event's `target` is the innermost HTML *element* pointed to when clicking.
 In the example above the `target` would be:
  * the `<a id="one">` element (as the text node is only an HTML node, and not an element), and 
@@ -35,7 +44,8 @@ other `<a>` elements.
 
 `click` events can also be generated:
  * from JS script using either 
-   * `HTMLElement.click()` or
+   * `HTMLElement.click()` [MDN](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click)
+    [WHATWG]() or
    * `HTMLElement.dispatchEvent(new MouseEvent("click", {bubbles: true, composed: true, cancelable: true}))`.
  * using a shortcut specified with the `accesskey` attribute on an element 
    (for instance, `<a href="#down" accesskey="d">scroll down</a`> will trigger a `click` event
@@ -86,7 +96,7 @@ no meta-key `ctrl`, `shift`, or `meta` can be active.
 But once this hurdle is cleared, the act of identifying an active `<a>` element in the 
 composed path of the `keypress` event's `target` is the same for `keypress` events as for `click`s.
 
-### ismap: `<a href="..."><img ismap src="..."/></a>`
+### `ismap`, not `usemap`
 
 When I said there is nothing you can do with `<a href>` links, I meant *almost* nothing.
 If you wrap an `<a href>` element around an `<img>` element, and then add the `ismap` attribute to 
@@ -140,7 +150,25 @@ with the following exception:
 > Att! Links in SVG documents loaded from `<img src="something.svg" />` is not triggered by the browser.
 > Navigating events can *only* be triggered from inline SVG documents.
 
-## `<area href>`
+## `<area href>`: `usemap`, not `ismap`
+
+When adding the `usemap` attribute to an image, the image surface area can essentially be filled with links.
+These HTML links are not defined using the `<a>`-tag, but rather a totally new linking tag: `<area>`.
+To set up such a structure, first an `<img>` element must `usemap='#name'` a `<map>` element 
+with that same `name`, and inside that `<map>` element one or more `<area>` elements with `href` tags. 
+Phuu.. It's a mouthful of template text. Below is an example of such a link.
+
+```html
+<map name="notSoPopularAfterAll">
+  <area shape="circle" coords="20,20,20"
+        id="three"
+        rel="noopener"
+        href="https://specification.com/see/what/happens/when/spec/is/based/on/use.case"
+        target="_blank" alt="This is an example of what happens when the spec is made too close to the use case" accesskey="p"/>
+</map>
+
+<img src="" usemap="#notSoPopularAfterAll" width="100" height="100" alt=a" />
+```
 
 
 
@@ -198,15 +226,15 @@ as it is difficult to call `.preventDefault()` in the right locations.
 
 ## References
 
- * [MDN: `.click()`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click)
+ * 
  * [MDN: `MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
  * [MDN: `KeyboardEvent`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)
  * [MDN: `<a>` in SVG](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a)
- * [Nested links](https://www.kizu.ru/nested-links/)
- * [Whatwg: `<a>` in HTML](https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-a-element)
+ * [MDN: `<area>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area)
+ * [WHATWG: `<a>` in HTML](https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-a-element)
  * [MDN: `<a>` in SVG](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a)
  * [Whatwg: Interactive elements](https://html.spec.whatwg.org/multipage/interactive-elements.html)
- * [w3.org: Interactive content](https://www.w3.org/TR/html5/dom.html#interactive-content)
  * [MDN: `.focus()`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus)
  
- 
+ * [Nested links](https://www.kizu.ru/nested-links/)
+// * [w3.org: Interactive content](https://www.w3.org/TR/html5/dom.html#interactive-content)
