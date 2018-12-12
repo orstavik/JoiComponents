@@ -2,15 +2,19 @@
 
 ## The hypothetical "navigating" events
 
-A navigating event[todo](this is hard to understand is not a real event just a figment of ivars imagination.We need to fix that in the text. It is all what I found about navigation https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigate)
-is any event that will cause the browser to load a new page.
-In practice, a navigating event can be only one of three native events [todo](I cannot find the specification that says that no other events/actions can trigger navigation.): 
+A navigating event is any event that will cause [the browser to load a new document or scroll to a position in the document](https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigate).
+In practice, a navigating event can be only one of three native events: 
  * `click` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/click) / [WHATWG]() 
- * `keypress` [MDN](https://developer.mozilla.org/ru/docs/Web/Events/keypress) / [WHATWG]()
+ * `keypress` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/keypress) / [WHATWG]()
  * `submit` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/submit) / [WHATWG]()
 
 However, not all `click`, `keypress` and `submit` events cause the browser to navigate, and 
 here we will describe how and when navigating events occur and what they look like.
+
+> Att! There exists no such thing as a real "navigating event".
+> "Navigating events" is just a made-up name used to describe a subset of real 
+> `click`, `keypress` and `submit`. In a later chapter we will describe how you can make it yourself,
+> if you need it.
 
 There are four different HTML/SVG elements (link elements) that can trigger navigating events:
  * `<a href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a) / [WHATWG](https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-a-element) 
@@ -152,11 +156,16 @@ with the following exception:
 
 ## `<area href>`: `usemap`, not `ismap`
 
-When adding the `usemap` attribute to an image, the image surface area can essentially be filled with links.
-These HTML links are not defined using the `<a>`-tag, but rather a totally new linking tag: `<area>`.
-To set up such a structure, first an `<img>` element must `usemap='#name'` a `<map>` element 
-with that same `name`, and inside that `<map>` element one or more `<area>` elements with `href` tags. 
-Phuu.. It's a mouthful of template text. Below is an example of such a link.
+When adding the `usemap` attribute to an image, the image surface area can be filled with several different links.
+These HTML links are not defined using the `<a>`-tag, but with a brand new link tag: `<area>`.
+
+The `<img>`=>`<map><area /></map>` structure is a bit verbose:
+1. The image element must include a `usemap` attribute to specify the map, ie. `<img usemap='#myMap'>`.
+2. A `<map name='myMap'>` element is created, and filled with one or more `<area>` elements.
+3. `<area>` elements must declare what space over the picture they describe using the
+`shape` and `coords` attributes.
+4. The `<area>` elements can include the link attributes `href`, `rel`, `download`, and `target`
+same as `<a>` elements. 
 
 ```html
 <map name="notSoPopularAfterAll">
@@ -167,10 +176,36 @@ Phuu.. It's a mouthful of template text. Below is an example of such a link.
         target="_blank" alt="This is an example of what happens when the spec is made too close to the use case" accesskey="p"/>
 </map>
 
-<img src="" usemap="#notSoPopularAfterAll" width="100" height="100" alt=a" />
+<img src="myMapPicture.jpg" usemap="#notSoPopularAfterAll" width="100" height="100" alt=a" />
 ```
 
+`<area href="...">` links are triggered the same way as `<a href="...">` links.
+So, when a user `click`s on an `<img usemap='#myMap'>` that is covered by an `<area>` in that `<map>`,
+then the event target will be that `<area>` element and it will bubble from that location in the document. 
+The `<img>` will not be part of that `composedPath`.
 
+`<map>`-and-`<area>` is an old technology. Like `<table>`.
+Today, web developers can make similar structures with CSS.
+For example, empty `<a href="...">` blocks with absolute position and size 
+can be added inside a container `<div>` with a background image. 
+[todo](make a test that this pattern can actually be done)
+
+The benefit of using CSS-based alternatives to the `<img>`-and-`<map>`-and-`<area>` pattern are:
+ * that such CSS-based patterns are more familiar and developer friendly, and 
+ * more flexible and powerful.
+
+Thus, `<map>`-and-`<area>` can best be understood as an old custom element pair.
+The `<map>`-and-`<area>` pattern should be viewed as a "custom element pair" because 
+the use-case it supports is a rare occurrence, not a common occurrence such as `<a>` and `<div>`s.
+The `<map>`-and-`<area>` pattern should be viewed as old since the development of CSS
+alternative patterns has long ago surpassed it.
+This is why most web developers don't use or know about `<map>`-and-`<area>`.
+
+Needless to say, a good argument can be made to deprecate `<map>`-and-`<area>`.
+However, as `<map>`-and-`<area>` are still supported by both the standard and browsers, 
+`<area>` elements are still a separate source of navigating events.
+
+## `submit` events from `<form>` elements 
 
 the elements coming from clicking on 
 The browser recognizes any `click`  
@@ -184,31 +219,9 @@ Users trigger the link by clicking on:
 (or defined as inside the element in the case of )that are defined as inside the link element.
 in the following ways:
  
-Once the link is set up, the user triggers a link by clicking on an element inside the link tag.
-1. `<a href>` (HTML)
-2. `<area href>` (HTML)
-3. `<form>` (HTML)
-4. `<a href>` (SVG).
-
 linking elementcontent 
 (a submit button in `<form>`) (or a submit button within forms) 
 or focus on them and then then there are two main ways to trigger them:
-
-### `<a href="...">` around `<img ismap src="...">`
-
-```html
-<a href="#YesWeCan">Can we ever get enough of HTML code examples?</a>
-
-Second example:
-<a href="somewhere/else.html">
-  <h1>It is rarely a good idea to have links in headings</h1>
-</a>
-
-Third example:
-<a href="somewhere/else.html">
-  <img ismap src="www.universe.com/earth/europe/norway/tonsberg.jpg"/>
-</a>
-```
 
 
 ## Implementation tips
