@@ -2,21 +2,21 @@
 
 ## The hypothetical "navigating" events
 
-A navigating event[todo](this is hard to understand is not a real event just a figment of ivars imagination.We need to fix that in the text.)
+A navigating event[todo](this is hard to understand is not a real event just a figment of ivars imagination.We need to fix that in the text. It is all what I found about navigation https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigate)
 is any event that will cause the browser to load a new page.
 In practice, a navigating event can be only one of three native events [todo](I cannot find the specification that says that no other events/actions can trigger navigation.): 
- * `click` [MDN]() / [WHATWG]() 
- * `keypress` [MDN]() / [WHATWG]()
- * `submit` [MDN]() / [WHATWG]()
+ * `click` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/click) / [WHATWG]() 
+ * `keypress` [MDN](https://developer.mozilla.org/ru/docs/Web/Events/keypress) / [WHATWG]()
+ * `submit` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/submit) / [WHATWG]()
 
 However, not all `click`, `keypress` and `submit` events cause the browser to navigate, and 
 here we will describe how and when navigating events occur and what they look like.
 
 There are four different HTML/SVG elements (link elements) that can trigger navigating events:
- * `<a href="...">` [MDN]() / [WHATWG]() 
- * `<area href="...">` [MDN]() / [WHATWG]()
- * `<form>` [MDN]() / [WHATWG]()
- * SVG `<a xlink:href="...">` [MDN]() / [w3.org](https://www.w3.org/TR/SVG/linking.html#AElement)
+ * `<a href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a) / [WHATWG](https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-a-element) 
+ * `<area href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area) / [WHATWG](https://html.spec.whatwg.org/multipage/image-maps.html#the-area-element)
+ * `<form>` [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form) / [WHATWG](https://html.spec.whatwg.org/multipage/forms.html#the-form-element)
+ * SVG `<a xlink:href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) / [w3.org](https://www.w3.org/TR/SVG/linking.html#AElement)
 
 This chapter lists these link elements and describe how and when they trigger navigating events.
 
@@ -33,7 +33,7 @@ Second, a link is wrapped around another HTML element, a `<div>`.
 To navigate the user can click on the nodes inside the link with a pointer device, 
 ie. the text or the div. 
 This will generate a `click` event that bubbles upwards, 
-passing shadowDom borders, but not `<iframe>` document borders.
+passing shadowDom borders, but not `<iframe>` document borders.[w3.org](https://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-bubbling);
 The `click` event's `target` is the innermost HTML *element* pointed to when clicking.
 In the example above the `target` would be:
  * the `<a id="one">` element (as the text node is only an HTML node, and not an element), and 
