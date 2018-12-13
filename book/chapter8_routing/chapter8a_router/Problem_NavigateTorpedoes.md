@@ -1,12 +1,5 @@
 # Problem: NavigateTorpedoes
 
-The web is a troll. With three heads: HTML, JS, and CSS. 
-Trolls are genetically challenged with warts, extra fingers, some marbles running around inside its head,
-and skin that is a hybrid of vegetation and flesh. 
-The web troll is also huge: there are lots of HTML tags with idiosyncratic semantics, CSS rules and 
-a JS API that partially complete and compete with itself and HTML.
-But the biggest problem 
-
 ## Family life on the web
 
 As we all know, the web is a big family. 
