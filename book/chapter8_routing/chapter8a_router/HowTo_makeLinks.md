@@ -292,32 +292,6 @@ we do not need to worry about the details of how navigating events from `<form>`
     (todo does the accesskey shortcut first bubble as a keypress?? or is it translated into a click *before* it enters the browser's JS context??)
                                                                         
 
-
- 
-; 
-They lack a separate, native event  clear 
-`<>`
-Old-school, multipage, server-based web apps completely rely on this feature.
-The user opens the web app 
-to the server when is to give websites the ability 
-
-the elements coming from clicking on 
-The browser recognizes any `click`  
-
-In the click events `composedPath()`, the first `<a>` element link 
-This will create a 
-Users trigger the link by clicking on:
-1. another HTML or SVG element within the `<a href>` element in HTML and SVG,
-2. a submit button inside a `<form>` element, and
-3. an area of an `<img ismap="theMapParentOfTheAreaElement">` that defines a ` 
-(or defined as inside the element in the case of )that are defined as inside the link element.
-in the following ways:
- 
-linking elementcontent 
-(a submit button in `<form>`) (or a submit button within forms) 
-or focus on them and then then there are two main ways to trigger them:
-
-
 ## Implementation tips
 
  * Identifying and filtering `click` and `keypress` events for navigating events is a pure function.
