@@ -205,11 +205,64 @@ Needless to say, a good argument can be made to deprecate `<map>`-and-`<area>`.
 However, as `<map>`-and-`<area>` are still supported by both the standard and browsers, 
 `<area>` elements are still a separate source of navigating events.
 
+## What is the `<form>`?
+
+`<form>` elements serve a couple of key navigation purposes:
+
+1. Technically, `<form>` is the HTML way to send `POST` requests. 
+   `POST` requests are web requests that in addition to a web resource's URL address can contain
+   a compressed, large data packet.
+   Small data packets can also be included in `GET` requests, but this data is added *inside* the
+   URL as a query `?key=value&another=thing`, and this limits both data size and security.
+
+   `<a href="...">` elements always produce `GET` request navigating events, and
+   while `POST` requests can be produced by other means in JS [(MDN: Ajax)](https://developer.mozilla.org/en-US/docs/Web/Guide/AJAX/Getting_Started),
+   HTML only do so via `<form>` elements.
+   
+2. When large data navigating requests are made, 
+   its data not only needs to be stored, but also sculpted *somewhere* and from *something*.
+   In HTML, that *somewhere* is a `<form>` and 
+   the *somethings* are `<input>`, `<checkbox>`, `<button>`, `<textarea>` children of the `<form>`.
+   
+   Think of the `<form>` navigating event as a potato head toy.
+   On the potato, the child can pin eyes and mouths and noses from a selection that comes with the toy 
+   (cf. `<checkbox>`, `<select>`).
+   In addition, pieces of colored clay, cloth, rope and pins can be stitched to the potato as 
+   different forms of hat, scarf and warts (cf. `<input>`, `<textarea>`).
+   Depending on the flexibility of the "somethings" that accompany the potato,
+   the child can make potentially unique potato heads every time.
+   
+   Conceptually, this differs from `<a href="...">`.
+   Navigating events from `<a href="...">`s are closed, binary.
+   They are simple yes-and-no-questions from the developer to the user.
+   Navigating events from `<form>`s are open, infinite. 
+   They are a container in which the user can fill his own content.
+   
+Practically, web developers often use JS to alter the links of `<a href="...">` 
+so to make them more 'formish'. 
+Similarly, many `<form>`s are so closed to the user that could better be presented as `<a>` list.
+Still, `<form>` and `<a href>` approach navigation from different sides of the spectrum,
+the open vs. closed, the composed vs. binary, the yes-and-no-question link vs. the potato-head link.
+
+> What if?? Viewed conceptually, the `<area>` structure and the `ismap` attribute have 
+> more in common with `<form>` than with `<a>`.
+> Technically however, both are related to `<a>`, not `<form>`. 
+> It is an open question if `<area>` and `ismap` might have been received better if they had been 
+> semantically related to `<form>` instead of given its own more or less independent semantics.
+> (For example, imagine a `<button type="area" addCoordinateQuery action="/another/href/action">`
+> that would both a) purify the `<a>` element removing the two only edge cases there, merging them
+> both into a single `<button type="area">` element.
+   
 ## `submit` events from `<form>` elements 
+
+While the navigating events originating from `<a>`
+Old-school, multipage, server-based web apps completely rely on this feature.
+The user opens the web app 
+to the server when is to give websites the ability 
 
 the elements coming from clicking on 
 The browser recognizes any `click`  
-If the click 
+
 In the click events `composedPath()`, the first `<a>` element link 
 This will create a 
 Users trigger the link by clicking on:
