@@ -139,7 +139,7 @@ with the following exception:
    
 //todo check if the `href` works in Safari even though it is not supported.
 //todo check if `rel` works even though it is not supported.
-//todo verify that the xlink:href property populates the href property in all browsers.
+//todo verify that the xlink:href property populates the .href property in all browsers.
 
 3. The `<a xlink:href>` is a `parentNode` of the `click` event's `target` the same way as in HTML.
    But SVG `<a>` elements themselves differ from HTML `<a>` elements:
@@ -255,7 +255,48 @@ the open vs. closed, the composed vs. binary, the yes-and-no-question link vs. t
    
 ## `submit` events from `<form>` elements 
 
-While the navigating events originating from `<a>`
+While `<a href="...">` and `<area href="...">` only emit raw, unprocessed `click` and `keypress` 
+navigating events, `<form>` elements emit its own navigating `submit` event.
+The `submit` event does not explicitly process the navigating event data, 
+but it contains a `.target` pointer to the `<form>` element from where it originates.
+This `target`, `<form>` element in turn contains:
+1. an `.elements` property which contains the registry of all its 
+   `<input>`, `<checkbox>`, `<button>`, `<textarea>` children.
+2. the `action` attribute
+
+//todo where do i find which button is the one submitting?
+//todo which attributes of the form are navigation specific?
+
+`submit` events can be generated when:
+ * the user clicks on a submitting button, 
+ * a submitting button is in focus and the user presses 'enter',
+ * the user presses an `accesskey` associated with a submitting button,
+ * a script triggers a submitting button using JS API such as `HTMLElement.click()` or
+   `HTMLElement.dispatchEvent()`.
+
+However, because the browser also provide a native `submit` event after 
+these `click` and `keypress` events have been processed, 
+we do not need to worry about the details of how navigating events from `<form>`s are triggered
+(except the [Problem: NavigateTorpedo (`.submit()`)](todo next chapter).)
+
+
+
+
+
+   * `HTMLElement.click()` [MDN](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click)
+    [WHATWG]() or
+   * `HTMLElement.dispatchEvent(new MouseEvent("click", {bubbles: true, composed: true, cancelable: true}))`.
+ * using a shortcut specified with the `accesskey` attribute on an element 
+   (for instance, `<a href="#down" accesskey="d">scroll down</a`> will trigger a `click` event
+   when the user presses `alt`+ `d`.)
+    (todo does the accesskey shortcut first bubble as a keypress?? or is it translated into a click *before* it enters the browser's JS context??)
+                                                                        
+
+
+ 
+; 
+They lack a separate, native event  clear 
+`<>`
 Old-school, multipage, server-based web apps completely rely on this feature.
 The user opens the web app 
 to the server when is to give websites the ability 
