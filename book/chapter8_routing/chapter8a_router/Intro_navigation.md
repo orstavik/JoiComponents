@@ -131,6 +131,7 @@ and the SPA's benefit of quick subsequent navigation within the app's scope.
 
 ## References
 
+ * [w3schools.com: `POST` vs. `GET`](https://www.w3schools.com/tags/ref_httpmethods.asp)
 
 ## Old drafts
 
