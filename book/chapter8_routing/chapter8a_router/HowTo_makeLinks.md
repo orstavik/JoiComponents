@@ -4,9 +4,9 @@
 
 A navigating event is any event that will cause [the browser to load a new document or scroll to a position in the document](https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigate).
 In practice, a navigating event can be only one of three native events: 
- * `click` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/click) / [WHATWG]() 
+ * `click` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/click) / [WHATWG](https://html.spec.whatwg.org/multipage/webappapis.html#fire-a-synthetic-mouse-event) 
  * `keypress` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/keypress) / [WHATWG]()
- * `submit` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/submit) / [WHATWG]()
+ * `submit` [MDN](https://developer.mozilla.org/en-US/docs/Web/Events/submit) / [WHATWG](https://html.spec.whatwg.org/multipage/forms.html#dom-form-submit)
 
 However, not all `click`, `keypress` and `submit` events cause the browser to navigate, and 
 here we will describe how and when navigating events occur and what they look like.
@@ -20,7 +20,7 @@ There are four different HTML/SVG elements (link elements) that can trigger navi
  * `<a href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a) / [WHATWG](https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-a-element) 
  * `<area href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area) / [WHATWG](https://html.spec.whatwg.org/multipage/image-maps.html#the-area-element)
  * `<form>` [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form) / [WHATWG](https://html.spec.whatwg.org/multipage/forms.html#the-form-element)
- * SVG `<a xlink:href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) / [w3.org](https://www.w3.org/TR/SVG/linking.html#AElement)
+ * SVG `<a xlink:href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) 
 
 This chapter lists these link elements and describe how and when they trigger navigating events.
 
@@ -37,11 +37,11 @@ Second, a link is wrapped around another HTML element, a `<div>`.
 To navigate the user can click on the nodes inside the link with a pointer device, 
 ie. the text or the div. 
 This will generate a `click` event that bubbles upwards, 
-passing shadowDom borders, but not `<iframe>` document borders.[w3.org](https://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-bubbling);
-The `click` event's `target` is the innermost HTML *element* pointed to when clicking.
+passing shadowDom borders, but not `<iframe>` document borders.
+The `click` event's `target` is the innermost HTML *element* pointed to when clicking. [WHATWG](https://html.spec.whatwg.org/multipage/interaction.html#dom-click-dev);
 In the example above the `target` would be:
  * the `<a id="one">` element (as the text node is only an HTML node, and not an element), and 
- * the `<div>` element inside the `<a id="two">` element.
+ * the `<div>` element inside the `<a id="two">` element. [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Event/target) [WHATWG](https://dom.spec.whatwg.org/#dom-event-target)
 
 `<a>` elements cannot be wrapped *around* interactive elements such as `<button>`, `<select>`, 
 other `<a>` elements.
@@ -49,29 +49,29 @@ other `<a>` elements.
 `click` events can also be generated:
  * from JS script using either 
    * `HTMLElement.click()` [MDN](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click)
-    [WHATWG]() or
-   * `HTMLElement.dispatchEvent(new MouseEvent("click", {bubbles: true, composed: true, cancelable: true}))`.
+    [WHATWG](https://html.spec.whatwg.org/multipage/webappapis.html#fire-a-synthetic-mouse-event)
+   * `HTMLElement.dispatchEvent(new MouseEvent("click", {bubbles: true, composed: true, cancelable: true}))`.[MDN](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent) [WHATWG](https://dom.spec.whatwg.org/#dom-eventtarget-dispatchevent)
  * using a shortcut specified with the `accesskey` attribute on an element 
    (for instance, `<a href="#down" accesskey="d">scroll down</a`> will trigger a `click` event
-   when the user presses `alt`+ `d`.)
+   when the user presses `alt`+ `d`.) 
     (todo does the accesskey shortcut first bubble as a keypress?? or is it translated into a click *before* it enters the browser's JS context??)
                                                                         
 To identify which `click` events are navigating events, 
 the browser must analyze all `click` events that has completed bubbling.
-`click` events has completed bubbling when the event has either:
+`click` events has completed bubbling when the event has either: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles) [WHATWG](https://dom.spec.whatwg.org/#dom-event-bubbles)
  * bubbled past the `window` object,
  * a `.bubbles` value of `false` (ie. `.stopPropagation()` has been called on it),
  * bubbled past the `document` object in an `<iframe>`, or
- * a `.composed` value of `false` and has bubbled past the next `shadowRoot` document of a custom element.
+ * a `.composed` value of `false` and has bubbled past the next `shadowRoot` document of a custom element. [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Event/composed) [WHATWG](https://dom.spec.whatwg.org/#dom-event-composed)
 
 //todo verify that e.stopPropagation() does not cancel the navigation, only the propagation!!
 
 When a `click` event has completed bubbling, 
 the browser will examine the event to see if the `click` event:
-1. has `.defaultPrevented` is false,
+1. has `.defaultPrevented` is false, [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Event/defaultPrevented) [WHATWG](https://dom.spec.whatwg.org/#dom-event-defaultprevented)
 2. is from a left or middle mouse button click, ie. not a right context menu button click,
 3. has no `shift` or `ctrl` key pressed, and
-4. has a `target` who has an `<a href>` `parentNode` that comes before a link blocking element (such as `<body>`)(before).
+4. has a `target` who has an `<a href=" ">` `parentNode` that comes before a link blocking element (such as `<body>`)(before). [WHATWG](https://html.spec.whatwg.org/multipage/webappapis.html#event-firing)
 
 If all these criteria are met, then the `click` event is considered a navigating event and will cause 
 the browser to que a navigation task in the micro-task que. (or in the event loop?? todo Test this using messages).
@@ -79,8 +79,8 @@ This will cause the browser to load a new DOM.
 
 ### `Enter keypress` on an `<a href="...">`
 
-When the user selects an element via the `accesskey` attribute, 
-the `keypress` event is automatically translated into a `click` event.
+When the user selects an element via the `accesskey` attribute, [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/accesskey) [WHATWG](https://html.spec.whatwg.org/multipage/interaction.html#the-accesskey-attribute)
+the `keypress` event is automatically translated into a `click` event.   // Can not find any proof
 However, the keyboard can also trigger a navigating event by:
 1. pressing the `enter` key
 2. when an `<a>` element or a child of an `<a>` element is in focus.
@@ -103,7 +103,7 @@ composed path of the `keypress` event's `target` is the same for `keypress` even
 ### `ismap`, not `usemap`
 
 When I said there is nothing you can do with `<a href>` links, I meant *almost* nothing.
-If you wrap an `<a href>` element around an `<img>` element, and then add the `ismap` attribute to 
+If you wrap an `<a href>` element around an `<img>` element, and then add the `ismap` attribute [WHATWG](https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-ismap) to 
 the `<img>`element (att! not the `<a href>` element), 
 then the coordinates of the mouse cursor on the format of `?x,y` will be appended to the `href` of the link.
 
@@ -131,7 +131,7 @@ trigger a navigating `click` event.
 `click`s from SVG `<a>` elements function similar to `click`s from HTML `<a>` elements,
 with the following exception:
 
-1. The `href` attribute must be prefixed with `xlink:`, resulting in an `xlink:href` attribute.
+1. The `href` attribute must be prefixed with `xlink:`, resulting in an `xlink:href` attribute. [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/href) 
    The `xlink:` prefix is deprecated, but as the plain `href` attribute is not supported in Safari 
    and older browsers, the `xlink:href` is the simplest means to provide cross-browser support.
    
@@ -145,23 +145,23 @@ with the following exception:
    But SVG `<a>` elements themselves differ from HTML `<a>` elements:
    1. SVG `.nodeName` properties are lowerCase while HTML `.nodeName` properties are upperCase.
    2. The HTML `<a>` element's `.href` property is a simple string.
-   However, the SVG `<a>` element's `.href` property is an object containing two strings: `baseVal` and `animVal`.
+   However, the SVG `<a>` element's `.href` property is an object containing two strings: `baseVal`[MDN](https://developer.mozilla.org/en-US/docs/Web/API/SVGAnimatedString/baseVal) (#5) and `animVal`[MDN](https://developer.mozilla.org/uk/docs/Web/API/SVGAnimatedString/animVal).
    SVG `<a>` elements can animate their `.href` property, so the active link is always
    the SVG `<a>` element's `.href.animVal` (as opposed to simply `.href` in HTML).
    
-4. For more about where `<a xlink:href>` can be placed in SVG documents, see [todo](max,find_a_tutorial here).
+4. For more about where `<a xlink:href>` can be placed in SVG documents, [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) [SVGWG](https://svgwg.org/svg2-draft/linking.html#XLinkHrefAttribute) see [todo](max,find_a_tutorial here).
 
 > Att! Links in SVG documents loaded from `<img src="something.svg" />` is not triggered by the browser.
 > Navigating events can *only* be triggered from inline SVG documents.
 
 ## `<area href>`: `usemap`, not `ismap`
 
-When adding the `usemap` attribute to an image, the image surface area can be filled with several different links.
-These HTML links are not defined using the `<a>`-tag, but with a brand new link tag: `<area>`.
+When adding the `usemap` attribute [MDN](https://html.spec.whatwg.org/#attr-hyperlink-usemap) to an image, the image surface area can be filled with several different links.
+These HTML links are not defined using the `<a>`-tag, but with a brand new link tag: `<area>`[MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area) [WHATWG](https://html.spec.whatwg.org/multipage/image-maps.html#the-area-element).
 
 The `<img>`=>`<map><area /></map>` structure is a bit verbose:
 1. The image element must include a `usemap` attribute to specify the map, ie. `<img usemap='#myMap'>`.
-2. A `<map name='myMap'>` element is created, and filled with one or more `<area>` elements.
+2. A `<map name='myMap'>` [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map) [WHATWG](https://html.spec.whatwg.org/multipage/image-maps.html#the-map-element) element is created, and filled with one or more `<area>` elements.
 3. `<area>` elements must declare what space over the picture they describe using the
 `shape` and `coords` attributes.
 4. The `<area>` elements can include the link attributes `href`, `rel`, `download`, and `target`
@@ -184,7 +184,7 @@ So, when a user `click`s on an `<img usemap='#myMap'>` that is covered by an `<a
 then the event target will be that `<area>` element and it will bubble from that location in the document. 
 The `<img>` will not be part of that `composedPath`.
 
-`<map>`-and-`<area>` is an old technology. Like `<table>`.
+`<map>`-and-`<area>` is an old technology. Like `<table>` [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table) [WHATWG](https://html.spec.whatwg.org/multipage/tables.html#the-table-element).
 Today, web developers can make similar structures with CSS.
 For example, empty `<a href="...">` blocks with absolute position and size 
 can be added inside a container `<div>` with a background image. 
@@ -319,3 +319,12 @@ as it is difficult to call `.preventDefault()` in the right locations.
  
  * [Nested links](https://www.kizu.ru/nested-links/)
 // * [w3.org: Interactive content](https://www.w3.org/TR/html5/dom.html#interactive-content)
+
+
+## w3 References
+1. https://html.spec.whatwg.org/#handler-onkeypress  //relocate on the w3
+2. https://drafts.csswg.org/cssom-view/#extensions-to-the-mouseevent-interface  // mouse event on the drafts.csswg.org
+3. https://svgwg.org/svg2-draft/struct.html#SVGElement  // svg technical documentation
+4. https://svgwg.org/svg2-draft/struct.html#UseElementHrefAttribute // svg href
+5. 
+6. 
