@@ -56,7 +56,24 @@ In the first example the `target` would be:
    (for instance, `<a href="#down" accesskey="d">scroll down</a`> will trigger a `click` event
    when the user presses `alt`+ `d`.) 
     (todo does the accesskey shortcut first bubble as a keypress?? or is it translated into a click *before* it enters the browser's JS context??)
-                                                                        
+```html
+<div id="blue">
+    <a id="blueLink" href="blue.html">blue</a>
+</div>
+<a id="redLink" href="red.html">red</a>
+
+<script>
+  document.querySelector("#blueLink").addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+  document.querySelector("#redLink").addEventListener("click", (e) => {
+    e.preventDefault();
+  });
+  document.querySelector("#blue").addEventListener("click", (e) => {
+    document.querySelector("div").style.backgroundColor = "yellow";
+  });
+</script> 
+```
 To identify which `click` and `keypress` events are navigating events, 
 the browser must analyze all `click` events that has completed bubbling.
 `click` events has completed bubbling when the event has either: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Event/bubbles) [WHATWG](https://dom.spec.whatwg.org/#dom-event-bubbles)
@@ -64,8 +81,6 @@ the browser must analyze all `click` events that has completed bubbling.
  * a `.bubbles` value of `false` (ie. `.stopPropagation()` has been called on it),
  * bubbled past the `document` object in an `<iframe>`, or
  * a `.composed` value of `false` and has bubbled past the next `shadowRoot` document of a custom element. [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Event/composed) [WHATWG](https://dom.spec.whatwg.org/#dom-event-composed)
-
-//todo verify that e.stopPropagation() does not cancel the navigation, only the propagation!!
 
 When a `click` event has completed bubbling, 
 the browser will examine the event to see if the `click` event:
