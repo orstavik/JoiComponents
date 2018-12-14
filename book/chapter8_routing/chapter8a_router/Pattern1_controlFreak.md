@@ -1,6 +1,6 @@
 # Pattern: NavigationControlFreak
 
-> Warning! There are some "home assignments" in this chapter. Do NOT complete them.
+> Warning! Do NOT complete the homework assignments in this chapter.
 > Just read them, laugh, and toss them aside as you normally would.
 
 Control. That great feeling. You are the master. 
@@ -44,7 +44,7 @@ that your gift will hit that sweet spot and make them think of you for once for 
 Before they open the next present.
 That gift that will somehow restore that loving relationship that you still long for. It's Christmastime!
 
-> Home assignment: Think. What trips stresses you out the most? Does going on vacation remind you of 
+> Homework: Think. What trips stresses you out the most? Does going on vacation remind you of 
 > your last failed marriage? Does visiting your in-laws fill you with shame? 
 > Or is it going to your home town that you dread the most? Does all the road rage from your commute really
 > misplaced anger at your work or boss? Or is it leaving work and going home that is most annoying?
@@ -79,7 +79,7 @@ Use them to fuel and motivate you to hold on to this feeling of control for a *l
 The control-freak is born. As a grudge. 
 A grudge is the only thing that will help you to *never, ever loose your mittens again*.
 
-> Home assignment: Think back. When was the last time you left something important behind?
+> Homework: Think back. When was the last time you left something important behind?
 > What other personal conflicts and emotional factors might have clouded your mind causing you to do so?
 
 ## Think ahead, or live in the moment?
@@ -109,48 +109,50 @@ between shops. Yes! I'll be like a Christmas shopping machine. I will always fin
 that everyone will love. They will remember their love for me. And I'll be faster than all others.
 And I will find the best prices too. And.. Ahh.. Yes! I love you control, you complete me!"
 
-> Home assignment: Think back. In which areas of your life do you desire control the most?
+> Homework: Think back. In which areas of your life do you desire control the most?
 > Do you feel optimistic about achieving control here? Is this sensation of control real?
 
 ## The Router is a NavigationControlFreak
 
 Your app is you. You Christmas shopping. The trip is *not* the end goal. The trip is a means to an end. 
 
-If your app is small, controlling navigation might not need to be controlled.
+If your app is small, controlling navigation *might* be unnecessary.
 Your app only has a few simple links. All in the same store. No external content, no co-gifter agendas
 to consider.
 
-However, most apps grow and are given responsibility for more and more.
-Your particular app has tons of things on its mind. Your app has a legacy, it has baggage. 
-It gets content from many different sources.
+However, most apps grow and are given more responsibility.
+Your particular app has tons of things on its mind. And your app has a legacy, it has baggage. 
+That you made last month. It gets content from many different sources.
 It needs to go many different places, within shops and between them.
-It is not clear where it needs to go at different times, you might need to evaluate the products in store, 
-there and then, you might benefit from considering traffic jams, all *before* you can decide where to go next.
-You don't *want* to focus on navigation control, but you know you *must*. 
-In the back of your mind lurks your favorite mittens, and they command you to implement navigation control.
+At times, it is not even given where it needs to go: it might need to evaluate the products in store, 
+there and then; and it might benefit from considering traffic jams.
+You don't *want* to focus on navigation control, you *must*. 
+Because in the back of your mind lurks the ghosts of your favorite mittens.
 
-So, you make a Router. All navigation requests shall go via this Router. ALL.
-The Router is responsible and *controls* all navigation.
+So, you make a Router. ALL navigation requests SHALL go via this Router.
+The Router is responsible and with it you can *control* the navigation.
 
-Therefore, first, the Router must *take control* of all navigation. 
+First, the Router must *take control* of all navigation. 
 The Router must intercept and take control of the navigation within the app.
 It must highjack all peripheral navigation events and calls.
 
-Second, the Router implements its controls for *leaving* anyplace.
+Second, the Router implements its controls for *leaving* places.
  * Have you any data with you that you need to store before you leave? 
    Did you temporary put any mittens on the floor? If so, pick them up, store it, take them with you, keep them.
-   Check.
  * Do you need to ask your user for permission to leave, are you really sure you want to leave? 
-   If so, ask. Check.
+   If so, ask.
 
-Third, the Router implements its controls for *going to* anyplace.
+Third, the Router implements its controls for *going to* places.
  * Where do you want to go? Are there any other places closer by, that you can get to faster with the same result?
  * How's traffic? Should I avoid any congested routes? Are there shortcuts I can use?
  * Is it safe to go there? Is a bad advertisment trying to lure you to a store in an unsafe neighborhood?
  * Is it a good time to be creative? Can I do something creative with this next tour to give my user a little gift?
 
-> Work on 
-   
+> Homework: Think hard. What personal issues is informing your architectural choices? 
+> And how do you feel about that? Which personal issues do you think your code might benefit from?
+> Do you have some extra-ordinary socio-emtional coping mechanisms that you can employ in your code
+> to give you that creative edge?
+
 ## References
  * [Anti-pattern: OCD](https://en.wikipedia.org/wiki/Obsessive%E2%80%93compulsive_disorder)
  * [Anti-pattern: Fugue state](https://en.wikipedia.org/wiki/Fugue_state)
