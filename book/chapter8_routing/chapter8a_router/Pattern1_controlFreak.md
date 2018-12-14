@@ -1,5 +1,8 @@
 # Pattern: NavigationControlFreak
 
+> Warning! There are some "home assignments" in this chapter. Do NOT complete them.
+> Just read them, laugh, and toss them aside as you normally would.
+
 Control. That great feeling. You are the master. 
 No bad things are going to happen. Only good things.
 Why is that? Because *you are in control*. And how do you know that?
@@ -13,33 +16,40 @@ Why do we need to be in control, to feel in control?
 ## The rationale behind the NavigationControlFreak
 
 To navigate is an action with two sides. You are going *to* someplace.
-But you are also going *from* someplace else. Ok. That's nice. But what does this feel like?
+But you are also going *from* someplace else. Ok. That's nice. But what does that *feel* like?
 
 Imagine you are going shopping. Christmas shopping. You are stressed out.
-So many family members that don't really care about you, and that you don't really care about.
-But the gifts still needs to be gotten. And you most definitively don't want to present a bad gift.
+So many family members that don't really care about you, and that you don't really interact with.
+But the gifts still needs to be gotten. That's all that's left.
+And you most definitively don't want to show up with a bad gift.
 You still have *some* pride, after all.
 
 Your mind is working overtime. Solving a myriad of impossible contradictions at the same time. 
 The gift cannot be ordinary, as that will make your family care about you even less. 
-A bad gift will justify their separation, gradually sement it.
-The gifts cannot be too expensive as they might think you are *both* desperate and pitiful *and* 
-trying to guilt them into something. So, what to do?
+An ordinary gift will only justify their separation in their mind, cement it.
+But the gifts cannot be too extra-ordinary and expensive either. That will only make them think that 
+you are *both* desperate and pitiful *and* trying to guilt them into something. So, what do you do?
 
-On the one hand, you have the choice of dissociation: 
-you can emotionally distance yourself from the whole situation, and say "christmas gifts are of no
-importance to me". But you don't want to be that guy. Deep inside, you *do* care. Because deep inside
-you sense that dissociation is a luxury you really cannot afford at this task at this point in time.
-The emotional gaps around you is already too many and wide.
-So, instead you press the stress button. You focus. You need to be creative! 
+Of course, you have the choice of dissociation. 
+You can emotionally distance yourself from the whole situation, and pretend that "Christmas gifts are of no
+importance to me". But you don't want to be that guy. Because deep down, you *do* care. 
+You sense that dissociation is a luxury you really cannot afford at this time with these people.
+The emotional gaps around you is already too many and too wide.
+So, instead you press the stress button. You focus. You actively seek to be creative! 
 You dig as deep as you can in your memories. Searching. Trying to find that point of 
-personal connection between yourself and that other family member, that which is forgotten by all, but 
-still shows that you care.
-Your aim is to ignite the neurons that house a fond memory of you in the mind of the other, 
-that your gift will hit that sweet spot and make them think of you for a record breaking 15 seconds. 
+personal connection between yourself and that other family member, that needle in the haystack, 
+that which you both had forgotten, but that shows you still care (without being needy).
+You aim to ignite the neurons that house a fond memory of you in the mind of the other, 
+that your gift will hit that sweet spot and make them think of you for once for a record-breaking 5-10 seconds. 
+Before they open the next present.
 That gift that will somehow restore that loving relationship that you still long for. It's Christmastime!
 
-## Worry about leaving, or leave your worries behind
+> Home assignment: Think. What trips stresses you out the most? Does going on vacation remind you of 
+> your last failed marriage? Does visiting your in-laws fill you with shame? 
+> Or is it going to your home town that you dread the most? Does all the road rage from your commute really
+> misplaced anger at your work or boss? Or is it leaving work and going home that is most annoying?
+
+## Worry about leaving, or leave your worries behind?
 
 It is only when you get home from the five hour, late night sweat fest/shopping trip 
 that you realize what on earth controlling navigation has to do with Christmas gifts.
@@ -69,7 +79,10 @@ Use them to fuel and motivate you to hold on to this feeling of control for a *l
 The control-freak is born. As a grudge. 
 A grudge is the only thing that will help you to *never, ever loose your mittens again*.
 
-## To think ahead, or to live in the moment
+> Home assignment: Think back. When was the last time you left something important behind?
+> What other personal conflicts and emotional factors might have clouded your mind causing you to do so?
+
+## Think ahead, or live in the moment?
 
 With your teeth and resolve gritted, the ControlFreak returns to your current situation. 
 "Bags on the floor?" Check. "List of family members?" Check. 
@@ -95,6 +108,9 @@ All I need is *to control* all my navigation choices next time. At every point, 
 between shops. Yes! I'll be like a Christmas shopping machine. I will always find the best presents, 
 that everyone will love. They will remember their love for me. And I'll be faster than all others.
 And I will find the best prices too. And.. Ahh.. Yes! I love you control, you complete me!"
+
+> Home assignment: Think back. In which areas of your life do you desire control the most?
+> Do you feel optimistic about achieving control here? Is this sensation of control real?
 
 ## The Router is a NavigationControlFreak
 
@@ -132,6 +148,8 @@ Third, the Router implements its controls for *going to* anyplace.
  * How's traffic? Should I avoid any congested routes? Are there shortcuts I can use?
  * Is it safe to go there? Is a bad advertisment trying to lure you to a store in an unsafe neighborhood?
  * Is it a good time to be creative? Can I do something creative with this next tour to give my user a little gift?
+
+> Work on 
    
 ## References
  * [Anti-pattern: OCD](https://en.wikipedia.org/wiki/Obsessive%E2%80%93compulsive_disorder)
