@@ -25,6 +25,22 @@
    Depending on the flexibility of the "somethings" that accompany the potato,
    the child can make potentially unique potato heads every time.
    
+```html
+<form action="selectPotato.js" method="post">
+  <select name="eyes">
+  <option selected>Choose eye color</option>
+  <option value="green">Green</option>
+  <option value="grey">Grey</option>
+</select><br>
+  <input type="checkbox" name="warts"
+         checked>
+  <label for="warts">Warts</label><br>
+  <input type="radio" name="scarf" value="1">Scarf<br>
+  <textarea rows="1" cols="20" placeholder="Form of a hat"></textarea><br>
+  <input type="submit" value="Create toy">
+</form> 
+```
+
    Conceptually, this differs from `<a href="...">`.
    Navigating events from `<a href="...">`s are closed, binary.
    They are simple yes-and-no-questions from the developer to the user.
