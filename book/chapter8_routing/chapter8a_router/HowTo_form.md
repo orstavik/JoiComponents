@@ -15,13 +15,13 @@
 2. When large data navigating requests are made, 
    its data not only needs to be stored, but also sculpted *somewhere* and from *something*.
    In HTML, that *somewhere* is a `<form>` and 
-   the *somethings* are `<input>`, `<checkbox>`, `<button>`, `<textarea>` children of the `<form>`.
+   the *somethings* are `<checkbox>`, `<button>`, `<textarea>` children of the `<form>`.
    
    Think of the `<form>` navigating event as a potato head toy.
    On the potato, the child can pin eyes and mouths and noses from a selection that comes with the toy 
    (cf. `<checkbox>`, `<select>`).
    In addition, pieces of colored clay, cloth, rope and pins can be stitched to the potato as 
-   different forms of hat, scarf and warts (cf. `<input>`, `<textarea>`).
+   different forms of hat, scarf and warts (cf. `<textarea>`).
    Depending on the flexibility of the "somethings" that accompany the potato,
    the child can make potentially unique potato heads every time.
    
@@ -49,7 +49,7 @@ the open vs. closed, the composed vs. binary, the yes-and-no-question link vs. t
 ## `submit` events from `<form>` elements 
 
 While `<a href="...">` and `<area href="...">` only emit raw, unprocessed `click` and `keypress` 
-navigating events, `<form>` elements emit its own navigating `submit` event.
+navigating events, `<form>` elements emit its own navigating `submit` event. [MDN: Submit event](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/submit) [WHATWG: Form submission](https://html.spec.whatwg.org/#form-submission-algorithm) 
 The `submit` event does not explicitly process the navigating event data, 
 but it contains a `.target` pointer to the `<form>` element from where it originates.
 This `target`, `<form>` element in turn contains:
@@ -109,6 +109,7 @@ as it is difficult to call `.preventDefault()` in the right locations.
  * [MDN: `<a>` in SVG](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a)
  * [Whatwg: Interactive elements](https://html.spec.whatwg.org/multipage/interactive-elements.html)
  * [MDN: `.focus()`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus)
+
  
  * [Nested links](https://www.kizu.ru/nested-links/)
 // * [w3.org: Interactive content](https://www.w3.org/TR/html5/dom.html#interactive-content)
