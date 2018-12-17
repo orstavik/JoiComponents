@@ -16,7 +16,7 @@ same as `<a>` elements.
 ```html
 <img src="myMapPicture.jpg" usemap="#myMap" width="100" height="100" alt="mapPicture"/>
 
-<map name="notSoPopularAfterAll">
+<map name="myMap">
   <area shape="circle" coords="20,20,20"
         id="three"
         rel="noopener"
