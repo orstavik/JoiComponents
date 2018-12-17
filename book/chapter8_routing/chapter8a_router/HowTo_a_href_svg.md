@@ -13,6 +13,14 @@
 When SVG elements are inlined into the HTML document, 
 the user can click on SVG `<a xlink:href="...">` elements inside the SVG sub-document to 
 trigger a navigating `click` event.
+```html
+<svg viewBox="0 0 1000 415"xmlns="http://www.w3.org/2000/svg">
+   <rect x="10" y="10" width="300px" height="100px" fill="yellow" stroke="black"/>
+      <a xlink:href="https://www.google.co.uk/" target="_top" fill="blue" font-size="58" >
+        <text x="30" y="80">someLink</text>
+      </a>
+</svg>
+```
 `click`s from SVG `<a>` elements function similar to `click`s from HTML `<a>` elements,
 with the following exception:
 
