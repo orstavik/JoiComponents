@@ -153,6 +153,37 @@ Third, the Router implements its controls for *going to* places.
 > Do you have some extra-ordinary socio-emtional coping mechanisms that you can employ in your code
 > to give you that creative edge?
 
+## ControlFreak in general
+
+Apps can be ControlFreaks about many things, not just navigation. 
+The app can be a ControlFreak about its state, insisting on a *single* state under *singular* control.
+Management of data and storage is often singular and restricted.
+In fact, if you are adequately generous with the ControlFreak concept, 
+all modularization can be viewed as such.
+
+So. How is the ControlFreak pattern different from modularization.
+First, the control freak is rigid. And at first sight excessive:
+1. The control seem to be too granular. Control is being employed too often and in too much detail.
+   The ControlFreakNavigation to intercepts all navigation. One might have thought that page internal
+   navigation (#location) might be excluded for example. One might think that it would be enough
+   to check for mittens every time you leave a store, not every time you leave an isle. 
+2. The ControlFreak systematically focus on checking *everything everytime*.
+   The ControlFreakNavigation systematically check both what you leave and where you go.
+   As mittens are only lost during the hectic winter shopping, 
+   it might seem reasonable to only apply these checks depending on the situation, not all the time.
+
+Too much rigidity and detail make the ControlFreak seem irrational.   
+He might appear as controlling the irrelevant for the sake of *feeling in control*, 
+rather than applying appropriate checks for the purpose of actually *being in control* (cf. OCD).
+The ControlFreak pattern willingly accepts this risk. Although he rarely touts it, he
+believes that it is actually better to control too much (apply a complete system of checks on every 
+situation within a domain) than too little (and risk missing that one edge case that you the developer
+just didn't think about).
+
+The ControlFreak knows the expected level control and detail being touted by mainstream conventions
+for a certain domain, and still individually choose to employ a more granular and all encompassing control 
+to avoid the cost of edge case bugs.
+
 ## References
  * [Anti-pattern: OCD](https://en.wikipedia.org/wiki/Obsessive%E2%80%93compulsive_disorder)
  * [Anti-pattern: Fugue state](https://en.wikipedia.org/wiki/Fugue_state)
