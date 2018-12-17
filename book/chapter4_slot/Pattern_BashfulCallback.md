@@ -149,32 +149,22 @@ should cause an external action, some not. And as with people and emotions, ther
 that dictate what type of internal state changes that should always cause an external reaction.
 It most often depends on the element, its previous internal state and the stimuli.
                                            
-That is why the BashfulCallback is a suitable trigger for an element.
-The callback is initially private, and it does not need to alert its environment.
-When reacting to a stimuli, the BashfulCallback can assess the situation first and then create a custom
-external reaction if needed.
+That is why a callback is a suitable trigger when an element's internal state changes.
+The callback is bashful. Initially, it is private. When an internal change occurs, the callback first
+assess the situation and, only if it chooses, extends its reaction externally.
 
-All this points to the inevitable: the BashfulSlotCallback. When the content of a custom element's
-`<slot>` changes, it is an external stimuli. But the custom element's reaction to that stimuli is private.
-And as the `<slot>` is a deeply private property of the custom element, 
-other elements should only be alerted about the change if the custom element intends it.
-Changes of ...
+And that is why the slutty `slotchange` event should be a BashfulSlotCallback.
+`<slot>` elements are deeply private properties of a custom element.
+When the content of such elements change, that is an internal state change.
+It is up to the particular custom element in its current situation if this change should be made public.
+While a `slotchange` event is broadcast publicly in the lightDOM of the shadowDOM in the custom element, 
+a slotCallback() would be a private method by default, while still be free to choose to publish a 
+custom external reaction from it if it deemed it appropriate.
 
-The content of a `<slot>` inside the shadowDom is most definitively part of a custom element's inner state.
-It is more internal to a custom element than an attribute.
-Yet, for some reason, slot changes triggers a `slotchange` event that bubbles, while `attributechangedCallback`.
-
-The `slotCallback` fixes this problem. It manages the slotchange
-
-
-Attributes and `<slot>`s are part of the inner state of an element.
-An element does not want to notify its environment a type of such changes always You made elements ofto that element. Observers
-Events such as connection to the DOM, attribute changes, *and slot changes* are in this respect quite
-similar, and most commonly such events are handled first by a private callback, and then second, this
-callback decides if, when and how other elements should be alerted.
-
-Sure, external elements can manhandle another element and define its callbacks from the outside.
-But, in civil society, this is breaking the law. 
-
-The slotCallback is appropriately bashful. 
-
+The callback is a much better fit for the slot changes than the event.
+It can be argued that `slotchange` events should never be intercepted by other elements than 
+the `<slot>`s host element. If you want to alert the outside of the custom element, then 
+you should do so indirectly via a custom event created by an internal `slotchange` event listener anyhow.
+Second, slot change strongly resemble attribute changes as a change of an inner property.
+Why handle slot and attribute changes via different interfaces.
+A slotCallback is appropriately bashful. A slot event decision to always publish its finding is a little slutty. 
