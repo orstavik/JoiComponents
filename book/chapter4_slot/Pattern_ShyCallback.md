@@ -55,21 +55,19 @@ A girl might enter the party in a blouse, a bit prudishly buttoned up. She is a 
 But, *while at the party* she gets comfortable. She feels safer and becomes more outgoing.
 She goes to the bathroom, unbuttons her blouse slightly, ruffles her hair and re-enter. No longer shy.
 
-ShyEncapsulation means:
+Shy encapsulation means:
 1. process the situation privately, 
 2. make a custom response, 
 3. extrovert the response, if deemed appropriately.
 
 Custom elements use this strategy. Lifecycle callbacks are shy: 
-1. Lifecycle callbacks are internal processes. 
-The callbacks are triggered by an external (or internal) stimuli such as connecting to the DOM 
+1. Lifecycle callbacks are triggered by an external (or internal) stimuli such as connecting to the DOM 
 or an attribute change.
 But, the processing of the stimuli is private, hidden under the encapsulation of the element.
 (And, while possible, it is a breach of civility to manhandle lifecycle callbacks from outside 
-the element's definition).
+the element's definition). The callbacks are internal processes. 
 2. In the lifecycle callback, the custom elements can use their internal state to react independently. 
-Depending on the stimuli and the elements context,
-the custom element chooses its own response.
+Depending on the stimuli and the elements context, the custom element dictates its response from within.
 3. Custom elements can in lifecycle callbacks both introvert and extrovert their reaction.
 A custom element can for example alter its inner shadowDom and dispatch events in a lifecycle callback.
 
@@ -84,4 +82,4 @@ might trigger an extrovert reaction. Internal state changes are best handled shy
 In chapter 4 we discuss the `<slot>` element and the `slotchange` event.
 The chapter presents a callback alternative to the `slotchange` event: `slotCallback()`.
 The model of the ShyCallback clearly argue that a `slotCallback()` would be a better fit 
-than the `slotchange` event for this particular purpose.  
+than the `slotchange` event for this particular purpose.
