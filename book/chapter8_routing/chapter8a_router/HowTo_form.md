@@ -15,11 +15,11 @@
 2. When large data navigating requests are made, 
    its data not only needs to be stored, but also sculpted *somewhere* and from *something*.
    In HTML, that *somewhere* is a `<form>` and 
-   the *somethings* are `<checkbox>`, `<button>`, `<textarea>` children of the `<form>`.
+   the *somethings* are `<input>`, `<button>`, `<textarea>` children of the `<form>`.
    
    Think of the `<form>` navigating event as a potato head toy.
    On the potato, the child can pin eyes and mouths and noses from a selection that comes with the toy 
-   (cf. `<checkbox>`, `<select>`).
+   (cf. `<input>`, `<select>`).
    In addition, pieces of colored clay, cloth, rope and pins can be stitched to the potato as 
    different forms of hat, scarf and warts (cf. `<textarea>`).
    Depending on the flexibility of the "somethings" that accompany the potato,
@@ -69,7 +69,7 @@ The `submit` event does not explicitly process the navigating event data,
 but it contains a `.target` pointer to the `<form>` element from where it originates.
 This `target`, `<form>` element in turn contains:
 1. an `.elements` property which contains the registry of all its 
-   `<input>`, `<checkbox>`, `<button>`, `<textarea>` children.
+   `<input>`, ``<button>`, `<textarea>` children.
 2. the `action` attribute
 
 //todo where do i find which button is the one submitting?
