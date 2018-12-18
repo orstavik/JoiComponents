@@ -22,6 +22,28 @@ There are four different HTML/SVG elements (link elements) that can trigger navi
  * `<form>` [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form) / [WHATWG](https://html.spec.whatwg.org/multipage/forms.html#the-form-element)
  * SVG `<a xlink:href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) 
 
+```hnml
+<a href="../img/logo.png">Our logo</a>
+
+<img usemap="#beak" src="gouse.jpg" width="500px" height="auto"/>
+ <map name="beak">
+  <area shape="poly" coords="300,156,60" href="https://en.wikipedia.org/wiki/Beak"/>
+</map>
+
+<form action="selectPotato.js" method="post">
+  <a href="../handler.js>Handler</a>
+  <a href="../slider.js>Slider</a>
+  <input type="submit" value="Submit">
+</form> 
+
+<svg viewBox="0 0 1000 915"xmlns="http://www.w3.org/2000/svg" font-size="58">
+  <rect x="10" y="10" width="300px" height="100px" fill="yellow" stroke="black"/> 
+      <a xlink:href="../mountain.png" target="_top">
+        <text x="30" y="80">What about the mountain picture?</text>
+      </a>
+ </svg>
+```
+
 The next four chapters list these link elements and describe how and when they trigger navigating events.
 
 
@@ -40,7 +62,6 @@ as it is difficult to call `.preventDefault()` in the right locations.
 
 ## References
 
- * 
  * [MDN: `MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
  * [MDN: `KeyboardEvent`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)
  * [MDN: `<a>` in SVG](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a)
