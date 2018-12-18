@@ -22,7 +22,7 @@ There are four different HTML/SVG elements (link elements) that can trigger navi
  * `<form>` [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form) / [WHATWG](https://html.spec.whatwg.org/multipage/forms.html#the-form-element)
  * SVG `<a xlink:href="...">` [MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) 
 
-```hnml
+```html
 <a href="../img/logo.png">Our logo</a>
 
 <img usemap="#beak" src="gouse.jpg" width="500px" height="auto"/>
@@ -30,9 +30,9 @@ There are four different HTML/SVG elements (link elements) that can trigger navi
   <area shape="poly" coords="300,156,60" href="https://en.wikipedia.org/wiki/Beak"/>
 </map>
 
-<form action="selectPotato.js" method="post">
-  <a href="../handler.js>Handler</a>
-  <a href="../slider.js>Slider</a>
+<form action="toysList.html" method="post">
+  <label>Name:</label>
+  <input type="text" name="name">
   <input type="submit" value="Submit">
 </form> 
 
