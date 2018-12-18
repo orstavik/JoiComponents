@@ -32,8 +32,7 @@
   <option value="green">Green</option>
   <option value="grey">Grey</option>
 </select><br>
-  <input type="checkbox" name="warts"
-         checked>
+  <input type="checkbox" name="warts" checked>
   <label for="warts">Warts</label><br>
   <input type="radio" name="scarf" value="1">Scarf<br>
   <textarea rows="1" cols="20" placeholder="Form of a hat"></textarea><br>
