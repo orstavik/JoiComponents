@@ -65,3 +65,37 @@ Sure, the good old `/` is still more familiar and less suspicious symbol than th
 the navigation inside an app, 
 but the other, underlying factors of familiarity are working in the `#uglyDuckling`'s favour.
 
+## HashBang
+
+`#!` is an alternative `.preventDefault()` for `#`-links.
+It signals that the hashlocation should not result in the browser scrolling, 
+a signal that is reccognizable among developers, if not by users.
+
+The browser's default behavior of `#`-links is to scroll to the first element with an `id` that 
+match the hash value. 
+Element `id`s cannot start with `!`. But, `#`-link can start with `!`.
+Thus, by starting app internal locations with `#!`, the app can create internal locations that
+never will trigger any default behavior by the browser.
+
+To max: is hashchange dispatched before or after the browsers default behavior? In all browsers?
+This ensures that the browser will not accidentally scroll to the anchor tag with the id as a 
+default behavior side-effect either before or after the processing of the `hashchange` event.
+
+Todo, depending on the check: The browsers default behavior of scrolling to elements with the specified `id`, 
+can also/cannot be stopped like this because the hashchange event is dispatched before/after the browser 
+navigates:
+```javascript
+window.addEventListener("hashchange", e => e.preventDefault());
+```
+Below is a demo that illustrate how #! 
+To max: finish this demo:
+```html
+<h1>Click on a link to scroll</h1>
+<a href="#below">#below</a>
+<a href="#!below">#!below</a>
+
+<div style="height: 100vh; widht: 100vw; display: block;">.</div>
+
+<h1 id="below">if you see me, you scroll</h1>
+<h1 id="!below">!below is an illegal id and does not work</h1>
+```
