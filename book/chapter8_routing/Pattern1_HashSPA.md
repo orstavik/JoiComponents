@@ -65,37 +65,64 @@ Sure, the good old `/` is still more familiar and less suspicious symbol than th
 the navigation inside an app, 
 but the other, underlying factors of familiarity are working in the `#uglyDuckling`'s favour.
 
-## HashBang
+## HashBang: Page internal vs. app internal navigation 
 
-`#!` is an alternative `.preventDefault()` for `#`-links.
-It signals that the hashlocation should not result in the browser scrolling, 
-a signal that is reccognizable among developers, if not by users.
+Way back in HTML 2, the browser's default behavior of `#`-links was page internal navigation.
+JS did not exist yet, and page internal navigation links such as `#something` would make the
+browser scroll to the first `<a>` element with a `name` attribute matching the link, 
+such as `<a name="something">`.
+In HTML 3, page internal navigation was extended. Links such as `#something` would now 
+scroll to the first *element* with a corresponding `id` attribute, such as `<h1 id="something">`.
 
-The browser's default behavior of `#`-links is to scroll to the first element with an `id` that 
-match the hash value. 
-Element `id`s cannot start with `!`. But, `#`-link can start with `!`.
-Thus, by starting app internal locations with `#!`, the app can create internal locations that
-never will trigger any default behavior by the browser.
+Then came JS and CSS. And changed the whole web household.
+To support CSS selectors targeting `id` attributes (cf. `#something {color: blue}`),
+HTML element `id`s was restricted from including special characters in HTML 4.
+Also, with JS, client side apps started intercepting links and controlling navigation.
+This also meant that apps needed to distinguish between the browsers `#`-based navigation 
+and their own internal navigation. And `#!` could be used for that.
+As elements' `id` attributes could not start with `!`, but links and their `#`-fragments could,
+using `#!` in HTML 4 links would:
+ 1. never cause any scrolling (browser default action) while  
+ 2. still being a valid link click.
+ 
+`#!` would essentially be an alternative way to `.preventDefault()` scrolling behavior 
+for app internal links.
 
-To max: is hashchange dispatched before or after the browsers default behavior? In all browsers?
-This ensures that the browser will not accidentally scroll to the anchor tag with the id as a 
-default behavior side-effect either before or after the processing of the `hashchange` event.
+In HTML 5, things got a bit messier again. HTML 5 does not restrict `id` attributes from starting 
+with a bang `!`. However, irregular element `id`s will still cause problems in CSS.
+So conventional element `id` names is still the norm, and links starting with a bang `!` will
+therefore still very rarely cause any unintended scrolling by the browser.
+So, while no-longer technically functioning as an alternative `preventDefault()`, `#!` will
+most often and conventionally work as one.
 
-Todo, depending on the check: The browsers default behavior of scrolling to elements with the specified `id`, 
-can also/cannot be stopped like this because the hashchange event is dispatched before/after the browser 
-navigates:
-```javascript
-window.addEventListener("hashchange", e => e.preventDefault());
-```
-Below is a demo that illustrate how #! 
-To max: finish this demo:
+Below is a demo that illustrate how #! will cause side-effect.
 ```html
-<h1>Click on a link to scroll</h1>
-<a href="#below">#below</a>
-<a href="#!below">#!below</a>
+<a id="preventme" href="#!something">Lets not go to something</a><hr>
+<a href="#!something">Lets go to something</a>
+<h1 id="!something" style="margin-top: 200vh;">something</h1>   
 
-<div style="height: 100vh; widht: 100vw; display: block;">.</div>
-
-<h1 id="below">if you see me, you scroll</h1>
-<h1 id="!below">!below is an illegal id and does not work</h1>
+<script>
+  window.addEventListener("click", e => { 
+    console.log("click", window.scrollY);
+    if (e.target.id === "preventme"){ 
+      console.log("prevented");
+      e.preventDefault();
+    }
+  });
+  window.addEventListener("hashchange", e => console.log("hashchange", window.scrollY));
+  window.addEventListener("scroll", e => console.log("scroll", window.scrollY));
+</script>
 ```
+This test shows how `hashchange` is dispatched after the browsers default scroll behavior. 
+To prevent such behavior in an HashSPA router, one must therefore either call `preventDefault()`
+on the `click` event, or one must rely on a link naming convention that will not conflict with
+any element `id`'s, such as `#!`.
+
+//todo check in all browsers?
+
+## References
+
+ * [Html ID values](https://www.456bereastreet.com/archive/201011/html5_allows_almost_any_value_for_the_id_attribute_use_wisely/)
+ * [Whatwg: HTML 4: `<a>`](https://www.w3.org/TR/html4/struct/links.html#h-12.2.3)
+ * [Whatwg: HTML 2: `<a name>`](https://tools.ietf.org/html/rfc1866#section-7.4)
+ * [Stackoverflow: valid `id` names](https://stackoverflow.com/questions/70579/what-are-valid-values-for-the-id-attribute-in-html/40563537)
