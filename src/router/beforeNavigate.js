@@ -141,28 +141,6 @@
 //else if the navigate is triggered on <form> or a <a>, then that target values is updated, and
 //the event is just let pass by.
 
-function makeNavigationEvent(el, e) {
-  if (el.nodeName === "A") {
-    const ev2 = makeEvent(e, el);
-    //https://www.w3.org/html/wg/spec/text-level-semantics.html#text-level-semantics
-    if (e.target.nodeName === "IMG" && e.target.hasAttribute("ismap")) {
-      ev2.hyperlinkSuffix = function () {
-        return "?" + e.offsetX + "," + e.offsetY;
-      };
-      const oldFunc = ev2.url;
-      ev2.url = function () {
-        return new URL(oldFunc().href + this.hyperlinkSuffix());
-      }
-    }
-    return ev2;
-  }
-  if (el.nodeName === "a")
-    return makeEvent(e, el);
-  if (el.nodeName === "AREA")
-    return makeEvent(e, el);
-  return null;
-}
-
 function getParentDocument(current) {
   return current.parentNode && current.parentNode.ownerDocument ? current.parentNode.ownerDocument : null;
 }
@@ -200,6 +178,7 @@ function findBrowsingContext(frameName, originDocument) {
 }
 
 //todo does this bubble??
+//todo what is this..
 function getTargetAttribute(el) {
   const res = el.getAttribute("target");
   if (res)
@@ -210,10 +189,12 @@ function getTargetAttribute(el) {
 
 //wrapper pattern for altering an event going in the DOM
 class BrowseEvent extends Event {
-  constructor(orig, target, method) {
+  constructor(orig, target) {
     super("beforeNavigate", {target: target, bubbles: orig.bubbles, composed: true});
     this.orig = orig;
-    this.method = method;
+    this.suffix = orig.target.nodeName === "IMG" && orig.target.hasAttribute("ismap") ?
+      "?" + orig.offsetX + "," + orig.offsetY :
+      "";
   }
 
   preventDefault() {
@@ -233,8 +214,12 @@ class BrowseEvent extends Event {
     return this.target.ownerDocument;
   }
 
-  get download(){
+  get download() {
     return this.target.hasAttribute("download");
+  }
+
+  get method() {
+    return this.target.method || "GET";
   }
 
   targetFrameDocument() {
@@ -243,22 +228,31 @@ class BrowseEvent extends Event {
     let targetAttribute = getTargetAttribute(this.target);
     return findBrowsingContext(targetAttribute, source, noopener);
   }
-}
 
-function makeEvent(e, target, method) {
-  const res = new BrowseEvent(e, target, method || "GET");
-  res.baseHref = function () {
+  baseHref() {
     const targetDocument = this.targetFrameDocument();
     const base = targetDocument.querySelector("base[href]");
     return (base || window.location).href;
-  };
-  res.url = function () {
+  }
+
+  url() {
     let a = this.target.href;
     if (a.animVal)
       a = a.animVal;
+    //todo this is bad, it will not work with a # location,
+    //todo add test for hashlocation
+    //https://www.w3.org/html/wg/spec/text-level-semantics.html#text-level-semantics
+    a += this.suffix;
     return new URL(a, this.baseHref());
-  };
-  return res;
+  }
+
+  elements() {
+    return this.target.elements;
+  }
+
+  encryptionType() {
+    return this.target.encryptionType;
+  }
 }
 
 //https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
@@ -266,17 +260,16 @@ function filterClickForNavigation(e) {
   if (e.metaKey)
     return;
   for (let el = e.target; el; el = el.parentNode) {
-    const ev2 = makeNavigationEvent(el, e);
-    if (ev2)
-      return el.dispatchEvent(ev2);
+    if (!(el.nodeName === "A" || el.nodeName === "a" || el.nodeName === "AREA"))
+      continue;
+    if (el.nodeName === "BODY" /*|| todo MAX put that list in here*/)
+      return;
+    el.dispatchEvent(new BrowseEvent(e, el));
   }
 }
 
 function submitListener(e) {
-  const event = makeEvent(e, e.target, e.target.method);
-  event.elements = e.target.elements;
-  event.encryptionType = e.target.encryptionType;
-  e.target.dispatchEvent(event);
+  e.target.dispatchEvent(new BrowseEvent(e, e.target));
 }
 
 /**
@@ -295,7 +288,6 @@ function submitListener(e) {
 function navigateEvent(doc) {
   doc.addEventListener("submit", submitListener);
   doc.addEventListener("click", filterClickForNavigation);
-  // doc.addEventListener("keypress", filterKeyPressForNavigation);
 }
 
 navigateEvent(window);
