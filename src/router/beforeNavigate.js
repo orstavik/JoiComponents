@@ -1,28 +1,20 @@
 /**
  * https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks
  *
- * Global event composition. We listen for click, keypress, and submit events, and then
- * we turn some of those events into beforeNavigate events.
+ * Browse event is set up using "global event composition".
+ * 1. Listen for
+ *    1. click-to-browse events. click-to-browse events are click events that come from
+ *       `<a href="...">` (both in HTML and inline SVG) and `<area href="">` elements.
+ *    2. submit events. `submit` events come from `<form>` elements.
+ * 3. Dispatch browse event.
  *
- * The `beforeNavigate` event intercepts navigation from:
- * 1. `<a href="...">`-links in both HTML and SVG documents,
- * 2. `<area href="">`-links in image maps, and
- * 3. `<form>`-submissions.
+ * click-to-browse and submit events can be triggered by:
+ * a. The user clicking on an element that is inside an `<a href="...">`, `<area href="">`, or `<input type="button">` element.
+ * b. The user pressing enter when the element is in focus or using an accesskey which will trigger a click event on the element.
+ * c. A script simulating user action via APIs such as `click()` and `.dispatchEvent(new MouseEvent("click", ...))`.
  *
- * The navigation can be initiated by:
- * a. the user clicking on element ,
- * b. pressing enter when the element is in focus or an accesskey which will trigger a click event on the element, or
- * c. scripts simulating such user action via APIs such as `click()`, `.dispatchEvent(...)`, etc.,
- * d. but not via .
- *
- * ATT!! There is one caveat:
- * When <form> submissions are triggered by the `HTMLFormElement.submit()` method,
- * no navigation event will be triggered. `HTMLFormElement.submit()` has a custom
- * logic that specifically makes bypass any validation and event processing to be
- * executed no matter what.
- *
- * The `beforeNavigate` event contains the following methods:
- *  * .preventDefault(): stops the browser from triggering its navigating behavior.
+ * The `browse` event contains the following methods:
+ *  * .preventDefault(): stops the browser from triggering its browse behavior.
  *  * .bubbles: true,
  *  * .composed: true,
  *  * .url(): the url object of the navigation.  this is the same as the interpreted 'href' or 'action' attribute.
@@ -37,13 +29,19 @@
  *    //* .data: should I change the elements and suffix to become just data??
  *    // suffix would be {"123,234": undefined} "123,234" is the x and y coordinates.
  *    // which would be added as something.html?123,234 or something.html?query=this&123,234 todo check out this last problem.
+ *    .internal getter that returns true if the browse event is within the web page.
+ *    .external getter that returns true if the browse event is external to the web page.
  *
- * A navigation request can contain both POST data and GET query parameters.
+ * A browse event can contain both POST data and GET query parameters.
  * This is 'wrong', but who knows what some servers need.
  *
- * todo 3. replace target with the actual element. write the algorithm for that. I think yes
- *         make getTarget(), and then have the baseURI from that target() when you make the URL
  * todo 5. start to see which browser specific problems we are going to encounter.
+ *
+ * ATT!! There is one caveat:
+ * When <form> submissions are triggered by the `HTMLFormElement.submit()` method,
+ * no navigation event will be triggered. `HTMLFormElement.submit()` has a custom
+ * logic that specifically makes bypass any validation and event processing to be
+ * executed no matter what.
  *
  * We cannot capture the HTMLFormElement.submit() method.
  * Triggering this method will bypass the beforeNavigate event. Unfortunately.
@@ -54,11 +52,12 @@
  * Drawback: Very verbose, very convoluted.
  *
  * Problem 2: How to intercept navigation events in a browser?
- * Answer 2: Listen for the more fundamental events of keypress and click on the window.
- * The event listener must then retrace the event path, go back to interpret the target.
+ * Answer 2: Listen for click and submit events on the window/iframe document.
+ * Click events must be filtered by retracing one or more steps in the event path starting from the target.
  * Go back to the iframe from which it came, to discover the appropriate target frame,
  * in order to discover the appropriate BASE from where to interpret the link.
- * Drawback 2: the event path is traversed twice.
+ * Drawback 2:
+ * the event path is traversed twice.
  * First up with the click, then again when the target and base is recalculated.
 
  * Proposal:
@@ -95,11 +94,6 @@
  *
  */
 
-//todo question 1? should I dispatch the event from the el as the target?
-//todo I would then be able to alter the properties of the navigation.
-//todo That would only apply to the event if event.preventDefault().
-//todo It would not have any effect if it went to the default action.
-
 //This is a good thing, the event.target would then be the appropriate a href.
 //If the navigation detail is changed, then the receiver would/should be able to alter the data of the request.
 //The form data are stored as references to the form elements. Updating that would implicitly mean to alter the form elements themselves.
@@ -112,6 +106,8 @@
 //The point of the thing would be that I would get a navigation event that I could alter the content of the event, and
 //not the linked HTMLs. This is much more in line with HTML composeability. The template stays fixed, while the dynamics
 //of the DOM and elements are realized as DOM events. This is the best behavior.
+//
+//To alter an event is to for example wrap it.
 //
 //When you have internal navigation control, and then an event is triggered.
 //If something alters the content of this event, such as ismap, then you don't want to update the href prop of the
@@ -127,9 +123,9 @@
 //if you have the target _self or _blank or.
 //if you have an external target, you could try to find that _top or _parent or _name browsing context.
 //from an iframe, you can do this. Or should I just let it pass..
-
+//
 //rel I don't think the navigate event should process, external norefferer etc is for the router itself.
-
+//
 //todo make a navigate(request) function. It needs all the potential stuff to make a form submit.
 //todo it needs the href/action, suffix from ismap, target (that eats download), elements which is a key/value set,
 //todo method (post/get), encryptionStyle, relList.
@@ -177,8 +173,6 @@ function findBrowsingContext(frameName, originDocument) {
   }
 }
 
-//todo does this bubble??
-//todo what is this..
 function getTargetAttribute(el) {
   const res = el.getAttribute("target");
   if (res)
@@ -256,15 +250,14 @@ class BrowseEvent extends Event {
 }
 
 //https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
-function filterClickForNavigation(e) {
+function filterBrowseClicks(e) {
   if (e.metaKey)
     return;
   for (let el = e.target; el; el = el.parentNode) {
-    if (!(el.nodeName === "A" || el.nodeName === "a" || el.nodeName === "AREA"))
-      continue;
     if (el.nodeName === "BODY" /*|| todo MAX put that list in here*/)
       return;
-    el.dispatchEvent(new BrowseEvent(e, el));
+    if (el.nodeName === "A" || el.nodeName === "a" || el.nodeName === "AREA")
+      el.dispatchEvent(new BrowseEvent(e, el));
   }
 }
 
@@ -287,7 +280,7 @@ function submitListener(e) {
 
 function navigateEvent(doc) {
   doc.addEventListener("submit", submitListener);
-  doc.addEventListener("click", filterClickForNavigation);
+  doc.addEventListener("click", filterBrowseClicks);
 }
 
 navigateEvent(window);
