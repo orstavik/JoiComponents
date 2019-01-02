@@ -150,23 +150,17 @@ function makeNavigationEvent(el, e) {
         return "?" + e.offsetX + "," + e.offsetY;
       };
       const oldFunc = ev2.url;
-      ev2.url = function(){
+      ev2.url = function () {
         return new URL(oldFunc().href + this.hyperlinkSuffix());
       }
     }
-    ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
     return ev2;
-  } else if (el.nodeName === "a") {
-    const ev2 = makeEvent(e, el);
-    ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
-    return ev2;
-  } else if (el.nodeName === "AREA") {
-    const ev2 = makeEvent(e, el);
-    ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
-    return ev2;
-  } else {
-    return null;
   }
+  if (el.nodeName === "a")
+    return makeEvent(e, el);
+  if (el.nodeName === "AREA")
+    return makeEvent(e, el);
+  return null;
 }
 
 function getParentDocument(current) {
@@ -196,8 +190,8 @@ function findBrowsingContext(frameName, originDocument) {
     return window.document;
   else {
     // let parentDocument = getParentDocument(originDocument);
-    for (let pd = originDocument;pd; pd = getParentDocument(pd)){
-      let nearestFrame = window.document.querySelector("iframe[name='"+frameName+"']");
+    for (let pd = originDocument; pd; pd = getParentDocument(pd)) {
+      let nearestFrame = window.document.querySelector("iframe[name='" + frameName + "']");
       if (nearestFrame)
         return nearestFrame.document;
     }
@@ -214,24 +208,49 @@ function getTargetAttribute(el) {
   return base ? base.getAttribute("target") : "";
 }
 
-function makeEvent(e, target) {
-  const res = new CustomEvent("beforeNavigate", {bubbles: e.bubbles, composed: true});
-  res.preventDefault = () => e.preventDefault();
-  res.defaultPrevented = e.defaultPrevented;
-  res.baseHref = function () {
-    const targetDocument = this.targetFrameDocument();
-    const base = targetDocument.querySelector("base[href]");
-    return (base || window.location).href;
-  };
+//wrapper pattern for altering an event going in the DOM
+class BrowseEvent extends Event {
+  constructor(orig, target, method) {
+    super("beforeNavigate", {target: target, bubbles: orig.bubbles, composed: true});
+    this.orig = orig;
+    this.method = method;
+  }
+
+  preventDefault() {
+    return this.orig.preventDefault();
+  }
+
+  get defaultPrevented() {
+    return this.orig.defaultPrevented;
+  }
+
+  get relList() {
+    return this.target.relList || (this.target.rel ? this.target.rel.trim().split(" ") : []);
+  }
+
   //  https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target
-  res.sourceDocument = function () {
+  sourceDocument() {
     return this.target.ownerDocument;
-  };
-  res.targetFrameDocument = function () {
+  }
+
+  get download(){
+    return this.target.hasAttribute("download");
+  }
+
+  targetFrameDocument() {
     let source = this.target.ownerDocument;
     let noopener = this.target.relList.contains("noopener") || this.target.relList.contains("noreferrer");
     let targetAttribute = getTargetAttribute(this.target);
     return findBrowsingContext(targetAttribute, source, noopener);
+  }
+}
+
+function makeEvent(e, target, method) {
+  const res = new BrowseEvent(e, target, method || "GET");
+  res.baseHref = function () {
+    const targetDocument = this.targetFrameDocument();
+    const base = targetDocument.querySelector("base[href]");
+    return (base || window.location).href;
   };
   res.url = function () {
     let a = this.target.href;
@@ -239,8 +258,6 @@ function makeEvent(e, target) {
       a = a.animVal;
     return new URL(a, this.baseHref());
   };
-  res.download = target.hasAttribute("download");
-  res.method = "GET";
   return res;
 }
 
@@ -256,8 +273,7 @@ function filterClickForNavigation(e) {
 }
 
 function submitListener(e) {
-  const event = makeEvent(e, e.target);
-  event.method = e.target.method || event.method;
+  const event = makeEvent(e, e.target, e.target.method);
   event.elements = e.target.elements;
   event.encryptionType = e.target.encryptionType;
   e.target.dispatchEvent(event);
@@ -281,4 +297,5 @@ function navigateEvent(doc) {
   doc.addEventListener("click", filterClickForNavigation);
   // doc.addEventListener("keypress", filterKeyPressForNavigation);
 }
+
 navigateEvent(window);
