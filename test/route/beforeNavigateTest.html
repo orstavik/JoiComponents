@@ -35,20 +35,9 @@
 <iframe src="iframes/c.html" frameborder="0"></iframe>
 <iframe src="iframes/d.html" frameborder="0"></iframe>
 <iframe src="iframes/e.html" frameborder="0"></iframe>
+<iframe src="iframes/f.html" frameborder="0"></iframe>
 
 <script>
-
-  function pressEnter(a) {
-    a.focus({preventScroll: false});
-    var keyboardEvent = new KeyboardEvent('keypress', {
-      code: 'Enter',
-      key: 'Enter',
-      charCode: 13,
-      keyCode: 13,
-      bubbles: true
-    });
-    a.dispatchEvent(keyboardEvent);
-  }
 
   window.addEventListener("beforeNavigate", function (e) {
     console.log(e);
@@ -77,13 +66,6 @@
   setTimeout(function () {
     document.querySelector("#four").click();
   }, 0);
-
-  //test2 keypress invoking all navigation triggering elements.
-  setTimeout(function () {
-    pressEnter(document.querySelector("#one"));
-  }, 0);
-
-  //todo
 
   //test 3 other invocations
   //calling .submit() will not trigger the submit event. nor click event.

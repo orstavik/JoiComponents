@@ -23,17 +23,20 @@
  *
  * The `beforeNavigate` event contains the following methods:
  *  * .preventDefault(): stops the browser from triggering its navigating behavior.
- *  * .url(): the url object of the navigation.
- *  * .base(): the base for the navigation.
- *  * .targetDocument(): the target document for the navigation (usually the main document, but it can also be an iframe).
- *  * .download: the download option
  *  * .bubbles: true,
  *  * .composed: true,
+ *  * .url(): the url object of the navigation.  this is the same as the interpreted 'href' or 'action' attribute.
+ *  * .base(): the base for the navigation.
+ *  * .target(): name of the target frame, download included
+ *    //* .targetDocument(): the target document for the navigation (usually the main document, but it can also be an iframe).
+ *    //* .download: the download option
  *  * .relList: (only <a> and <area>) link relationship options, see https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types
  *  * .method: (only <form>-submits) "GET" (default) | "POST"
  *  * .encryptionType: (only <form>-submits) the method of encryption of `<form>`-submit "POST" content
  *  * .elements: (only <form>-submits) the DOM elements with "POST" content for `<form>`-submit, both "POST" and "GET"
- *
+ *    //* .data: should I change the elements and suffix to become just data??
+ *    // suffix would be {"123,234": undefined} "123,234" is the x and y coordinates.
+ *    // which would be added as something.html?123,234 or something.html?query=this&123,234 todo check out this last problem.
  *
  * A navigation request can contain both POST data and GET query parameters.
  * This is 'wrong', but who knows what some servers need.
@@ -97,6 +100,46 @@
 //todo That would only apply to the event if event.preventDefault().
 //todo It would not have any effect if it went to the default action.
 
+//This is a good thing, the event.target would then be the appropriate a href.
+//If the navigation detail is changed, then the receiver would/should be able to alter the data of the request.
+//The form data are stored as references to the form elements. Updating that would implicitly mean to alter the form elements themselves.
+//The same is true of a href. An alternative would be to make a hidden copy of the navigation event as a temporary a or form
+//and then populate that one. That would make the navigation request complete. The limits would be that the navigation event should not be
+//listened for on the window, as the task is generated at that point. It should be listened for at window.document.
+//That would make it a polyfill.
+//
+//The question being. Do I want to make a polyfill for something that does not yet exist?
+//The point of the thing would be that I would get a navigation event that I could alter the content of the event, and
+//not the linked HTMLs. This is much more in line with HTML composeability. The template stays fixed, while the dynamics
+//of the DOM and elements are realized as DOM events. This is the best behavior.
+//
+//When you have internal navigation control, and then an event is triggered.
+//If something alters the content of this event, such as ismap, then you don't want to update the href prop of the
+//original a href element. That would be wrong. What you would like is to have an event with data that would be
+//alterable. And then if this event completes, then you would like to make it navigate at that point.
+//
+//A means to is to make the event return the default if not an overriding value is set.
+//It is a class with many getters and setters.
+//if there is no set value, then use the existing one.
+//once the event goes to action, then the updated values are transferred to the original target, and then executed.
+
+//download should be a target, not a property by itself.
+//if you have the target _self or _blank or.
+//if you have an external target, you could try to find that _top or _parent or _name browsing context.
+//from an iframe, you can do this. Or should I just let it pass..
+
+//rel I don't think the navigate event should process, external norefferer etc is for the router itself.
+
+//todo make a navigate(request) function. It needs all the potential stuff to make a form submit.
+//todo it needs the href/action, suffix from ismap, target (that eats download), elements which is a key/value set,
+//todo method (post/get), encryptionStyle, relList.
+//
+//if the navigate is triggered without an event.target, then either a <form> or a <a> is created and clicked.
+//  in this case, the new a or form is also added to a skip_processing_this_target property, thus
+//  making sure it is not double processed.
+//else if the navigate is triggered on <a>, but the event is changed to post, then a <form> is created.
+//else if the navigate is triggered on <form> or a <a>, then that target values is updated, and
+//the event is just let pass by.
 
 function makeNavigationEvent(el, e) {
   if (el.nodeName === "A") {
@@ -106,6 +149,10 @@ function makeNavigationEvent(el, e) {
       ev2.hyperlinkSuffix = function () {
         return "?" + e.offsetX + "," + e.offsetY;
       };
+      const oldFunc = ev2.url;
+      ev2.url = function(){
+        return new URL(oldFunc().href + this.hyperlinkSuffix());
+      }
     }
     ev2.relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
     return ev2;
@@ -172,17 +219,19 @@ function makeEvent(e, target) {
   res.preventDefault = () => e.preventDefault();
   res.defaultPrevented = e.defaultPrevented;
   res.baseHref = function () {
-    const targetDocument = this.browsingContext();
+    const targetDocument = this.targetFrameDocument();
     const base = targetDocument.querySelector("base[href]");
     return (base || window.location).href;
   };
   //  https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target
-  res.browsingContext = function () {
-    let source = el.ownerDocument;
-    let noopener = el.relList.contains("noopener") || el.relList.contains("noreferrer");
-    let targetAttribute = getTargetAttribute(el);
-    let targetDocument = findBrowsingContext(targetAttribute, source, noopener);
-    return targetDocument;
+  res.sourceDocument = function () {
+    return this.target.ownerDocument;
+  };
+  res.targetFrameDocument = function () {
+    let source = this.target.ownerDocument;
+    let noopener = this.target.relList.contains("noopener") || this.target.relList.contains("noreferrer");
+    let targetAttribute = getTargetAttribute(this.target);
+    return findBrowsingContext(targetAttribute, source, noopener);
   };
   res.url = function () {
     let a = this.target.href;
@@ -206,14 +255,6 @@ function filterClickForNavigation(e) {
   }
 }
 
-function filterKeyPressForNavigation(e) {
-  if (e.key !== "Enter" || e.metaKey)
-    return;
-  const ev2 = makeNavigationEvent(e.target, e);
-  if (ev2)
-    return e.target.dispatchEvent(ev2);
-}
-
 function submitListener(e) {
   const event = makeEvent(e, e.target);
   event.method = e.target.method || event.method;
@@ -222,110 +263,22 @@ function submitListener(e) {
   e.target.dispatchEvent(event);
 }
 
-window.addEventListener("submit", submitListener);
-window.addEventListener("click", filterClickForNavigation);
-window.addEventListener("keypress", filterKeyPressForNavigation);
+/**
+ * You can't block the torpedoes.
+ * 1. if the script uses .submit(), it cannot be controlled.
+ * 2. if there are multiple iframes on the page, and one such iframe directs a navigation task to this document,
+ *    it cannot be controlled.
+ * 3. if the scripts uses `window.open()`, `location.assign()`, `history.pushState`, `history.replaceState`,
+ *    it cannot be controlled.
+ *
+ * Don't use 1 and 2. If you do, it will not be part of the navigation.
+ *
+ * Use 3 as part of the navigation control only.
+ */
 
-
-// function getTarget(el) {
-//   const res = el.getAttribute("target");
-//   if (res)
-//     return res;
-//   let base = el.ownerDocument.querySelector("base[target]");
-//   return base ? base.getAttribute("target") || "" : "";
-// }
-//
-// function makeDetailObject(download,
-//                           relList,
-//                           target,
-//                           originalHref,
-//                           baseHref,
-//                           href,
-//                           protocol,
-//                           method,
-//                           encryptionType) {
-//   return {
-//     download,
-//     relList,
-//     target,
-//     originalHref,
-//     baseHref,
-//     href,
-//     protocol,
-//     method,
-//     encryptionType
-//   };
-// }
-//
-// function makeDetailHtmlA(el) {
-//   const method = "get";
-//   const protocol = el.protocol || this.href.substring(0, this.href.indexOf(":"));
-//   const href = el.href || new URL(this.originalHref, this.baseHref).href;
-//   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
-//   const originalHref = el.getAttribute("href");
-//   const target = el.target || getTarget(el);
-//   const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
-//   const download = el.download || el.hasAttribute("download");
-//   const encryptionType = "omgSomething";
-//   return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
-// }
-//
-// function makeDetailSvgA(el) {
-//   const rel = el.getAttribute("rel");
-//   const originalHref = el.href.animVal;
-//   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
-//   const href = new URL(originalHref, baseHref).href;
-//   const download = el.download || el.hasAttribute("download");
-//   const relList = rel ? rel.trim().split(" ") : [];
-//   const target = el.target || getTarget(el);
-//   const protocol = href.substring(0, href.indexOf(":"));
-//   const method = "get";
-//   const encryptionType = "omgSomething";
-//   return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
-// }
-//
-// function makeDetailForm(el) {
-//   //todo do we need to validate the form data here?? I think not. research this.
-//   const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
-//   const download = el.download || el.hasAttribute("download");
-//   const target = el.target || getTarget(el);
-//   const originalHref = el.getAttribute("href");
-//   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
-//   const href = el.href;
-//   const protocol = el.protocol;
-//   const encryptionType = el.encryptionType || "default";
-//   const method = el.method || "get";
-//   // const content = process(el.elements);
-//   return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
-// }
-//
-// function makeDetailArea(el) {
-//
-//   const download = el.download || el.hasAttribute("download");
-//   const target = el.target || getTarget(el);
-//   const originalHref = el.getAttribute("href");
-//   const baseHref = (el.ownerDocument.querySelector('base[href]') || window.location).href;
-//   const href = el.href;
-//   const protocol = el.protocol;
-//   const method = "get";
-//   const relList = el.relList || (el.rel ? el.rel.trim().split(" ") : []);
-//   const encryptionType = "omgSomething";
-//   return makeDetailObject(download, relList, target, originalHref, baseHref, href, protocol, method, encryptionType);
-// }
-
-/*
-*  download: if true, the browser should download the resource instead of navigating to it (false by default)
-*  * relList: a list of strings with the `rel` properties   todo research
-*  * target: "_blank" | "_self"(default) | "_parent" | "_top" | frame-name
-*  //todo target: targetDocument?? Do we want to turn this into a reference to the actual document node??
-*  //todo I think yes. This requires a lot of processing of rel and target based on the DOM.
-*  * originalHref: a string with the href as it was given in the element
-*  * baseHref: the associated base href for the navigate event   todo research  .baseURI on the targetDocument()?
-*  * href: the resolved originalHref based on the baseHref
-*  * url: the href as a URL() object, that contains the protocol.
-*  * method: "get"(default) | "post" | "delete" | "put" | xxx  todo research
-*  * encryptionType: todo research
-*  * content: data from post request
-*  * todo maybe we want to add the navigating element: a, area form
-*  * todo are we missing some important aspects here??
-*/
+function navigateEvent(doc) {
+  doc.addEventListener("submit", submitListener);
+  doc.addEventListener("click", filterClickForNavigation);
+  // doc.addEventListener("keypress", filterKeyPressForNavigation);
+}
+navigateEvent(window);
