@@ -1,0 +1,4 @@
+Max:
+1. update and delete in forms, research => links that give autorative answer
+2. html elements that cannot be wrapped in a link, research and the codepen test
+3. demo joiState and beforeNavigate to use joiState.observe method
