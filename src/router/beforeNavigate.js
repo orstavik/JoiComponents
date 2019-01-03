@@ -343,3 +343,33 @@ function navigateEvent(doc) {
 }
 
 navigateEvent(window);
+
+function onBeforeNavigate(e){
+  if (e.target.nodeName === "A" || e.target.nodeName === "a" || e.target.nodeName === "AREA" || e.target.nodeName === "FORM")
+    return;
+  if (e.method === "GET")
+    //todo how do I best open a GET request with the rel and download and target and the rest?
+    e.sourceDocument().open(e.url.href, {download: e.download, rel: e.relList.join(" ")});
+  if (e.method === "POST"){
+    const doc = e.sourceDocument();
+    let form = doc.createElement("form");
+    form.method = "POST";
+    //todo I need to make a function that creates a browse event with elements listed below
+    //todo I need to make tests for this function, for both GET, POST, PUT, DELETE
+    //todo
+    for (let nameValue of e.elements) {
+      if (nameValue.hasAttribute("name")){
+        let input = doc.createElement("input");
+        input.name = nameValue.getAttribute("name");
+        input.value = nameValue.getValue();
+        form.appendChild(input);
+      }
+    }
+    e.target.parentNode.appendChild(form);
+    form.submit();
+  }
+  if (e.method === "PUT" || e.method === "DELETE")
+    XMLHttpRequest.open(e.method, e.url, e.async === undefined ? true : e.async, e.user, e.password)
+}
+
+window.addEventListener("beforeNavigate", onBeforeNavigate);
