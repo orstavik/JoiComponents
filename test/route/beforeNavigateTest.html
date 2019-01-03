@@ -1,7 +1,8 @@
 <script src="../../src/router/beforeNavigate.js"></script>
 
 <a href="withIsmap.html?ismap=queries#and_hash_values_are_added_BEFORE_the_?x,y_value_OMG_WTF__">
-  <img ismap id="zero" src="http://programmerbook.ru/examples/images/figures.png" width="450px" height="360px" alt="find a nice picture here">
+  <img ismap id="zero" src="http://programmerbook.ru/examples/images/figures.png" width="450px" height="360px"
+       alt="find a nice picture here">
 </a>
 
 <a id="one" href="omg.html" download rel="noopener blabla">hello</a>
@@ -23,6 +24,19 @@
 </map>
 <img usemap="#infographic" src="https://interactive-examples.mdn.mozilla.net/media/examples/mdn-info2.png"
      alt="MDN infographic"/>
+
+<a href="someobject.html">
+  <object type="application/pdf"
+          data="/media/examples/In-CC0.pdf"
+          usemap="#infographic"
+          width="250"
+          height="200">
+    <h1>no pdf found</h1>
+  </object>
+</a>
+<!-- todo this browses the browser
+<script>document.querySelector("object").children[0].click();</script>
+-->
 
 <form rel="noopener blabla" action="wtf.html?query=abc#that" method="get">
   <input type="text" name="a" value="omg"/>
@@ -48,7 +62,12 @@
 
   //test1 clicking all navigation triggering elements.
   setTimeout(function () {
-    document.querySelector("#zero").dispatchEvent(new MouseEvent("click", {clientX: 100, clientY: 100, bubbles: true, cancelable: true}));
+    document.querySelector("#zero").dispatchEvent(new MouseEvent("click", {
+      clientX: 100,
+      clientY: 100,
+      bubbles: true,
+      cancelable: true
+    }));
   }, 1000);
 
   setTimeout(function () {

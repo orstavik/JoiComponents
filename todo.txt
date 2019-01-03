@@ -1,4 +1,9 @@
 Max:
+3. make codepen that has a href links that cannot be clicked. test object expecially.
+   add tests for running the .click() function inside it.
+
+4. demo joiState and beforeNavigate to use joiState.observe method
+
+completed:
 1. update and delete in forms, research => links that give autorative answer
 2. html elements that cannot be wrapped in a link, research and the codepen test
-3. demo joiState and beforeNavigate to use joiState.observe method
