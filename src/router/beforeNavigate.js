@@ -244,9 +244,9 @@ class BrowseEvent extends Event {
     return b ? b.getAttribute("href") : undefined;
   }
 
-  getFormUrl(){
+  getFormUrl() {
     const a = new URL(this.target.action);
-    if (this.method.toUpperCase() === "GET"){
+    if (this.method.toUpperCase() === "GET") {
       //2. Test show that: if you have a <form action="index.html?query=already#hash" method="get">,
       //the query, but not the hash, will be overwritten by the values in the form when Chrome interprets the link.
       a.search = "";
@@ -259,7 +259,7 @@ class BrowseEvent extends Event {
     return a.href;
   }
 
-  getLinkUrl(){
+  getLinkUrl() {
     let a = this.target.href;
     if (a.animVal)
       a = a.animVal;
@@ -285,12 +285,35 @@ class BrowseEvent extends Event {
   }
 }
 
+//https://www.w3.org/html/wg/spec/content-models.html#interactive-content-0
+//http://qaru.site/questions/10726/can-i-nest-a-button-element-inside-an-a-using-html5
+//todo find above discussion in english
+function elementCannotBeInALink(el) {
+  return el.nodeName === "BODY" ||        //FIND MORE LIKE THIS!
+
+    (el.nodeName === "AUDIO" && el.hasAttribute("controls")) ||
+    (el.nodeName === "VIDEO" && el.hasAttribute("controls")) ||
+
+    el.nodeName === "BUTTON" ||
+    (el.nodeName === "INPUT" && el.getAttribute("type") !== "hidden") ||
+    el.nodeName === "SELECT" ||
+    el.nodeName === "TEXTAREA" ||
+    el.nodeName === "KEYGEN" ||
+
+    el.nodeName === "DETAILS" ||
+    el.nodeName === "LABEL" ||
+    el.nodeName === "EMBED" ||
+    (el.nodeName === "OBJECT" /*&& el.hasAttribute("usemap")*/) || //todo, this will not trigger a click??
+    el.nodeName === "IFRAME" ||
+    (el.nodeName === "MENU" && el.getAttribute("type") === "toolbar"); //todo check the menu
+}
+
 //https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
 function filterBrowseClicks(e) {
   if (e.metaKey)
     return;
   for (let el = e.target; el; el = el.parentNode) {
-    if (el.nodeName === "BODY" /*|| todo MAX put that list in here*/)
+    if (elementCannotBeInALink(el))
       return;
     if (el.nodeName === "A" || el.nodeName === "a" || el.nodeName === "AREA")
       el.dispatchEvent(new BrowseEvent(e, el));
