@@ -1,1 +1,6 @@
-<iframe src="a.html" frameborder="0" style="border: 5px solid crimson"></iframe>
+<iframe src="base_parent.html" frameborder="0" style="border: 5px solid crimson"></iframe>
+<script>
+  var b= document.createElement("base");
+  b.setAttribute("href", "https://bbc.com/");
+  document.head.appendChild(b);
+</script>

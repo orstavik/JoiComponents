@@ -13,17 +13,24 @@
  * b. The user pressing enter when the element is in focus or using an accesskey which will trigger a click event on the element.
  * c. A script simulating user action via APIs such as `click()` and `.dispatchEvent(new MouseEvent("click", ...))`.
  *
- * The `browse` event contains the following methods:
- *  * .preventDefault(): stops the browser from triggering its browse behavior.
+ * The `browse` event wraps around the original event so
+ * that `.preventDefault()` and `.defaultPrevented` will work as expected.
+ *
+ * The `browse` event:
  *  * .bubbles: true,
  *  * .composed: true,
- *  * .url(): the url object of the navigation.  this is the same as the interpreted 'href' or 'action' attribute.
+ *
+ * The `browse` event has the following custom properties:
+ *  * .method: "POST" or "GET"
+ *  * .target: the `<a href>` or `<form>` that defines the browse
  *  * .base(): the base for the navigation.
+ *  * .url(): the url object of the navigation, ie. the resolved 'href' or 'action'.
  *  * .target(): name of the target frame, download included
+ *  (only <a> and <area>)
+ *  * .relList: link relationship options, see https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types
+ *  (only <form>-submits)
  *    //* .targetDocument(): the target document for the navigation (usually the main document, but it can also be an iframe).
  *    //* .download: the download option
- *  * .relList: (only <a> and <area>) link relationship options, see https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types
- *  * .method: (only <form>-submits) "GET" (default) | "POST"
  *  * .encryptionType: (only <form>-submits) the method of encryption of `<form>`-submit "POST" content
  *  * .elements: (only <form>-submits) the DOM elements with "POST" content for `<form>`-submit, both "POST" and "GET"
  *    //* .data: should I change the elements and suffix to become just data??
@@ -223,24 +230,53 @@ class BrowseEvent extends Event {
     return findBrowsingContext(targetAttribute, source, noopener);
   }
 
-  baseHref() {
-    const targetDocument = this.targetFrameDocument();
-    const base = targetDocument.querySelector("base[href]");
-    return (base || window.location).href;
+  //method to get the target of the link
+  //method to get the target document object if possible.
+
+  // baseHref() {
+  //   const targetDocument = this.targetFrameDocument();
+  //   const base = targetDocument.querySelector("base[href]");
+  //   return (base || window.location).href;
+  // }
+  //
+  baseHref2() {
+    const b = this.target.ownerDocument.querySelector("base[href]");
+    return b ? b.getAttribute("href") : undefined;
   }
 
-  url() {
+  getFormUrl(){
+    const a = new URL(this.target.action);
+    if (this.method.toUpperCase() === "GET"){
+      //2. Test show that: if you have a <form action="index.html?query=already#hash" method="get">,
+      //the query, but not the hash, will be overwritten by the values in the form when Chrome interprets the link.
+      a.search = "";
+      let elements = this.elements;
+      for (let el of elements) {
+        if (el.hasAttribute("name"))
+          a.searchParams.append(el.name, el.value);
+      }
+    }
+    return a.href;
+  }
+
+  getLinkUrl(){
     let a = this.target.href;
     if (a.animVal)
       a = a.animVal;
-    //todo this is bad, it will not work with a # location,
-    //todo add test for hashlocation
     //https://www.w3.org/html/wg/spec/text-level-semantics.html#text-level-semantics
     a += this.suffix;
-    return new URL(a, this.baseHref());
+    //1. Tests show that the isMap ?x,y value is added at the end of the link **raw**, ie. it is not parsed in as a query.
+    //this means that if you have an <a href="index.html?query=a#hash"> around an <img isMap>, then
+    //when you click on point x=12, y=34 on the <img> you get a link like this: "index.html?query=a#hash?12,34".
+    return a;
   }
 
-  elements() {
+  get url() {
+    let a = this.target.nodeName === "FORM" ? this.getFormUrl() : this.getLinkUrl();
+    return new URL(a, this.baseHref2());
+  }
+
+  get elements() {
     return this.target.elements;
   }
 
