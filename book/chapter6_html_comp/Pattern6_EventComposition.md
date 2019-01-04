@@ -73,8 +73,7 @@ There are several ways to alter immutable events:
    a) stopPropagation and b) preventDefault will ensure that it will no longer be used by anyone and thus
    become garbage collected. So, to double stop it is to delete it.
 
-3. Pre-spawn-event. To pre-spawn an event is to dispatch another event as low as needed in the DOM, 
-   *wihtout .
+3. Pre-spawn-event. To pre-spawn an event is to dispatch another event as low as needed in the DOM.
    As the other event is dispatched, this spawned event will be processed *before* the processing of 
    the original event continues.
    
@@ -89,7 +88,10 @@ There are several ways to alter immutable events:
    1. Translated-event is a pre-spawned, wrapped-event.
    2. Tail-event is a post-spawn, wrapped-event.
 
-6. Event-recording is to listen to many different events and then spawn either more or less events
+6. Event-filtering is a pure function that only spawns a new event when certain conditions regarding the
+   event itself is fulfilled.
+
+7. Event-recording is to listen to many different events and then spawn either more or less events
    from that original event based on an inner state. 
    
 ## Suggestions for the spec
