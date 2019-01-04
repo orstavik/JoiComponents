@@ -68,6 +68,7 @@ There are several ways to alter immutable events:
 1. Single-stop-event. To single-stop an event is to only stop its propagation.
    The event will essentially be removed/deleted from your application, 
    but it will still let the browsers default behavior/action to execute.
+   This is an antipattern DefaultActionTrojanHorse when used at a low point in the DOM.
    
 2. Double-stop-event. Although an event object cannot be deleted per se, to both
    a) stopPropagation and b) preventDefault will ensure that it will no longer be used by anyone and thus
@@ -79,6 +80,8 @@ There are several ways to alter immutable events:
    
 4. Post-spawn-event. To post-spawn an event is to dispatch another event as high as possible in the DOM,
    ie. on the window or on the iframe element.
+   This can also be done using async `Promise.resolve().then(()=>{ logicalOrigin.dispatchEvent(new SpawnedEvent()})`,
+   but async doesn't work if there is a default action, so best do it sync.
    The spawned event will be processed *after* the processing of the original event.
 
 5. Wrapped-events is a post-spawned or pre-spawned event that single-stops the original event,
