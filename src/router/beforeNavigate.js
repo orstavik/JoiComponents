@@ -354,9 +354,7 @@ function onBeforeNavigate(e){
     const doc = e.sourceDocument();
     let form = doc.createElement("form");
     form.method = "POST";
-    //todo I need to make a function that creates a browse event with elements listed below
-    //todo I need to make tests for this function, for both GET, POST, PUT, DELETE
-    //todo
+    //todo I need to implement support for POST data
     for (let nameValue of e.elements) {
       if (nameValue.hasAttribute("name")){
         let input = doc.createElement("input");
@@ -369,7 +367,26 @@ function onBeforeNavigate(e){
     form.submit();
   }
   if (e.method === "PUT" || e.method === "DELETE")
-    XMLHttpRequest.open(e.method, e.url, e.async === undefined ? true : e.async, e.user, e.password)
+    XMLHttpRequest.open(e.method, e.url, e.async === undefined ? true : e.async, e.user, e.password);
 }
 
 window.addEventListener("beforeNavigate", onBeforeNavigate);
+
+//todo I need to make tests for this function, for both GET, POST, PUT, DELETE
+//have any type of element div h1 span
+//div.dispatch(makeArtificialBeforeNavigate("GET", "test.html"));
+//h1.dispatch(makeArtificialBeforeNavigate("DELETE", "test.html"));
+//span.dispatch(makeArtificialBeforeNavigate("PUT", "test.html"));
+
+//todo I need to make tests for this function, for both POST, not yet
+//el.dispatch(makeArtificialBeforeNavigate("POST", "test.html"));
+
+//todo I need to make a function that creates a browse event with elements listed below
+//todo I need to implement support for POST data
+window.makeArtificialBeforeNavigate = function(method, url) {
+  const res = new CustomEvent("beforeNavigate");
+  res.url = url;
+  res.method = method;
+  return res;
+};
+
