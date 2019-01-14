@@ -1,4 +1,6 @@
-function dispatchPriorEvent([el, linkClick, e]) {
+(function(){
+  function dispatchPriorEvent([el, linkClick, e]) {
+
   if (!linkClick) return;
   linkClick.preventDefault = function () {
     e.preventDefault();
@@ -60,4 +62,4 @@ function makeNavigateFromSubmit(e) {
 
 var w = window || document;
 w.addEventListener("submit", e => dispatchPriorEvent(makeNavigateFromSubmit(e)), true);
-w.addEventListener("link-click", e => dispatchPriorEvent(makeNavigateFromLinkClick(e)), true);
+w.addEventListener("link-click", e => dispatchPriorEvent(makeNavigateFromLinkClick(e)), true);})();
