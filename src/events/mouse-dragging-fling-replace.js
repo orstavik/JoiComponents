@@ -12,7 +12,9 @@
   }
 
   //dispatch event to replace default action
-  function dispatchUnpreventableTrailingEvent(target, composedEvent, trigger, unpreventable) {
+  function dispatchTrailingEvent(target, composedEvent, trigger, unpreventable) {
+    if (!composedEvent)
+      return;
     if (unpreventable || !trigger.defaultPrevented)
       setTimeout(function(){target.dispatchEvent(composedEvent);}, 0);
   }
@@ -103,7 +105,7 @@
       const composedEvent = makeDraggingEvent("cancel", trigger);
       const target = recorded[0].target;
       stopRecordingEvent();
-      return dispatchUnpreventableTrailingEvent(target, composedEvent);
+      return dispatchTrailingEvent(target, composedEvent, trigger, true);
     }
     //filter 2
     if (trigger.button !== 0)
@@ -122,7 +124,7 @@
     startRecordingEvent(composedEvent, newTarget.hasAttribute("draggable-cancel-mouseout"));
 
     //dispatch event
-    dispatchUnpreventableTrailingEvent(newTarget, composedEvent, trigger, true);
+    dispatchTrailingEvent(newTarget, composedEvent, trigger, true);
   }
 
   function onMousemove(trigger) {
@@ -137,7 +139,7 @@
     recorded.push(composedEvent);
 
     //dispatch event
-    dispatchUnpreventableTrailingEvent(newTarget, composedEvent, trigger, true);
+    dispatchTrailingEvent(newTarget, composedEvent, trigger, true);
   }
 
   function onMouseup(trigger) {
@@ -153,8 +155,8 @@
     stopRecordingEvent();
 
     //dispatch event
-    dispatchUnpreventableTrailingEvent(newTarget, stopEvent, trigger, true);
-    dispatchUnpreventableTrailingEvent(newTarget, flingEvent, trigger, true);
+    dispatchTrailingEvent(newTarget, stopEvent, trigger, true);
+    dispatchTrailingEvent(newTarget, flingEvent, trigger, true);
   }
 
   function onMouseout(e) {
