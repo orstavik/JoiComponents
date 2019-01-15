@@ -137,7 +137,7 @@
     recorded.push(composedEvent);
 
     //dispatch event
-    dispatchPriorEvent([newTarget, composedEvent, trigger], trigger, true);
+    dispatchUnpreventableTrailingEvent(newTarget, composedEvent, trigger, true);
   }
 
   function onMouseup(trigger) {
