@@ -24,15 +24,15 @@
     return null;
   }
 
-  function dispatchPriorEvent([el, linkClick, e]) {
-    if (!linkClick)
+  function dispatchPriorEvent([target, composedEvent, trigger]) {
+    if (!composedEvent)
       return;
-    linkClick.preventDefault = function () {
-      e.preventDefault();
-      e.stopImmediatePropagation ? e.stopImmediatePropagation() : e.stopPropagation();
+    composedEvent.preventDefault = function () {
+      trigger.preventDefault();
+      trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
     };
-    linkClick.trailingEvent = e;
-    return el.dispatchEvent(linkClick);
+    composedEvent.trailingEvent = trigger;
+    return target.dispatchEvent(composedEvent);
   }
 
   (window || document).addEventListener("click", e => dispatchPriorEvent(filterClicks(e)), true);

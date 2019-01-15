@@ -11,16 +11,10 @@
     return null;
   }
 
-  //dispatch prior
-  function dispatchPriorEvent([target, composedEvent, trigger]) {
-    if (!composedEvent)
-      return;
-    composedEvent.preventDefault = function () {
-      trigger.preventDefault();
-      trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
-    };
-    composedEvent.trailingEvent = trigger;
-    return target.dispatchEvent(composedEvent);
+  //dispatch event to replace default action
+  function dispatchUnpreventableTrailingEvent(target, composedEvent, trigger, unpreventable) {
+    if (unpreventable || !trigger.defaultPrevented)
+      setTimeout(function(){target.dispatchEvent(composedEvent);}, 0);
   }
 
   //recording start
@@ -107,9 +101,9 @@
     //filter 1
     if (recorded) {
       const composedEvent = makeDraggingEvent("cancel", trigger);
-      const data = [recorded[0].target, composedEvent, trigger];
+      const target = recorded[0].target;
       stopRecordingEvent();
-      return dispatchPriorEvent(data);
+      return dispatchUnpreventableTrailingEvent(target, composedEvent);
     }
     //filter 2
     if (trigger.button !== 0)
@@ -128,7 +122,7 @@
     startRecordingEvent(composedEvent, newTarget.hasAttribute("draggable-cancel-mouseout"));
 
     //dispatch event
-    dispatchPriorEvent([newTarget, composedEvent, trigger]);
+    dispatchUnpreventableTrailingEvent(newTarget, composedEvent, trigger, true);
   }
 
   function onMousemove(trigger) {
@@ -143,7 +137,7 @@
     recorded.push(composedEvent);
 
     //dispatch event
-    dispatchPriorEvent([newTarget, composedEvent, trigger]);
+    dispatchPriorEvent([newTarget, composedEvent, trigger], trigger, true);
   }
 
   function onMouseup(trigger) {
@@ -159,8 +153,8 @@
     stopRecordingEvent();
 
     //dispatch event
-    dispatchPriorEvent([newTarget, stopEvent, trigger]);
-    dispatchPriorEvent([newTarget, flingEvent, trigger]);
+    dispatchUnpreventableTrailingEvent(newTarget, stopEvent, trigger, true);
+    dispatchUnpreventableTrailingEvent(newTarget, flingEvent, trigger, true);
   }
 
   function onMouseout(e) {
@@ -181,7 +175,7 @@
     stopRecordingEvent();
 
     //dispatch event
-    dispatchPriorEvent([newTarget, cancelEvent, e]);
+    dispatchTrailingEvent(newTarget, cancelEvent, trigger, true);
   }
 
   window.addEventListener("mousedown", e => onMousedown(e));
