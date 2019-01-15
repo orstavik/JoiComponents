@@ -1,6 +1,6 @@
 {
   "name": "joicomponents",
-  "version": "1.2.15",
+  "version": "1.2.16",
   "description": "Design patterns to build native web components",
   "main": "src/slotchangeMixin.js",
   "directories": {
