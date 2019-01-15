@@ -163,25 +163,25 @@
     dispatchPriorEvent([newTarget, flingEvent, trigger]);
   }
 
-  function onMouseout(e) {
+  function onMouseout(trigger) {
     //filter
     const eY = event.clientY;
     const eX = event.clientX;
     if(eY > 0 && eX > 0 && eX < window.innerWidth && eY < window.innerHeight)
       return;   //The mouse is not leaving the window
 
-    e.preventDefault();
+    trigger.preventDefault();
 
     const newTarget = recorded[0].target;
 
     //make events
-    const cancelEvent = new CustomEvent("dragging-cancel", {bubbles: true, composed: true, triggerEvent: e});
+    const cancelEvent = new CustomEvent("dragging-cancel", {bubbles: true, composed: true, triggerEvent: trigger});
 
     //record
     stopRecordingEvent();
 
     //dispatch event
-    dispatchPriorEvent([newTarget, cancelEvent, e]);
+    dispatchPriorEvent([newTarget, cancelEvent, trigger]);
   }
 
   window.addEventListener("mousedown", e => onMousedown(e));
