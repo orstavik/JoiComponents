@@ -25,12 +25,20 @@
 
   //recording start
   let recorded = undefined;
+  let cachedUserSelect = undefined;
   const mousemoveListener = e => onMousemove(e);
   const mouseupListener = e => onMouseup(e);
   const mouseoutListener = e => onMouseout(e);
 
   function startRecordingEvent(e, cancelMouseout) {
     recorded = [e];
+
+    //capture the mouse pointer (akin to preventing the default action) start
+    const bodyStyle = document.querySelector("body");
+    cachedUserSelect = bodyStyle.userSelect;
+    bodyStyle.userSelect = "none";
+    //capture the mouse pointer (akin to preventing the default action) end
+
     window.addEventListener("mousemove", mousemoveListener, true);
     window.addEventListener("mouseup", mouseupListener, true);
     !cancelMouseout && window.addEventListener("mouseout", mouseoutListener, true);
@@ -42,88 +50,22 @@
 
   function stopRecordingEvent() {
     recorded = undefined;
+    //release the captured mouse pointer start
+    document.querySelector("body").style.userSelect = cachedUserSelect;
+    cachedUserSelect = undefined;
+    //release the captured mouse pointer end
+
     window.removeEventListener("mousemove", mousemoveListener, true);
     window.removeEventListener("mouseup", mouseupListener, true);
     window.removeEventListener("mouseout", mouseoutListener, true);   //always remove all potential listeners, regardless
   }
 
-  //recording stop
-
-  //capture caching
-  let cachedUserSelect = undefined;
-
+  //specific make event functions
   function makeDraggingEvent(name, trigger) {
     const composedEvent = new CustomEvent("dragging-" + name, {bubbles: true, composed: true});
     composedEvent.x = trigger.x;
     composedEvent.y = trigger.y;
     return composedEvent;
-  }
-
-//specific listener functions
-  function onMousedown(trigger) {
-    //filter 1
-    if (recorded) {
-      const composedEvent = makeDraggingEvent("cancel", trigger);
-      const data = [recorded[0].target, composedEvent, trigger];
-      stopRecordingEvent();
-      return dispatchPriorEvent(data);
-    }
-    //filter 2
-    if (trigger.button !== 0)
-      return;
-    //filter 3
-    const newTarget = filterOnAttribute(trigger, "draggable");
-    if (!newTarget)
-      return;
-
-    //capture the mouse pointer (ie. prevent the default action)
-    const bodyStyle = document.querySelector("body");
-    cachedUserSelect = bodyStyle.userSelect;
-    bodyStyle.userSelect = "none";
-    trigger.preventDefault();
-
-    //make event
-    const composedEvent = makeDraggingEvent("start", trigger);
-
-    //record
-    startRecordingEvent(composedEvent, newTarget.hasAttribute("draggable-cancel-mouseout"));
-
-    //dispatch event
-    dispatchPriorEvent([newTarget, composedEvent, trigger]);
-  }
-
-  function onMousemove(trigger) {
-    const newTarget = recorded[0].target;
-
-    //capture the mouse pointer (ie. prevent the default action)
-    trigger.preventDefault();
-
-    //make event
-    const composedEvent = makeDraggingEvent("move", trigger);
-
-    //record
-    recorded.push(composedEvent);
-
-    //dispatch event
-    dispatchPriorEvent([newTarget, composedEvent, trigger]);
-  }
-
-  function onMouseup(trigger) {
-    const newTarget = recorded[0].target;
-
-    //capture the mouse pointer (ie. prevent the default action)
-    trigger.preventDefault();
-
-    //make events
-    const stopEvent = makeDraggingEvent("stop", trigger);
-    const flingEvent = makeFlingEvent(recorded[0].target, trigger);
-
-    //record
-    stopRecordingEvent();
-
-    //dispatch event
-    dispatchPriorEvent([newTarget, stopEvent, trigger]);
-    dispatchPriorEvent([newTarget, flingEvent, trigger]);
   }
 
   function makeFlingEvent(target, trigger) {
@@ -160,16 +102,77 @@
     return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
   }
 
+  //specific listener functions
+  function onMousedown(trigger) {
+    //filter 1
+    if (recorded) {
+      const composedEvent = makeDraggingEvent("cancel", trigger);
+      const data = [recorded[0].target, composedEvent, trigger];
+      stopRecordingEvent();
+      return dispatchPriorEvent(data);
+    }
+    //filter 2
+    if (trigger.button !== 0)
+      return;
+    //filter 3
+    const newTarget = filterOnAttribute(trigger, "draggable");
+    if (!newTarget)
+      return;
+
+    trigger.preventDefault();
+
+    //make event
+    const composedEvent = makeDraggingEvent("start", trigger);
+
+    //record
+    startRecordingEvent(composedEvent, newTarget.hasAttribute("draggable-cancel-mouseout"));
+
+    //dispatch event
+    dispatchPriorEvent([newTarget, composedEvent, trigger]);
+  }
+
+  function onMousemove(trigger) {
+    const newTarget = recorded[0].target;
+
+    trigger.preventDefault();
+
+    //make event
+    const composedEvent = makeDraggingEvent("move", trigger);
+
+    //record
+    recorded.push(composedEvent);
+
+    //dispatch event
+    dispatchPriorEvent([newTarget, composedEvent, trigger]);
+  }
+
+  function onMouseup(trigger) {
+    const newTarget = recorded[0].target;
+
+    trigger.preventDefault();
+
+    //make events
+    const stopEvent = makeDraggingEvent("stop", trigger);
+    const flingEvent = makeFlingEvent(recorded[0].target, trigger);
+
+    //record
+    stopRecordingEvent();
+
+    //dispatch event
+    dispatchPriorEvent([newTarget, stopEvent, trigger]);
+    dispatchPriorEvent([newTarget, flingEvent, trigger]);
+  }
+
   function onMouseout(e) {
+    //filter
     const eY = event.clientY;
     const eX = event.clientX;
     if(eY > 0 && eX > 0 && eX < window.innerWidth && eY < window.innerHeight)
       return;   //The mouse is not leaving the window
 
-    const newTarget = recorded[0].target;
-
-    //capture the mouse pointer (ie. prevent the default action)
     e.preventDefault();
+
+    const newTarget = recorded[0].target;
 
     //make events
     const cancelEvent = new CustomEvent("dragging-cancel", {bubbles: true, composed: true, triggerEvent: e});
