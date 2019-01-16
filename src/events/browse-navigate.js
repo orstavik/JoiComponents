@@ -6,7 +6,7 @@
       trigger.preventDefault();
       trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
     };
-    composedEvent.trailingEvent = trigger;
+    composedEvent.trigger = trigger;
     return target.dispatchEvent(composedEvent);
   }
 
@@ -60,7 +60,6 @@
     return browse;
   }
 
-  var w = window || document;
-  w.addEventListener("submit", e => dispatchPriorEvent(e.target, makeNavigateFromSubmit(e), e), true);
-  w.addEventListener("link-click", e => dispatchPriorEvent(e.target, makeNavigateFromLinkClick(e), e), true);
+  window.addEventListener("submit", e => dispatchPriorEvent(e.target, makeNavigateFromSubmit(e), e), true);
+  window.addEventListener("link-click", e => dispatchPriorEvent(e.target, makeNavigateFromLinkClick(e), e), true);
 })();

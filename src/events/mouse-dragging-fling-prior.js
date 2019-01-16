@@ -1,5 +1,10 @@
 (function () {
-  //filter utility
+  //utilities
+  function captureEvent(e, stopProp) {
+    e.preventDefault();
+    stopProp && e.stopImmediatePropagation ? e.stopImmediatePropagation() : e.stopPropagation();
+  }
+
   function filterOnAttribute(e, attributeName) {
     for (let el = e.target; el; el = el.parentNode) {
       if (!el.hasAttribute)
@@ -10,7 +15,6 @@
     return null;
   }
 
-  //dispatchPriorEvent
   function dispatchPriorEvent(target, composedEvent, trigger) {
     if (!composedEvent || !target)
       return;
@@ -18,7 +22,7 @@
       trigger.preventDefault();
       trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
     };
-    composedEvent.trailingEvent = trigger;
+    composedEvent.trigger = trigger;
     return target.dispatchEvent(composedEvent);
   }
 
@@ -101,16 +105,16 @@
   }
 
   //custom listeners
-  function cancelSequence(trigger) {
-    const cancelEvent = makeDraggingEvent("cancel", trigger);
-    dispatchPriorEvent(globalSequence.target, cancelEvent, trigger);
-    globalSequence = stopSequence();
-  }
 
   function onMousedown(trigger) {
     //filter 1
-    if (globalSequence)
-      return cancelSequence(trigger);
+    if (globalSequence){
+      const cancelEvent = makeDraggingEvent("cancel", trigger);
+      const target = globalSequence.target;
+      globalSequence = stopSequence();
+      dispatchPriorEvent(target, cancelEvent, trigger);
+      return;
+    }
     //filter 2
     if (trigger.button !== 0)
       return;
@@ -120,32 +124,37 @@
       return;
 
     const composedEvent = makeDraggingEvent("start", trigger);
-    trigger.preventDefault();
-    dispatchPriorEvent(target, composedEvent, trigger);
+    captureEvent(trigger, false);
     globalSequence = startSequence(target, composedEvent);
+    dispatchPriorEvent(target, composedEvent, trigger);
   }
 
   function onMousemove(trigger) {
     const composedEvent = makeDraggingEvent("move", trigger);
-    trigger.preventDefault();
-    dispatchPriorEvent(globalSequence.target, composedEvent, trigger);
+    captureEvent(trigger, false);
     globalSequence = updateSequence(globalSequence, composedEvent);
+    dispatchPriorEvent(globalSequence.target, composedEvent, trigger);
   }
 
   function onMouseup(trigger) {
     const stopEvent = makeDraggingEvent("stop", trigger);
     const flingEvent = makeFlingEvent(trigger, globalSequence);
-    trigger.preventDefault();
-    dispatchPriorEvent(globalSequence.target, stopEvent, trigger);
-    dispatchPriorEvent(globalSequence.target, flingEvent, trigger);
+    captureEvent(trigger, false);
+    const target = globalSequence.target;
     globalSequence = stopSequence();
+    dispatchPriorEvent(target, stopEvent, trigger);
+    dispatchPriorEvent(target, flingEvent, trigger);
   }
 
   function onMouseout(trigger) {
     //filter
     if (trigger.clientY > 0 && trigger.clientX > 0 && trigger.clientX < window.innerWidth && trigger.clientY < window.innerHeight)
       return;   //The mouse has not left the window
-    cancelSequence(trigger);
+    //captureEvent(trigger, false);
+    const cancelEvent = makeDraggingEvent("cancel", trigger);
+    const target = globalSequence.target;
+    globalSequence = stopSequence();
+    dispatchPriorEvent(target, cancelEvent, trigger);
   }
 
   window.addEventListener("mousedown", e => onMousedown(e));
