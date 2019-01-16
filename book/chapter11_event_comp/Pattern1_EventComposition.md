@@ -192,3 +192,8 @@ In this book, we will present the following EventComposition patterns:
    the problems and complexity controlling the default actions of the trigger events.
    Thus, our own opinion is that the simplicity and control of default action that PriorEvents give
    always outweigh the "natural" order that TrailingEvents provide. Thus, we don't use TrailingEvents.
+       
+11. **BubbleEventTorpedo** Show how a) you can turn off the triggering and propagation of a composed event 
+    by simply b) adding an event listener to trigger it later on in the propagation order and then 
+    c) stop the propagation of the trigger event prior to the composed event trigger function in the 
+    trigger event's propagation.
