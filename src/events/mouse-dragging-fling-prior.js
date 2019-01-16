@@ -12,7 +12,7 @@
 
   //dispatchPriorEvent
   function dispatchPriorEvent(target, composedEvent, trigger) {
-    if (!composedEvent)
+    if (!composedEvent || !target)
       return;
     composedEvent.preventDefault = function () {
       trigger.preventDefault();

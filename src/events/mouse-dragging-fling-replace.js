@@ -13,10 +13,12 @@
 
   //dispatch event to replace default action
   function dispatchTrailingEvent(target, composedEvent, trigger, unpreventable) {
-    if (!composedEvent)
+    if (!composedEvent || !target)
       return;
-    if (unpreventable || !trigger.defaultPrevented)
+    if (unpreventable)
       setTimeout(function(){target.dispatchEvent(composedEvent);}, 0);
+    else
+      setTimeout(function(){trigger.defaultPrevented || target.dispatchEvent(composedEvent);}, 0);
   }
 
   //recording start
