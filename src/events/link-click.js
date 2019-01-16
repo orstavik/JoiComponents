@@ -19,7 +19,7 @@
       if (el.nodeName === "FORM" || el.nodeName === "BODY")
         return null;
       if (el.nodeName === "A" || el.nodeName === "a" || el.nodeName === "AREA") {
-        return el;
+        return el.hasAttribute("href") ? el : null;           //tomax research and confirm that we should filter out elements that does not have an href attribute
       }
     }
     return null;

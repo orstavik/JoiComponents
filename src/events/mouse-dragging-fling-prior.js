@@ -78,7 +78,7 @@
       target,
       cancelMouseout: target.hasAttribute("draggable-cancel-mouseout"),
       flingDuration: parseInt(target.getAttribute("fling-duration")) || 50,
-      flingDistance: parseInt(target.getAttribute("fling-distance")) || 200,
+      flingDistance: parseInt(target.getAttribute("fling-distance")) || 150,
       recorded: [e],
       userSelectStart: body.style.userSelect
     };
@@ -147,9 +147,9 @@
   }
 
   function onMouseout(trigger) {
-    //filter
+    //filter to only trigger on the mouse leaving the window
     if (trigger.clientY > 0 && trigger.clientX > 0 && trigger.clientX < window.innerWidth && trigger.clientY < window.innerHeight)
-      return;   //The mouse has not left the window
+      return;
     //captureEvent(trigger, false);
     const cancelEvent = makeDraggingEvent("cancel", trigger);
     const target = globalSequence.target;
