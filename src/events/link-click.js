@@ -18,13 +18,13 @@
       if (el.nodeName === "FORM")
         return null;
       if (el.nodeName === "A" || el.nodeName === "a" || el.nodeName === "AREA") {
-        return [el, new CustomEvent("link-click", {bubbles: true, composed: true}), e];
+        return el;
       }
     }
     return null;
   }
 
-  function dispatchPriorEvent([target, composedEvent, trigger]) {
+  function dispatchPriorEvent(target, composedEvent, trigger) {
     if (!composedEvent)
       return;
     composedEvent.preventDefault = function () {
@@ -35,5 +35,9 @@
     return target.dispatchEvent(composedEvent);
   }
 
-  (window || document).addEventListener("click", e => dispatchPriorEvent(filterClicks(e)), true);
+  (window || document).addEventListener("click", e => dispatchPriorEvent(
+    filterClicks(e),
+    new CustomEvent("link-click", {bubbles: true, composed: true}),
+    e
+  ), true);
 })();

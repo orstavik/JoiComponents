@@ -1,6 +1,5 @@
 (function () {
-
-  //pure filter function
+  //filter utility
   function filterOnAttribute(e, attributeName) {
     for (let el = e.target; el; el = el.parentNode) {
       if (!el.hasAttribute)
@@ -11,8 +10,8 @@
     return null;
   }
 
-  //dispatch prior
-  function dispatchPriorEvent([target, composedEvent, trigger]) {
+  //dispatchPriorEvent
+  function dispatchPriorEvent(target, composedEvent, trigger) {
     if (!composedEvent)
       return;
     composedEvent.preventDefault = function () {
@@ -23,44 +22,7 @@
     return target.dispatchEvent(composedEvent);
   }
 
-  //recording start
-  let recorded = undefined;
-  let cachedUserSelect = undefined;
-  const mousemoveListener = e => onMousemove(e);
-  const mouseupListener = e => onMouseup(e);
-  const mouseoutListener = e => onMouseout(e);
-
-  function startRecordingEvent(e, cancelMouseout) {
-    recorded = [e];
-
-    //capture the mouse pointer (akin to preventing the default action) start
-    const bodyStyle = document.querySelector("body");
-    cachedUserSelect = bodyStyle.userSelect;
-    bodyStyle.userSelect = "none";
-    //capture the mouse pointer (akin to preventing the default action) end
-
-    window.addEventListener("mousemove", mousemoveListener, true);
-    window.addEventListener("mouseup", mouseupListener, true);
-    !cancelMouseout && window.addEventListener("mouseout", mouseoutListener, true);
-  }
-
-  function recordEvent(e) {
-    recorded.push(e);
-  }
-
-  function stopRecordingEvent() {
-    recorded = undefined;
-    //release the captured mouse pointer start
-    document.querySelector("body").style.userSelect = cachedUserSelect;
-    cachedUserSelect = undefined;
-    //release the captured mouse pointer end
-
-    window.removeEventListener("mousemove", mousemoveListener, true);
-    window.removeEventListener("mouseup", mouseupListener, true);
-    window.removeEventListener("mouseout", mouseoutListener, true);   //always remove all potential listeners, regardless
-  }
-
-  //specific make event functions
+  //custom make events
   function makeDraggingEvent(name, trigger) {
     const composedEvent = new CustomEvent("dragging-" + name, {bubbles: true, composed: true});
     composedEvent.x = trigger.x;
@@ -68,16 +30,14 @@
     return composedEvent;
   }
 
-  function makeFlingEvent(target, trigger) {
-    const minDuration = target.hasAttribute("fling-duration") ? parseInt(target.getAttribute("fling-duration")) : 200;
-    const flingTime = trigger.timeStamp - minDuration;
-    const flingStart = findLastEventOlderThan(recorded, flingTime);
+  function makeFlingEvent(trigger, sequence) {
+    const flingTime = trigger.timeStamp - sequence.flingDuration;
+    const flingStart = findLastEventOlderThan(sequence.recorded, flingTime);
     if (!flingStart)
-      return;
+      return null;
     const detail = flingDetails(trigger, flingStart);
-    const minDistance = target.hasAttribute("fling-distance") ? parseInt(target.getAttribute("fling-distance")) : 50;
-    if (detail.distDiag < minDistance)
-      return;
+    if (detail.distDiag < sequence.flingDistance)
+      return null;
     detail.angle = flingAngle(detail.distX, detail.distY);
     return new CustomEvent("fling", {bubbles: true, composed: true, detail});
   }
@@ -102,86 +62,90 @@
     return ((Math.atan2(y, -x) * 180 / Math.PI) + 270) % 360;
   }
 
-  //specific listener functions
+  //custom sequence
+  let globalSequence;
+  const mousemoveListener = e => onMousemove(e);
+  const mouseupListener = e => onMouseup(e);
+  const mouseoutListener = e => onMouseout(e);
+
+  function startSequence(target, e) {
+    const body = document.querySelector("body");
+    const sequence = {
+      target,
+      cancelMouseout: target.hasAttribute("draggable-cancel-mouseout"),
+      flingDuration: parseInt(target.getAttribute("fling-duration")) || 50,
+      flingDistance: parseInt(target.getAttribute("fling-distance")) || 200,
+      recorded: [e],
+      userSelectStart: body.style.userSelect
+    };
+    body.style.userSelect = "none";
+    window.addEventListener("mousemove", mousemoveListener, true);
+    window.addEventListener("mouseup", mouseupListener, true);
+    !sequence.cancelMouseout && window.addEventListener("mouseout", mouseoutListener, true);
+    return sequence;
+  }
+
+  function updateSequence(sequence, e) {
+    sequence.recorded.push(e);
+    return sequence;
+  }
+
+  function stopSequence() {
+    //release target and event type start
+    //always remove all potential listeners, regardless
+    document.querySelector("body").style.userSelect = globalSequence.userSelectStart;
+    window.removeEventListener("mousemove", mousemoveListener, true);
+    window.removeEventListener("mouseup", mouseupListener, true);
+    window.removeEventListener("mouseout", mouseoutListener, true);
+    return undefined;
+  }
+
+  //custom listeners
+  function cancelSequence(trigger) {
+    const cancelEvent = makeDraggingEvent("cancel", trigger);
+    dispatchPriorEvent(globalSequence.target, cancelEvent, trigger);
+    globalSequence = stopSequence();
+  }
+
   function onMousedown(trigger) {
     //filter 1
-    if (recorded) {
-      const composedEvent = makeDraggingEvent("cancel", trigger);
-      const data = [recorded[0].target, composedEvent, trigger];
-      stopRecordingEvent();
-      return dispatchPriorEvent(data);
-    }
+    if (globalSequence)
+      return cancelSequence(trigger);
     //filter 2
     if (trigger.button !== 0)
       return;
     //filter 3
-    const newTarget = filterOnAttribute(trigger, "draggable");
-    if (!newTarget)
+    const target = filterOnAttribute(trigger, "draggable");
+    if (!target)
       return;
 
-    trigger.preventDefault();
-
-    //make event
     const composedEvent = makeDraggingEvent("start", trigger);
-
-    //record
-    startRecordingEvent(composedEvent, newTarget.hasAttribute("draggable-cancel-mouseout"));
-
-    //dispatch event
-    dispatchPriorEvent([newTarget, composedEvent, trigger]);
+    trigger.preventDefault();
+    dispatchPriorEvent(target, composedEvent, trigger);
+    globalSequence = startSequence(target, composedEvent);
   }
 
   function onMousemove(trigger) {
-    const newTarget = recorded[0].target;
-
-    trigger.preventDefault();
-
-    //make event
     const composedEvent = makeDraggingEvent("move", trigger);
-
-    //record
-    recorded.push(composedEvent);
-
-    //dispatch event
-    dispatchPriorEvent([newTarget, composedEvent, trigger]);
+    trigger.preventDefault();
+    dispatchPriorEvent(globalSequence.target, composedEvent, trigger);
+    globalSequence = updateSequence(globalSequence, composedEvent);
   }
 
   function onMouseup(trigger) {
-    const newTarget = recorded[0].target;
-
-    trigger.preventDefault();
-
-    //make events
     const stopEvent = makeDraggingEvent("stop", trigger);
-    const flingEvent = makeFlingEvent(recorded[0].target, trigger);
-
-    //record
-    stopRecordingEvent();
-
-    //dispatch event
-    dispatchPriorEvent([newTarget, stopEvent, trigger]);
-    dispatchPriorEvent([newTarget, flingEvent, trigger]);
+    const flingEvent = makeFlingEvent(trigger, globalSequence);
+    trigger.preventDefault();
+    dispatchPriorEvent(globalSequence.target, stopEvent, trigger);
+    dispatchPriorEvent(globalSequence.target, flingEvent, trigger);
+    globalSequence = stopSequence();
   }
 
   function onMouseout(trigger) {
     //filter
-    const eY = event.clientY;
-    const eX = event.clientX;
-    if(eY > 0 && eX > 0 && eX < window.innerWidth && eY < window.innerHeight)
-      return;   //The mouse is not leaving the window
-
-    trigger.preventDefault();
-
-    const newTarget = recorded[0].target;
-
-    //make events
-    const cancelEvent = new CustomEvent("dragging-cancel", {bubbles: true, composed: true, triggerEvent: trigger});
-
-    //record
-    stopRecordingEvent();
-
-    //dispatch event
-    dispatchPriorEvent([newTarget, cancelEvent, trigger]);
+    if (trigger.clientY > 0 && trigger.clientX > 0 && trigger.clientX < window.innerWidth && trigger.clientY < window.innerHeight)
+      return;   //The mouse has not left the window
+    cancelSequence(trigger);
   }
 
   window.addEventListener("mousedown", e => onMousedown(e));
