@@ -1,45 +1,47 @@
 # Pattern: EventComposition
 
-> It is surprising to see how rarely event composition is used. It makes me second guess my self.
+> It was surprising to see how rarely event composition is used. It made me second guess my self.
 > And, while pursuing these second guesses, I became even more surprised. 
-> Firstly, native events all follow the same patterns as EventComposition. 
-> Natively, this pattern and its variants reign supreme.
-> Through its actions, the platform implicitly advocates using this pattern. Quite strongly. 
+> Firstly, native events all follow the EventComposition pattern. 
+> Through its actions, the platform implicitly, but still quite strongly advocates using this pattern. 
 > Second, pursuing this pattern reveals several flaws in other approaches and several large benefits 
 > for EventComposition: 
 > extreme ease of reuse, both across apps and within apps; 
 > extremely low coupling to other parts of the code,
-> super clear interface yielding less confusion, misuse and general anxiety than all other approaches. 
-> Yet almost no one uses this approach! Why is that? 
+> super clear interfaces yielding less confusion, misuse and general anxiety,
+> and lightDOM composeability, ie. you can combine events from the same vantage point as you can HTML elements. 
+> Yet, almost no one uses this approach! Why is that? 
 > I really don't know. ¯\\\_(ツ)\_/¯
 
 EventComposition is the act of making a new event from one or more other events.
 EventComposition is implemented as a single JS function added as a global, capture event listener.
 When composing events, one relies on a series of strategic choices, that put together form different
-design patterns for EventCompositions.
+design patterns for EventCompositions. But, before we look at these strategies, we need to define a
+vocabulary.
 
-Some names:
- * Composed event: an event that is triggered by one or more other events.
- * Triggering event: an event that will initiate the dispatch a new composed event.
- * Event sequence: a series of triggering events that when following a specific order 
+ * **Composed event**: an event that is triggered by one or more other events.
+ * **Triggering event**: an event that will initiate the dispatch a new composed event.
+ * **Atomic event**: an event that is not triggered by any other events.
+ * **Event sequence**: a series of triggering events that when following a specific order 
    will dispatch a composed event.
- * Preceding event: an event that propagates before another event.
- * Trailing event: an event that propagates after another event.
- * (Event) Triggering function: a (set of) functions that capture an event.
-   The triggering function is added a) globally (ie. to `window`) and 
-   b) in the capture phase of the propagation.
- * Native events: events triggered by the browser.
- * Custom events: events triggered by a script.
-   
-These concepts will be explained more in depth in this chapter.
-   
+ * **Preceding event**: an event that propagates before another event.
+ * **Trailing event**: an event that propagates after another event.
+ * **Event Triggering function**: a (set of) functions that capture an event and dispatch composed events.
+   The triggering function is at the very start of a triggering events propagation, 
+   ie. added a) globally (ie. to `window`) and b) in the capture phase of the propagation.
+ * **Native events**: events triggered by the browser.
+ * **Custom events**: events triggered by a script.
+      
 ## EventComposition strategies
 The strategic choices the developer needs to consider when composing events are:
 
-1. How can my composed event's propagation be made independent from the propagation of its triggering events?
+1. Should the composed event propagate independently of other events, 
+   and if so, how can this be achieved?
+   [The EarlyBird pattern](Pattern2_EarlyBird.md).
 
 2. Should I dispatch the composed event so that it propagates the DOM *prior to* the triggering event; or 
    should I dispatch the composed event so that it propagates *after* (trailing) the triggering event?
+   [The PriorEvent pattern](Pattern3_PriorEvent.md). 
 
 3. Do I need to access any state information outside of the events that trigger the composed event; or
    do I need to store any state information when I listen for a sequence of events; or
@@ -49,75 +51,12 @@ The strategic choices the developer needs to consider when composing events are:
    do I need to listen for several events; or 
    do I need to listen to a sequence of events?
    
-5. Do the composed event need to be able to prevent the default behavior of the triggering event;
+5. When I need to listen for a sequence of events, how can I do so most efficiently?
+
+6. Do the composed event need to be able to prevent the default behavior of the triggering event;
    do the composed event need to prevent the default behavior of the triggering event always; or
    do the composed event never need to prevent the default behavior of the triggering event?
-
-## Question 1: Independent propagation
-
-The platform makes two important strategic choices about event propagation:
- 
- * Natively composed events such as `submit` and `doubleclick` 
-   *always propagate completely one after the other*.
-   This means that the browser will not trigger a new native event before *all* the event listeners
-   for a previously triggered event has been completed, in both the capture, target, and bubble phase.
    
- * Stopping the *propagation* of a native event *will not* affect the propagation and execution of
-   any trailing event; to stop the propagation of trailing composed events, 
-   the method `preventDefault()` must be called.
-
-These two strategic choices has one important consequence when you as a developer compose your own events.
-As stopping propagation of a triggering event *should never affect/stop* the triggering and propagation 
-of your composed event, you need to ensure that your event triggering functions intercept the triggering
-event *before* any other event listeners (that might inadvertently call `stopPropagation()` and 
-mess things up for you). As you never with certainty know exactly where and when that might happen,
-your best and only bet is to try to ensure that your composed events triggering functions always capture 
-the triggering events first. This means that you should always add your composed events triggering 
-functions a) to the `window` object in the capture phase and b) not place any other scripts that
-add event listeners that listen for the same event, on the window, in the capture phase, and call stopImmediatePropagation()
-before your composed event script.
-
-The platforms established strategy thus gives a concrete answer to our first strategic question:
-How can my composed event's propagation be made independent from the propagation of its triggering events?
-**To keep a composed event's propagation independent of other events' propagation, 
-the triggering functions must all be added *before* (implemented as the very first step of) 
-the propagation of the triggering event.**
-
-## Question 2: Propagate before or after the trigger event
-
-This creates a strategic tension between native composed events (in the browser) 
-and custom composed events (added as a script).
-Native, composed events always propagate *after* the native triggering event:
-`click` always propagate *after* `mouseup`.
-But if triggering functions for custom, composed events must be added *before* the propagation
-of the triggering event, custom composed events must either:
- * propagate *before* their triggering event, or
- * be delayed asynchronously in order to propagate *after* their triggering event.
-
-The "natural" order of the event propagation in the DOM is the natively established order:
-`mouseup` then `click`; trigger event then composed event.
-However, there is *no* way to delay the triggering of an event 
-until both:
-1. *after* the triggering event has finished its propagation, but also 
-2. *before* the default action of the triggering event has been executed.
-
-The consequence of this dilemma means that custom, composed events that are made to propagate *after*
-a triggering event needs to either:
-1. prevent the default behavior of the native, triggering event, thus resulting in a DOM sequence like this:
-   triggerEvent->composedEvent->butNoTriggerDefaultAction, or
-2. allow the default behavior of the native, triggering event to conclude before the custom, composed 
-   event's propagation: triggerEvent->triggerDefaultAction->composedEvent.           
-   
-This both limits the possibilities and complicates all aspects of custom, composed events.
-And therefore, this chapter therefore advocate using the PriorEvent strategy:
-composedEvent->triggerEvent->triggerDefaultAction.
-The PriorEvent strategy yields an unnatural event sequence in the DOM:
-it is as if `click` propagates before `mouseup`. 
-However, as the complexity of the creation, use, and debuggability for custom, composed events
-greatly lessen using this strategy, our opinion and advice is therefore to adhere to the
-PriorEvent pattern always and consistently. The answer to our second strategic choicepoint is therefore:
-**I dispatch the composed event so that it propagates the DOM *prior to* the triggering event.**
-
 ## Question 3: What state information should composed events rely on?
 Furthermore, and as a general rule, composed events should not require any state information 
 outside the scope of its triggering event and the DOM elements it directly propagates to.
