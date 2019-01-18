@@ -82,6 +82,8 @@ the order of the defaultAction is scrambled. The AfterthoughtEvent is thus *not*
 trigger event has a defaultAction, and should only be used when *none* of the triggering events 
 has a defaultAction.
 
+todo: Find a list of native events that has no defaultAction. AfterthoughtEvent can be used for tese events.  
+
 > Old draft: The benefit of the AfterthoughtEvent is that it follows the intuitive, conventional event sequence
 propagating the trigger event first, and the composed event second. 
 But, this "intuitive" order does not apply to the triggering events default action.

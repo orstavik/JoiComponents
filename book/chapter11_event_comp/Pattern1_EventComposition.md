@@ -62,7 +62,7 @@ The strategic choices the developer needs to consider when composing events are:
 
 In this book, we will present the following EventComposition patterns:
 
-0. Problem: **BubbleEventTorpedo**.
+0. Problem: **StopPropagationTorpedo**. (BubbleEventTorpedo)
    Show how a) you can turn off the triggering and propagation of a composed event 
    by simply b) adding an event listener to trigger it later on in the propagation order and then 
    c) stop the propagation of the trigger event prior to the composed event trigger function in the 
@@ -71,13 +71,13 @@ In this book, we will present the following EventComposition patterns:
 1. Pattern: **EarlyBird**: 
    The chapter uses an `echo-click` event as its example.
    
-2. **PriorEvent**: 
+2. Pattern: **PriorEvent**: 
    The chapter uses an `echo-click` event as its example.
    
-3. **AfterthoughtEvent**: 
+3. Pattern: **AfterthoughtEvent**: 
    The chapter uses an `echo-click` event as its example.
    
-4. **ReplaceDefaultAction**: 
+4. Pattern: **ReplaceDefaultAction**: 
    The chapter uses an `echo-click` event as its example.
    
  
@@ -99,6 +99,10 @@ In this book, we will present the following EventComposition patterns:
    EventSequence pattern listens for a sequence of events from one or more different types, and
    it uses the state from this collection of event in its event composition.
    The chapter uses a `long-press` event as its example.
+
+Discuss how it is important not to have the trigger event listeners on high frequent events, and 
+to add event trigger functions on a need-to-know basis.
+
 
    Question 3: What state information should composed events rely on?
 Furthermore, and as a general rule, composed events should not require any state information 
