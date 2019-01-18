@@ -15,6 +15,16 @@ To call `preventDefault()` on the `scroll` event will cancel the scroll task.
 To call `preventDefault()` on the `touchmove` event will cancel the `scroll` event 
 which in turn will cancel the scroll task.
 
+> If you don't like the defaultAction of events, you're not alone. This is how the spec itself
+> describes it:
+> "\[Activation behavior\] exists because user agents perform certain actions for certain EventTarget 
+> objects, e.g., the area element, in response to synthetic MouseEvent events whose type attribute is 
+> click. Web compatibility prevented it from being removed and it is now the enshrined way of defining 
+> an activation of something. "
+> [spec](https://dom.spec.whatwg.org/#eventtarget-activation-behavior)
+
+ * [Default browser action](https://javascript.info/default-browser-action)
+ 
 ## Native event sequence
 
 Native, composed events always propagate *after* the native triggering event:
@@ -344,3 +354,6 @@ greatly lessen using this strategy, our opinion and advice is therefore to adher
 PriorEvent pattern always and consistently. The answer to our second strategic choicepoint is therefore:
 **I dispatch the composed event so that it propagates the DOM *prior to* the triggering event.**
 
+## References
+
+ * [stackoverflow: `setTimeout(..., 0)`](https://stackoverflow.com/questions/33955650/what-is-settimeout-doing-when-set-to-0-milliseconds/33955673)

@@ -87,6 +87,7 @@ In this book, we will present the following EventComposition patterns:
 6. **FilteredPriorEvent**: This pattern uses a pure function to filter out a composed event
    from a single event of a single event type. The chapter uses the `link-click` event as example
    (ie. `click` events on DOM elements within an `<a>` or `<area>` element that will trigger browsing).
+   [cf. "What is a pure function?"](https://medium.com/javascript-scene/master-the-javascript-interview-what-is-a-pure-function-d1c076bec976)
 
 7. **MergedEvents**(UnitedEvents) : This pattern also uses a pure function to 
    compose a single event from single events of two or more event types.
@@ -127,3 +128,9 @@ from the DOM elements the triggering events directly propagates to.
    Behind the CaptureEventType patterns, a more generalized pattern about conflict management. 
    Go all in hard at the beginning. 
 
+
+## References
+
+ * [Bubbling and capturing](https://javascript.info/bubbling-and-capturing)
+ * [Event Bubbling and Event Capturing in JavaScript](https://medium.com/@vsvaibhav2016/event-bubbling-and-event-capturing-in-javascript-6ff38bec30e)
+ * [MDN: `addEventListener()` with capture](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#Example_of_options_usage)
