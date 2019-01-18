@@ -164,10 +164,10 @@ window.addEventListener(
 </script>
 
 <ul>
-  <li><a id="a" href="https://letmepass.com/">#a, will navigate</a></li>
-  <li><a id="b" href="https://i.am.blocked.com/">#b, is blocking both click event and navigation</a></li>
-  <li><a id="b" href="https://i.am.justalittle.blocked.com/">#c, is only blocking navigation</a></li>
-  <li id="c">you can click me too</li>
+  <li><a href="https://letmepass.com/">not blocked, will navigate</a></li>
+  <li><a href="https://i.am.blocked.com/">blocks both click event and navigation</a></li>
+  <li><a href="https://i.am.justalittle.blocked.com/">only blocks navigation</a></li>
+  <li>you can click me too, if you'd like</li>
 </ul>
 <script>                                                                      
 window.addEventListener("click", function(e){alert(e.type + ": " + e.target.id);});
