@@ -75,18 +75,15 @@ on that element.
    
 ```javascript
 function filterOnAttribute(e, attributeName) {                //1
-  for (let el = e.target; el; el = el.parentNode) {
+  for (var el = e.target; el; el = el.parentNode) {
     if (!el.hasAttribute)
-      return null;
+      return;
     if (el.hasAttribute(attributeName))
       return el;
   }
-  return null;
 }
 
 function dispatchPriorEvent(target, composedEvent, trigger) {   
-  if (!target || !composedEvent)                              //3
-    return;
   composedEvent.preventDefault = function () {                  
     trigger.preventDefault();
     trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
@@ -98,9 +95,12 @@ function dispatchPriorEvent(target, composedEvent, trigger) {
 window.addEventListener(
   "click", 
   function(e) {
+    var newTarget = filterOnAttribute(e, "echo-click");
+    if (!newTarget)                                           //2
+      return;
     dispatchPriorEvent(
-      filterOnAttribute(e, "echo-click"),                     //2
-      e.target, new CustomEvent("echo-click", {bubbles: true, composed: true}), 
+      newTarget,                     
+      new CustomEvent("echo-click", {bubbles: true, composed: true}), 
       e
     );
   }, 
@@ -108,11 +108,8 @@ window.addEventListener(
 );
 ```
 1. The `filterOnAttribute(e, attributeName)` finds the first target in the target-chain with the
-   specified `attributeName`. If no such element exists, it returns `null`.
-2. As not all trigger events now will be directed at elements with this attribute, 
-   the `dispatchPriorEvent(...)` function might now be given a void target.
-3. The `dispatchPriorEvent(...)` function is therefore updated to simply abort
-   when it is asked to dispatch an event either lacking an appropriate target or new composed event.
+   specified `attributeName`. If no such element exists, it returns `undefined`.
+2. If no new target is filtered out, the trigger function simply aborts.
 
 Put into action, the events can be filtered on attribute. Below is a demo of the filtered `echo-click`
 in action.
@@ -120,18 +117,15 @@ in action.
 ```html
 <script>
 function filterOnAttribute(e, attributeName) {                //1
-  for (let el = e.target; el; el = el.parentNode) {
+  for (var el = e.target; el; el = el.parentNode) {
     if (!el.hasAttribute)
-      return null;
+      return;
     if (el.hasAttribute(attributeName))
       return el;
   }
-  return null;
 }
 
 function dispatchPriorEvent(target, composedEvent, trigger) {   
-  if (!target || !composedEvent)                              //3
-    return;
   composedEvent.preventDefault = function () {                  
     trigger.preventDefault();
     trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
@@ -143,9 +137,12 @@ function dispatchPriorEvent(target, composedEvent, trigger) {
 window.addEventListener(
   "click", 
   function(e) {
+    var newTarget = filterOnAttribute(e, "echo-click");
+    if (!newTarget)                                           //2
+      return;
     dispatchPriorEvent(
-      filterOnAttribute(e, "echo-click"),                     //2
-      e.target, new CustomEvent("echo-click", {bubbles: true, composed: true}), 
+      newTarget,                     
+      new CustomEvent("echo-click", {bubbles: true, composed: true}), 
       e
     );
   }, 

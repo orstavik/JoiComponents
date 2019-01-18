@@ -1,181 +1,192 @@
-# Pattern: AttributeFilteredEvent
+# Pattern: TypeFilteredEvent
 
-## DOM-universal events
+The TypeFilteredEvent very much resemble the AttributeFilteredEvent. As with the AttributeFilteredEvent,
+the TypeFilteredEvent will filter the target chain of the triggering event to potentially find a suitable 
+target for its new composed event. The method thus looks like this:
 
-Custom, composed events constructed using the PriorEvent, AfterthoughtEvent or ReplaceDefaultAction 
-patterns are all "DOM-global" by default. The event trigger function is added to the global object, `window`,
-and if not explicitly cancelled, the event trigger function will dispatch a custom, composed event for
-any all DOM elements on which the trigger event occurs.
-
-The DOM-universal aspect of these patterns has several benefits:
-
-1. You do not need to register and run more than a single event trigger listener function 
-   even though you might want to apply your custom, composed event to many different elements.
-   This can have adverse effects if you add event trigger functions on high frequency events 
-   such as `mousemove` or `wheel`. You do not wan't to do that. But, if you initially only add event 
-   trigger functions on low-frequency events such as `mousedown` or `click`, then 
-   having a single global event listener will give you a performance boost if you intend to apply it to
-   many elements in the DOM, potentially at the same time.
-                                                                                   
-   The performance benefits will be described more in detail under the EventSequence pattern.
-   
-2. The event is always available, on any DOM element that you wish to use it on.
-   This makes it **composeable from the lightDOM**. This has two huuuuge implications:
-   
-   1. The custom events can be applied to native elements as well as custom elements 
-      (or other specialized modules). As the event is always available, and propagates similar to 
-      native events, you do not have to make a custom element or module to make a `<div>` draggable
-      or capture a custom `swipe` event on an image.
-      
-   2. The creation, management, control, and maintenance of the code making the custom event
-      thus has no coupling to the creation, management, control, and maintenance of custom elements.
-      I cannot overstate how important this is. Custom event creation, management, control, and maintenance
-      very quickly grow in complexity: for any event of some magnitude, there are likely tens of edge-cases,
-      valuable tricks, associated conventions and best practices. The complexity of custom element 
-      creation, management, control, and maintenance is equally demanding. To be able to separate these
-      two beasts and tackle them one by one is extremely beneficial. When the complexity of both custom 
-      events and custom elements must be managed as one, the complexity of one such web component can 
-      easily sink a project before it gets of the ground.
-
-3. Many native events are also DOM-universal. If you wish to use `long-press` or `tap` in your app,
-   such an event clearly echoes `click` and you would likely desire to have this available as a global
-   feature, as you would `click`. Having your custom, composed events global therefore gives you the ability 
-   to parrot the platforms conventions when this is appropriate.
-
-## Element-specific events
-
-However, sometimes events are not global. The `submit` event for example is only ever dispatched by/on 
-`<form>` elements; and the `change` event always target `<input>` and `<textarea>` elements.
-Many events are thus not universal to all elements in the DOM (DOM-universal), but specific to a select
-group of DOM elements (element-specific).
-
-There are three types of element-specific custom, composed events:
- * Events specific to certain instances of elements (AttributeFilteredEvents).
- * Events specific to a certain type of elements (TypeFilteredEvents).
- * Events specific to both certain instances of a certain type of elements (simply the union of the 
- AttributableEvents and FilteredEvents patterns).
- 
-## AttributeFilteredEvents
-
-To make an event specific to certain element instances, two things must happen:
-
-1. The element must be marked as having this event. This is done by adding an attribute to that element.
-   (Attributes is the inter-linguistic marker for HTML elements available to both HTML, JS and CSS.
-   If you want an aspect of an HTML element to be accessible in a universal context, you use attributes.)
-
-2. The originally DOM-universal event trigger function must be restricted to be applied only to the 
-   marked elements.
-   This is done by filtering out only the events which include a target marked with the given attribute. 
-
-To implement the AttributeFilteredEvents pattern is simple. You need a pure `filterOnAttribute` function 
-that finds the first target with the required attribute, and then dispatching the custom, composed event
-on that element.
-
-## Demo: `echo-click` event filtered on `echo-click` attribute
-   
 ```javascript
-function filterOnAttribute(e, attributeName) {                //1
-  for (let el = e.target; el; el = el.parentNode) {
-    if (!el.hasAttribute)
-      return null;
-    if (el.hasAttribute(attributeName))
+function filterOnType(e, typeName) {
+  for (var el = e.target; el; el = el.parentNode) {
+    if (el.nodeName === typeName)
       return el;
   }
-  return null;
-}
+}                            
+```
 
-function dispatchPriorEvent(target, composedEvent, trigger) {   
-  if (!target || !composedEvent)                              //3
-    return;
-  composedEvent.preventDefault = function () {                  
+## Example: `link-click`
+
+While still a simple structure, one custom, composed TypeFilteredEvent is extremely useful: 
+`link-click`.
+When the user clicks on an element within a page and that element is a child of a `<a href>`,
+that click will trigger the browser to navigate. However, if the clicked element is not a
+child of a link, then the event will not trigger a link click.
+To have a custom event that always trigger if the user clicks on a link thus gives us a simple,
+efficient way to intercept all `link-click`s. A naive implementation of `link-click` looks like this:
+
+```javascript
+function filterOnType(e, typeName) {
+  for (var el = e.target; el; el = el.parentNode) {
+    if (el.nodeName === typeName)
+      return el;
+  }
+}                            
+
+function dispatchPriorEvent(target, composedEvent, trigger) {
+  composedEvent.preventDefault = function () {
     trigger.preventDefault();
     trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
   };
-  composedEvent.trigger = trigger;                              
-  target.dispatchEvent(composedEvent);                   
+  composedEvent.trigger = trigger;
+  return target.dispatchEvent(composedEvent);
 }
 
 window.addEventListener(
   "click", 
-  function(e) {
+  function(e){ 
+    var newTarget = filterOnType(e, "A");
+    if (!newTarget)
+      return;
     dispatchPriorEvent(
-      filterOnAttribute(e, "echo-click"),                     //2
-      e.target, new CustomEvent("echo-click", {bubbles: true, composed: true}), 
+      newTarget,
+      new CustomEvent("link-click", {bubbles: true, composed: true}),
       e
     );
   }, 
-  true
-);
+  true);
 ```
-1. The `filterOnAttribute(e, attributeName)` finds the first target in the target-chain with the
-   specified `attributeName`. If no such element exists, it returns `null`.
-2. As not all trigger events now will be directed at elements with this attribute, 
-   the `dispatchPriorEvent(...)` function might now be given a void target.
-3. The `dispatchPriorEvent(...)` function is therefore updated to simply abort
-   when it is asked to dispatch an event either lacking an appropriate target or new composed event.
 
-Put into action, the events can be filtered on attribute. Below is a demo of the filtered `echo-click`
-in action.
+However, there are two other link elements that can be `click`ed in an HTML page:
+`<area>` (with nodeName "AREA") and inline SVG `<a>` elements (with nodeName "a").
+In addition, a `click` will not navigate if a `metaKey` was pressed at the same time.
+We therefore add this to our filter method, which therefore is best customized for this particular setting.
+
+```javascript
+function filterNavigationTargets(e) {
+  if (e.metaKey)
+    return;
+  for (var el = e.target; el; el = el.parentNode) {
+    if (el.nodeName === "A" || el.nodeName === "AREA" || el.nodeName === "a")
+      return el;
+  }
+}                            
+```
+This yields a filter that should resemble the browsers own native filtering of `click` to navigation 
+task events.
+
+```javascript
+function filterNavigationTargets(e) {
+  if (e.metaKey)
+    return;
+  for (var el = e.target; el; el = el.parentNode) {
+    if (el.nodeName === "A" || el.nodeName === "AREA" || el.nodeName === "a")
+      return el;
+  }
+}                            
+
+function dispatchPriorEvent(target, composedEvent, trigger) {
+  composedEvent.preventDefault = function () {
+    trigger.preventDefault();
+    trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
+  };
+  composedEvent.trigger = trigger;
+  return target.dispatchEvent(composedEvent);
+}
+
+window.addEventListener(
+  "click", 
+  function(e){ 
+    var newTarget = filterNavigationTargets(e);
+    if (!newTarget)
+      return;
+    dispatchPriorEvent(
+      newTarget,
+      new CustomEvent("link-click", {bubbles: true, composed: true}),
+      e
+    );
+  }, 
+  true);
+```
+
+### `link-click`, `preventDefault()` and PriorEvent
+
+The `link-click` event is a prime example of why and when the PriorEvent pattern is needed.
+If the developer wishes to control the navigation behavior of the browser's DOM, this particular event 
+(in addition to `submit`) needs to be intercepted and controlled.
+As described in the chapters on PriorEvent, AfterthoughtEvent and ReplaceDefaultAction, 
+the only pattern that allows a developer to both create a custom, composed event that filters out all 
+the relevant "navigation events" *and* that allows the developer to direct and selectively stop
+such navigation events is PriorEvent.
+
+(In the case of click, there is one other alternative. The replaceDefaultAction pattern could be employed, 
+and then once the developer wishes to let navigation events bypass, a new `<form>` element with the correct
+`href` and `method="get"` could be created and then called `.submit()` upon. However, this is thus 
+far considered an inferior solution to the PriorEvent pattern, whose only drawback is a reverse order propagating
+the composed event before the trigger event).
+
+## Demo: `link-click` 
+
+In the demo below we use `link-click` to control navigation. It is in a sense a micro, binary router, 
+a router that blocks or let pass different navigation events.
 
 ```html
 <script>
-function filterOnAttribute(e, attributeName) {                //1
-  for (let el = e.target; el; el = el.parentNode) {
-    if (!el.hasAttribute)
-      return null;
-    if (el.hasAttribute(attributeName))
+function filterNavigationTargets(e) {
+  if (e.metaKey)
+    return;
+  for (var el = e.target; el; el = el.parentNode) {
+    if (el.nodeName === "A" || el.nodeName === "AREA" || el.nodeName === "a")
       return el;
   }
-  return null;
-}
+}                            
 
-function dispatchPriorEvent(target, composedEvent, trigger) {   
-  if (!target || !composedEvent)                              //3
-    return;
-  composedEvent.preventDefault = function () {                  
+function dispatchPriorEvent(target, composedEvent, trigger) {
+  composedEvent.preventDefault = function () {
     trigger.preventDefault();
     trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
   };
-  composedEvent.trigger = trigger;                              
-  target.dispatchEvent(composedEvent);                   
+  composedEvent.trigger = trigger;
+  return target.dispatchEvent(composedEvent);
 }
 
 window.addEventListener(
   "click", 
-  function(e) {
+  function(e){ 
+    var newTarget = filterNavigationTargets(e);
+    if (!newTarget)
+      return;
     dispatchPriorEvent(
-      filterOnAttribute(e, "echo-click"),                     //2
-      e.target, new CustomEvent("echo-click", {bubbles: true, composed: true}), 
+      newTarget,
+      new CustomEvent("link-click", {bubbles: true, composed: true}),
       e
     );
   }, 
-  true
-);
+  true);
 </script>
 
-<div id="a1">
-  no echo here
-</div>
+<ul>
+  <li><a id="a" href="https://letmepass.com/">#a, will navigate</a></li>
+  <li><a id="b" href="https://i.am.blocked.com/">#b, is blocking both click event and navigation</a></li>
+  <li><a id="b" href="https://i.am.justalittle.blocked.com/">#c, is only blocking navigation</a></li>
+  <li id="c">you can click me too</li>
+</ul>
+<script>                                                                      
+window.addEventListener("click", function(e){alert(e.type + ": " + e.target.id);});
+window.addEventListener("link-click", function(e){alert(e.type + ": " + e.target.id);});
 
-<div id="b1" echo-click>
-  echo here
-</div>
-
-<div id="c1">
-  <div id="c2" echo-click>
-    echo here too
-  </div>
-</div>
-
-<div id="d1" echo-click>
-  <div id="d2" echo-click>
-    only a single echo here too
-  </div>
-</div>
-
-<script>
-document.addEventListener("click", function(e){alert(e.type +": "+ e.target.id);});
-document.addEventListener("echo-click", function(e){alert(e.type +": "+ e.target.id);});
+//micro router
+window.addEventListener("link-click", function(e){
+  if (e.target.href.endsWith("letmepass.com/")){
+    alert("This link I will let pass");
+  } else if (e.target.href.endsWith("i.am.blocked.com/")){
+    e.preventDefault();
+    alert("I am blocking click and navigation.");
+  } else if (e.target.href.endsWith("i.am.justalittle.blocked.com/")){
+    alert("I am blocking only navigation.");
+    e.trigger.preventDefault();
+  } else {
+    //let it pass
+  }
+});
 </script>
 ```
 
