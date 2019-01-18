@@ -1,29 +1,6 @@
 # Pattern: EarlyBird
 
-## Native events' propagation
-
-The platform makes two important strategic choices about event propagation:
- 
- * All native events *propagate completely and in isolation, one by one*.
-   The browser will never trigger an event listener for a native, trailing event before *all* 
-   the event listeners for a native, preceding event has been executed.
-   This is true for all phases of event propagation (capture, target, and bubble).
-   And it is true natively composed events such as `submit` and `doubleclick`.
-   
- * Stopping the *propagation* of a native event *will not* affect the propagation and execution of
-   any other trailing native event; to stop the propagation of trailing composed events, 
-   the method `preventDefault()` must be called.
-
-Combined, these two platform practices have an important consequence for custom events:
-**the propagation of a triggering event *should never affect/stop* the propagation of a composed event**. 
-This affects *both* native atomic events and native composed events alike. 
-And, to block a composed event by stopping the propagation of its triggering event is an anti-pattern
-that we call the StopPropagationTorpedo;
-trailing, composed events *should only be* blocked using the `.preventDefault()` method on the triggering event.
-
-## Pattern: EarlyBird gets the event
-
-But, to make a custom, composed event, you *must* listen for a triggering event during its propagation.
+To make a custom, composed event, you *must* listen for a triggering event during its propagation.
 You simply have no choice: how else can you be alerted about its occurrence?
 This means that if some event listener in your app happens to a) be triggered 
 before your event trigger function and b) call `.stopPropagation()` on the triggering event, 
@@ -51,7 +28,11 @@ This `true` specifies that the event listener will be executed during the little
 This means that the `eventTriggerFunction` will be executed during the first stage of 
 the trigger event's propagation.
 
-## Example: StopPropagationTorpedo
+## Demo: `click-echo`
+
+Below is a demo that echoes the demo in StopPropagationTorpedo. 
+In this demo however, the `click-echo` event is added at the very beginning of the propagation chain.
+This makes it precede and escape the StopPropagationTorpedos.
 
 ```html
 <h1>hello <a href="#oOo__ps">world</a></h1>
@@ -68,10 +49,10 @@ document.querySelector("h1").addEventListener("click", function(e){
 </script>
 
 <script>
-function h1Click(e){                                                
-  e.target.dispatchEvent(new CustomEvent("h1-click", {composed: true, bubbles: true}));
+function clickEcho(e){
+  e.target.dispatchEvent(new CustomEvent("click-echo", {composed: true, bubbles: true}));
 }
-document.querySelector("h1").addEventListener("click", function(e){h1Click(e);});
+document.querySelector("h1").addEventListener("click", clickEcho);
 
 window.addEventListener("h1-click", function(e){alert("h1-click");}, true);
 </script>

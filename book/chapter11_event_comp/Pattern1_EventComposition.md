@@ -62,14 +62,15 @@ The strategic choices the developer needs to consider when composing events are:
 
 In this book, we will present the following EventComposition patterns:
 
-1. **EarlyBird**: 
-   The chapter uses an `echo-click` event as its example.
-   
-   **BubbleEventTorpedo** Show how a) you can turn off the triggering and propagation of a composed event 
+0. Problem: **BubbleEventTorpedo**.
+   Show how a) you can turn off the triggering and propagation of a composed event 
    by simply b) adding an event listener to trigger it later on in the propagation order and then 
    c) stop the propagation of the trigger event prior to the composed event trigger function in the 
    trigger event's propagation.
     
+1. Pattern: **EarlyBird**: 
+   The chapter uses an `echo-click` event as its example.
+   
 2. **PriorEvent**: 
    The chapter uses an `echo-click` event as its example.
    
