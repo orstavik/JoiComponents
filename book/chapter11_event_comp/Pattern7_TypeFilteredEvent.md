@@ -130,63 +130,65 @@ a router that blocks or let pass different navigation events.
 
 ```html
 <script>
-function filterNavigationTargets(e) {
-  if (e.metaKey)
-    return;
-  for (var el = e.target; el; el = el.parentNode) {
-    if (el.nodeName === "A" || el.nodeName === "AREA" || el.nodeName === "a")
-      return el;
-  }
-}                            
-
-function dispatchPriorEvent(target, composedEvent, trigger) {
-  composedEvent.preventDefault = function () {
-    trigger.preventDefault();
-    trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
-  };
-  composedEvent.trigger = trigger;
-  return target.dispatchEvent(composedEvent);
-}
-
-window.addEventListener(
-  "click", 
-  function(e){ 
-    var newTarget = filterNavigationTargets(e);
-    if (!newTarget)
+  function filterNavigationTargets(e) {
+    if (e.metaKey)
       return;
-    dispatchPriorEvent(
-      newTarget,
-      new CustomEvent("link-click", {bubbles: true, composed: true}),
-      e
-    );
-  }, 
-  true);
+    for (var el = e.target; el; el = el.parentNode) {
+      if (el.nodeName === "A" || el.nodeName === "AREA" || el.nodeName === "a")
+        return el;
+    }
+  }
+
+  function dispatchPriorEvent(target, composedEvent, trigger) {
+    composedEvent.preventDefault = function () {
+      trigger.preventDefault();
+      trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
+    };
+    composedEvent.trigger = trigger;
+    return target.dispatchEvent(composedEvent);
+  }
+
+  window.addEventListener(
+    "click",
+    function (e) {
+      var newTarget = filterNavigationTargets(e);
+      if (!newTarget)
+        return;
+      dispatchPriorEvent(
+        newTarget,
+        new CustomEvent("link-click", {bubbles: true, composed: true}),
+        e
+      );
+    },
+    true);
 </script>
 
 <ul>
-  <li><a href="https://letmepass.com/">not blocked, will navigate</a></li>
-  <li><a href="https://i.am.blocked.com/">blocks both click event and navigation</a></li>
-  <li><a href="https://i.am.justalittle.blocked.com/">only blocks navigation</a></li>
-  <li>you can click me too, if you'd like</li>
+    <li><a href="https://letmepass.com/">not blocked</a></li>
+    <li><a href="https://justalittle.blocked.com/">only navigation blocked</a></li>
+    <li><a href="https://fully.blocked.com/">both click event and navigation blocked</a></li>
+    <li>you can click me too, if you'd like</li>
 </ul>
-<script>                                                                      
-window.addEventListener("click", function(e){alert(e.type + ": " + e.target.id);});
-window.addEventListener("link-click", function(e){alert(e.type + ": " + e.target.id);});
+<script>
+  window.addEventListener("click", function (e) {
+    alert(e.type + ": " + e.target.innerText);
+  });
+  window.addEventListener("link-click", function (e) {
+    alert(e.type + ": " + e.target.innerText);
+  });
 
-//micro router
-window.addEventListener("link-click", function(e){
-  if (e.target.href.endsWith("letmepass.com/")){
-    alert("This link I will let pass");
-  } else if (e.target.href.endsWith("i.am.blocked.com/")){
-    e.preventDefault();
-    alert("I am blocking click and navigation.");
-  } else if (e.target.href.endsWith("i.am.justalittle.blocked.com/")){
-    alert("I am blocking only navigation.");
-    e.trigger.preventDefault();
-  } else {
-    //let it pass
-  }
-});
+  //micro router
+  window.addEventListener("link-click", function (e) {
+    if (e.target.href.endsWith("letmepass.com/")) {
+      alert("This link I will let pass");
+    } else if (e.target.href.endsWith("fully.blocked.com/")) {
+      e.preventDefault();
+    } else if (e.target.href.endsWith("justalittle.blocked.com/")) {
+      e.trigger.preventDefault();
+    } else {
+      //let it pass
+    }
+  });
 </script>
 ```
 
