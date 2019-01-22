@@ -57,3 +57,15 @@ it is not super simple either:
    such as `mousemove`, `mouseover`, and `mouseout` already pressed on granularity and rarity, 
    collocation is an added cost.
    
+## How to pinch pennies?
+
+At this point in the discussion, you would normally have gotten your wallet out and ready. 
+You are feeling anxious about the cost, and your "go to"-pennypinching-strategy is to wrap up the 
+transaction. However, you are mistaken. What you are buying is not a thing, it is a subscription. 
+To listen for events  is not costly when you enter into the agreement; 
+on the contrary, to subscribe to an event is most often free.
+The cost comes *while* you are subscribing: it is free to enter, and then you are taxed hefty surcharges 
+for drinks *and* the privilege of letting the same juices flow out again at the event. 
+Thus, your normal strategy of paying up front and be done with it early will likely directly hurt you here.
+
+Instead, you need to a new stratey, a new pattern. This we will discuss in the next chapter. So ListenUp. 
