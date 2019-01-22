@@ -95,11 +95,25 @@ In this book, we will present the following EventComposition patterns:
    This chapter uses the `navigate` event as an example to illustrate how all events which eventually
    will yield in the browser browsing can simply be united into a single event to control routing.
 
+
+
 8. **EventSequence**: This pattern illustrate how gestures can be implemented as ComposedEvents.
    EventSequence pattern listens for a sequence of events from one or more different types, and
    it uses the state from this collection of event in its event composition.
    The chapter uses a `long-press` event as its example.
 
+   1. tripple-click. Illustrate how state for the event is stored and then used in the filter and 
+      makeEvent phases.
+      
+   2. naive mouse dragging. Illustrate how additional trigger functions are added once the start of a
+      sequence has occurred. Discuss the performance of global trigger functions, and how best to keep 
+      things efficient.
+      
+   3. setTargetCapture, ie. use the start of the event as the target for the later composed events in the sequence.
+
+   4. setEventTypeCapture, ie. use the replaceDefaultAction pattern + add css properties such as
+      touch-action and user-select.
+      
 Discuss how it is important not to have the trigger event listeners on high frequent events, and 
 to add event trigger functions on a need-to-know basis.
 
