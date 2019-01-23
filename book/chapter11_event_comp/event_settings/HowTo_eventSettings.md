@@ -165,12 +165,45 @@ and so you have no access to alter or play around with the html files. You can d
 project folder, but that is it. The only way the web platform can allow a) the designer to be in control
 of UIX behavior of DOM Events and b) at the same time be restricted to CSS files is to c) implement 
 the control of UIX behavior as CSS properties.
-
+                                                  
 Second, CSS allows you to write selectors that capture many elements at the same time. This will allow 
-you as a developer to for example restrict different defaultActions on a group of elements sorted by
-class or type or attribute or parent or whatever you can select in CSS. Some of this can be accomplished 
-in the same way with HTML attributes, but not with the same power as in CSS. After all, it was to get
-such extra powers that element style was moved into CSS in the first place.
+you as a developer to restrict different defaultActions on a group of elements sorted by
+class or type or attribute or parent or whatever you can select in CSS. Similar restrictions can be 
+accomplished in the same way with HTML attributes, but not with the same power as in CSS. 
+After all, it was to get such extra powers that element style was moved into CSS in the first place.
+
+However. There is a catch. When the event comes flying in, the browser must know which css-properties are
+active on the target element *before* the event listeners are added to the event que. And in order for
+this to happen, the CSSOM must be ready. 
+
+One way to ensure that the CSSOM is ready so that the event processor can extract the relevant CSS properties
+beforehand, is to process the events that need access to such CSSOM values at the very beginning of the frame.
+Before any other JS function has run, the CSSOM is in order as a consequence of the final preparation 
+the browser did in the last frame.
+
+But. This doesn't scale. If only a select few event listeners needs to be processed first, the browser
+can find space for them at the beginning. But if a) many or all event listeners needed to evaluate CSS 
+properties b) in order to regulate their execution, and c) more than one event listener needed to be run
+each frame, then d) the CSSOM would potentially need to be sorted, or partially sorted, before every new event 
+being dispatched.
+
+That would break the current event loop cycle. Currently, more than 1 event might be dispatched in sequence
+*before* the browser needs to recalculate its CSSOM. As only a very select few events (ie. `mousedown`, `touchstart` 
+and `pointerdown`), these are simply moved to the head of the que (or trigger CSS calculation rarely so as to 
+cause only minor disturbance).
+
+Thus. To conclude:
+
+ * defaultActions that begin with `mousedown`, `touchstart`, or `pointerdown` can be regulated using 
+   CSS properties.
+   
+ * But using CSS properties to regulate events require an up-to-date CSSOM *before* every event.
+   With the current frame cycle architecture of one CSS calculation per frame, this is either only possible
+   for a select few event types (ie. the ones currently regulated), or needs to limit the frame to process 
+   only one event per frame, or needs to add one CSSOM calculation prior to every event with such a property.
+   
+ * Custom, composed events therefore should not rely on custom css properties to describe their events
+   as the frame cycle architecture strives to sort the CSSOM only once per frame or as rarely as possible.
                                                                        
 ### Rumble in the jungle: team CSS vs. the web chronotope
 
