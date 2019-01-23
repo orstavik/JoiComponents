@@ -149,9 +149,29 @@ However, I will try to summarize some clearer guidelines from the above:
 3. The EventOrchestra pattern is not as much about structuring DOM Events as it is about structuring
    everything (ie. the whole app or big chunks of it). Sure, it directs DOM Events,
    but it is much more about directing HTML elements, CSS rules *and* DOM Events together.
-
+                                                                       
 ## HowTo: direct DOM Events from CSS?
 
+At first sight, it seems strange to control DOM Events from CSS. Why add that complexity? 
+Why not simply control the same DOM Events from HTML attributes with the same name instead?
+Here is why.
+
+First, you are looking at the problem from the perspective of the HMTL or JS developer, 
+not the perspective of the CSS designer. Let us say that you are working as a CSS designer in a team
+with other people doing the HTML or JS. Your responsibility *includes* UIX behavior such as controlling
+swipe-to-scroll and tap-to-zoom: after all, you are the designer. But, you are not that technically savvy
+as the main JS developers that controls the JS scripts and via them the creation of the DOM elements,
+and so you have no access to alter or play around with the html files. You can drop in CSS files in the
+project folder, but that is it. The only way the web platform can allow a) the designer to be in control
+of UIX behavior of DOM Events and b) at the same time be restricted to CSS files is to c) implement 
+the control of UIX behavior as CSS properties.
+
+Second, CSS allows you to write selectors that capture many elements at the same time. This will allow 
+you as a developer to for example restrict different defaultActions on a group of elements sorted by
+class or type or attribute or parent or whatever you can select in CSS. Some of this can be accomplished 
+in the same way with HTML attributes, but not with the same power as in CSS. After all, it was to get
+such extra powers that element style was moved into CSS in the first place.
+                                                                       
 ### Rumble in the jungle: team CSS vs. the web chronotope
 
 In the red corner, weighing in at a total of about 253kg, stands team CSS! Team CSS is made up
