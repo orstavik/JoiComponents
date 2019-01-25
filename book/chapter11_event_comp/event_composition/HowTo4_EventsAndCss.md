@@ -9,10 +9,39 @@ can be directed from DOM Events, and some reasons why and when DOM Events should
 
 ## HowTo: control CSS from DOM Events
 
-`:hover`.
-It is good.
-But, there is no ability to create such CSS selectors ourselves. 
-This would be a nice addition to the platform.
+Just `:hover`. And `:active`, `:link`, `:visited`, `:focus`, `:focus-within`, `:indeterminate`, etc.
+These are all CSS pseudo-class selectors. These pseudo-class selectors enable CSS properties to 
+react to state changes in the DOM. But, these state changes in the DOM are not necessarily controllable
+from HTML (cf. `:hover`) nor reflected in the DOM (as some kind of HTML attribute). 
+Furthermore, these state changes are driven by DOM Events. They may be "faked" by JS, but 
+JS do so indirectly by itself triggering a DOM Event or via a parallel platform function.
+The CSS rules are directed directly via DOM Events.
+
+Unfortunately, there is no ability to register new CSS pseudo-class selectors.
+Or no grammar that bound an event directly to CSS pseudo-class selectors. This is a loss.
+Hypothetically, one might imagine that the CSS pseudo-class selector `:hover` instead was named 
+`:mouseenter`. And that there was a global JS function 
+`registerCSSPseudoEvents("mouseenter", "mouseout");` that essentially would register DOM Events
+as CSS pseudo selectors. This would be a nice addition to the platform. 
+
+But. The lack of such DOM Events to CSS grammatical means is not a critical loss. 
+The boilerplate overhead of achieving the same via JS and HTML is small: Add an event listener 
+JS function to a pair of DOM Events; in the event listeners respectively add and remove a class 
+to the target element; and then add a CSS rule that rely on this class.
+
+```html
+<style>
+.my-hover {
+  background: red;
+}
+</style>
+<script>
+window.addEventListener("mouseenter", function(e){e.target.classList.add("my-hover")});
+window.addEventListener("mouseout", function(e){e.target.classList.remove("my-hover")});
+</script>
+
+<div>hover me to bloody me</div>
+```
 
 ## Why control COM Events from CSS?
 
@@ -32,7 +61,7 @@ The only way the browser can allow:
 1. you the CSS designer 
 2. to be in control of UIX behavior of DOM Events and 
 3. at the same time be restricted from messing up the HTML template is to 
-4. implement control of UIX DOM Events via CSS properties.
+4. implement control of UIX DOM Events via CSS properties.                                   
                                                   
 Second, CSS allows you to write selectors that capture many elements at the same time. 
 After all, it was to get such extra selector powers that HTML style was moved to CSS in the first place.
@@ -80,12 +109,14 @@ end of the frame, and we can process dozens of events fast, each frame. If every
 *required* an updated CSSOM, the numbers of events processed would likely be halfed or cut down even 
 worse.
 
-## Conclusion: should CSS control DOM Events?
+## HowTo: control DOM Events from CSS
 
-Currently, only `mousedown`, `touchstart`, or `pointerdown` are controllable from CSS. Therefore, 
-the browsers *can* fudge it by dispatching these DOM Events *first* each frame. This throws the CSS-only
-developers, the poor, second-class citizens of web app developers, a bone: they can still
-direct the UIX DOM Events and thus mainly the defaultAction of touch and text selection.
+Currently, only `mousedown`, `touchstart`, or `pointerdown` are controllable via the CSS properties 
+`touch-action`, `pointer-action` and `user-select`. Because there are so few DOM Events affected that
+should only appear once per frame, the browsers can fake processing the CCSOM before these DOM Events
+by simply dispatching these DOM Events *first* each frame. This throws the CSS-only
+developers a bone: As the poor, second-class citizens of web app developers they are, they can still
+direct UIX, ie. the defaultActions of touch and mouse.
 
 But, such CSS direction of DOM Events do not scale. At least not with the current frame cycle.
 If the frame cycle changes were to change, then this could change. 
