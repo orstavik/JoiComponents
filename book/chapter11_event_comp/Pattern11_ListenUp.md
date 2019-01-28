@@ -25,8 +25,6 @@ The resulting composed event trigger function looks like this:
 
 ```javascript
 function dispatchPriorEvent(target, composedEvent, trigger) {
-  // if (!composedEvent || !target)   //todo remove this redundant check? should always be done at the level up?
-  //   return;
   composedEvent.preventDefault = function () {
     trigger.preventDefault();
     trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
@@ -53,7 +51,7 @@ function onMousedown(e){                                        //[1]
   window.addEventListener("mouseout", onMouseout);              //[4]
 }
 
-function onMouseout(e){                                         //[5] (a)
+function onMouseup(e){                                         //[5] (a)
   var duration = e.timeStamp - primaryEvent.timeStamp;
   //trigger long-press iff the press duration is more than 300ms ON the exact same mouse event target.
   if (duration > 300 && e.target === primaryEvent.target)       //[6]
@@ -61,7 +59,7 @@ function onMouseout(e){                                         //[5] (a)
   resetSequenceState();                                         //[7]
 }
 
-var onMouseup = function (e){                                   //[5] (b)
+var onMouseout = function (e){                                   //[5] (b)
   //filter to only trigger on the mouse leaving the window
   if (trigger.clientY > 0 && trigger.clientX > 0 && trigger.clientX < window.innerWidth && trigger.clientY < window.innerHeight)
     return;                                                     //[9]
@@ -84,7 +82,7 @@ window.addEventListener("mousedown", onMousedown);              //[2]
    
 5. The secondary trigger event functions are defined as function objects, as all JS functions are.
    To highlight that there is no difference between explicitly and implicitly assigning the functions 
-   objects to variables, 4(a) does so explicitly and 4(b) does so implicitly.
+   objects to variables: (a) does so explicitly and (b) does so implicitly.
    
 6. In normal circumstances, the final trigger event function (`onMouseup(e)`) is triggered.
    The final trigger event function will check if the event sequence fits its criteria 

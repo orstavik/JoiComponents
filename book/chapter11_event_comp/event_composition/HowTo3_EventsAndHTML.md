@@ -269,3 +269,32 @@ Event propagation chain and event's basic scope of interpretation.
 It breaks with the concept of the DOM hierarchy itself. It is an anti-pattern.
 
                                                                       
+## Old draft: Why HTML?
+
+HTML attributes is the primary means to specify behavior of elements in both HTML and JS.
+Being readable and writable from both JS and HTML has several benefits:
+
+1. You can compose behavior and reactions in your web app not only from JS scripts, 
+   but also from HTML template. Being declerative, HTML template provides a static clarity the 
+   imperative JS scripts do not provide.
+
+2. If behavior is controlled and specified by different means in HTML and JS, this leads to conflicts,
+   race conditions, and confusion. If a certain property or behavior is specified in your HTML template 
+   and then the underlying property or behavior is overwritten from JS, then looking at your HTML 
+   template while chasing a bug might be directly misleading.
+   
+3. As a single point HTML attributes will always be up-to-date. If you instead for example specify 
+   aspects of your elements or events behavior as an object property on an HTML element or somewhere else,
+   then you would have to marshall or otherwise translate that property from/into the DOM if you want the
+   same property controllable/readable in the DOM. For anything that reasonably can be kept as string value
+   (ie. not terribly long or that require object or array like structuring), such a move will add
+   unnecessary complexity to your app. 
+   
+   In my opinion, many web frameworks do this mistakenly. The cost of marshalling is not outweighed by the
+   ease of use from the JS vantage point alone. It obfuscates the relationship between the scripts and 
+   the DOM, inevitably leading to longer learning periods in sum, fragile systems and misconceptions.
+   
+
+from both the HTML template and your JS scripts. By controlling your composed events via attributes, 
+you thereby make their behavior accessible both via template and script. This is in itself very beneficial,
+especially for composed events, but also helps avoid managing conflicting states between script and dom states.

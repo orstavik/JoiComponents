@@ -112,22 +112,22 @@ worse.
 ## HowTo: control DOM Events from CSS
 
 Currently, only `mousedown`, `touchstart`, or `pointerdown` are controllable via the CSS properties 
-`touch-action`, `pointer-action` and `user-select`. Because there are so few DOM Events affected that
-should only appear once per frame, the browsers can fake processing the CCSOM before these DOM Events
+`touch-action`, `pointer-action` and `user-select`. Because there are so few DOM Events affected, 
+the browsers can fake processing the CCSOM before these DOM Events
 by simply dispatching these DOM Events *first* each frame. This throws the CSS-only
-developers a bone: As the poor, second-class citizens of web app developers they are, they can still
-direct UIX, ie. the defaultActions of touch and mouse.
+developers a bone: As the poor, second-class citizens of web app developers they are, 
+they can still direct UIX, ie. the defaultActions of touch and mouse.
 
 But, such CSS direction of DOM Events do not scale. At least not with the current frame cycle.
-If the frame cycle changes were to change, then this could change. 
-If the CSSOM was updated more frequently and at least *between* each DOM Event dispatch, 
+**If** the frame cycle changes were to change, then this could change. 
+**If** the CSSOM was updated more frequently and at least *between* each DOM Event dispatch, 
 then CSS properties could become a viable alternative for directing DOM Events.
-But, that is a BIG "if", maybe the biggest "if" on the web. 
+But, that is a BIG if, maybe the biggest if of them all on the web.
 
-Therefore, custom CSS properties should not be able to neither create, direct, nor stop custom, composed 
+Therefore, custom CSS properties should not be used to neither create, direct, nor stop custom, composed 
 DOM Events. To do so would require the processing of the CSSOM before DOM Event dispatch, and 
-although great CSS developer ergonomics, that would be far too heavy programmatically to be viable.
-   
+although great CSS developer ergonomics, that would not be viable programmatically.
+
 ## References
 
  * 
