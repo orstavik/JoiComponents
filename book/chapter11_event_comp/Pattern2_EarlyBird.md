@@ -17,7 +17,7 @@ your best bet is to get there *first*:
 ```javascript
 window.addEventListener("trigger-event", function(e){eventTriggerFunction(e)}, true);
 //window.addEventListener("trigger-event", e => eventTriggerFunction(e), true); //works, but not everywhere
-//window.addEventListener("trigger-event", eventTriggerFunction, true); does not work!!
+//window.addEventListener("trigger-event", eventTriggerFunction, true); cannot be used with the CallShotgun pattern.
 ```
 
 The above example adds an event listener to the window object for a certain trigger event.
