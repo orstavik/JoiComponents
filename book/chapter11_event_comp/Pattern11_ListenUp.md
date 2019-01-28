@@ -42,7 +42,7 @@ function resetSequenceState(){
 }
 
 function onMousedown(e){                                        //[1]
-  if (trigger.button !== 0)                                     //[3]
+  if (e.button !== 0)                                           //[3]
     return;                                       
   if (primaryEvent)                                             //[8]
     resetSequenceState();                                       
@@ -51,7 +51,7 @@ function onMousedown(e){                                        //[1]
   window.addEventListener("mouseout", onMouseout);              //[4]
 }
 
-function onMouseup(e){                                         //[5] (a)
+function onMouseup(e){                                          //[5] (a)
   var duration = e.timeStamp - primaryEvent.timeStamp;
   //trigger long-press iff the press duration is more than 300ms ON the exact same mouse event target.
   if (duration > 300 && e.target === primaryEvent.target)       //[6]
@@ -59,7 +59,7 @@ function onMouseup(e){                                         //[5] (a)
   resetSequenceState();                                         //[7]
 }
 
-var onMouseout = function (e){                                   //[5] (b)
+var onMouseout = function (e){                                  //[5] (b)
   //filter to only trigger on the mouse leaving the window
   if (trigger.clientY > 0 && trigger.clientX > 0 && trigger.clientX < window.innerWidth && trigger.clientY < window.innerHeight)
     return;                                                     //[9]

@@ -130,7 +130,7 @@ function resetSequenceState(){
 }
 
 function onMousedown(e){                                       
-  if (trigger.button !== 0)                                    
+  if (e.button !== 0)                                    
     return;
   if (primaryEvent)                                            
     resetSequenceState(); 
