@@ -161,6 +161,26 @@ window.addEventListener("mousedown", onMousedown);
 4. If an `alert(...)` was triggered during the EventSequence, this would trigger a change of focus and a
    `focusin` event. Any `focusin` event would be considered a disturbance and cancel the EventSequence.
 
+```html
+<div id="one">press me</div>
+<div id="two">press me too</div>
+
+<script>
+document.querySelector("#two").addEventListener("mousedown", function(){
+  setTimeout(function(){
+    alert("I'm trying to trip things up");
+  }, 10);
+});
+
+window.addEventListener("long-press", function(e){
+  console.log("long-press", e);
+});
+window.addEventListener("long-press-cancel", function(e){
+  console.log("long-press", e);
+});
+</script>
+```
+
 ## References
 
  * 
