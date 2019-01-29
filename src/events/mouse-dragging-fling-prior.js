@@ -16,8 +16,8 @@
   }
 
   function dispatchPriorEvent(target, composedEvent, trigger) {
-    if (!composedEvent || !target)
-      return;
+    // if (!composedEvent || !target)   //todo remove this redundant check? should always be done at the level up?
+    //   return;
     composedEvent.preventDefault = function () {
       trigger.preventDefault();
       trigger.stopImmediatePropagation ? trigger.stopImmediatePropagation() : trigger.stopPropagation();
@@ -143,7 +143,8 @@
     const target = globalSequence.target;
     globalSequence = stopSequence();
     dispatchPriorEvent(target, stopEvent, trigger);
-    dispatchPriorEvent(target, flingEvent, trigger);
+    if (flingEvent)
+      dispatchPriorEvent(target, flingEvent, trigger);
   }
 
   function onMouseout(trigger) {
