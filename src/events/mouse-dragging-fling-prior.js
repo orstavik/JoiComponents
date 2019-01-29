@@ -130,6 +130,13 @@
   }
 
   function onMousemove(trigger) {
+    if (1 !== (trigger.buttons !== undefined ? trigger.buttons : trigger.nativeEvent.which)) {
+      const cancelEvent = makeDraggingEvent("cancel", trigger);
+      const target = globalSequence.target;
+      globalSequence = stopSequence();
+      dispatchPriorEvent(target, cancelEvent, trigger);
+      return;
+    }
     const composedEvent = makeDraggingEvent("move", trigger);
     captureEvent(trigger, false);
     globalSequence = updateSequence(globalSequence, composedEvent);
