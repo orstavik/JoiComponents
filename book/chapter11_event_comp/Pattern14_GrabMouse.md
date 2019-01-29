@@ -54,12 +54,18 @@ But, you must detect when the mouse escapes you, so that you asap can politely e
 restore normality.
 
 To illustrate how mouse events get away from your control in the midst of your EventSequence with it,
-we will make a safe `long-press`:
+we will make a safe `long-press`.
 
 ## Example: Safe `long-press`
 
-There is three "accidents waiting to happen" that likely can trip up our `naive-long-press` from the 
-previous chapter.:
+To make a safe `long-press` we need to GrabMouse first. GrabMouse will prevent native text selection 
+behavior from interfering with our custom composed DOM EventSequence. We grab the mouse by adding
+the `user-select: none` attribute to the `<html>` element while the EventSequence is active and 
+resetting the `<html>` element's `user-select` style property afterwards.
+To make extra certain that no text selection will occur, we add an extra event listener on the 
+`startselect` event and only call `preventDefault()` on it.
+
+In addition, we do damagecontrol on three potential mouse jailbreaks:
 
 1. The mouse pointer is moved out of bounds (outside of the scope of the window object). 
    An undetected `mouseup` that occurs if the mouse cursor is removed from the viewport of browser window
@@ -83,75 +89,77 @@ function dispatchPriorEvent(target, composedEvent, trigger) {
   return target.dispatchEvent(composedEvent);
 }
 
-var primaryEvent;
+var primaryEvent;                                               //[1]
+var userSelectCache;                                            //[1]
+
+function startSequenceState(e){                                 //[1]
+  primaryEvent = e;                                     
+  window.addEventListener("mouseup", onMouseup);             
+  window.addEventListener("mouseout", onMouseout);           
+  window.addEventListener("focusin", onFocusin);           
+  window.addEventListener("startselect", onStartselect);           
+  userSelectCache = document.children[0].style.userSelect;
+  document.children[0].style.userSelect = "none";
+}
 
 function resetSequenceState(){
-  primaryEvent = undefined;                                     //[10]
-  window.removeEventListener("mouseup", onMouseup);             //[10]
-  window.removeEventListener("mouseout", onMouseout);           //[10]
+  primaryEvent = undefined;                                     
+  window.removeEventListener("mouseup", onMouseup);             
+  window.removeEventListener("mouseout", onMouseout);           
+  window.removeEventListener("focusin", onFocusin);           
+  window.removeEventListener("startselect", onStartselect);           
+  document.children[0].style.userSelect = userSelectCache;
 }
 
-function onMousedown(e){                                        //[1]
-  if (primaryEvent)                                             //[8]
+function onMousedown(e){                                        
+  if (primaryEvent)                                             //[2]
     resetSequenceState();                                       
-  if (e.button !== 0)                                           //[3]
-    return;                                       
-  primaryEvent = e;                                             //[4]
-  window.addEventListener("mouseup", onMouseup);                //[4]
-  window.addEventListener("mouseout", onMouseout);              //[4]
+  if (e.button !== 0)                                           
+    return;
+  startSequenceState(e);                                        //[1]     
 }
 
-function onMouseup(e){                                          //[5] (a)
+function onMouseup(e){                                          
   var duration = e.timeStamp - primaryEvent.timeStamp;
   //trigger long-press iff the press duration is more than 300ms ON the exact same mouse event target.
-  if (duration > 300 && e.target === primaryEvent.target)       //[6]
+  if (duration > 300 && e.target === primaryEvent.target)       
     e.target.dispatchEvent(new CustomEvent("long-press", {bubbles: true, composed: true, detail: duration}));
-  resetSequenceState();                                         //[7]
+  resetSequenceState();                                         
 }
 
-var onMouseout = function (e){                                  //[5] (b)
+var onMouseout = function (trigger){                            //[3]
   //filter to only trigger on the mouse leaving the window
   if (trigger.clientY > 0 && trigger.clientX > 0 && trigger.clientX < window.innerWidth && trigger.clientY < window.innerHeight)
-    return;                                                     //[9]
+    return;                                                     
   primaryEvent.target.dispatchEvent(new CustomEvent("long-press-cancel", {bubbles: true, composed: true}));
   resetSequenceState();                                         
 }
 
-window.addEventListener("mousedown", onMousedown);              //[2]
-```
-1. The event trigger function for the primary event is set up.
- 
-2. The event trigger function for the primary event is registered. This subscription will always run.
-   Every time there is a `mousedown`, there will be a cost for processing the long-press event.
-   
-3. As its first check, the primary event trigger function (`onMousedown(e)`) will filter out
-   `mousedown` events that are not left-clicks.
-   
-4. In normal circumstances, the primary event trigger function (`onMousedown(e)`) will store the
-   trigger event and then add the trigger event functions for the secondary trigger events.
-   
-5. The secondary trigger event functions are defined as function objects, as all JS functions are.
-   To highlight that there is no difference between explicitly and implicitly assigning the functions 
-   objects to variables: (a) does so explicitly and (b) does so implicitly.
-   
-6. In normal circumstances, the final trigger event function (`onMouseup(e)`) is triggered.
-   The final trigger event function will check if the event sequence fits its criteria 
-   (ie. press duration > 300ms and the same target), and if so dispatch the composed event.
-   
-7. Once the final trigger function of the composed event is finished, it resets the event sequence state.
+var onFocusin = function (trigger){                           //[3]
+  e.target.dispatchEvent(new CustomEvent("long-press", {bubbles: true, composed: true, detail: duration}));
+  resetSequenceState();                                         
+}
 
-8. The first measure to prevent an accident, is to check that no existing event sequence state 
-   is active when the first click is registered. For the simplicity of the example, this check does not
-   dispatch an error event, but just resets the event state.
-   This is done primarily to avoid leaving extra event listeners active.
+var onStartselect = function (trigger){                           //[4]
+  trigger.preventDefault();
+  return false;
+}
+
+window.addEventListener("mousedown", onMousedown);              
+```
+1. As the sequence configuration grows in complexity, we create a separate method `startSequenceState(e)`.
+   The `startSequenceState(e)` has the responsibility of both ListenUp and TakeNote: 
+   setting up listeners and initializing the EventSequence state.
+ 
+2. If the user presses down two mouse buttons at the same time, the `long-press` EventSequence might
+   try to initialize itself again while it is already running. 
+   This would cause confusion, and so the `long-press` event will cancel itself in such instances.
    
-9. The second measure to prevent an accident, is to check and cancel the long-press event whenever
-   the mouse leaves the viewport of the window.
+3. If the `mouse` cursor moves out of the `window`, this would likely cause confusion, and so will
+   instead also simply cancel the event.
    
-10. Every time the composed event trigger functions reaches its end state, it always resets
-    its deep, sequence state. Resetting the state both means clearing stored primary and secondary 
-    trigger events, but also, and very importantly, ALWAYS removing the ListenUp secondary event trigger 
-    listeners.
+4. If an `alert(...)` was triggered during the EventSequence, this would trigger a change of focus and a
+   `focusin` event. Any `focusin` event would be considered a disturbance and cancel the EventSequence.
 
 ## References
 
