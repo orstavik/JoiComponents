@@ -1,4 +1,4 @@
-# Pattern: CaptureTarget
+# Pattern: GrabTarget
 
 ## What choice?
 
