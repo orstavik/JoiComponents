@@ -75,15 +75,15 @@ WC patterns consists of the following types of recipes:
 
 
 ## Chapter 5: Gestures
-1. [Sloppy fingers](book/chapter5_gestures/Problem1_sloppy_fingers.md)
-2. [Gesture stuttering](book/chapter5_gestures/Problem2_gesture_stuttering.md)
-3. [Touch makes mouse](book/chapter5_gestures/Problem3_touch_the_mouse.md)
-4. [Conflicting gestures](book/chapter5_gestures/Problem4_conflicting_gestures.md)
-5. [InvadeAndRetreat!](book/chapter5_gestures/Pattern5_InvadeAndRetreat.md)
-6. [Coarse sensors](book/chapter5_gestures/Problem5_coarse_sensors.md)
-7. [DragFlingMixin](book/chapter5_gestures/Mixin1_DraggingFlingGesture.md) (PointerGesture)
-8. [SwipeFlingMixin](book/chapter5_gestures/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-9. [PinchGesture](book/chapter5_gestures/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
+1. [Sloppy fingers](book/chapter11_event_comp/chapter5_gestures/Problem1_sloppy_fingers.md)
+2. [Gesture stuttering](book/chapter11_event_comp/chapter5_gestures/Problem2_gesture_stuttering.md)
+3. [Touch makes mouse](book/chapter11_event_comp/chapter5_gestures/Problem3_touch_the_mouse.md)
+4. [Conflicting gestures](book/chapter11_event_comp/chapter5_gestures/Problem4_conflicting_gestures.md)
+5. [InvadeAndRetreat!](book/chapter11_event_comp/chapter5_gestures/Pattern5_InvadeAndRetreat.md)
+6. [Coarse sensors](book/chapter11_event_comp/chapter5_gestures/Problem5_coarse_sensors.md)
+7. [DragFlingMixin](book/chapter11_event_comp/chapter5_gestures/Mixin1_DraggingFlingGesture.md) (PointerGesture)
+8. [SwipeFlingMixin](book/chapter11_event_comp/chapter5_gestures/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
+9. [PinchGesture](book/chapter11_event_comp/chapter5_gestures/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
 
 ## Chapter 4: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter6_html_comp/Intro_HTML-Lists.md)

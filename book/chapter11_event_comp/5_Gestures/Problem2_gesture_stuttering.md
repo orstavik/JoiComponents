@@ -2,8 +2,8 @@
 
 > TLDR: GestureStuttering occurs because users can place multiple fingers on the screen 
 either simultaneously or in quick succession.
-To tackle this problem gestures relying on `touch` events need to listen for `touchstart` and 
-`touchend` events, and gestures need a `cancelGesture()` method.
+To tackle this problem gestures relying on `touch` events need to IgnoreThenDoubleCheckAndCancel
+in their `touchstart` listener.
 
 Often, when a user initiates a multifinger gesture, 
 he will place all the necessary fingers on the screen at the same time.

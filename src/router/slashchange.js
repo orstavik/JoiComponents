@@ -64,3 +64,26 @@ window.addSlashchangeEvent = function() {
   base = this.getAttribute("href");
   window.addEventListener("click", clickToSlashchange);
 };
+
+/**
+ *
+ <base href="https://example.com/absolute/link/ending/with/slash/" />
+ <script type="module">
+ window.addEventListener("click",function(e){
+   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey)
+     return;
+   for (let el = e.target; el; el = el.parentNode) {
+     if (el.nodeName !== "A" || el.hasAttribute('download') || el.getAttribute('rel') === 'external')
+       continue;
+     var l = el.href;
+     if (l.startsWith('mailto:') || l.startsWith('javascript:'))
+       return;
+     var b = document.querySelector("base").href;
+     var a = new URL(l, b).href;
+     if (a.startsWith(b))
+       window.dispatchEvent(new CustomEvent("slashchange",{detail: {base: b, link: a.substring(b.length)}}));
+     return;
+   }
+ });
+ </script>
+ */

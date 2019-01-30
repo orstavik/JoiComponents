@@ -1,5 +1,4 @@
-
-import hyperHTML from 'https://unpkg.com/hyperhtml?module';
+import hyperHTML from 'https://cdn.jsdelivr.net/npm/hyperhtml@2.17.0/esm.js';
 import {SlotchangeMixin} from '../../src/slot/SlotchangeMixin.js';
 
 //this is a micro code editor

@@ -372,13 +372,13 @@ function onBeforeNavigate(e){
 
 window.addEventListener("beforeNavigate", onBeforeNavigate);
 
-//todo I need to make tests for this function, for both GET, POST, PUT, DELETE
+//todemo I need to make tests for this function, for both GET, PUT, DELETE
 //have any type of element div h1 span
 //div.dispatch(makeArtificialBeforeNavigate("GET", "test.html"));
 //h1.dispatch(makeArtificialBeforeNavigate("DELETE", "test.html"));
 //span.dispatch(makeArtificialBeforeNavigate("PUT", "test.html"));
 
-//todo I need to make tests for this function, for both POST, not yet
+//todemo I need to make tests for this function, for both POST, not yet
 //el.dispatch(makeArtificialBeforeNavigate("POST", "test.html"));
 
 //todo I need to make a function that creates a browse event with elements listed below

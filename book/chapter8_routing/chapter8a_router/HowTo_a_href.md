@@ -66,7 +66,7 @@ the browser must analyze all `click` events that has completed bubbling.
 
 When a `click` event has completed bubbling, 
 the browser will examine the event to see if the `click` event:
-1. has `.defaultPrevented` is false, [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Event/defaultPrevented) [WHATWG](https://dom.spec.whatwg.org/#dom-event-defaultprevented)
+1. has [`.defaultPrevented`](https://developer.mozilla.org/en-US/docs/Web/API/Event/defaultPrevented) ([spec.](https://dom.spec.whatwg.org/#dom-event-defaultprevented)) is false,
 2. is from a left or middle mouse button click, ie. not a right context menu button click,
 3. has no `shift` or `ctrl` key pressed, and
 4. has a `target` with an `<a href=" ">` ancestor that comes before a link blocking element 
@@ -87,7 +87,7 @@ the coordinates of the pointer will be appended to the `href` of the link on the
 
 ```html
 <a href="inYourDreams.html">
-  <img src="http://maps.com/world.jps" width="450px" height="360px" ismap alt="the place to be">
+  <img src="http://maps.com/world.jpg" width="450px" height="360px" ismap alt="the place to be">
 </a>
 ```
 In the example above, if the user clicks with his pointing device at the center of the linked image,
@@ -95,13 +95,21 @@ then the `href` in the navigating `click` event will be interpreted to be `inYou
 
 ## No nested links
 
-Do *not* wrap `<a>` elements around interactive elements such as `<form>` and `<select>`,
+Do *not* wrap `<a>` elements around [interactive elements](https://html.spec.whatwg.org/multipage/dom.html#interactive-content-2)
+such as `<form>` and `<select>`,
 and do *not* [nest `<a>` elements](https://www.kizu.ru/nested-links/). 
-It is not allowed, and it will make the browser behave irrationally as in the example below.
+It is [not allowed](https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-a-element).
+When you nest links around other interactive elements, 
+the browser will most often assume you have made a typo and create a different DOM than you specify.
 
 ```html
-<a id="blueLink" href="#blue" style="border: 2px solid blue">
+  <head>
+  <a href="#headLink">the browser will simply delete this element (< head> doesn't work in codepen)</a>
+</head>
+<body>
+  <a id="blueLink" href="#blue" style="border: 2px solid blue">
   <div id="blue">blue</div>
+  <!--at this point the browser will very likely assume you have forgotten an </a> and therefore simply close off the #blueLink element.-->
   <a id="redLink" href="#red" style="border: 2px solid red">
     <div id="red">red</div>
   </a>
@@ -113,20 +121,31 @@ It is not allowed, and it will make the browser behave irrationally as in the ex
       <option value="a">a</option>
       <option value="b">b</option>
       <option value="c">c</option>
-    </select>    
+    </select>
+    <a href="#purple">
+      <button id="purpleButton" type="submit">go purple</button>
+    </a>
+    <button id="greenButton" type="submit">go green</button>
   </form>
-</a>
+</a> 
 <script>
-  window.addEventListener("hashchange", e => console.log(e.newURL))
-  
+  window.addEventListener("hashchange", e => console.log(e.newURL)); 
+  /*
+  var headLink = document.querySelector("#headLink");  //headLink === undefined
   document.querySelector("#blueLink").click();    //#blue
   document.querySelector("#redLink").click();     //#red
   document.querySelector("#blue").click();        //#blue
   document.querySelector("#red").click();         //#red
-  document.querySelector("#blueToo").click();     //no link
+  document.querySelector("#blueToo").click();     //not wrapped by a link in the DOM
+  document.querySelector("#purpleButton").click();//nothing happens
   document.querySelector("#testSelect").click();  //#yellow
-</script> 
+  document.querySelector("#greenButton").click(); //nothing happens  
+  */
+  </script> 
+</body>  
 ```
+In short: nested links will be clickable, but the DOM will likely be altered and 
+the page therefore behave in a chaotic way. You cannot nest links.
 
 ## References
 

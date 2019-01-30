@@ -241,7 +241,7 @@ function printLoadingFunctions(PFS, polyfillReady) {
 }
 
 function printPFPatches(PFS) {
-  return PFS.filter(PF => pfPatch[PF.PF]).map(PF => "(" + pfPatch[PF.PF].toString() + ")();\n");
+  return PFS.filter(PF => pfPatch[PF.PF]).map(PF => "(" + seq.dots.map(dot => dot.toString()).join("") + ")();\n");
 }
 
 function printPolyfillExpansions(PFS, polyfillReady) {

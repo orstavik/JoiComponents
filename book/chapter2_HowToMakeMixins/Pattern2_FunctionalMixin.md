@@ -41,7 +41,7 @@ const OnlineOfflineMixin = function(Base) {                              //[0] 
       }                                                                                                                                                                               
       //onlineOfflineCallback(isOnline) {
       //  don't implement this in ReactiveMethod,                         //[2]
-      //  but implement this for EventComposition                         //[2]
+      //  but implement this for EventToEventComposition                         //[2]
       //} 
     }                                                                                     
 };

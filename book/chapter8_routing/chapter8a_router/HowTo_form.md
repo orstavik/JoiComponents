@@ -135,5 +135,5 @@ as it is difficult to call `.preventDefault()` in the right locations.
 2. https://drafts.csswg.org/cssom-view/#extensions-to-the-mouseevent-interface  // mouse event on the drafts.csswg.org
 3. https://svgwg.org/svg2-draft/struct.html#SVGElement  // svg technical documentation
 4. https://svgwg.org/svg2-draft/struct.html#UseElementHrefAttribute // svg href
-5. 
+5. [discussion on PUT and DELETE as form attributes](https://stackoverflow.com/questions/5162960/should-put-and-delete-be-used-in-forms)
 6. 

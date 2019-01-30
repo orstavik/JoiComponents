@@ -1,23 +1,20 @@
-# Problem: #sometimesFallingShort
-
-> The two biggest problems when thinking outside the box: shame and loneliness.
+# Problem: The SpaProblem
 
 ## Problem: Relative locations has IDE support
 
 `/` and folder convention is part of the URI convention.
-"/path/resource.type" in URLs therefore mirror "folder/file.name" in the filesystem of desktop computers.
-This enables developer IDE to support automatic refactoring of normal and relative path-based links,
-but not so for `#`-based links.
+"/path/resource.type" in URLs mirror "folder/file.name" in the filesystem of desktop computers.
+This enables developer IDE to support automatic refactoring of normal and relative path-based links.
+There is little to none such support for `#`-based links.
 
-No design-time support for matching links with resources is a big issue.
+Having no design-time support for matching links with resources is a big issue.
 Without design-time support a project might quickly develop link-to-resource gangrene. 
 As IDE tools no longer rename links and resources in tandem, 
 developers might quickly either:
  * give up and let broken links flourish, or
  * freeze up and let the fear of broken links hamper development.
-   
 
-### The SpaProblem
+## The SpaProblem
 
 **Browser do not include #-tags in its communication with the server**.
 Links shared with #-tags loaded by the user will therefore *always* 

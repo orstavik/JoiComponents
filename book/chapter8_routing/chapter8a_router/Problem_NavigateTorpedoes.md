@@ -6,9 +6,10 @@ As we all know, the web is a big family.
 HTML is the father of the family. Strict and formal and with a truly fixed opinion about everything.
 JS is the mother. She is the pretty one, dynamic, vibrant, and with an answer to almost everything.
 Dad thinks he is the decider, but everyone knows that, in reality, its mom who comes up with the solution in the end. 
+
 CSS is the oldest brother. A liberated teen. That somehow has managed to carve out an authoritative role 
 for himself long ago when HTML was not married to JS, but was living with another woman called Applet.
-Applet was not good at managing a household, so dad was more like a single parent trying to raise CSS on his own.
+Applet was not good at managing a household, so dad behaved like a single parent trying to raise CSS on his own.
 However, as time has passed, the authority dad granted CSS back, seems more and more like a mistake.
 
 That is the family history. You, the web developer, is a newer addition and the younger sibling in the family. 
@@ -47,7 +48,7 @@ They are also so menacing, that if you get hit once, you learn to stay away from
 
 But, family first. Another important fact you have learned about your family life and conflicts, is
 that mom and dad both wants to decide where the family should go. Mom and dad both want to decide the navigation.
-What happens is that first comes dad, and in his preset, strict manner, lays out a couple of suitable options.
+What happens is that first comes dad and lays out a couple of suitable options in his fixed ways.
 Often, mom doesn't really care, and so she just sits back and lets dad drive the car.
 At other times, mom has an opinion, and then she decides which one of dad's options the family should go to.
 So far, so good.
@@ -114,10 +115,10 @@ In fact, `<frame>` was so sick it never left the hospital.
 This was a very difficult time for the family. JS mom and HTML dad had to travel back and forth between 
 home and work and the hospital all the time.
 They tried to keep things normal for both you, the `<frame>` and `<iframe>` and all the other siblings. 
-To make things look normal, even though it really wasn't, they ended up doing a lot behind the scenes
-to make things feel ok and safe. However, it didn't really work. They ended up doing too much. 
+To make things look normal, even though it really wasn't, they ended up doing a lot behind the scenes. 
+However, it didn't really work. They ended up doing too much. 
 And it didn't become that safe. So, eventually, things kinda fell apart.
-Thankfully, `<iframe>` survived and gradually moved home. `<iframe>` now mostly plays in the `sandbox`.
+Thankfully, `<iframe>` survived and gradually moved home. `<iframe>` now plays in the `sandbox`.
 But. `<frame>` died. `<frame>` is dead.
 
 Mom and dad still struggle to cope with the loss of `<frame>`. The main reason for this is that
@@ -137,18 +138,22 @@ When dad was with `<frame>` in the hospital and was telling the others back home
 this was good. The family didn't do much second guessing of navigating events back there and then. 
 Now, however, with all the holiday trips and in-app routing going on, `target` torpedoes are not so good.
 What happens now is that if mom and dad are on a trip and `<iframe>` comes along, then 
-if `<iframe>` suddenly decides to target a link to mom and dad, suddenly `<iframe>` is calling the shots,
-without mom and dad finding out before it is too late.
+if `<iframe>` suddenly decides to target a link to mom and dad, suddenly baby `<iframe>` is calling the shots,
+without neither mom nor dad finding out before they have left and arrive at that new location.
 Put shortly, except for `target="_blank"`, navigating events routed via the `target` attribute to another 
 frame within the window will essentially torpedo that frame and burden you, the little diplomat.
+
+> The base of the link is resolved ***before*** the link is passed to the target document, and
+> the base of the target document is ***not*** added to the link.
 
 ## Diplomatic alternative nr. 2
 
 Accept: `target="name"` for `<iframe>` children inside your own document.
 
-Appreciate: `target="_blank"`
+Appreciate: `target="_blank"`.
 
-Avoid: `target="_parent"` and `target="_top"` and controlling the navigation of parent frame.
+Avoid: using `<iframe>` that use `target="_parent"` and `target="_top"` to control the navigation.
+Targeted links are not interceptable and will torpedo any navigation control system.
 
 ## NavigateTorpedo nr. 3: `window.open()`, `location.assign()`, `history.pushState`, `history.replaceState`
 
@@ -165,6 +170,8 @@ the routing process. They should be called at the end of a centralized routing f
 everywhere in the code. If you want family harmony, that is.
 
 ## Diplomatic alternative nr. 3
+
+Accept: Use this, but only from within the navigation control system in your app.
 
 
 

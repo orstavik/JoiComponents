@@ -7,14 +7,14 @@ the dragging ends abruptly.
 See also `spin` in [PinchSpin](Mixin3_PinchSpinGesture.md).
  
 `DraggingFling` records a sequence of one-finger events 
-(cf. [EventRecording](../chapter2_HowToMakeMixins/Pattern4_EventRecording.md)):
+(cf. [EventRecording](../../chapter2_HowToMakeMixins/Pattern4_EventRecording.md)):
  * `touchstart`/`mousedown`, 
  * `touchmove`/`mousemove`, 
  * `touchend`/`mouseup`, and 
  * `touchcancel`. 
 
 And turns them into a series of *optional* callbacks 
-(cf. [OptionalCallbacksEvents](../chapter2_HowToMakeMixins/Pattern6_OptionalCallbacksEvents.md)):
+(cf. [OptionalCallbacksEvents](../../chapter2_HowToMakeMixins/Pattern6_OptionalCallbacksEvents.md)):
  * `draggingstartCallback()`, 
  * `draggingCallback()`, 
  * `draggingendCallback()`, 
@@ -26,8 +26,8 @@ The `draggingstart`, `dragging`, `draggingend` timeline correspond to
 
 ## Implementation details
 
-The `DraggingFling` is built using the [EventRecording](../chapter2_HowToMakeMixins/Pattern4_EventRecording.md) and 
-[FunctionalMixin](../chapter2_HowToMakeMixins/Pattern2_FunctionalMixin.md) patterns. 
+The `DraggingFling` is built using the [EventRecording](../../chapter2_HowToMakeMixins/Pattern4_EventRecording.md) and 
+[FunctionalMixin](../../chapter2_HowToMakeMixins/Pattern2_FunctionalMixin.md) patterns. 
 
 The `DraggingFling` mixin only reacts when *one* finger/mousebutton is used.
 If only an additional finger or mousebutton is pressed, 
@@ -35,7 +35,7 @@ the event recording is cancelled.
 
 `fling` is triggered when the finger or mouse have moved more 
 than a minimum `flingDistance`(px) for more than minimum `flingDuration`(ms).
-Both `flingDistance` and `flingDuration` are implemented as [StaticSettings](../chapter2_HowToMakeMixins/Pattern3_StaticSettings.md).
+Both `flingDistance` and `flingDuration` are implemented as [StaticSettings](../../chapter2_HowToMakeMixins/Pattern3_StaticSettings.md).
 The default value of `flingDistance` is `50`(px), and
 the default value of `flingDuration` is `200`(ms).
 `flingDistance` is calculated as the distance from the start and end position of
@@ -58,7 +58,7 @@ the finger/mouse, where the start position was the position of the finger/mouse 
 The *OptionalCallback* methods' names and argument 
 correspond exactly to the *OptionalEvent* name and detail. 
 
-`DraggingFling` implement an extensive [InvadeAndRetreat!](Pattern4_InvadeAndRetreat.md) strategy 
+`DraggingFling` implement an extensive [InvadeAndRetreat!](../gestures/Pattern4_InvadeAndRetreat.md) strategy 
 to block default actions in the browsers such as "drag-to-scroll".
 
 `DraggingFling` does not use pointerevents. It could have. 

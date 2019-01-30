@@ -101,3 +101,20 @@ There are several ways to alter immutable events:
 
 All events with default actions should be translated into a new event.
 This event has no default action, but will be executed if it runs past the window or browsing context.
+
+
+### DRafts
+
+Browser-bar-flash. A DomInteractiveEvent. It is what the browse event default action should have been. 
+It is also the root pattern for event recording. And you have to set up a browser function. 
+And you want to go via an event to make it dom composeable.
+
+Natively, only <a href> <form> <area> exists. but they all manage the same event, namely the browse event.
+
+Also, you have the EventHelper pattern of <base> element.
+
+And, what about <detail> <summary> do they have their own open events?
+
+But one could imagine many more. 
+<draggable>. <droppable>? <lightable>. <context-menu> (useful on touch maybe) 
+<hideable> <highlightable>

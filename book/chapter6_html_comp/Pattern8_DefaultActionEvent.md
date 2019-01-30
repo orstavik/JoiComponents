@@ -103,3 +103,12 @@ of the default action.
 
 Such ArtificialDefaultActionEvents is a great plus for web components. 
 It enables them to function on par with native events in regards to native events.
+
+### Drafts
+https://codepen.io/orstavik/pen/PXeyWw?editors=1001
+
+Also, it was nice to see in the spec that they too want the defaultAction gone:
+https://dom.spec.whatwg.org/#eventtarget-activation-behavior
+read the first note on this link)
+
+

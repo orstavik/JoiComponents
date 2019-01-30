@@ -1,0 +1,83 @@
+<script>
+  window.addEventListener("click",e => {console.log("click", "capture", "window (before link-click script)");}, true);
+</script>
+  <div id="a">
+  <a id="b" href="#b">#b <span id="c">(inside #c)</span></a>
+  <hr>
+  <a href="#d" id="d">#d calls stopTrailingClickEvent()</a>
+  <hr>
+  <a href="#e" id="e">#e calls stopPropagation()</a>
+  <hr> -----
+</div>
+<a href="https://bbc.com" id="f">bbc.com (will navigate out)</a>
+<script>
+
+  //link-click event starts here
+
+  //https://www.w3.org/html/wg/spec/content-models.html#interactive-content-0
+  //http://qaru.site/questions/10726/can-i-nest-a-button-element-inside-an-a-using-html5
+
+  //todo make this into a discussion in the chapter, explain how the default action of the click event
+  //todo is not hindered when interactive content is illegally put inside an <a href> tag and still
+  //todo displayed in the browser.
+
+  //https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
+  function filterLinkClicks(e) {
+    if (e.metaKey)
+      return;
+    for (let el = e.target; el; el = el.parentNode) {
+//    if (elementCannotBeInALink(el)) return; cannot be used here, as the default action of the event is not filtered for illegal composition in the DOM that the browser still chooses to render.
+//
+      if (el.nodeName === "A" || el.nodeName === "a" || el.nodeName === "AREA"){
+        const linkClick = new CustomEvent("link-click", {bubbles: true, composed: true});
+        //wrap preventDefault in PriorEvent
+        linkClick.preventDefault = function(){e.preventDefault();}
+        linkClick.stopTrailingClickEvent = function(){e.stopImmediatePropagation ? e.stopImmediatePropagation() : e.stopPropagation();}
+        return el.dispatchEvent(linkClick);
+      }
+    }
+  }
+  (window || document).addEventListener("click", e => filterLinkClicks(e), true);
+  //link-click event ends here
+
+  //test of link-click event
+  let a = document.getElementById("a");
+  let b = document.getElementById("b");
+  let c = document.getElementById("c");
+  let d = document.getElementById("d");
+  let w = window;
+
+  w.addEventListener("click",e => {console.log("click", "capture", "window");},{capture: true});
+  a.addEventListener("click", e => {console.log("click", "capture", "a");},{capture: true});
+  b.addEventListener("click", e => {console.log("click", "capture", "b");},{capture: true});
+  c.addEventListener("click", e => {console.log("click", "capture", "c");},{capture: true});
+  d.addEventListener("click", e => {console.log("click", "capture", "d");},{capture: true});
+  e.addEventListener("click", e => {console.log("click", "capture", "e");},{capture: true});
+  f.addEventListener("click", e => {console.log("click", "capture", "f");},{capture: true});
+  a.addEventListener("click", e => {console.log("click", "bubble", "a");});
+  b.addEventListener("click", e => {console.log("click", "bubble", "b");});
+  c.addEventListener("click", e => {console.log("click", "bubble", "c");});
+  d.addEventListener("click", e => {console.log("click", "bubble", "d");});
+  e.addEventListener("click", e => {console.log("click", "bubble", "e");});
+  f.addEventListener("click", e => {console.log("click", "bubble", "f");});
+  w.addEventListener("click",e => {console.log("click", "bubble", "window");});
+
+  w.addEventListener("link-click",e => {console.log("link-click", "capture", "window");},{capture: true});
+  a.addEventListener("link-click", e => {console.log("link-click", "capture", "a");},{capture: true});
+  b.addEventListener("link-click", e => {console.log("link-click", "capture", "b");},{capture: true});
+  c.addEventListener("link-click", e => {console.log("link-click", "capture", "c");},{capture: true});
+  d.addEventListener("link-click", e => {console.log("link-click", "capture", "d")},{capture: true});
+  e.addEventListener("link-click", e => {console.log("link-click", "capture", "e")},{capture: true});
+  f.addEventListener("link-click", e => {console.log("link-click", "capture", "f")},{capture: true});
+  a.addEventListener("link-click", e => {console.log("link-click", "bubble", "a");});
+  b.addEventListener("link-click", e => {console.log("link-click", "bubble", "b");});
+  c.addEventListener("link-click", e => {console.log("link-click", "bubble", "c");});
+  d.addEventListener("link-click", e => {console.log("link-click", "bubble", "d");});
+  e.addEventListener("link-click", e => {console.log("link-click", "bubble", "e");});
+  f.addEventListener("link-click", e => {console.log("link-click", "bubble", "f");});
+  w.addEventListener("link-click",e => {console.log("link-click", "bubble", "window");});
+
+  a.addEventListener("link-click",e => {e.preventDefault();console.log("link-click", "preventDefault", "w bubble");});
+  d.addEventListener("link-click", e => {console.log("click", "stopTrailingClickEvent", "d target");e.stopTrailingClickEvent();});
+  e.addEventListener("link-click", e => {console.log("click", "stopImmediatePropagation", "e target"); e.stopImmediatePropagation();});
+</script>
