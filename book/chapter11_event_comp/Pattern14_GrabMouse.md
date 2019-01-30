@@ -19,39 +19,49 @@ you are doing something else. So, what do you do? You GrabMouse.
 To control the defaultAction of text selection by mouse, there is currently one main alternative:
 CSS property [`user-select`](https://developer.mozilla.org/en-US/docs/Web/CSS/user-select).
 
-You might have expected that this event would be controlled from JS via the [`.preventDefault()`]() 
-of `mousedown` or `mousemove`, or from HTML as an attribute. But no. The default action of the mouse is
-far harder to both read and understand than that.
+You might have expected that this event would be controlled from JS via `.preventDefault()`
+on `mousedown` or `mousemove`, or from HTML as an attribute. But no. The default action of the mouse 
+is far harder to both read and understand than that.
 
-First, there are no HTML attributes to control mouse events, you can only control it from HTML via 
-adding the CSS property `user-select` to the `style` attribute.
+First, there are no HTML attributes that directly control mouse events. 
+From HTML you must set the `user-select` in the `style` attribute to control mouse events.
                                             
-Second, from JS you can control text selection via a separate event `select`. This event could be
-understood as a composed event that should be preventable from its preceding `mousedown` and `mousemove` event,
-but it isn't. The `select` event is unpreventable and will in the same way as `click` is dispatched 
-regardless of any `.preventDefault()` calls on its preceding `mouseup` event.
+Second, JS controls text selection via `select` events. These events are
+composed events triggered by `mousedown`, `mousemove` and `mousemove`. 
+But from mouse events they are *unpreventable*, same as `click`: 
+Calling `.preventDefault()` on mouse events stops neither their `click` nor `select` native 
+composed events.
 
-This could spell trouble. If the `user-select` CSS property was read, captured, and locked *before* 
-the `mousedown` event was dispatched. However, it is not. If you set the `user-select` property during
-the trigger event function for `mousedown`, you will control the text selection behavior.
+This could spell trouble. What if the browser already reads, captures, and locks the 
+`user-select` CSS property *before* the `mousedown` event is dispatched? Thankfully, it doesn't. 
+If you set the `user-select` property during `mousedown` propagation, it *will* control the 
+`select` event and text selection behavior.
 
-To control the actions of mouse events during an EventSequence, we therefore need to:
+To dynamically control the actions of mouse events during an EventSequence, we therefore need to:
 1. set `user-select: none` on the `<html>` element when the sequence starts (ie. on `mousedown`) and
 2. restore the the `<html>` element's original `user-select` value when the sequence ends 
    (ie. on `mouseup` and/or `mouseout`, cf. the ListenUp pattern). 
 
-However. `user-select` is an experimental technology and not supported by old IE.
-And the `select` event is. To ensure maximum control, adding a secondary event trigger for the `selectstart`
-event and calling `.preventDefault()` on this event will ensure that no text selection will occur 
+## IE9: GrabMouse with both hands
+
+`user-select` is only supported by IE10. Thus, if you want to GrabMouse, and you need to include IE9,
+you need to "GrabMouse with both hands". First, you specify the `user-select` property as described above.
+Second, you add a secondary event trigger for the `selectstart` event and call `.preventDefault()` on 
+this event. Grabbing the mouse with both hands like this will ensure that no text selection will occur 
 during your mouse-oriented EventSequence.
 
-## GrabMouse's getaways
+```javascript
+var onSelectstart = function (trigger){                           
+  trigger.preventDefault();
+}
+```
+
+## GrabMouse jailbreak
 
 Sometimes, when handling mouse events, the mouse will breakout from your control. 
-When the mouse tries to getaway from your control, you should not attempt to stop it.
-When that happens, you need to abort your current EventSequence and reset the situation.
-But, you must detect when the mouse escapes you, so that you asap can politely excuse yourself and 
-restore normality.
+When the mouse makes a getaway during one of your EventSequences, you should not attempt to stop it.
+When the mouse wants to break free, you should let it. Instead of trying to impose control on it,
+which is futile, your EventSequence should simply observe the situation and abort.
 
 To illustrate how mouse events get away from your control in the midst of your EventSequence with it,
 we will make a safe `long-press`.
@@ -107,7 +117,7 @@ function resetSequenceState(){
   window.removeEventListener("mouseup", onMouseup);             
   window.removeEventListener("mouseout", onMouseout);           
   window.removeEventListener("focusin", onFocusin);           
-  window.removeEventListener("startselect", onStartselect);           
+  window.removeEventListener("selectstart", onSelectstart);           
   document.children[0].style.userSelect = userSelectCache;
 }
 
@@ -135,12 +145,12 @@ var onMouseout = function (trigger){                            //[3]
   resetSequenceState();                                         
 }
 
-var onFocusin = function (trigger){                           //[3]
-  e.target.dispatchEvent(new CustomEvent("long-press", {bubbles: true, composed: true, detail: duration}));
+var onFocusin = function (trigger){                           //[4]
+  trigger.target.dispatchEvent(new CustomEvent("long-press-cancel", {bubbles: true, composed: true, detail: duration}));
   resetSequenceState();                                         
 }
 
-var onStartselect = function (trigger){                           //[4]
+var onSelectstart = function (trigger){                           //[5]
   trigger.preventDefault();
   return false;
 }
@@ -160,6 +170,9 @@ window.addEventListener("mousedown", onMousedown);
    
 4. If an `alert(...)` was triggered during the EventSequence, this would trigger a change of focus and a
    `focusin` event. Any `focusin` event would be considered a disturbance and cancel the EventSequence.
+   
+5. Extra eventlistener that calls `preventDefault()` on `selectstart` events in case CSS property 
+   `user-select` is not supported.
 
 ```html
 <div id="one">press me</div>
