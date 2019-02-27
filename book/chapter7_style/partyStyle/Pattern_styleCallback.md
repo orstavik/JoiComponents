@@ -1,18 +1,5 @@
 # Pattern: styleCallback
 
-Web components encapsulate CSS in addition to HTML and JS. 
-This encapsulation **protects** the integrity of both:
-1. the shadowDOM CSS from the lightDOM CSS, and
-2. the lightDOM CSS from the shadowDOM CSS.
-
-The CSS encapsulation does this by making sure that:
-1. CSS selectors defined inside the shadowDOM of a web component can *not* select lightDOM elements,
-   (with the exception of the `:host` selector), and that
-2. CSS selectors defined outside a custom element in its lightDOM can *not* select shadowDOM elements.
-
-The encapsulation that keeps the CSS style of the inner shadowDOM from escaping up and into the lightDOM
-is simple and unproblematic. We want a *top-down* control of style, and child elements should *not* 
-define the style of parent elements in the DOM.
 
 However, as we want a *top-down* control of style, we often *do* want the ancestor elements to define
 the style of child elements, even across and into shadowDOM borders. And so CSS supports this, 
@@ -90,8 +77,8 @@ a good convention. It causes confusion. First, it floods the lexicon of CSS prop
 CSS properties applicable to many elements such as `display`, `color` and `border` is given equal
 grammatical importance as `empty-cells` and other mic mack. 
 Second, to avoid flooding the lexicon of CSS properties, 
-browsers can try to reuse element specific properties to other elements where they might "almost" fit.
-tomax find the table-flow property hack that can be used to style the layout of divs in a certain way.
+browsers can try to reuse element specific properties to other elements where they might "almost" fit
+(cf. `display: table` and `table-layout: something`). 
 
 Element specific CSS properties should be prefixed with for example a single "-" (dash).
 Double dash properties are CSS variables that will transcend into the element, single dash properties
@@ -250,8 +237,5 @@ This has several benefits and reasons:
    `list-style` is a good example. Then we get to work with our favorite beast, the `<ol>` list.
    Super!
    
-2. find out which table CSS property is reused in a strange way.
-   `display: table` and `table-layout: something`. auch.
-
 3. make an example of the spillover effect.
 
