@@ -94,8 +94,12 @@ top lightDOM context needed to control and adjust some stylistic properties insi
 Natively, the CSS variables is so far the only accessible option. 
 CSS variables set in the lightDOM context of a web component will be available as properties inside
 the web components shadowDOM. In [HowTo: CSSVariables](HowTo3_CSSVariables) we show how this can be useful.
+However, as we want a *top-down* control of style, we often *do* want the ancestor elements to define
+the style of child elements, even across and into shadowDOM borders. And so CSS supports this.
+A mechanism that will be pass CSS style properties *from* the host node of a custom element and 
+directly into the shadowDOM of a custom element.
 
-However, there are two instances were CSS variables comes up short. First, what if you wanted to
+However, there are two use cases were CSS variables comes up short. First, what if you wanted to
 style a group of internal CSS properties as CSS variables coherently, as one? In many such instances
 these CSS variables depend on each other, meaning that the value of one require a specific value of another
 to make sense. Second, what if you need to "style" the composition of the shadowDOM? Some changes of

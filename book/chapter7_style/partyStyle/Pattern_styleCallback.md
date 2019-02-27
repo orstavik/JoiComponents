@@ -1,110 +1,6 @@
 # Pattern: styleCallback
 
 
-However, as we want a *top-down* control of style, we often *do* want the ancestor elements to define
-the style of child elements, even across and into shadowDOM borders. And so CSS supports this, 
-by two mechanisms that will be passed *from* the host node of a custom element in the lightDOM and 
-*into* the shadowDOM of a custom element:
-
-1. inherited CSS properties and
-2. CSS variables (custom CSS properties).
-
-## Passing CSS style into a web component with CSS variables
-
-Passing CSS variables into a web component gives us another opening that in theory enables us to
-expose the *entire* style of a custom element to its surrounding: If the developer of a web component
-describes *all* of the CSS properties of *all* of its elements as CSS variables, *and* the user of the
-web component then defines *all* of these CSS variables on the `host` elements of that web component,
-then the entire style of that shadowDOM will be defined from the lightDOM.
-
-In theory, CSS variables gives us *total control* of the shadowDOM CSS from the lightDOM.
-Thus, the problem of styling a web component is *not* the *ability* to specify a web component's 
-inner, shadowDOM CSS properties; the problem of styling web components is a problem of verbosity
-and the division of labour. How to divide the labour of styling between the developer of the shadowDOM
-and the developer of the lightDOM of a web component?
-
-## Division of style labour 1: inherited CSS properties (native)
-
-As described above, inherited CSS properties can be passed into a web component.
-In many ways, this is obvious. Inheritable CSS properties are inherited and passed from top-down 
-everywhere else in the flattenedDOM, so why not let inherited CSS properties be passed from the lightDOM
-into the shadowDOM?
-In deed, why not. Properties such as `font-family` flow into a web component.
-
-In practice, passing inherited CSS properties into a web component means that
-the CSS property is passed from the host node element node down into the shadowRoot document node.
-Once inside, the web component itself can choose *override* the inherited font style in the shadowDOM,
-by defining its own value of that property.
-
-Mostly, letting inherited CSS properties flow into a web component is both necessary and 
-"expected by the developer". Mostly, letting inherited CSS properties flow from lightDOM into shadowDOM
-is simple and complete. But. There is one problem with it.
-What if we want the web component to inherit a CSS property *only* in certain situations?
-What if we want the developer to assign certain `font-family` and override this property if the given
-`font-family` is not compatible with the web component?
-In such a situation, we would need some kind of partial override of an inherited CSS style.
-We would have needed to check if the inheritable CSS property fit a certain criteria and 
-only then replace it with another value, something like this:
-```text
-* {
-  font-family: if (inherited font-family is serif) { sans-serif } else { inherited }
-}
-
-```
-
-The problem of partial override of CSS properties is not confined to web components, but applies to
-CSS in general. Styling of web components is only *more* sensitive to this problem and needs partial 
-CSS override more clearly as it attempts to reuse HTML and CSS elements in an even more varied contexts.
-The solution presented here `styleChangedCallback` gives the developer of web components the means to 
-handle partial override of inheritable css properties.
-
-
-## Division of style labour 2: element specific CSS properties
-
-The browsers already provide dozens of element specific CSS properties.
-The `<table>` element and its table-specific CSS properties is a great example of this.
-To understand this better, think of `<table>` as a web component.
-When HTML first invented `<table>` web component, they quickly saw that they needed to specify 
-the style of this particular element in a way that *only* applied to `<table>` elements.
-To do so, they implemented a series of custom CSS properties unique to `<table>` element. 
-
-#### Step 1
-
-When `<table>` was invented, HTML and CSS didn't grammatically distinguish between CSS properties
-that was meant to apply to all or many different HTML elements, and CSS properties that only applied
-to a specific element such as `<table>`. All CSS properties looked the same. I do not think this is
-a good convention. It causes confusion. First, it floods the lexicon of CSS properties. General
-CSS properties applicable to many elements such as `display`, `color` and `border` is given equal
-grammatical importance as `empty-cells` and other mic mack. 
-Second, to avoid flooding the lexicon of CSS properties, 
-browsers can try to reuse element specific properties to other elements where they might "almost" fit
-(cf. `display: table` and `table-layout: something`). 
-
-Element specific CSS properties should be prefixed with for example a single "-" (dash).
-Double dash properties are CSS variables that will transcend into the element, single dash properties
-will only be recognizable as being non-general.
-It will be clear later why we want element specific CSS properties to both be able to differentiate 
-between CSS properties that only transcend only one shadowDOM border (single dash) *and* 
-those that transcend recursively (double dash) with `styleChangedCallback`.
-
-#### Step 2
-
-We continue with our thought experiment seeing the `<table>` as a web component.
-When an element specific CSS property such as `empty-cells: hide` is specified on a `<table>` web component,
-then this component will do "some magic" and "hide the empty cells".
-Essentially, this "magic" is a none-simplistic reaction to the given style property.
-By "none-simplistic" I mean a reaction, a function, that is not immediately recognizable as a
-pure translation from one CSS rule to another. 
-We can imagine that once the browser recognizes a specific CSS style for the table web component,
-it takes the value of this CSS style to trigger a function (that could be implemented in JS)
-to alter the inner view elements of the `<table>` web component (that could be implemented as an HTML+CSS
-shadowDOM).
-
-The concept is:
-1. Alter an element specific style of a web component, and 
-2. this will trigger a reactive function in the web component that
-3. alters the internal shadowDOM of the web component.
-
 ## `styleChangedCallback` as an element specific reaction
 
 The `styleChangedCallback` is the implementation of this reaction. 
@@ -122,26 +18,7 @@ set multiple CSS variables with complex intraconnected bindings, but instead set
 enumeric value (ie. choose one string value of a small list of string values) that the web component
 in turn translates into a set of CSS properties with complex intraconnected bindings.
 In short, the `styleChangedCallback` gives you the power to complete the encapsulation of CSS and HTML.
-
-## Why specify custom elements' style properties as CSS and not HTML attributes?
-
-The main answer to this question is "we want to specify custom style properties of web components as 
-CSS since style properties of normal web components is in CSS". Why?
-
-1. we don't want a conceptual split. This leads to confusion, bad modularization, etc etc.
-   So, as long as CSS controls the style of regular HTML elements, we want it to control the style
-   of custom HTML elements.
-
-2. HTML attributes is part of the DOM. CSS properties are part of the CSS rule set.
-   The CSS properties can be placed in cascading CSS rules. This can be more convenient and less verbose.
-   There is a reason why CSS is beneficial for styling regular elements, the same applies to custom elements.
-   
-3. CSS properties and CSSOM are processed in a different time (and place) than HTML attributes and DOM.
-   This might actually turn out to be both problematic and beneficial for custom CSS properties of custom
-   elements. However, as other CSS properties are affected similarly, this processing is beneficial.
-
-
-   
+  
 ## How `styleCallback("property-name", newValue, oldValue)`?
 
 1. To make a callback when a custom CSS property changes, we need to observe changes in the CSSOM.
