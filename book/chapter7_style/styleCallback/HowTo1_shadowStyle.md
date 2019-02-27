@@ -66,24 +66,41 @@ customElements.define("blue-blue", BlueBlue);
 4. Styles set inside the shadowDOM of `<blue-blue>`, does not leak out into the lightDOM 
    surrounding the host element.
 
-## The need to style into the lightDOM
+## Why break CSS encapsulation?
 
-## The need to style into the shadowDOM
-
-## Exceptions to CSS encapsulation
-
-In principle, web components encapsulate CSS by making sure that:
+Web components protects the CSS from lightDOM and shadowDOM of influencing and confuse each other.
+They do so by making sure that:
 1. CSS selectors defined *inside* the shadowDOM *cannot* select lightDOM elements, and that
 2. CSS selectors defined *outside* a web component in its lightDOM *cannot* select shadowDOM elements.
 
-But, there are of course exceptions to this principle divide:
-1. The `:host` selector inside a web component do style the host node of the web component that reside
-   in the lightDOM.
-2. CSS variables can cascade into the shadowDOM of web components.
-   
-We will return to these exceptions later in this chapter.
+But. There are of course two exceptions to this principle.
 
+First. Sometimes you want the web component to be able to style its host node.
+The host node of the web component reside in the lightDOM, but the also functions as a stylistic
+root element for the web component as a whole. 
+To define its default, startup style, the web component needs to style this stylistic root, 
+even though it is a lightDOM element.
+The next two chapters [Problem: ThisStyleIsNotMyStyle](Problem_ThisStyleIsNotMyStyle) and
+[HowTo: HostWithStyle](HowTo2_HostWithStyle) describe how this can and should be done.
 
+Apart from styling the individual host element (with low priority), the inner CSS properties 
+of the web component cannot leak into any other lightDOM element. Its only the host that gets affected.
+
+Second. From the lightDOM, the host element node of the web component is directly available and
+can be styled like any other HTML element. But, what if you want to control and adjust style 
+(or even composition) of shadowDOM elements? Normally, style would be controlled top-down, so what if the
+top lightDOM context needed to control and adjust some stylistic properties inside the element?
+
+Natively, the CSS variables is so far the only accessible option. 
+CSS variables set in the lightDOM context of a web component will be available as properties inside
+the web components shadowDOM. In [HowTo: CSSVariables](HowTo3_CSSVariables) we show how this can be useful.
+
+However, there are two instances were CSS variables comes up short. First, what if you wanted to
+style a group of internal CSS properties as CSS variables coherently, as one? In many such instances
+these CSS variables depend on each other, meaning that the value of one require a specific value of another
+to make sense. Second, what if you need to "style" the composition of the shadowDOM? Some changes of
+appearance cannot be achieved without also at the same time altering the makeup of the shadowDOM template.
+These element-specific CSS properties will be described in a series of chapters on the [Pattern `styleCallback(...)`]().
 
 ## References
 
