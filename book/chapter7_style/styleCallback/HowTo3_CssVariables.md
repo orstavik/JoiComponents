@@ -14,9 +14,11 @@ expression.
 
 ```html
 <style>
+* {
+  border: 10px solid transparent;
+}
 div {
   --variable-color: blue;
-  border: 10px solid red;
 }
 #left {
   border-left-color: var(--variable-color, orange);
