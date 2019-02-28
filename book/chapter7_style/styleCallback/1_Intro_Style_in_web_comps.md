@@ -35,7 +35,7 @@ the outside.
    native solution: CSS shortcut `border` for shortcutnames such as square and dots
    example: `color-mode: day blue;`
    
-7. UseCase 3: OutsideStyle Becomes InsideStructure
+7. UseCase 3: OutsideStyle Becomes InsideStructure                                   ((problem chapter))
    Native Solution: ElementSpecificCssProperties
    example: `list-style` for square and dots and inside and url
    example: `caption-side` for layout control
@@ -45,31 +45,34 @@ the outside.
    
    a. simplify use choices and covariant CSS properties
    example: `color-mode: day blue;` using simple string value
-   example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
       
-9. Pattern: naive `styleCallback(...)` part 1
-   for processing CustomCssShortcuts in web components 
+9. Pattern: manual `styleCallback()` part 1
+   Where to listen for the style? the lightDOM host element. That way the style property can travel.
    via manual, local 
    use a callback to implement a listener for both CSS shortcuts and ElementSpecificCssProperties
    custom to each individual element.
    it is naive, because it is triggered manually after each change. 
-   on DOMContentLoaded "DCL" and then after a manual check imperatively.
-    * `styleCallback("custom-prop", newValue, oldValue)` + `static get observedStyle() return ["custom-prop"]`
+   for processing CustomCssShortcuts in web components 
 
    same example as above, only in a web component
-   
-   a. simplify use choices and covariant CSS properties
-   example: `color-mode: day blue;` using simple string value
-   example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
+   todo example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
       
-   Where to listen for the style? the lightDOM host element. That way the style property can travel.
-      
-10. Pattern: naive `styleCallback(...)` part 2: Alter shadowDOM in `styleCallback()`
+10. Pattern: manual `styleCallback()` part 2: Alter shadowDOM in `styleCallback()`   ((problem chapter))
    b. alters the shadowDOM
    example: `list-style` for url
    example: `list-style` for inside/outside
    
-10. Pattern: automatic, local `styleCallback()` batched in rAF
+   sometimes we need this.
+   when we do this, never alter any externally observable state
+   such as dispatch event, alter host node attributes, alter single-state / application state
+   or PWA state.
+   
+   write about how styleCallback spillover/sideeffects. That is why you should always trigger changes 
+   that only effect the CSSOM *below* downwards your point of view.
+   
+11. Pattern: automatic `styleCallback(...)` batched in rAF
+   naively triggered by DOMContentLoaded "DCL" and then rAF.
+    * `styleCallback("custom-prop", newValue, oldValue)` + `static get observedStyle() return ["custom-prop"]`
     still a bit naive, but this time all the element itself registers itself in an global array of 
     elements that are triggered every raf.
    
