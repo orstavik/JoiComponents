@@ -36,6 +36,13 @@ div {
 <span id="top">top black border, because the CSS variable declaration is only set on the div elements</span>
 ```
 
+1. Outside the shadowDOM, we can define CSS-variables of the <blue-blue> element in a <style> element to expose multiple CSS properties.
+2. Inside shadowDOM, we can define the background color <div> by invoking CSS variable selectors defined outside shadowDOM.
+3. We can also define the color of the <div> element itself by also invoking CSS variable. When we use the <blue-blue> web 
+component, the text inside it will be wrapped inside the <div>, making the text blue against the blue background.
+4. Regular CSS properties set in the lightDOM will not leak into the web component and control the styles in the shadowDOM of the custom element.
+5. Styles set inside the shadowDOM of <blue-blue>, does not leak out into the lightDOM surrounding the host element.
+  
 ## Example: Passing CSS variables into BlueBlue web component
 
 Below is the BlueBlue example setup to illustrate how CSS variables can be used to expose multiple
@@ -44,7 +51,46 @@ CSS properties to the outside. We take up the very first BlueBlue example from t
 shadowDOM can expose the inner style of the shadowDOM by invoking CSS variable selectors.
 
 ```html
+<script>
+  class BlueBlue extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+           <style>
+        div {
+           background-color: var(--bg-color, red);                //[2]          
+         }
+       </style>
+       <div style="color: var(--text-color, red)">                //[3]  
+         <slot></slot>
+       </div>`;                                                      
+    }
+  }
 
+  customElements.define("blue-blue", BlueBlue);
+</script>
+
+<style>
+    blue-blue {                                                   /*[1]*/
+        --bg-color: lightblue;
+        --text-color: darkblue;
+        --list-style: square inside none;
+    }
+
+    div {                                                        
+        color: yellow;                                            <!--4-->
+    }
+
+</style>
+
+<blue-blue id="one" style="background-color: red;">               <!--4-->
+    darkblue text against a lightblue background.
+</blue-blue>
+
+<div>                                                             
+    This text is yellow.                                         //[5]
+</div>
 ```
 
 ## Are CSS variables enough to style web components?
@@ -59,5 +105,6 @@ three important use cases (which will be described in the next chapters):
 
 ## References
 
- * 
+ * [Using CSS custom properties (variables)](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_variables)
+
 
