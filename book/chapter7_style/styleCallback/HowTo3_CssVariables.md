@@ -125,26 +125,44 @@ CSS properties. But. There is hope! `styleCallback` enables the developer to cre
 CSS shortcuts and implement their translation into other CSS properites in JS. Yes. I know. You will
 love `styleCallback`.
 
+> Often, the styles need to vary accordingly. In the example above, the color of the text should vary according
+  to the color of the background: set a light background, and you should have a dark text, and vice versa.
+  When two such co-dependent style properties are exposed to be set individually, you can expect lots
+  of mistakes and worries on behalf of the user that wants to style these properties.
 
-## The limits imposed by verbosity
+### CSS variables + web components = how to alter shadowDOM structure?
 
-It is has several problems:
+Often, what looks like a "stylistic" choice from the lightDOM, outside the web component is in fact
+a "structural" choice inside the shadowDOM.
 
-1. 
-2. Often, the styles need to vary accordingly. In the example above, the color of the text should vary according
-   to the color of the background: set a light background, and you should have a dark text, and vice versa.
-   When two such co-dependent style properties are exposed to be set individually, you can expect lots
-   of mistakes and worries on behalf of the user that wants to style these properties.
-   
-3. Often, the style you want to specify is as much associated with the makeup and structure of  
-   the shadowDOM template as it is with CSS properties. 
+One example of such a "external style alters internal structure" is
+[`list-style-position`](https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-position).
+When you make a list, you might desire that the dot or number of the list be specified to the left of
+the list itself. If the list is given a background color, then this background color would not
+apply to the dot or number. At other times, you might desire the background to span below the numbers.
+To achieve this effect, the CSS might alter the shadowDOM by adding HTML attributes, 
+adding/removing/moving shadowDOM elements around, and/or imperatively choose which CSS properties to 
+be set depending on the given value.
 
-CSS and HTML actually has a solution for these three quite different problems in use on some 
-native HTML elements such as `<ol>` and `<table>`: 
-[Pattern: ElementSpecificCSSProperties](Pattern_ElementSpecificCSSProperties).
-However, up to this point, no generic solution has been supplied to do so for web components.
-Until now. It gives me great pleasure to shortly introduce to you the solution to most of your 
-web component custom styling: `styleCallback()`.
+HTML and CSS has several elements whose external style can translate into alterations of shadowDOM:
+ * CSS properties that include an image via a `url(...)` will most often require that an `<img>` of
+   sorts be added, removed or hidden/shown depending on the property.
+ * `<table>`, `<caption>` and `caption-side` alters the 
+
+#### static HTML + complex CSS vs. dynamic HTML + simple CSS
+ 
+CSS properties that alter shadowDOM structure can mostly be implemented as pure CSS function on an 
+existing, static, but often a little convoluted HTML structure. Ie. with a little CSS wizardry, you
+can implement the `caption-side` CSS property without altering the shadowDOM. When both the interface
+of the web component is fixed and speed of performance is desired, this is most often desired.
+
+However, it does not take a large leap of faith to see that custom web components might desire changing
+the DOM to implement visual structure. First of all, not all web components are performance sensitive.
+Some web components might only facilitate custom styling to be set once during startup and might 
+therefore desire "less complexity in its internal, shadowDOM HTML and CSS" over "speed of alterations".
+Second, custom web components might require visual changes that cannot be implemented against a static
+HTML template and CSS alone. HTML and CSS is not without its edge cases, and managing different 
+`<slot>` elements or even dynamically adjusting `<slot>` elements can require structural DOM changes.
 
 ## References
 
