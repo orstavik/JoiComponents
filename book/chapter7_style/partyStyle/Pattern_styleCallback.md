@@ -60,9 +60,7 @@ In short, the `styleChangedCallback` gives you the power to complete the encapsu
    3. The current styleCallback cycle, in TreeOrder, could be aborted. 
       I'm not sure we should do this.
 
-## The order of `styleChangedCallback`
-
-### no `styleChangedCallback` spillover
+### no `styleChangedCallback` spillover/sideeffect
 
 The `styleChangedCallback` should have no spillover effect. When you change the inner state of the 
 web component from a CSS property that triggers a `styleChangedCallback`, then this internal state change
@@ -75,7 +73,8 @@ state changes should *not*:
 3. nor cause any internal state changes that in turn triggers changes of the app state as a whole.
 
 From the app's perspective, the change is pure, it has no side-effects.
-         
+  
+## The order of `styleChangedCallback`
 ### the order of execution of `styleChangedCallback`
 
 `styleChangedCallback` should be executed as a batch.
@@ -87,26 +86,6 @@ changes in the DOM *before* the point of current execution.
 If such changes occur, the batch processing of `styleChangedCallback` is allowed to delay 
 `styleChangedCallback` of such elements until the next frame.
 
-### the point of execution of `styleChangedCallback`
-
-`styleChangedCallback` is triggered by changes of style properties on the `host` node of a web component.
-This has several benefits and reasons:
-1. lifecycle callbacks are reactions to contextual, lightDOM changes. 
-   As a lifecycle callback, `styleChangedCallback` should comply with this concept.
-   todo add this comment to slottablesCallback too, that this is a true lightDOM change and that a 
-   lifecycle callback should be that. While slotchangeCallback is an inner, shadowDOM change, 
-   which should not be a lifecycle callback.
-2. By listening for style changes on the `host` node, not only CSS variable and inherited properties,
-   but any CSS property name can be observed. This is nice, as we do not necessarily want to
-   enable CSS properties that trigger internal state changes to be recursive as CSS variables are.
-3. The properties we need to observe might be changed from within the element, 
-   but inner changes from other lifecycle or regular JS methods can and should in this instance 
-   trigger ensuing functionality in the element imperatively, not reactively. 
-4. By observing changes on the upper, lightDOM level, the browser would be able to skip processing 
-   the CSS of the shadow elements, even though the `:host` operator is problematic.
-   The `host` operator should have been a `shadowRoot` operator, working on the shadowRoot document node.
-   This would have given the browser the ability to process CSS down-to-current-document level.
-   
 ## todo
 
 1. make an example of how we could implement a native element as a web component 

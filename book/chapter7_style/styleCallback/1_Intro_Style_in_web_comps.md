@@ -40,14 +40,16 @@ the outside.
    example: `list-style` for square and dots and inside and url
    example: `caption-side` for layout control
    
-8. Pattern: Custom CSS shortcut
+8. Pattern: CustomCssShortcut
    Not specific to web components.
    
    a. simplify use choices and covariant CSS properties
    example: `color-mode: day blue;` using simple string value
    example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
       
-8. Pattern: Custom CSS shortcut for web components via manual, local `styleCallback()`
+9. Pattern: naive `styleCallback(...)` part 1
+   for processing CustomCssShortcuts in web components 
+   via manual, local 
    use a callback to implement a listener for both CSS shortcuts and ElementSpecificCssProperties
    custom to each individual element.
    it is naive, because it is triggered manually after each change. 
@@ -61,9 +63,8 @@ the outside.
    example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
       
    Where to listen for the style? the lightDOM host element. That way the style property can travel.
-   use single `-` as prefix, I think. todo check out single dash meaning.
       
-9. Pattern: Alter shadowDOM in `styleCallback()`
+10. Pattern: naive `styleCallback(...)` part 2: Alter shadowDOM in `styleCallback()`
    b. alters the shadowDOM
    example: `list-style` for url
    example: `list-style` for inside/outside
