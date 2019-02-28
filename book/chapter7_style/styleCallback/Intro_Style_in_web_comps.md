@@ -23,41 +23,52 @@ the outside.
     * `--some-value: blue;` in the lightDOM and
     * `color: var(--some-value)` in the shadowDom 
    
-   example: `<blue-blue>` that sets the font type of the list of numbers.   
+   example: `<blue-blue>` that sets the font type of the list of numbers. 
+   
+   problem: poor support with polyfill?  
 
 5. UseCase 1: Coordinate SystemWorldCovariantCss
+   todo: find an example from CSS where it gives a shortcut to coordinate SystemWorldCovariantCss
+   example: an imagined `display-shortcut: fixed top-left 12px 200px;`
 
 6. UseCase 2: Coordinate RealWorldCovariantCss
+   native solution: CSS shortcut `border` for shortcutnames such as square and dots
+   example: `color-mode: day blue;`
    
 7. UseCase 3: OutsideStyle Becomes InsideStructure
-
-8. Native Solution 1: CSS Shortcuts
-   example: `border` for shortcutnames such as square and dots
-   
-9. Native Solution 2: ElementSpecificCssProperties
+   Native Solution: ElementSpecificCssProperties
    example: `list-style` for square and dots and inside and url
    example: `caption-side` for layout control
    
-10. Pattern: Custom ElementSpecificCssProperties & manual, local `styleCallback()`
+8. Pattern: Custom CSS shortcut via manual, local `styleCallback()`
    use a callback to implement a listener for both CSS shortcuts and ElementSpecificCssProperties
    custom to each individual element.
-   
+   it is naive, because it is triggered manually after each change. 
+   on DOMContentLoaded "DCL" and then after a manual check imperatively.
+    * `styleCallback("custom-prop", newValue, oldValue)` + `static get observedStyle() return ["custom-prop"]`
+
    a. simplify use choices and covariant CSS properties
-   example: custom use of numeric values, don't know what.
+   example: `color-mode: day blue;` using simple string value
+   example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
       
+   Where to listen for the style? the lightDOM host element. That way the style property can travel.
+   use single `-` as prefix, I think. todo check out single dash meaning.
+      
+9. Pattern: Alter shadowDOM in `styleCallback()`
    b. alters the shadowDOM
    example: `list-style` for url
    example: `list-style` for inside/outside
-
-   it is naive, because it is triggered manually after each change. 
-   on DOMContentLoaded "DCL" and then after a manual check imperatively.
-   * StyleMixin.js: `styleCallback("custom-prop", newValue, oldValue)` + `static get observedStyle() return ["--custom-prop"]`
-
-12. Pattern: automatic, local `styleCallback()` batched in rAF
+   
+10. Pattern: automatic, local `styleCallback()` batched in rAF
     still a bit naive, but this time all the element itself registers itself in an global array of 
     elements that are triggered every raf.
    
-13. Pattern: automatic, local, top-down `styleCallback()` against a mutable DOM sorted TreeOrder
+11. Problem: `styleCallback()` must only alter state that is invisible from the lightDOM
+   * no sideeffects (that alters the application state or the global PWA state or the state of composed events)
+   * no dispatch of events (that can trigger event listener in the lightDOM)
+   * no altering element attributes (that can be observed and trigger a callback in the lightDOM)
+
+12. Pattern: automatic, local, top-down `styleCallback()` against a mutable DOM sorted TreeOrder
 
  * LayoutMixin.js: `layoutCallback({size: {width, height}, position{top, left, bottom, right}})` 
    and `static get observedLayout() return ["position", "size"]` 
