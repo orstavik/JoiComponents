@@ -44,7 +44,7 @@ This will style something about the elements. blablabla.
   
     constructor() {
       super();
-      this.attachShadow({ mode: "open" });                         //[1]
+      this.attachShadow({ mode: "open" });                         //[2]
       this.shadowRoot.innerHTML = `
 <span><span style="width: 50px;">#.</span><slot></slot></span>`;   
     }
