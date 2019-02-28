@@ -40,13 +40,22 @@ the outside.
    example: `list-style` for square and dots and inside and url
    example: `caption-side` for layout control
    
-8. Pattern: Custom CSS shortcut via manual, local `styleCallback()`
+8. Pattern: Custom CSS shortcut
+   Not specific to web components.
+   
+   a. simplify use choices and covariant CSS properties
+   example: `color-mode: day blue;` using simple string value
+   example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
+      
+8. Pattern: Custom CSS shortcut for web components via manual, local `styleCallback()`
    use a callback to implement a listener for both CSS shortcuts and ElementSpecificCssProperties
    custom to each individual element.
    it is naive, because it is triggered manually after each change. 
    on DOMContentLoaded "DCL" and then after a manual check imperatively.
     * `styleCallback("custom-prop", newValue, oldValue)` + `static get observedStyle() return ["custom-prop"]`
 
+   same example as above, only in a web component
+   
    a. simplify use choices and covariant CSS properties
    example: `color-mode: day blue;` using simple string value
    example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
