@@ -77,19 +77,17 @@ Alone, the verbosity of exposing multiple CSS variables is not a show-stopper.
 But, the web community *knows* that generic CSS grammar that create CSS boilerplate is not good.
 And combined with the other coming problems, the verbosity issues escalate.
 
-## todo move the next three headers into individual chapters.
-Problem2_SystemWorldCovariantCSS
-Problem3_RealWorldCovariantCSS
-Problem4_OutsideStyleBecomesInsideStructure
+### CSS variables + web components = system-world covariance
 
-### CSS variables + web components = external coordination inner codependent CSS properties
+### external coordination inner codependent CSS properties
                                                                                      
 Often, CSS properties are codependent. This codependence can have several origins, but we can think
 of it as either a **system-world** or **real-world** codependence. 
 
 Two CSS properties are **system-world codependent** when they directly depend on the value of each other.
 For example, it makes no sense to set the `left: 10px` CSS property on an element with `display: inline`. 
-The value of the `top` CSS property depends on a specific value of the `display`.
+The value of the `left` CSS property depends on a specific value of the `display`, such as `absolute` or `fixed`.
+
 Such system-world codependence is not restricted to within individual HTML elements; 
 it can span several elements in the DOM. An example of such inter-element, system-world codependence
 is again the `display` CSS property: when you set the `display: absolute` on an element, the interpretation
@@ -106,9 +104,11 @@ Natively, CSS provides some support for coordinating such CSS properties.
 For example, shortcut CSS properties such as `border: 4px 2px dotted red` makes it simpler to coordinate
 low-level properties such as `border-left-width`.
 
+### CSS variables + web components = real-world covariance
+
 Two CSS properties are **real-world** codependent when the user will experience the value of one affecting
 the value of another. For example, if you set `background-color: white` and `color: yellow` on a `<span>`
-element with plain text content, then the user will no longer be able to read its content. 
+element with plain text content, then the user eyes are not sensitive enough to read its content. 
 As with system-world codependence, real-world codependence can also span several elements requiring the
 developer to coordinate the values of several CSS properties for the user.
 
@@ -118,8 +118,13 @@ Example, BlueBlue with codependent color values
 
 ```
 
-To fix this, we would like one external property `color-mode` that would be translated into a set
-of real-world coherent CSS properties. For example, 
+Problem is the external covariance of the CSS property, that the user on the outside gets the tasak and worry 
+about ensuring that CSS properties fit together. This is bad. We want the developer of the web component
+to encapsulate this logic inside the web component.
+
+An example of such encapsulation is an imagined external property `color-mode`.
+`color-mode` would be translated into a set of CSS properties that are coherent in the real-world. 
+For example, 
 * `color-mode: day blue;` => `background-color: lightblue; border-color: darkblue; color: black;`
 * `color-mode: night green;` => `background-color: darkgreen; border-color: lightgreen; color: white;`
 
@@ -168,6 +173,9 @@ therefore desire "less complexity in its internal, shadowDOM HTML and CSS" over 
 Second, custom web components might require visual changes that cannot be implemented against a static
 HTML template and CSS alone. HTML and CSS is not without its edge cases, and managing different 
 `<slot>` elements or even dynamically adjusting `<slot>` elements can require structural DOM changes.
+
+In the beginning they can make simple dynamic HTML with simpler CSS, and 
+then later make this structure more efficient by static html and complex CSS.
 
 ## References
 

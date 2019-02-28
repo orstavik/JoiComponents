@@ -25,20 +25,45 @@ the outside.
    
    example: `<blue-blue>` that sets the font type of the list of numbers.   
 
-5. Pattern: styleChangedCallback() for element specific CSS properties that alters the shadowDOM
+5. UseCase 1: Coordinate SystemWorldCovariantCss
+
+6. UseCase 2: Coordinate RealWorldCovariantCss
+   
+7. UseCase 3: OutsideStyle Becomes InsideStructure
+
+8. Native Solution 1: CSS Shortcuts
+   example: `border` for shortcutnames such as square and dots
+   
+9. Native Solution 2: ElementSpecificCssProperties
+   example: `list-style` for square and dots and inside and url
+   example: `caption-side` for layout control
+   
+10. Pattern: Custom ElementSpecificCssProperties & manual, local `styleCallback()`
+   use a callback to implement a listener for both CSS shortcuts and ElementSpecificCssProperties
+   custom to each individual element.
+   
+   a. simplify use choices and covariant CSS properties
+   example: custom use of numeric values, don't know what.
+      
+   b. alters the shadowDOM
    example: `list-style` for url
    example: `list-style` for inside/outside
+
+   it is naive, because it is triggered manually after each change. 
+   on DOMContentLoaded "DCL" and then after a manual check imperatively.
    * StyleMixin.js: `styleCallback("custom-prop", newValue, oldValue)` + `static get observedStyle() return ["--custom-prop"]`
 
-6. Pattern: styleChangedCallback() for element specific CSS properties that simplify use choices
-   example: `list-style` for shortcutnames such as square and dots
-   example: custom use of numeric values, don't know what.
+12. Pattern: automatic, local `styleCallback()` batched in rAF
+    still a bit naive, but this time all the element itself registers itself in an global array of 
+    elements that are triggered every raf.
+   
+13. Pattern: automatic, local, top-down `styleCallback()` against a mutable DOM sorted TreeOrder
 
-7. LayoutMixin.js: `layoutCallback({size: {width, height}, position{top, left, bottom, right}})` 
+ * LayoutMixin.js: `layoutCallback({size: {width, height}, position{top, left, bottom, right}})` 
    and `static get observedLayout() return ["position", "size"]` 
    (cf. old resizeCallback()).
    
-8. CssShadowPartsMixin.js: This might come in the standards, but it is not there yet.
+ * CssShadowPartsMixin.js: This might come in the standards, but it is not there yet.
    And ::shadowParts selector could be useful to specify the number pointer on the li-li element.
    But this is also heavy, and less useful than the styleCallback, so not implemented yet.
    
