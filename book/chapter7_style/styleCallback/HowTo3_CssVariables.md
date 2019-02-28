@@ -77,6 +77,11 @@ Alone, the verbosity of exposing multiple CSS variables is not a show-stopper.
 But, the web community *knows* that generic CSS grammar that create CSS boilerplate is not good.
 And combined with the other coming problems, the verbosity issues escalate.
 
+## todo move the next three headers into individual chapters.
+Problem2_SystemWorldCovariantCSS
+Problem3_RealWorldCovariantCSS
+Problem4_OutsideStyleBecomesInsideStructure
+
 ### CSS variables + web components = external coordination inner codependent CSS properties
                                                                                      
 Often, CSS properties are codependent. This codependence can have several origins, but we can think
