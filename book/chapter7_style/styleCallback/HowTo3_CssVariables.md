@@ -45,18 +45,46 @@ shadowDOM can expose the inner style of the shadowDOM by invoking CSS variable s
 
 ```
 
+## CSS variables + web components != love
+
+In principle, CSS variables can give us *full lightDOM access* to 
+*all the elements and CSS properties* in the shadowDOM of a web component.
+But. As the example above illustrates, something is not right. 
+Here, we will list and illustrate how CSS variables come up short as a vehicle for styling web components.
+
+### CSS variables + web components = lots of boilerplate CSS
+
+When using CSS variables to control the style, a series of repetitive steps must be taken to both:
+1. define the use of all the CSS variables inside the shadowDOM of the web component and
+2. declare the CSS variables' values in the outside lightDOM of the web component.
+
+Inside the web component, the CSS code does not really perform any other function than to give a specific
+name to a specific element's CSS property in the shadowDOM. For a handful of inner CSS properties
+such exposure is ok, but when you start counting exposed CSS properties with two digits, the gravity
+of low-level API complexity starts pulling the usability of the web component down.
+
+Outside the web component, naming a couple of key, inner CSS properties is fine. 
+But. As soon as the web component require you to manage a handful of CSS properties custom with 
+"--long-double-dashed-names", the need for detailed documentation and detailed insight into the 
+web component will start to annoy the user. The user of the web component desires:
+* fewer CSS properties with
+* simple, logical names, that are
+* coherent with the form and function of the web component's template and reactions.
+ 
+Alone, the verbosity of exposing multiple CSS variables is not a show-stopper.
+But, the web community *knows* that generic CSS grammar that create CSS boilerplate is not good.
+And combined with the other coming problems, the verbosity issues escalate.
+
+### CSS variables + web components = external coordination of inner workings
+                                                                                     
+Often, CSS properties are codependent either technically or "physically". 
+For example, it makes no sense 
+
 ## The limits imposed by verbosity
 
-In principle, CSS variables gives us *full access* to the shadowDOM style from the lightDOM.
-But. It is has several problems:
+It is has several problems:
 
-1. It is far too verbose to work. *Especially* defining the use of all the CSS variables inside the 
-   shadowDOM of the web component *and* to declare the values of all the needed CSS variables in the
-   lightDOM around each component, is just too much. It will fill the web component and its uses
-   with boilerplate styling text, just annoying everyone to death and hiding all the other code inside
-   a mass of CSS uselessness. The web has long been there and done that before, we know it doesn't work
-   in the long run.
-
+1. 
 2. Often, the styles need to vary accordingly. In the example above, the color of the text should vary according
    to the color of the background: set a light background, and you should have a dark text, and vice versa.
    When two such co-dependent style properties are exposed to be set individually, you can expect lots
