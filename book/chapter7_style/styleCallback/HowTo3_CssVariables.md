@@ -75,10 +75,54 @@ Alone, the verbosity of exposing multiple CSS variables is not a show-stopper.
 But, the web community *knows* that generic CSS grammar that create CSS boilerplate is not good.
 And combined with the other coming problems, the verbosity issues escalate.
 
-### CSS variables + web components = external coordination of inner workings
+### CSS variables + web components = external coordination inner codependent CSS properties
                                                                                      
-Often, CSS properties are codependent either technically or "physically". 
-For example, it makes no sense 
+Often, CSS properties are codependent. This codependence can have several origins, but we can think
+of it as either a **system-world** or **real-world** codependence. 
+
+Two CSS properties are **system-world codependent** when they directly depend on the value of each other.
+For example, it makes no sense to set the `left: 10px` CSS property on an element with `display: inline`. 
+The value of the `top` CSS property depends on a specific value of the `display`.
+Such system-world codependence is not restricted to within individual HTML elements; 
+it can span several elements in the DOM. An example of such inter-element, system-world codependence
+is again the `display` CSS property: when you set the `display: absolute` on an element, the interpretation
+of this value depends on the value of the value of the `display` property of one or more of the element's 
+ancestor elements.
+
+Example, BlueBlue with codependent border values?
+
+```html
+
+```
+
+Natively, CSS provides some support for coordinating such CSS properties.
+For example, shortcut CSS properties such as `border: 4px 2px dotted red` makes it simpler to coordinate
+low-level properties such as `border-left-width`.
+
+Two CSS properties are **real-world** codependent when the user will experience the value of one affecting
+the value of another. For example, if you set `background-color: white` and `color: yellow` on a `<span>`
+element with plain text content, then the user will no longer be able to read its content. 
+As with system-world codependence, real-world codependence can also span several elements requiring the
+developer to coordinate the values of several CSS properties for the user.
+
+Example, BlueBlue with codependent color values
+
+```html
+
+```
+
+To fix this, we would like one external property `color-mode` that would be translated into a set
+of real-world coherent CSS properties. For example, 
+* `color-mode: day blue;` => `background-color: lightblue; border-color: darkblue; color: black;`
+* `color-mode: night green;` => `background-color: darkgreen; border-color: lightgreen; color: white;`
+
+Natively, CSS provides CSS shortcuts such as (todo find some example here).
+
+For web components, there is no ability to define CSS shortcuts for external coordination of codependent
+CSS properties. But. There is hope! `styleCallback` enables the developer to create such coordinating
+CSS shortcuts and implement their translation into other CSS properites in JS. Yes. I know. You will
+love `styleCallback`.
+
 
 ## The limits imposed by verbosity
 
