@@ -143,7 +143,7 @@ export function runBatchProcess(){
       return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING;
     });
     let next = unprocessed.shift();
-    if (pointOfIteration.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_PRECEDING)
+    if (pointOfIteration && pointOfIteration.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_PRECEDING)
       throw new Error();
     for (let done of processed) {
       if (next.compareDocumentPosition(done) & Node.DOCUMENT_POSITION_PRECEDING)
@@ -163,12 +163,12 @@ export function BatchMixin(type) {
     
     connectedCallback() {
       super.connectedCallback && super.connectedCallback();
-      batch.push(this);
+      addToBatch(this);
     }
     
     disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
-      batch.remove(this);
+      removeFromBatch(this);
     }
   };
 }
