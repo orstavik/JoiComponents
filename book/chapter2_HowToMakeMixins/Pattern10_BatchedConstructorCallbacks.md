@@ -71,7 +71,7 @@ ready || window.addEventListener("DOMContentLoaded", function() {ready = true; r
 ## The completion of DOM-branch construction: 2) SYNC
 
 The second mode of DOM construction is sync.
-Sync mode can both be triggered by JS initialized constructors and the sync parser .innerHTML.
+Sync mode can both be triggered by JS initialized constructors and the sync parser `.innerHTML`.
 These can be dynamically triggered during the setup of the main document (thus already delayed until DCL)
 or after DCL.
 
