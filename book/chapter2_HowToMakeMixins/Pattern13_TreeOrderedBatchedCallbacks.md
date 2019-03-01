@@ -174,5 +174,52 @@ export function BatchMixin(type) {
 }
 ```
 
+## Demo: three elements that can cause DOM mutations
+
+```html
+<h4>Double-click on the page to run the batch process</h4>
+<one-one>one</one-one>
+<hr>
+<two-two>two</two-two>
+<hr>
+<three-three>three</three-three>
+
+<script type="module">
+import {BatchMixin, runBatchProcess} from "BatchMixin.js";
+
+class One extends HTMLElement{
+  batchCallback(){
+    this.dispatchEvent(new CustomEvent("one-event", {bubbles: true}));
+  }
+}
+
+class Two extends BatchMixin(HTMLElement){
+  batchCallback(){
+    this.dispatchEvent(new CustomEvent("two-event", {bubbles: true}));
+  }
+}
+class Three extends BatchMixin(HTMLElement){
+  batchCallback(){
+    this.dispatchEvent(new CustomEvent("three-event", {bubbles: true}));
+  }
+}
+
+customElements.define("one-one", One);
+customElements.define("two-two", Two);
+customElements.define("three-three", Three);
+
+window.addEventListener("dblclick", runBatchProcess);
+window.addEventListener("one-event", function(){
+  let anotherOne = document.createElement("one-one");
+  document.body.prependChild(anotherOne);
+});
+window.addEventListener("two-event", function(){
+  let two = document.querySelector("two-two");
+  let three = document.querySelector("three-three");
+  three.appendChild(two); //this will break the shit
+});
+</script>
+```
+
 ## References
  * 
