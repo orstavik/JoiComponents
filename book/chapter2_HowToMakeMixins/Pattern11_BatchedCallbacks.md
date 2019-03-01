@@ -11,6 +11,10 @@ To batch a lifecycle callback, you need to do the following:
    `connectedCallback()` and `disconnectedCallback()` respectively).
 3. trigger a function that will iterate the register of elements and call all the functions on them.
 
+In addition, we want two functions on the web component:
+1. startBatchCallback()
+2. stopBatchCallback()
+
 ## Example: BatchMixin
 
 In this example we create a mixin with a dummy callback `batchCallback()`.
@@ -33,11 +37,15 @@ the register *during* the same `runBatchProcess()`).
 const batch = [];
 
 function addToBatch(el) {
-  batch.push(el);
+  const index = batch.indexOf(el);
+  if (index === -1)
+    batch.push(el);
 }
 
 function removeFromBatch(el){
-  batch.splice(batch.indexOf(el), 1);
+  const index = batch.indexOf(el);
+  if (index >= 0)
+    batch.splice(index, 1);
 }
 
 export function runBatchProcess(){
@@ -53,12 +61,20 @@ export function BatchMixin(type) {
     
     connectedCallback() {
       super.connectedCallback && super.connectedCallback();
-      batch.push(this);
+      addToBatch(this);
     }
     
     disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
-      batch.remove(this);
+      removeFromBatch(this);
+    }
+    
+    startBatchCallback(){
+      addToBatch(this);      
+    }
+    
+    stopBatchCallback(){
+      removeFromBatch(this);      
     }
   };
 }
@@ -101,7 +117,11 @@ customElements.define("one-one", One);
 customElements.define("two-two", Two);
 customElements.define("three-three", Three);
 
-window.addEventListener("dblclick", runBatchProcess);
+
+window.addEventListener("dblclick", function(){
+  document.querySelector("two-two").stopBatchCallback();
+  runBatchProcess();
+});
 </script>
 ```
 
