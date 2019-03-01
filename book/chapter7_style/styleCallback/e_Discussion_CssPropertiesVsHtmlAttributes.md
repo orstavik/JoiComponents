@@ -1,4 +1,4 @@
-# Pattern: ElementSpecificCssProperties
+# Discussion: CSS properties vs. HTML attributes?
 
 In CSS, there are some properties that only apply one specific element.
 One example is the `empty-cells`, `border-collapse`, and `caption-side` properties that 
@@ -35,8 +35,6 @@ CSS since style properties of normal web components is in CSS". Why?
 3. CSS properties and CSSOM are processed in a different time (and place) than HTML attributes and DOM.
    This might actually turn out to be both problematic and beneficial for custom CSS properties of custom
    elements. However, as other CSS properties are affected similarly, this processing is beneficial.
-
-
 
 ## Element-specific CSS properties or HTML attributes?
 
@@ -75,3 +73,13 @@ The concept is:
 2. this will trigger a reactive function in the web component that
 3. alters the internal shadowDOM of the web component.
 
+## Conclusion
+
+If changes from the property *only* affects the inner mechanics of the element with no potential
+for outside observation, then CSS properties can be used. If changes can and should affect other 
+observable properties of the element (ie. dispatches events, alters other html attributes on the host node,
+alters gesture or PWA state, etc.), then HTML attribute must be used.
+
+## References
+
+ * 

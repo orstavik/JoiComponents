@@ -1,6 +1,0 @@
-# Pattern: StyleAlterShadowDOM
-
-
-## References
-
- * 

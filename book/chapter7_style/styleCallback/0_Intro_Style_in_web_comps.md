@@ -35,18 +35,13 @@ the outside.
    native solution: CSS shortcut `border` for shortcutnames such as square and dots
    example: `color-mode: day blue;`
    
-7. UseCase 3: OutsideStyle Becomes InsideStructure                                   ((problem chapter))
-   Native Solution: ElementSpecificCssProperties
-   example: `list-style` for square and dots and inside and url
-   example: `caption-side` for layout control
-   
-8. Pattern: CustomCssShortcut
+7. Pattern: CustomCssShortcut
    Not specific to web components.
    
    a. simplify use choices and covariant CSS properties
    example: `color-mode: day blue;` using simple string value
       
-9. Pattern: manual `styleCallback()` part 1
+8. Pattern: manual `styleCallback()` part 1
    Where to listen for the style? the lightDOM host element. That way the style property can travel.
    via manual, local 
    use a callback to implement a listener for both CSS shortcuts and ElementSpecificCssProperties
@@ -57,31 +52,47 @@ the outside.
    same example as above, only in a web component
    todo example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
       
-10. Pattern: manual `styleCallback()` part 2: Alter shadowDOM in `styleCallback()`   ((problem chapter))
-   b. alters the shadowDOM
-   example: `list-style` for url
-   example: `list-style` for inside/outside
-   
-   sometimes we need this.
-   when we do this, never alter any externally observable state
-   such as dispatch event, alter host node attributes, alter single-state / application state
-   or PWA state.
-   
-   write about how styleCallback spillover/sideeffects. That is why you should always trigger changes 
-   that only effect the CSSOM *below* downwards your point of view.
-   
-11. Pattern: automatic `styleCallback(...)` batched in rAF
-   naively triggered by DOMContentLoaded "DCL" and then rAF.
-    * `styleCallback("custom-prop", newValue, oldValue)` + `static get observedStyle() return ["custom-prop"]`
+9. Pattern: batched `styleCallback()`
+   still manual trigger, but this time, the web components themselves make sure they are registered in 
+   a que so that style that will batch their callbacks.
+   Here, we need to employ the pattern StaticSettings to define which properties that should be called back.
+   * `styleCallback("custom-prop", newValue, oldValue)` + `static get observedStyle() return ["custom-prop"]`
+
+10. Pattern: automatic `styleCallback(...)` 
+    triggered automatically by a rAF.
     still a bit naive, but this time all the element itself registers itself in an global array of 
     elements that are triggered every raf.
-   
-11. Problem: `styleCallback()` must only alter state that is invisible from the lightDOM
-   * no sideeffects (that alters the application state or the global PWA state or the state of composed events)
-   * no dispatch of events (that can trigger event listener in the lightDOM)
-   * no altering element attributes (that can be observed and trigger a callback in the lightDOM)
+    still naively triggered by DOMContentLoaded "DCL" and then rAF.
 
-12. Pattern: automatic, local, top-down `styleCallback()` against a mutable DOM sorted TreeOrder
+11. Problem: DOM alter CSS alter DOM alter CSS loops
+    `styleCallback()` must only alter state that is invisible from the lightDOM
+    * no sideeffects (that alters the application state or the global PWA state or the state of composed events)
+    * no dispatch of events (that can trigger event listener in the lightDOM)
+    * no altering element attributes (that can be observed and trigger a callback in the lightDOM)
+    It is an anti-pattern to alter other styles or DOM that is not *within* the current element. 
+
+12. Problem 2: OutsideStyle Becomes InsideStructure                                   
+    Native Solution: ElementSpecificCssProperties
+    example: `list-style` for square and dots and inside and url
+    example: `caption-side` for layout control
+    
+    when we do this, never alter any externally observable state
+    such as dispatch event, alter host node attributes, alter single-state / application state
+    or PWA state.
+    
+    write about how styleCallback spillover/sideeffects. That is why you should always trigger changes 
+    that only effect the CSSOM *below* downwards your point of view.
+   
+13. Pattern: TreeOrdered `styleCallback()` 
+    The batched process are top down.
+    If the batch is altered during the check, and 
+    the alteration is NOT strictly underneath the current node,
+    throw an Error that can pin point the batched `styleCallback()` that was the root of the problem.
+    
+    Alter shadowDOM in `styleCallback()`
+    b. alters the shadowDOM
+    
+14. Discussion: CSS properties vs. HTML attributes
 
  * LayoutMixin.js: `layoutCallback({size: {width, height}, position{top, left, bottom, right}})` 
    and `static get observedLayout() return ["position", "size"]` 
