@@ -13,7 +13,54 @@ developer to coordinate the values of several CSS properties for the user.
 
 ## Native coordination RealWorldCovariantCss 
 
-Natively, CSS provides CSS shortcuts such as (todo find some example here).
+Natively, CSS provides CSS shortcuts such as:
+
+#### `animation:`
+
+```css
+/* <duration> | <name> */
+animation: 3s slidein;
+
+/* <duration> | <timing-function> | <delay> | <name> */
+animation: 3s linear 1s slidein;
+
+/* <duration> | <timing-function> | <delay> | <iteration-count> | <direction> | <fill-mode> | <play-state> | <name> */
+animation: 2s ease-in 3s 2 reverse both paused slidein;
+```
+
+#### `background`
+
+```css
+/* Using a <background-color> */
+background: green;
+
+/* Using a <bg-image> and <repeat-style> */
+background: url("test.jpg") repeat-y;
+
+/* Using a <box> and <background-color> */
+background: border-box red;
+
+/* A single image, centered and scaled */
+background: no-repeat center/80% url("/img/image.png");
+```
+
+#### `margin`
+
+```css
+/* Apply to all four sides */
+margin: 10px;
+
+/* <vertical> | <horizontal> */
+margin: 5% auto;
+
+/* <top> | <horizontal> | <bottom> */
+margin: 1em auto 20x; 
+
+/* <top> | <right> | <bottom> | <left> */
+margin: 2px 5px 0 auto;
+```
+
+#### `...`
 
 For web components, there is no ability to define CSS shortcuts for external coordination of codependent
 CSS properties. But. There is hope! `styleCallback` enables the developer to create such coordinating
@@ -36,9 +83,8 @@ to encapsulate this logic inside the web component.
 An example of such encapsulation is an imagined external property `color-mode`.
 `color-mode` would be translated into a set of CSS properties that are coherent in the real-world. 
 For example, 
-* `color-mode: day blue;` => `background-color: lightblue; border-color: darkblue; color: black;`
-* `color-mode: night green;` => `background-color: darkgreen; border-color: lightgreen; color: white;`
-
+* `--color-mode: day blue;` => `background-color: lightblue; border-color: darkblue; color: black;`
+* `--color-mode: night green;` => `background-color: darkgreen; border-color: lightgreen; color: white;`
 
 ```html
 
