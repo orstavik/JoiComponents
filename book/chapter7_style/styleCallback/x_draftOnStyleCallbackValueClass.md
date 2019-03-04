@@ -15,16 +15,16 @@ var styleValue = {
     return /white/.matches(value);
   },
   _isNumber: function(value){
-    return /12px/.matches(value);
+    return /\n+/.matches(value);
   },
   _process: function(){
     this._colors = [];
     this._numbers = [];
     this._others = [];
     for (let value of values){
-      if (value isA color)
+      if (this._isColor(value))
         this._colors.push(value);
-      else if (value isA number)
+      else if (this._isNumber(value))
         this._numbers.push(value);
       else 
         this._others.push(value);
