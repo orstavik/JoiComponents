@@ -1,16 +1,16 @@
 # HowTo: CSS variables
 
-CSS variables is currently the only native vehicle to pass CSS properties into a web component.
-In theory, CSS variables enable us to expose the *entire* style of a shadowDOM to its surrounding: 
-If the developer of a web component explicitly marks all the CSS properties of all its shadowDOM elements
-as either a CSS variable or a default value, the entire body of a web component's shadowDOM
-can be selectively controlled from the outside.
-
+Currently, the only native vehicle to pass CSS properties into a web component is CSS variables.
+In principle, CSS variables enable us to expose the style of the *entire* shadowDOM to its surrounding. 
+If a web component explicitly marks all the CSS properties of all its shadowDOM elements
+as CSS variables (with default values), then the style of a web component's entire shadowDOM
+can be set from the outside.
+                                   
 ## What does CSS variables look like?
 
-CSS variables are defined as regular CSS properties, except that their name must begin with a double
-dash `--variable-name`. These CSS variables can then be used inside a CSS `var(--variable-name, defaultValue)` 
-expression.
+CSS variables are defined as regular CSS properties whose names *must* begin with double dashes:
+`--css-variable-name: stringValue`. 
+These CSS variables can then be used inside a CSS `var(--variable-name, defaultValue)` expression.
 
 ```html
 <style>
@@ -36,13 +36,6 @@ div {
 <span id="top">top black border, because the CSS variable declaration is only set on the div elements</span>
 ```
 
-1. Outside the shadowDOM, we can define CSS-variables of the <blue-blue> element in a <style> element to expose multiple CSS properties.
-2. Inside shadowDOM, we can define the background color <div> by invoking CSS variable selectors defined outside shadowDOM.
-3. We can also define the color of the <div> element itself by also invoking CSS variable. When we use the <blue-blue> web 
-component, the text inside it will be wrapped inside the <div>, making the text blue against the blue background.
-4. Regular CSS properties set in the lightDOM will not leak into the web component and control the styles in the shadowDOM of the custom element.
-5. Styles set inside the shadowDOM of <blue-blue>, does not leak out into the lightDOM surrounding the host element.
-  
 ## Example: Passing CSS variables into BlueBlue web component
 
 Below is the BlueBlue example setup to illustrate how CSS variables can be used to expose multiple
@@ -59,10 +52,11 @@ shadowDOM can expose the inner style of the shadowDOM by invoking CSS variable s
       this.shadowRoot.innerHTML = `
            <style>
         div {
-           background-color: var(--bg-color, red);                //[2]          
+           background-color: var(--bg-color, red);                /*[2]*/
+           color: var(--text-color, red);          
          }
        </style>
-       <div style="color: var(--text-color, red)">                //[3]  
+       <div>
          <slot></slot>
        </div>`;                                                      
     }
@@ -79,19 +73,25 @@ shadowDOM can expose the inner style of the shadowDOM by invoking CSS variable s
     }
 
     div {                                                        
-        color: yellow;                                            <!--4-->
+        color: yellow;                         
     }
 
 </style>
 
-<blue-blue id="one" style="background-color: red;">               <!--4-->
+<blue-blue id="one" style="background-color: red;">               
     darkblue text against a lightblue background.
 </blue-blue>
 
 <div>                                                             
-    This text is yellow.                                         //[5]
+    This text is yellow.                                         
 </div>
 ```
+
+1. In the lightDOM we can define CSS-variables of the `<blue-blue>` element in a 
+   `<style>` element.
+2. Inside shadowDOM, we can define the background color `<div>` by invoking CSS variable 
+   selectors defined outside shadowDOM. This can also be understood as "exposing" two CSS properties
+   of the shadowDOM as `--text-color` and `--bg-color`.
 
 ## Are CSS variables enough to style web components?
 
