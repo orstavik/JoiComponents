@@ -4,28 +4,26 @@ To encapsulate CSS is certainly one of the main purposes behind web components.
 This chapter describes the different ways a web component can encapsulate CSS and still be styled from 
 the outside.
 
-1. HowTo: shadowStyle that is to use `<style>` and `<link rel="style">` and style attributes on 
-   elements inside the shadowRoot. All these CSS rules are hidden from the lightDOM and will not 
-   interfere with the lightDOM. Except the `:host` selector, which we will look at in the next chapter.
-   The example here is the `<blue-blue>` element and then we add a background on the text block with the text,
-   and a special number.
+1. HowTo: shadowStyle.
+   Use `<style>`, `<link rel="style">` and `style="css-props"` in the shadowDOM. 
+   CSS rules inside the shadowDOM of a web component are hidden and will not interfere with the lightDOM
+   (except the `:host` selector, which we come back to).
+   Demo: the `<blue-blue>` element that colors a piece of text and its background.
 
 2. Problem: ThisStyleIsNotMyStyle.
-   example: `<blue-blue>` set wrongly on the host element, then the host element is changed from outside, 
-   and then nulled out again, and the original setting was lost.
+   Demo: `<blue-blue>` that sets style on the host element in the lightDOM.
+   When the host element style is changed from outside, the web components internal and external CSS
+   properties conflict and overwrite each other in confusing ways.
 
 3. HowTo: HostWithStyle fixes the ThisStyleIsNotMyStyle Problem.
    It uses the `:host` attribute to set a style on the host element node.
-   example: `<blue-blue>` that is set on the host, and then also overridden by the host.
+   Demo: `<blue-blue>` set using the `:host` selector that can be overridden when needed in the lightDOM.
 
 4. HowTo: CSS variables on web components.
    Pass style settings into the custom element using CSS --custom-properties as css variables:
-    * `--some-value: blue;` in the lightDOM and
-    * `color: var(--some-value)` in the shadowDom 
-   
-   example: `<blue-blue>` that sets the font type of the list of numbers. 
-   
-   problem: poor support with polyfill?  
+   `--some-value: blue;` in the lightDOM and then `color: var(--some-value)` in the shadowDom. 
+   Demo: `<blue-blue>` that lets the user to set `color` and `bg-color` inside the shadowDOM via
+   the css variables `--bg-color` and `--text-color`. 
 
 5. UseCase 1: Coordinate SystemWorldCovariantCss
    todo: find an example from CSS where it gives a shortcut to coordinate SystemWorldCovariantCss
