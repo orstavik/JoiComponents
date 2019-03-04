@@ -1,26 +1,31 @@
 # Pattern: TimedLifecycleCallbacks
 
-Lifecycle callbacks are called automatically. 
-They can be trigger by for example a system callback, an event listener, an observed attribute,
-timers, a native browser functionality, and a few more. In this pattern, we will look at
-how timers can be used to trigger a callback.
+TimedLifecycleCallbacks extends the [BatchedCallback](Pattern11_BatchedCallbacks).
+Timed lifecycle callbacks is a callback on a web component that are triggered as a group for 
+all web components that implements it. The callbacks are triggered automatically by a system
+timer such as `setInterval` and `requestAnimationFrame`. Once the timer triggers, it will run through
+all the web components implementing it and call the lifecycle callback method on them.
 
-TimedLifecycleCallbacks builds upon the [BatchedCallback](Pattern11_BatchedCallbacks).
-They are triggered by either `setInterval` or `requestAnimationFrame`.
-TimedLifecycleCallbacks are useful because they enable us to batch and delay the execution of 
-certain lifecycle callbacks.
-Such batching and delaying of lifecycle callbacks is beneficial because it allows us to coordinate
-the processing of shared resources (such as CSSOM or layout calculation) and debounce and delay 
-functions that otherwise would be called too often and then consume too much resources.
-
-When we time lifecycle callbacks we want to have the following functionality available.
-
-1. Start function. This global function activates the timer that will trigger the lifecycle callback
-   at set intervals. This function should be triggered by default.
-   
-2. Stop function. This global function deactivates the timer. 
+TimedLifecycleCallbacks are useful because they enable us to *batch and time* the execution of 
+certain lifecycle callbacks. This helps us:
+1. coordinate the processing of shared resources (such as CSSOM or layout calculation),
+2. debounce and delay functions that otherwise could be called too often and then consume too much resources, and
+3. separate different task groups in time so to avoid conflicts between them and make their execution
+   more efficient.
 
 ## Example: SetIntervalBatchMixin
+
+TimedLifecycleCallbacks are very simple to implement.
+In addition to the [BatchedCallback mixin's](Pattern11_BatchedCallbacks) 
+batch register and its three functions `addToBatch(el)`, `removeFromBatch(el)`, and `runBatchProcess()`, 
+all we need is:
+
+1. `startBatchCallbacks()`. 
+   A global function activates the timer that will trigger the lifecycle callback at set intervals. 
+   
+2. `stopBatchCallbacks()`. A global function deactivates the timer.
+
+3. To trigger `startBatchCallbacks();` by default.
 
 In this example we extend the `BatchMixin` from the previous chapter [BatchedCallback](Pattern11_BatchedCallbacks).
 In addition to having a global register of callbacks, we will trigger the callbacks every 3 seconds.
