@@ -103,8 +103,14 @@ three important use cases (which will be described in the next chapters):
  * [how to coordinate real-world covariant CSS properties internally?](UseCase2_CoordinateRealWorld)
  * [how to alter the inner structure of the shadowDOM template based on external changes of style properties?](UseCase3_OuterStyleBecomesInnerStructure) 
 
+## Problem: CSS variables with IE and polyfill.
+
+Polyfilling CSS variables is...
+    
 ## References
 
  * [Using CSS custom properties (variables)](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_variables)
+ * [caniuse.com: CSS variables](https://caniuse.com/#feat=css-variables)
+ * [github: css-vars-ponyfill](https://github.com/jhildenbiddle/css-vars-ponyfill)
 
 
