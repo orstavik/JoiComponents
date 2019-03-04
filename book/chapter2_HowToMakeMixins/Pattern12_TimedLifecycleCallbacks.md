@@ -38,7 +38,7 @@ function removeFromBatch(el){
 }
 
 function runBatchProcess(){
-  const els = batch.clone();
+  const els = batch.slice();
   for (let el of els) {
     if (batch.indexOf(el) >= 0) 
       el.batchCallback();
@@ -60,12 +60,12 @@ export function BatchMixin(type) {
     
     connectedCallback() {
       super.connectedCallback && super.connectedCallback();
-      batch.push(this);
+      addToBatch(this);
     }
     
     disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
-      batch.remove(this);
+      removeFromBatch(this);
     }
   };
 }
@@ -92,7 +92,8 @@ we implement a simple marker to show how the two elements changes color when tri
 <script type="module">
   import {BatchMixin, stopBatchCallback, startBatchCallback} from "BatchMixin.js";
   
-  class One extends HTMLElement;
+  class One extends HTMLElement{}
+   
   class Two extends BatchMixin(HTMLElement){
     batchCallback(){
       this.innerText += ".";
