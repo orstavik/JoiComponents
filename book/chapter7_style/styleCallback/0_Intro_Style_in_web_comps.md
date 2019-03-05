@@ -26,14 +26,14 @@ the outside.
    the css variables `--bg-color` and `--text-color`. 
 
 5. UseCase 1: Coordinate SystemWorldCovariantCss
-   todo: find an example from CSS where it gives a shortcut to coordinate SystemWorldCovariantCss
-   example: an imagined `display-shortcut: fixed top-left 12px 200px;`
+   todo: find an example from CSS where it gives a shorthand to coordinate SystemWorldCovariantCss
+   example: an imagined `display-shorthand: fixed top-left 12px 200px;`
 
 6. UseCase 2: Coordinate RealWorldCovariantCss
-   native solution: CSS shortcut `border` for shortcutnames such as square and dots
+   native solution: CSS shorthand `border` for shorthandnames such as square and dots
    example: `color-mode: day blue;`
    
-7. Pattern: CustomCssShortcut
+7. Pattern: CustomCssShorthand
    Not specific to web components.
    
    a. simplify use choices and covariant CSS properties
@@ -42,10 +42,10 @@ the outside.
 8. Pattern: manual `styleCallback()` part 1
    Where to listen for the style? the lightDOM host element. That way the style property can travel.
    via manual, local 
-   use a callback to implement a listener for both CSS shortcuts and ElementSpecificCssProperties
+   use a callback to implement a listener for both CSS shorthands and ElementSpecificCssProperties
    custom to each individual element.
    it is naive, because it is triggered manually after each change. 
-   for processing CustomCssShortcuts in web components 
+   for processing CustomCssShorthands in web components 
 
    same example as above, only in a web component
    todo example: `color-mode: day #990000;` using numeric value and a function to calculate palette?
