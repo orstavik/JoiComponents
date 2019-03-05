@@ -339,7 +339,7 @@ Thankfully, there is no rule of thumb you can't give the finger.
 
 5. If only a single web component scheduled StyleDependingTasks per frame, the restrictions above suffices.
    
-6. However, if either
+6. However, if either:
    1. several StyleDependingTasks from different web components are queued in a frame or
    2. a StyleDependingTask itself causes another StyleDependingTask to be queued, then 
    3. more safeguards needs to be put in place.
@@ -358,46 +358,6 @@ Thankfully, there is no rule of thumb you can't give the finger.
    each other, an as-efficiently-as-possible algorithm for working with updated current style data can 
    be achieved.
 
-## old Drafts
-If we want to coordinate style based on CSS values, we do not want the process to run immediately 
-(synchronously) as the `attributeChangedCallback(...)` is doing. Instead, we want the process to be 
-delayed until "right after the CSSOM has finished processing". This is a bit tricky as 
+## References
 
-To illustrate how this can be, 
-For example, 
-At the time when attributeChangedCallback runs, the CSSOM is
-*not* updated, and if you need values from the CSSOM, then you need to trigger and wait for CSS 
-processing to conclude before you continue. This takes time.
-
-At the time of the 
-What if you wanted to calculate something based on the values of your CSS variables?
-This you don't want to do at arbitrary times. Thus, you want to delay such calls to the raf.
-But, this leads to problems with callbacks coming in arbitrary tree order. And that is bad. 
-So, that is when we need a styleCallback
-
-## Why HTML attributes are better than CSS classes
-
-In many ways, using HTML attributes or CSS classes to control the use of inner CSS attributes can also be used to coordinate the use of CSS variables. But there are a few subtle
-differences that apply and that makes CSS classes preferable for this task.
-
-First. HTML attributes can more readily be observed to trigger lightDOM callbacks that can alter the DOM.
-When you only want to control the inner style of an element, such side-effects would likely be confusing.
-
-Second. C
-
-## Benefits and drawbacks of the CssClassCoordinator
-
-
-Later, we will look at when the Css
-
-Using only CSS variables, the user of the web component has to coordinate 
-
-In principle, CSS variables gives us *full lightDOM access to all the CSS 
-properties of all the elements in a webcomponent's shadowDOM*. But. There is still a problem.
-
-
-
-
-This pattern uses CSS classes on the host element to coordinate the use of a set of CSS variables
-exposed on the web component. The CssClassCoordinator pattern is still pure CSS and ShadowDom, thus
-remaining as efficient as the browsers native processing of CSS is.
+ * 
