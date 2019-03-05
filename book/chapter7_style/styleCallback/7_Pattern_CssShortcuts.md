@@ -1,4 +1,4 @@
-# Pattern: CustomCssShortcuts
+# Pattern: CustomCssShorthands
 
 ## CSS variables as CSS micromanagement
 
@@ -25,44 +25,44 @@ around a web component is very problematic. The problem is that:
 The web community *knows* that micromanaging CSS is a practice that does not lead to productivity 
 and lean and mean code.
 
-## CustomCssShortcuts fixes CSS micromanagement
+## CustomCssShorthands fixes CSS micromanagement
 
-To avoid CSS micromanagement, custom CSS shortcuts is a great tool:
+To avoid CSS micromanagement, custom CSS shorthands is a great tool:
 
- * Custom CSS shortcuts enable the developer to cluster groups of covariant CSS properties
+ * Custom CSS shorthands enable the developer to cluster groups of covariant CSS properties
    as a single unit that externally can present a simple, enumeric interface, but that
    internally can ensure that the values of several CSS properties in the shadowDOM are coordinated.
-   **Put simply, custom CSS shortcuts enable the developer to encapsulate the internal logic between
+   **Put simply, custom CSS shorthands enable the developer to encapsulate the internal logic between
    different CSS properties in a web component.**
    
- * CSS shortcuts enable the developer to reduce the number of style properties given to the developer.
+ * CSS shorthands enable the developer to reduce the number of style properties given to the developer.
    
- * The logic that process CSS shortcuts can easily be modularised as methods in the custom element class.
+ * The logic that process CSS shorthands can easily be modularised as methods in the custom element class.
    This gives the developer a better structure and entry point for documentation. By adding a simple
-   naming convention, methods processing custom CSS shortcuts can also readily be turned into
+   naming convention, methods processing custom CSS shorthands can also readily be turned into
    partial documentation.  
    
- * Custom CSS shortcuts also gives the developer a single solution to fix all the three use-cases listed 
+ * Custom CSS shorthands also gives the developer a single solution to fix all the three use-cases listed 
    in the three previous chapters.
 
-## How to implement a Custom CssShortcuts
+## How to implement a Custom CssShorthands
 
-To implement naive(!) CustomCssShortcuts is super simple:
+To implement naive(!) CustomCssShorthands is super simple:
 
 1. decide on a CSS property name that is not in use for that element.
-   By using a single `_` as a prefix for your CustomCssShortcut name, 
+   By using a single `_` as a prefix for your CustomCssShorthand name, 
    you can be certain that the browser will not attach some other meaning to your CSS property.
 
-2. add a CustomCssShortcut-function that converts your CustomCssShortcut value into
+2. add a CustomCssShorthand-function that converts your CustomCssShorthand value into
    a series of other CSS properties and apply them to the element.
 
-3. whenever the CustomCssShortcut property changes value on an element, 
-   call the CustomCssShortcut-function.
+3. whenever the CustomCssShorthand property changes value on an element, 
+   call the CustomCssShorthand-function.
  
 ```html
 <script>
   /**
-  * the CustomCssShortcut _color-mode must be given on the form:
+  * the CustomCssShorthand _color-mode must be given on the form:
   *   _color-mode: <color> <mode>;
   * 
   * examples:
@@ -80,38 +80,38 @@ To implement naive(!) CustomCssShortcuts is super simple:
 </script>
 
 <style>
-  #noShortcut {
+  #noShorthand {
     background-color: darkgreen;
     border-color: lightgreen;
     /*color: black;               ooops, missed a real-world covariant attribute*/
   }
-  #shortcutOne {
+  #shorthandOne {
     _color-mode: blue night;
   }
-  #shortcutTwo {
+  #shorthandTwo {
     _color-mode: red day;
   }
 </style>
 
-<div id="noShortcut">Micromanaged</div>
-<div id="shortcutOne">Shortcut one</div>
-<div id="shortcutTwo" style="border: 3px solid transparent;">Shortcut two</div>
+<div id="noShorthand">Micromanaged</div>
+<div id="shorthandOne">Shorthand one</div>
+<div id="shorthandTwo" style="border: 3px solid transparent;">Shorthand two</div>
 
 <script>
-  processColorMode(document.querySelector("#shortcutOne"));
+  processColorMode(document.querySelector("#shorthandOne"));
   setTimeout(function(){  
-    processColorMode(document.querySelector("#shortcutTwo"));
+    processColorMode(document.querySelector("#shorthandTwo"));
   }, 5000);
 </script>
 ```
 
-The naive implementation of CustomCssShortcuts above is not very useful:
-1. It is not well modularized, and so the CustomCssShortcut is mixed together with all sorts of other
+The naive implementation of CustomCssShorthands above is not very useful:
+1. It is not well modularized, and so the CustomCssShorthand is mixed together with all sorts of other
    stuff.
-2. It requires the developer to manually trigger the function that process the CustomCssShortcut.
+2. It requires the developer to manually trigger the function that process the CustomCssShorthand.
 3. It will likely cause the browser to repeatedly compute the CSSOM.
 
-In the next chapters we will extend this naive CustomCssShortcut implementation to gradually
+In the next chapters we will extend this naive CustomCssShorthand implementation to gradually
 become a full fledged lifecycle callback (`styleCallback(...)`) that will go a long way to address
 the weaknesses described above.
 
