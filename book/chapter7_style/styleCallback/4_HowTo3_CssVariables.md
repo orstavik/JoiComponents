@@ -93,10 +93,41 @@ shadowDOM can expose the inner style of the shadowDOM by invoking CSS variable s
    selectors defined outside shadowDOM. This can also be understood as "exposing" two CSS properties
    of the shadowDOM as `--text-color` and `--bg-color`.
 
-## Are CSS variables enough to style web components?
+## CSS variables and the problem of external CSS coordination
 
-In principle, CSS variables gives us *full access from the lightDOM to all the CSS 
-properties of all the elements in a webcomponent's shadowDOM*.
+ShadowDOM gives us the means to **hide all the inner CSS properties** of a web component.
+CSS variables gives us the means to **expose all the inner CSS properties** so that
+**style can be set from outside**. 
+Together, ShadowDOM and CSS variables enable us to **selectively protect or expose the 
+inner style of a HTML/JS/CSS module**.
+If all we need is to set a single CSS property inside a web component, 
+then ShadowDOM and CSS variables is the answer.
+
+But. What if we need more? What if we need to adjust the style of an element in a way that requires 
+setting multiple CSS properties at once? And what if these CSS properties needs to be set in a particular
+way? Sure, CSS variables gives us the means to expose several inner CSS properties individually.
+But they do not give us any means to ensure that their values correspond to each other and are coordinated.
+CSS variables in many ways presupposes that the user of the web component *coordinate* the use and 
+values of a several CSS properties.
+ 
+But. To *successfully* coordinate the values of several CSS properties can often be tricky.
+CSS property is fraught with semantic details and edge cases and gotchas, and thus
+to coordinate several CSS properties so that they work together in harmony and pull in the same 
+direction can take time and effort and cause numerous problems. Problems that quite often easily
+can be foreseen ahead of time per element. Coordinating inner CSS properties should therefore often
+*not* be an external task left up to the user of the web component, but instead be solved *internally*
+by the developer of the web component. CSS variables alone does not give us a means to *internally*
+coordinate the values of CSS properties.
+
+In the next chapters, we will look at the first pattern for internally coordinating CSS properties
+in web components: the StyleCoordinatingAttribute pattern. 
+
+## old drafts
+
+But. needs setting in a web component, but from within the web component, *CSS variables gives us no means 
+of ensuring that the different CSS properties are set in a coordinated manner*.
+internally coordinating 
+such CSS*
 But, that's the principle. In reality, CSS variables comes up short when put to the test against
 three important use cases (which will be described in the next chapters):
  * [how to coordinate system-world covariant CSS properties internally?](UseCase1_CoordinateSystem)
