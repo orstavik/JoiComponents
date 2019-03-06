@@ -122,6 +122,9 @@ of a web component.
 
 Another benefit is efficiency. Managing a web components internal style using only native CSS 
 classes and CSS variables adds practically nothing to the cost of processing the selection.
+CssCoordinatorClass processed natively when the browsers makes the CSSOM.
+When you need high performance in your app, this form of internal coordination of CSS in web components
+is recommended.
 
 Third, using only native CSS to control the style of a web component is ergonomic for the
 user of the web component. Style controlled by CSS and CSS classes is a familiar concept.

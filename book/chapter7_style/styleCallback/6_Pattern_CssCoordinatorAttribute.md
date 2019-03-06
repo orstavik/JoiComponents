@@ -3,6 +3,8 @@
 HTML attributes can be used to control the inner CSS of a web component in almost the exact
 same as CSS classes. Instead of assigning a named CSS class to the host element, an HTML attribute
 is assigned.
+The simplest and most efficient way to use HTML attributes to control style is to have
+**CSS rules inside the shadowDOM be activated/deactivated by an HTML attribute on the `host` element**.
 
 ## Demo: `<blue-blue>` with attributable `night-mode`
 
