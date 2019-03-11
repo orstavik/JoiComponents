@@ -1,5 +1,7 @@
 # Pattern: TreeOrderedBatchedCallbacks
 
+todo simplify this into a chapter about TreeOrdered iteration on a mutable DOM instead.
+
 When you run a batch of processes, they can often alter the batch register itself.
 The previous Pattern BatchedCallbacks solved this by simply iterating on a clone of the register,
 and skipping any elements in the register clone that had been removed from the original register.

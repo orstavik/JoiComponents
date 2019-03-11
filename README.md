@@ -114,7 +114,7 @@ Z. Sibling based ordered list.
 ## Chapter 5: Style                                   
 1. [`this.style` is not my style](book/chapter7_style/Pattern1_this_style_is_not_my_style.md) 
 2. [`:host()` with `<style>`](book/chapter7_style/Pattern2_host_with_style.md) 
-3. [CSS variables](book/chapter7_style/Pattern3_css_variables.md) 
+3. [CSS variables](book/chapter7_style/Pattern3b_css_variables.md) 
 4. [Compound elements, replace CSS pseudo elements](book/chapter7_style/Pattern4_css_pseudo_elements.md) 
 5. [ResponsiveLayout, extend CSS media queries](book/chapter7_style/Pattern5_ResponsiveLayout.md)
 6. [Discussion about CSS pseudo elements and CSS media queries](book/chapter7_style/Discussion_mediaqueries_pseudoelements.md) 

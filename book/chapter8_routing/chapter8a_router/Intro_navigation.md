@@ -34,7 +34,7 @@ Something as important and powerful as links *should be* more complex than a dum
 Is that all it comes down to? Can't we do *more than that*?
 
 Technically, the answer is that we can do more. There are actually four ways to make links:
-`<a href>`, `<area href>`, `<form>` and SVG `<a href>` tags.
+`<a href>`, `<area href>`, `<form action>` and SVG `<a href>` tags.
 More on this is in the next chapter [HowTo: make links](HowTo_browse.md).
 However, the final, principal answer to this question is "no". We really can't do more than that.
 Links are really that dumb, only minor variations of `<a href>` tags.

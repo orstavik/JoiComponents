@@ -1,66 +1,341 @@
-# Pattern: NaiveStyleCallback
+# Mixin: NaiveStyleCallback
 
-The NaiveStyleCallback pattern adds a lifecycle callback to the web component:
-`styleCallback(...)`.
-The NaiveStyleCallback first observes when a `.style` property on the host element has changed
-and then trigger `styleCallback(cssPropertyName, newValue, oldValue)` with the property name, 
-new value and old value as arguments, very much like the `attributeChangedCallback(...)`.
+The NaiveStyleCallback pattern can be implemented as a mixin.
+In addition to the StaticSetting pattern, the NaiveStyleCallback mixin uses the 
+TimedLifecycleCallbacks pattern to batch, observe the CSSOM and trigger the `styleCallback(...)` 
+when needed.
 
-## Why `styleCallback(...)`?
-
-The role of `styleCallback(...)` is to:
-1. observe the CSS properties (and their changes) on the host element in the lightDOM and then
-2. trigger a JS function that can react to these changes.
-
-Again, this clearly echoes how the `attributeChangedCallback(...)` observes and reacts to HTML
-attribute changes. So, why do we need to do the same with CSS properties? Why not just specify property
-as an HTML attribute instead?
-
-First, from the viewpoint of the individual web component, there is *no* reason why we cannot use 
-`attributeChangedCallback(...)` instead. If all you have to consider is the current web component, 
-then the answer is likely to be *not* to use observe CSS properties and with a `styleCallback(...)`, 
-but instead *cast* the style property in question as an HTML attribute.
-
-However, the individual web component does not *decide* where an app should specify its style properties.
-Most often, properties such as `color` and `border` are set in CSS, and there is little the web 
-component can do to change that. If the web component needs to know its `color`, `border` or other 
-properties, its not really an option for it to say that "you should have specified that as an HTML 
-attribute instead".
-
-Second, as described before, both HTML attributes and CSS classes has to be assigned an element either
-statically from HTML template or dynamically from JS. CSS properties on the other hand can be assigned
-to an element *from CSS rules*, both statically and dynamically. All the reasons to use CSS selectors
-and CSS properties instead of HTML attributes to prescribe style to DOM elements in essence apply
-to coordinating the inner style of web components. There is essentially *no* conceptual difference 
-between applying an established CSS properties such as the generic `color` or the element specific 
-`border-collapse` and a custom property your web component needs to observe and react to in order to
-implement and calculate its inner style and structure.
-
-Third, currently, HTML attributes are used to control most aspects of a web components inner state.
-If you need to be able to control the web components state and behavior from both HTML and JS, 
-then HTML attributes is more or less your only means (if we here disregard the more complex option of
-slotting specialized elements). On the web component you would need to set one set of HTML attributes
-to control its content structure, another set of HTML attributes to control its imperative behavior (JS)
-and a third set of HTML attributes to coordinate its style. Splitting out control of an element's style
-as custom CSS properties not only enables CSS rules and developers to control it, but also in a sense
-relieves the HTML template and developer of this task.
-
-## A naive implementation of `styleCallback(...)` 
-
-Basically, the `styleCallback(...)` needs to observe some styles on the host element.
-To get the current CSS properties of an element we have to use the `getComputedStyle(el)` method.
-Then, we need to check if the relevant CSS property has changed on the element, and 
-if so we need to trigger the `styleCallback(cssPropertyName, newValue, oldValue)` 
-with the property name, new value and old value as arguments.
-
-Each web component does not need to observe *all* its CSS properties.
-Therefore, the NaiveStyleCallback pattern uses the StaticSetting pattern to specify 
-which CSS properties it should observe. We call this method `observedStyles()`:
+The `NaiveStyleCallbackMixin` exports two global methods:
+ * `startStyleCallback()` (which is started by default)
+ * `stopStyleCallback()`
+ 
+plus exposes two methods on the web components that extend it:
+ ```
+  ...
+  static get observedStyles(){
+    return ["font-size", "--custom-color-prop"];
+  }
+  
+  styleCallback(name, oldValue, newValue){
+     ...
+  }
 ```
-static get observedStyles(){
-  return ["font-size", "--custom-color-prop"];
+
+These methods observe changes of the style properties on the element for the `observedStyles` names
+and then trigger the `styleCallback(name, oldValue, newValue)` whenever these properties change.
+
+## Implementation 
+
+```javascript
+const batch = [];
+let interval;
+
+function addToBatch(el) {
+  batch.push(el);
+}
+
+function removeFromBatch(el){
+  batch.splice(batch.indexOf(el), 1);
+}
+
+function runBatchProcess(){
+  const els = batch.clone();
+  for (let el of els) {
+    if (batch.indexOf(el) >= 0) 
+      pollStyle(el);
+  }
+}
+
+function pollStyle(el){
+  const newStyles = getComputedStyle(el);
+  for (let prop of Object.getKeys(el[oldStyles])) {
+    let newValue = newStyles.getPropertyValue(prop);
+    let oldValue = el[oldStyles][prop];
+    if (newValue !== oldValue){
+      el.styleCallback(prop, oldValue, newValue);
+      el[oldStyles][prop] = newValue;          
+    }
+  }
+}
+
+export function startStyleCallback(){
+  interval = requestAnimationFrame(runBatchProcess);
+}
+
+export function stopStyleCallback(){
+  clearAnimationFrame(interval);
+}
+
+startStyleCallback();
+
+const oldStyles = Symbol("oldStyles");
+
+function NaiveStyleCallbackMixin(type){
+  return class NaiveStyleCallbackMixin extends type {
+    
+    constructor(){
+      super();
+      this[oldStyles] = {};
+      for (let style of this.constructor.observedStyles())
+        this[oldStyles][style] = undefined;
+    }
+    
+    connectedCallback(){
+      super.connectedCallback && super.connectedCallback();
+      addToBatch(this);
+    }
+    disconnectedCallback(){
+      super.disconnectedCallback && super.disconnectedCallback();
+      removeFromBatch(this);
+    }
+  };
 }
 ```
+## Demo: `<blue-blue>` with NaiveStyleCallbackMixin
+
+```html
+<script type="module">
+  import {NaiveStyleCallbackMixin} from "NaiveStyleCallbackMixin.js";
+
+  class BlueBlue extends NaiveStyleCallbackMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+       <style>
+         div#core {                             
+           background-color: var(--light-color, lightblue);              
+           color: var(--dark-color, darkblue);          
+         }
+       </style>
+       <div id="core">
+         <slot></slot>
+       </div>`;                                                      
+    }
+    
+    static get observedStyles(){
+      return ["color"];
+    }
+    
+    styleCallback(name, oldValue, newValue){
+      if (name === "color"){
+        const div = this.shadowRoot.children[1];
+        if (newValue) {
+          div.style.setProperty("--light-color", "light" + newValue);
+          div.style.setProperty("--dark-color", "dark" + newValue);
+        } else {
+          div.style.setProperty("--light-color", undefined);
+          div.style.setProperty("--dark-color", undefined);
+        }
+      }
+    }
+  }
+
+  customElements.define("blue-blue", BlueBlue);
+</script>
+
+<style>
+#one {
+  color: green;
+}
+</style>
+
+<blue-blue id="one">green</blue-blue>            <!--[3]-->
+<blue-blue id="two">still blue</blue-blue>        
+
+<script>
+setTimeout(function(){
+  const two = document.querySelector("blue-blue#two");
+  two.style.color = "red";
+  two.innerText = "blue becomes red";
+}, 3000);
+</script>
+```
+
+## Naivité 1: infinite loops
+
+There are several problems with the *naive* `styleCallback(...)`:
+
+ * What if the `styleCallback(...)` alters a `:host()` rule in the shadowDOM that changes 
+   the very CSS property it is observing? Could this loop infinitely animation frame after 
+   animation frame?
+   
+ * What if the `styleCallback(...)` causes a side-effect that changes the very CSS property 
+   it is observing? What if `styleCallback(...)` (in)directly altered an attribute on the host element that
+   was observed from the outside and triggered a function that altered the CSS property?
+   What if `styleCallback(...)` (in)directly caused an event to be dispatched which then
+   triggered an outside function that altered the CSS property?
+   Could this cause infinite loops?
+   
+ * What if:
+   1. CSS property A on element A triggers its `styleCallback(...)` which
+   2. alters CSS property B on element B that triggers its `styleCallback(...)` which 
+   3. alters CSS property A on element A again that triggers its `styleCallback(...)` which
+   4. created an infinite loop that spans the `styleCallback(...)` of several elements?
+
+ * What if the `styleCallback(...)` triggers a side-effect that changes the CSS properties
+   that is the premise of another `styleCallback(...)`? Could this cause an infinite loop?
+   Should the other `styleCallback(...)` be triggered again during the same cycle/animation 
+   frame as consequence of this, when this repeated cascading adjustments constitutes an finite, 
+   closed loop?
+   
+ * What if the `styleCallback(...)` creates or adds several elements *inside or under itself* 
+   that que their own `styleCallback(...)` as part of their setup/connection. Do we have to wait 
+   until the next animation frame for this to be created, thus creating a flash of unstyled content?
+
+All these problems above has to do with execution order and problems of recursion and imperative loops.
+And these problems are not only practical, they are also conceptual. 
+
+Already in the platform, we can have cross domain loops between HTML and JS. 
+A JS function can alter the DOM, which in turn can trigger a `MutationObserver` or an 
+`attributeChangedCallback(...)` or a `slotchange` event listener, which in turn can alter the same DOM
+elements so as to cause an infinite loop. This is a know pitfall to web developers.
+
+However, now, the `styleCallback(...)` suddenly tosses CSS into this mix. Now, the `styleCallback(...)`
+can trigger JS, that alter the DOM, that alters the CSSOM and/or a `MutationObserver` , that triggers 
+`styleCallback(...)`. And the `MutationObserver` that was triggered at the same time that the CSSOM triggered
+a `styleCallback(...)`, that `MutationObserver` altered a CSS property on another element that trigger 
+another `styleCallback(...)`. Wow, hold your horses!! A dynamic DOM+JS is one thing, but a dynamic CSSOM
+that essentially throws CSS into this dynamic mix with HTML and JS as well, now that is a whole new 
+bowl of sauced spaghetti.
+
+## Naivité 2: The cost of `getComputedStyles(..)`
+
+Another source of `styleCallback(...)` problems has to do with the cost of `getComputedStyles(..)`.
+Computing the CSSOM is a real performance killer. That is why the browser only does so once per frame,
+right before layout and paint. The cost of CSSOM calculation is not two digits in milliseconds, 
+its two digits in percentage points of the available time per frame. 
+
+Implementing `styleCallback(...)`, we plan to call `getComputedStyles(..)` several times per frame, 
+one for each element that implements a `styleCallback(...)`. Potentially hundreds of elements! Wow... 
+That sounds... HORRIBLE!!
+
+But. There are some aspects of CSSOM calculation that ought to be considered too.
+The browser already *does* **one** CSSOM calculation each frame anyway. 
+Is there a way to:
+ 1. push this CSSOM calculation ahead in time so that the `styleCallback(...)` can (re)use it?
+ 2. reuse this single CSSOM calculation so that several `styleCallback(...)`s can (re)use the same
+    data?
+
+The short answers are: "yes, quite extensively" and "yes, quite extensively". 
+These answers build on an assumption about *how* the browser caches its CSSOM calculation so it can
+reuse these answers when `getComputedStyles(..)` asks for them and when the browser needs to paint 
+the window.
+
+The assumption is as follows(todo this needs verifictation). 
+
+First. When the browser calculates the CSSOM, it marks all the elements in the DOM with a "clean" 
+flag. As long as this "clean" flag is present on a DOM element, the browser can reuse the previously
+calculated, cached CSSOM value for it. When no changes occur to the DOM that could affect the CSSOM,
+the browser will not calculate CSSOM, but only reuse cached CSSOM.
+
+Second. When the browser mutates the DOM, it alters the flag on the element and all the element whose
+CSSOM value might affected by this change from "clean" to "dirty". The rules of which DOM changes 
+causes which DOM element to change from "clean" to "dirty" is not necessarily straight forward, but a 
+coarse overview can be given:
+
+1. If the user alters the content of a `<style>` element, or adds or remove a `<link rel="style">` or
+   directly alters the `document.styles...` or `ownerDocument.styles...`, then that document root and
+   thus its entire content as "dirty".
+   
+2. If the user alters the `style` attribute or any other attribute on an element, that causes that 
+   element and all other contained elements both in the lightDOM and shadowDOM of it to be marked "dirty".
+   CSS selectors for all contained elements. Attributes and CSS classes can trigger CSS rules to be 
+   activated within and CSS variables can be added via the style attribute.
+
+3. If an element is added, removed or moved in the DOM, this will cause BOTH:
+   1. the element that is moved,
+   2. the sibling elements *from* where the element is removed, and
+   3. the sibling elements *to* where the element is added 
+   
+   to all be marked "dirty".
+   
+   The reason the siblings are affected, but not the parent is that the `:nth-child()` and 
+   `:nth-last-child()` on the parent element can affect the siblings style, but no CSS selector can
+   alter the CSS properties on a parent based on its children.
+
+This means that:
+
+1. when a JS function early in the frame triggers the browser to calculate CSSOM via 
+   `getComputedStyles(..)`, then if no DOM alterations are made to flip flags on the DOM element
+   from "dirty" to "clean", then when the browser later needs to calculate the CSSOM values, it can
+   reuse the result from the `getComputedStyles(..)`. Thus, yes, the CSSOM calculation can be pushed
+   ahead in time so that the `styleCallback(..)` can reuse the single CSSOM calculation quite 
+   extensively.
+   
+2. If the `styleCallback(..)` *do not* alter the DOM in such a way as to flip as few "clean" flag to 
+   "dirty" flags as possible, then several `getComputedStyles(..)` can use the result from the same 
+   CSSOM calculation. This means that by:
+   1. controlling the order in which the `styleCallback(..)`s are triggered to comply with the 
+      structure and intent of the CSSOM, ie. Tree-order or top-down, and
+   2. limiting the scope of the reactions and DOM mutations that the `styleCallback(...)` can/should 
+      be allowed to do so as to not trigger any more "clean" to "dirty" flag switches.
+
+## Non-naive requirement #1: shadow state only
+
+Both a) infinite loops, b) the rise of complexity due to branching CSSOM reactions, and 
+c) to minimize the number of elements flipping from "clean" to "dirty" for CSSOM calculations,
+can all be addressed with the same requirement:
+
+ * functionality in the `styleCallback(..)` should *only* alter the internal state of the web component
+   that *cannot* be observed from the lightDOM. 
+   This essentially means that the `styleCallback(..)` *can*:
+   1. change the element's entire shadowDOM, 
+      except to alter any `:host()` rule that alters an `observedStyle` on the host element.
+   2. change other internal state properties that cannot be observed from the lightDOM and above.
+   
+   This also means that the `styleCallback(..)` *cannot*:
+   1. trigger any events that propagate on the host element or above in the lightDOM,
+   2. alter, add or remove any HTML attributes on the host element because that might be observed 
+      in the lightDOM,
+   3. alter any global state such for example an apps single state, the `localStorage` or external
+      network resources, nor
+   4. call any async functions that would be delayed beyond the execution of the current 
+      `styleCallback(..)`.
+
+## Non-naive requirement #2: `styleCallback(..)` runs top-down
+
+Both a) the first requirement of only altering shadow state, b) the need to flip as few "clean" to 
+"dirty" flags as possible and c) to avoid having one `styleCallback(..)` alter the CSSOM values
+of another `styleCallback(..)` function already triggered in the same frame, combine to make the 
+second requirement:
+
+ * the `styleCallback(..)` functions should be triggered top-down.
+ 
+Whether the CSSOM is processed left-to-right (ltr) or right-to-left (rtl) has no principal and little practical 
+consequence. CSS selectors work both ltr (`:nth-child()`) and rtl (`:nth-last-child()`).
+However, processing the batch is well suited by choosing one direction, and tree order 
+(top-down and left-to-right) is both simpler conceptually and practically.
+
+## Non-naive requirement #3: check requirement #1 and #2
+
+The `styleCallback(..)` should try to enforce and check the above requirements. 
+There are many strategies that can verify that the above requirements are verified.
+The simplest, good enough means to ensure that no `styleCallback(..)` alters the CSSOM in a way 
+that will have potential damaging effects on other `styleCallback(..)` in the same cycle is
+to directly check that the computed styles remain the same for all the executed `styleCallback(..)`
+either: 
+ * after all the `styleCallback(..)`s did run or
+ * for each `styleCallback(..)`.
+ 
+Checking for illegal CSSOM changes after *all* the batched `styleCallback(..)`s is more efficient than
+checking for illegal CSSOM changes after *each* `styleCallback(..)` process. On the other hand.
+Checking for illegal CSSOM changes after *each* `styleCallback(..)` process has the benefit of identifying
+exactly which element and `styleCallback(..)` method caused the problem, thus giving the developer
+a much better and more fine grained Error message. 
+
+Furthermore, checking for illegal CSSOM changes is not likely be a run-time need. If the developer can
+verify that the app triggers no illegal DOM mutations during development, it is likely that he can 
+skip this test at run-time and rest assured that he followed the requirements. Checking for illegal
+DOM mutations should therefore be an optional feature to be turned on or off, depending on the maturity
+of the web components in the app.
+
+
+
+The NaiveStyleCallbackMixin batches the `styleCallback(...)` for several elements, but 
+does it structures their order only first in, first out. This can cause problems.
+
+CSSOM 
 Note: Due to restrictions in the [CSSStyleDeclaration](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleDeclaration)
 object, you can only observe:
 1. established CSS properties such as `color` and `border` and

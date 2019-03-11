@@ -65,12 +65,12 @@ export function BatchMixin(type) {
     
     connectedCallback() {
       super.connectedCallback && super.connectedCallback();
-      batch.push(this);
+      addToBatch(this);
     }
     
     disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
-      batch.remove(this);
+      removeFromBatch(this);
     }
   };
 }
