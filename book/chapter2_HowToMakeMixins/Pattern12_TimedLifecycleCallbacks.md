@@ -97,7 +97,8 @@ we implement a simple marker to show how the two elements changes color when tri
 <script type="module">
   import {BatchMixin, stopBatchCallback, startBatchCallback} from "BatchMixin.js";
   
-  class One extends HTMLElement;
+  class One extends HTMLElement{};
+   
   class Two extends BatchMixin(HTMLElement){
     batchCallback(){
       this.innerText += ".";
