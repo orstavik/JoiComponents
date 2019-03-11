@@ -157,7 +157,13 @@ consequence. CSS selectors work both ltr (`:nth-child()`) and rtl (`:nth-last-ch
 However, processing the batch is well suited by choosing one direction, and tree order 
 (top-down and left-to-right) is both simpler conceptually and practically.
 
-## Requirement #3: contained elements added during the same cycle should be run in the same cycle
+## Requirement #3: contained elements added during the same cycle are processed in the same cycle
+
+`styleCallback(..)` can alter the shadowDOM. That means that `styleCallback(..)` can not only 
+a) alter a CSS property that is observed by `styleCallback(..)`, but also b) connect 
+a new element that has its own `styleCallback(..)` to the DOM. When such an element is connected,
+it would be strange and unnecessary if this "adding of inner child" either caused an Error or
+was delayed until the next animation frame. Thus:
 
 Whenever elements with `styleCallback(..)` are added to the DOM beneath the element whose 
 `styleCallback(..)` is currently being executed, they should be run in the same cycle.
