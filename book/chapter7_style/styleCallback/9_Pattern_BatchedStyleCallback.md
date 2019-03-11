@@ -1,6 +1,0 @@
-# Pattern: BatchedStyleCallback
-
-
-## References
-
- * 

@@ -1,7 +1,19 @@
-# Pattern: StyleCallback
+# Pattern: BatchedStyleCallback
 
-A prime purpose of web components is to encapsulate style. So lets encapsulate a
-CustomCssShortcut in a web component.
+In this chapter we extend the previous ManualStyleCallback pattern with two other
+concepts: the StaticSettings pattern from our mixin chapter and a BatchedCallback 
+(todo add a chapter on the BatchedCallback in the mixin chapter).
+We start with the BatchedCallback.
+
+The BatchedCallback pattern describe how elements can register themselves in a 
+
+
+There are many, many problems with the previous ,
+and in this chapter we will address two of them:
+
+And we will address them all in order. But to keep things simple, we will first only 
+ we had tw
+But, we don't want to manage the 
 
 ```html
 <script>  
@@ -93,11 +105,6 @@ If style properties of the web element is changed from within, we do not need a 
 to control it. Internally induced updates of style can be triggered imperatively.
 This again fits with the established conventions for lifecycle callbacks of custom elements as
 reactiving to external, contextual changes in the lightDOM. 
-
-## References
-
- * 
-
 
 ## References
 
