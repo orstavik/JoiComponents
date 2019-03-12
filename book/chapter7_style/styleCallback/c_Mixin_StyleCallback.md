@@ -225,16 +225,18 @@ CSSOM observation and reaction has been practically very limited.
 
 My own opinion is that `styleCallback(..)` sheds light on the future of HTML and CSS. With a 
 `styleCallback(..)`, `<table>` can finally be implemented using only web components technology.
-This means that *many* core, first class HTML elements such as `<table><tr><td><caption><dl><dd><dt>can be taken out of the HTML spec proper and 
-remade as second class HTML citizen elements: web components.,
-custom CSS properties *and* custom CSS values. From my perspective, `styleCallback(..)` is the only
-missing piece in that puzzle. And, if then obscure HTML elements can be converted into web components, 
-then a) HTML elements, b) custom CSS properties, and c) custom CSS values/types can be moved out of the
-HTML and CSS core. For good. This will substantially reduce the semantic diversity of *both* HTML 
-and CSS. Furthermore, as developers for the first time will have the full means to implement elements
-akin to `<table>`, maybe the dream of wide spread, reusable web components could finally come true. 
-I believe that custom CSS property values as an alternative to controlling the style of web components 
-using HTML attributes is the last mayor obstacle for the web component dream.
+This means that *many* first class HTML elements (core, native HTML elements) such as 
+`<table><tr><td><caption>` and `<dl><dd><dt>` can be taken out of the HTML spec proper and 
+remade as second class HTML citizen elements: web components that defines both custom CSS properties 
+*and* custom CSS values. `styleCallback(..)` is the only missing piece in this puzzle.
+
+When obscure HTML elements are converted into web components, 
+then lots of HTML and CSS semantics can be moved out of the core grammar of HTML and CSS. For good. 
+This will substantially reduce the complexity which beginner and experienced HTML and CSS developers 
+need to relate to. Furthermore, as developers for the first time will have the full means to implement 
+elements akin to `<table>` and `<dl>`, then maybe the dream of wide spread, reusable web components 
+could finally come true. To implement a CSSOM lifecycle callback in web components therefore deserve
+*more* scrutiny, not less.
 
 ## References
 
