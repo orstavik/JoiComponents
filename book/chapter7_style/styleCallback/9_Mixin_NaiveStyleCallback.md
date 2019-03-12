@@ -39,7 +39,7 @@ function removeFromBatch(el){
 }
 
 function runBatchProcess(){
-  const els = batch.clone();
+  const els = batch.slice();
   for (let el of els) {
     if (batch.indexOf(el) >= 0) 
       pollStyle(el);

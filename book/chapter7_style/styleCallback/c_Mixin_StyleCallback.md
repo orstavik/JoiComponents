@@ -8,7 +8,7 @@ the StyleCallback traverses all of these DOM elements, checks each element's obs
 properties and then calls `styleCallback(cssPropertyName, oldValue, newValue)` if that CSS
 property value has changed.
 
-The StyleCallback follows the 4 requirements specified in HowTo: TraverseTheCssom:
+The StyleCallback pattern follows the requirements specified in HowTo: TraverseTheCssom:
 
 1. Implementations of the `styleCallback(...)` should only alter the shadowDOM and other inner 
    state in their web component. The `styleCallback(...)` should *not* cause any events to be 
@@ -25,10 +25,185 @@ The StyleCallback follows the 4 requirements specified in HowTo: TraverseTheCsso
    will throw a CyclicalStyleCallbackError. 
    Testing for CyclicalStyleCallbackError can be turned off in production to increase speed.
    
-## something
+## Implementation: `StyleCallbackMixin`
+
+```javascript
+function CyclicalCssomMutationsError(current, currentProperty, altered, alteredProperty){
+  throw new Error("Cyclical styleCallback Sequence Error:"+ 
+                   "\n"+current.className + "." + "styleCallback('"+currentProperty+"', oldValue, newValue) " +
+                    "\nhas triggered a change of an observed style of " + altered.className + ".style."+alteredProperty + 
+                    "\n that could trigger the " + 
+                   altered.className + "." + "styleCallback('"+alteredProperty + "', oldValue, newValue) "+
+                     "\nto be called again, cyclically within the same frame.");
+}
+
+let cssomElements = [];
+let currentElement = undefined;
+
+function checkProcessedElementsStyleWasAltered(triggeringProp, processedElements) {
+  for (let el of processedElements) {
+    const observedStyles = currentElement[observedStylesMap];
+    const currentStyles = getComputedStyleValue(el);
+    for (let name of Object.keys(observedStyles)) {
+      let newValue = currentStyles[name];
+      let oldValue = observedStyles[name];
+      if (newValue !== oldValue)
+        CyclicalCssomMutationsError(currentElement, triggeringProp, el, name);
+    }
+  }
+}
+
+function checkCurrentElementStyleWasAltered(observedStyles, currentElement, triggeringProp){
+  const newStyles = getComputedStyleValue(currentElement);
+  for (let name of Object.keys(observedStyles)) {
+    let newValue = newStyles[name];
+    let oldValue = observedStyles[name];
+    if (newValue !== oldValue)
+      CyclicalCssomMutationsError(currentElement, triggeringProp, currentElement, name);
+  }
+}
+
+function traverseCssomElements(){
+  cssomElements = cssomElements.sort(function(a, b){a.compareNodePosition(b) & Node.DOCUMENT_POSITION_PRECEDING});
+  const processedElements = [];
+  for (let i = 0; i <= cssomElements.length; i++) {
+    currentElement = cssomElements[i];
+    const observedStyles = currentElement[oldStyles];
+    const currentStyles = getComputedStyleValue(currentElement);
+    for (let name of Object.keys(observedStyles)) {
+      let newValue = currentStyles[name];
+      let oldValue = observedStyles[name];
+      if (newValue !== oldValue){
+        observedStyles[name] = newValue;
+        currentElement.styleCallback(name, oldValue, newValue);
+        checkProcessedElementsStyleWasAltered(name, processedElements);
+        checkCurrentElementStyleWasAltered(observedStyles, currentElement, name);
+      }
+    }
+    processedElements.push(currentElement);
+  }
+  currentElement = undefined;
+}
+
+function addToBatch(el){
+  if (currentElement){
+    if (! (currentElement.compareNodePosition(el) & Node.DOCUMENT_POSITION_CONTAINS))
+      CyclicalCssomMutationsError(currentElement, currentProperty, el, "*");
+  }
+  for (let i = 0; i < cssomElements.length; i++) {
+    let inList = cssomElements[i];
+    if (el.compareNodePosition(inList) & Node.DOCUMENT_POSITION_CONTAINS)
+      return cssomElements.splice(i, 0, el);
+  }
+}
+
+function removeFromBatch(el){
+  if (currentElement){
+    if (! (currentElement.compareNodePosition(el) & Node.DOCUMENT_POSITION_CONTAINS))
+      CyclicalCssomMutationsError(currentElement, currentProperty, el, "*");
+  }
+  cssomElements.splice(cssomElements.indexOf(el), 1);
+}
 
 
-## Conclusion
+let interval;
+
+export function startStyleCallback(){
+  interval = requestAnimationFrame(traverseCssomElements);
+}
+
+export function stopStyleCallback(){
+  clearAnimationFrame(interval);
+}
+
+startStyleCallback();
+
+const oldStyles = Symbol("oldStyles");
+
+function StyleCallbackMixin(type){
+  return class StyleCallbackMixin extends type {
+    
+    constructor(){
+      super();
+      this[oldStyles] = {};
+      for (let style of this.constructor.observedStyles())
+        this[oldStyles][style] = undefined;
+    }
+    
+    connectedCallback(){
+      super.connectedCallback && super.connectedCallback();
+      addToBatch(this);
+    }
+    disconnectedCallback(){
+      super.disconnectedCallback && super.disconnectedCallback();
+      removeFromBatch(this);
+    }
+  };
+}
+```
+
+## Demo: `<blue-blue>` with NaiveStyleCallbackMixin
+
+```html
+<script type="module">
+  import {StyleCallbackMixin} from "StyleCallbackMixin.js";
+
+  class BlueBlue extends StyleCallbackMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+       <style>
+         div#core {                             
+           background-color: var(--light-color, lightblue);              
+           color: var(--dark-color, darkblue);          
+         }
+       </style>
+       <div id="core">
+         <slot></slot>
+       </div>`;                                                      
+    }
+    
+    static get observedStyles(){
+      return ["color"];
+    }
+    
+    styleCallback(name, oldValue, newValue){
+      if (name === "color"){
+        const div = this.shadowRoot.children[1];
+        if (newValue) {
+          div.style.setProperty("--light-color", "light" + newValue);
+          div.style.setProperty("--dark-color", "dark" + newValue);
+        } else {
+          div.style.setProperty("--light-color", undefined);
+          div.style.setProperty("--dark-color", undefined);
+        }
+      }
+    }
+  }
+
+  customElements.define("blue-blue", BlueBlue);
+</script>
+
+<style>
+#one {
+  color: green;
+}
+</style>
+
+<blue-blue id="one">green</blue-blue>            <!--[3]-->
+<blue-blue id="two">still blue</blue-blue>        
+
+<script>
+setTimeout(function(){
+  const two = document.querySelector("blue-blue#two");
+  two.style.color = "red";
+  two.innerText = "blue becomes red";
+}, 3000);
+</script>
+```
+
+## Future work
 
 A fully functioning `styleCallback(..)` that adhere to the requirements in HowTo: TraverseTheCssom 
 is possible. It is safe and efficient enough. It will simplify several operations that now add 
@@ -64,11 +239,3 @@ using HTML attributes is the last mayor obstacle for the web component dream.
 ## References
 
  * 
-
-
-6. Problem: Observe CSSOM changes and getComputedStyle
-7. Problems that require TreeOrder iteration on mutable DOM
-8. Pattern: StyleCallback using TreeOrder iteration on mutable DOM and observing CSSOM changes
-
-
-
