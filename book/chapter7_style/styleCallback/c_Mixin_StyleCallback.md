@@ -28,24 +28,31 @@ The StyleCallback pattern follows the requirements specified in HowTo: TraverseT
 ## Implementation: `StyleCallbackMixin`
 
 ```javascript
-function CyclicalCssomMutationsError(current, currentProperty, altered, alteredProperty){
-  throw new Error("Cyclical styleCallback Sequence Error:"+ 
-                   "\n"+current.className + "." + "styleCallback('"+currentProperty+"', oldValue, newValue) " +
-                    "\nhas triggered a change of an observed style of " + altered.className + ".style."+alteredProperty + 
-                    "\n that could trigger the " + 
-                   altered.className + "." + "styleCallback('"+alteredProperty + "', oldValue, newValue) "+
-                     "\nto be called again, cyclically within the same frame.");
-}
 
+//function parseCssValues(str){
+//  return //=> [["100", "px"], ["10"], ["rgb", "10", "90%", "0"]]
+//}
+
+let interval;
 let cssomElements = [];
 let currentElement = undefined;
+const oldStyles = Symbol("oldStyles");
+
+function CyclicalCssomMutationsError(current, currentProperty, altered, alteredProperty) {
+  throw new Error("Cyclical styleCallback Sequence Error:" +
+    "\n" + current.className + "." + "styleCallback('" + currentProperty + "', oldValue, newValue) " +
+    "\nhas triggered a change of an observed style of " + altered.className + ".style." + alteredProperty +
+    "\n that could trigger the " +
+    altered.className + "." + "styleCallback('" + alteredProperty + "', oldValue, newValue) " +
+    "\nto be called again, cyclically within the same frame.");
+}
 
 function checkProcessedElementsStyleWasAltered(triggeringProp, processedElements) {
   for (let el of processedElements) {
-    const observedStyles = currentElement[observedStylesMap];
-    const currentStyles = getComputedStyleValue(el);
+    const observedStyles = el[oldStyles];
+    const currentStyles = getComputedStyle(el);
     for (let name of Object.keys(observedStyles)) {
-      let newValue = currentStyles[name];
+      let newValue = currentStyles.getPropertyValue(name).trim();
       let oldValue = observedStyles[name];
       if (newValue !== oldValue)
         CyclicalCssomMutationsError(currentElement, triggeringProp, el, name);
@@ -53,27 +60,46 @@ function checkProcessedElementsStyleWasAltered(triggeringProp, processedElements
   }
 }
 
-function checkCurrentElementStyleWasAltered(observedStyles, currentElement, triggeringProp){
-  const newStyles = getComputedStyleValue(currentElement);
+function checkCurrentElementStyleWasAltered(observedStyles, currentElement, triggeringProp) {
+  const currentStyles = getComputedStyle(currentElement);
   for (let name of Object.keys(observedStyles)) {
-    let newValue = newStyles[name];
+    let newValue = currentStyles.getPropertyValue(name).trim();
     let oldValue = observedStyles[name];
     if (newValue !== oldValue)
       CyclicalCssomMutationsError(currentElement, triggeringProp, currentElement, name);
   }
 }
 
-function traverseCssomElements(){
-  cssomElements = cssomElements.sort(function(a, b){a.compareNodePosition(b) & Node.DOCUMENT_POSITION_PRECEDING});
+function addToBatch(el) {
+  if (currentElement && !(currentElement.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_CONTAINS))
+    CyclicalCssomMutationsError(currentElement, currentProperty, el, "*");
+  for (let i = 0; i < cssomElements.length; i++) {
+    let inList = cssomElements[i];
+    if (el.compareDocumentPosition(inList) & Node.DOCUMENT_POSITION_CONTAINS)
+      return cssomElements.splice(i, 0, el);
+  }
+  cssomElements.push(el);
+}
+
+function removeFromBatch(el) {
+  if (currentElement && !(currentElement.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_CONTAINS))
+    CyclicalCssomMutationsError(currentElement, currentProperty, el, "*");
+  cssomElements.splice(cssomElements.indexOf(el), 1);
+}
+
+function traverseCssomElements() {
+  cssomElements = cssomElements.sort(function (a, b) {
+    a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING
+  });
   const processedElements = [];
-  for (let i = 0; i <= cssomElements.length; i++) {
+  for (let i = 0; i < cssomElements.length; i++) {
     currentElement = cssomElements[i];
     const observedStyles = currentElement[oldStyles];
-    const currentStyles = getComputedStyleValue(currentElement);
+    const currentStyles = getComputedStyle(currentElement);
     for (let name of Object.keys(observedStyles)) {
-      let newValue = currentStyles[name];
+      let newValue = currentStyles.getPropertyValue(name).trim();
       let oldValue = observedStyles[name];
-      if (newValue !== oldValue){
+      if (newValue !== oldValue) {
         observedStyles[name] = newValue;
         currentElement.styleCallback(name, oldValue, newValue);
         checkProcessedElementsStyleWasAltered(name, processedElements);
@@ -83,58 +109,35 @@ function traverseCssomElements(){
     processedElements.push(currentElement);
   }
   currentElement = undefined;
-}
-
-function addToBatch(el){
-  if (currentElement){
-    if (! (currentElement.compareNodePosition(el) & Node.DOCUMENT_POSITION_CONTAINS))
-      CyclicalCssomMutationsError(currentElement, currentProperty, el, "*");
-  }
-  for (let i = 0; i < cssomElements.length; i++) {
-    let inList = cssomElements[i];
-    if (el.compareNodePosition(inList) & Node.DOCUMENT_POSITION_CONTAINS)
-      return cssomElements.splice(i, 0, el);
-  }
-}
-
-function removeFromBatch(el){
-  if (currentElement){
-    if (! (currentElement.compareNodePosition(el) & Node.DOCUMENT_POSITION_CONTAINS))
-      CyclicalCssomMutationsError(currentElement, currentProperty, el, "*");
-  }
-  cssomElements.splice(cssomElements.indexOf(el), 1);
-}
-
-
-let interval;
-
-export function startStyleCallback(){
   interval = requestAnimationFrame(traverseCssomElements);
 }
 
-export function stopStyleCallback(){
+export function startStyleCallback() {
+  interval = requestAnimationFrame(traverseCssomElements);
+}
+
+export function stopStyleCallback() {
   clearAnimationFrame(interval);
 }
 
 startStyleCallback();
 
-const oldStyles = Symbol("oldStyles");
-
-function StyleCallbackMixin(type){
+export function StyleCallbackMixin(type) {
   return class StyleCallbackMixin extends type {
-    
-    constructor(){
+
+    constructor() {
       super();
       this[oldStyles] = {};
-      for (let style of this.constructor.observedStyles())
-        this[oldStyles][style] = undefined;
+      for (let style of this.constructor.observedStyles)
+        this[oldStyles][style] = "";
     }
-    
-    connectedCallback(){
+
+    connectedCallback() {
       super.connectedCallback && super.connectedCallback();
       addToBatch(this);
     }
-    disconnectedCallback(){
+
+    disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
       removeFromBatch(this);
     }
@@ -146,7 +149,7 @@ function StyleCallbackMixin(type){
 
 ```html
 <script type="module">
-  import {StyleCallbackMixin} from "StyleCallbackMixin.js";
+  import {StyleCallbackMixin} from "/src/style/StyleCallbackMixin.js";
 
   class BlueBlue extends StyleCallbackMixin(HTMLElement) {
     constructor() {
@@ -154,30 +157,25 @@ function StyleCallbackMixin(type){
       this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML = `
        <style>
-         div#core {                             
-           background-color: var(--light-color, lightblue);              
-           color: var(--dark-color, darkblue);          
+         div#core {
+           background-color: var(--light-color, lightblue);
+           color: var(--dark-color, darkblue);
          }
        </style>
        <div id="core">
          <slot></slot>
-       </div>`;                                                      
+       </div>`;
     }
-    
-    static get observedStyles(){
-      return ["color"];
+
+    static get observedStyles() {
+      return ["--color"];
     }
-    
-    styleCallback(name, oldValue, newValue){
-      if (name === "color"){
+
+    styleCallback(name, oldValue, newValue) {
+      if (name === "--color") {
         const div = this.shadowRoot.children[1];
-        if (newValue) {
-          div.style.setProperty("--light-color", "light" + newValue);
-          div.style.setProperty("--dark-color", "dark" + newValue);
-        } else {
-          div.style.setProperty("--light-color", undefined);
-          div.style.setProperty("--dark-color", undefined);
-        }
+        div.style.setProperty("--light-color", newValue ? "light" + newValue : undefined);
+        div.style.setProperty("--dark-color", newValue ? "dark" + newValue : undefined);
       }
     }
   }
@@ -186,20 +184,20 @@ function StyleCallbackMixin(type){
 </script>
 
 <style>
-#one {
-  color: green;
-}
+  #one {
+    --color: green;
+  }
 </style>
 
 <blue-blue id="one">green</blue-blue>            <!--[3]-->
-<blue-blue id="two">still blue</blue-blue>        
+<blue-blue id="two">still blue</blue-blue>
 
 <script>
-setTimeout(function(){
-  const two = document.querySelector("blue-blue#two");
-  two.style.color = "red";
-  two.innerText = "blue becomes red";
-}, 3000);
+  setTimeout(function () {
+    const two = document.querySelector("blue-blue#two");
+    two.style.setProperty("--color", "grey");
+    two.innerText = "blue becomes grey";
+  }, 2000);
 </script>
 ```
 
