@@ -1,6 +1,7 @@
 let interval;
 let cssomElements = [];
 let currentElement = undefined;
+let doCheck = false;
 const oldStyles = Symbol("oldStyles");
 
 function CyclicalCssomMutationsError(current, currentProperty, altered, alteredProperty) {
@@ -12,10 +13,18 @@ function CyclicalCssomMutationsError(current, currentProperty, altered, alteredP
     "\nto be called again, cyclically within the same frame.");
 }
 
+function getComputedStylePerformance(el, id) {
+  // const start = performance.now();
+  const computedStyle = getComputedStyle(el);
+  // console.log(id + ": " + (performance.now() - start));
+  return computedStyle;
+}
+
 function checkProcessedElementsStyleWasAltered(triggeringProp, processedElements) {
-  for (let el of processedElements) {
+  for (let i = 0; i < processedElements.lenght; i++) {
+    let el = processedElements[i];
     const observedStyles = el[oldStyles];
-    const currentStyles = getComputedStyle(el);
+    const currentStyles = getComputedStylePerformance(el, "check" + i);
     for (let name of Object.keys(observedStyles)) {
       let newValue = currentStyles.getPropertyValue(name).trim();
       let oldValue = observedStyles[name];
@@ -26,7 +35,7 @@ function checkProcessedElementsStyleWasAltered(triggeringProp, processedElements
 }
 
 function checkCurrentElementStyleWasAltered(observedStyles, currentElement, triggeringProp) {
-  const currentStyles = getComputedStyle(currentElement);
+  const currentStyles = getComputedStylePerformance(currentElement, "check myself");
   for (let name of Object.keys(observedStyles)) {
     let newValue = currentStyles.getPropertyValue(name).trim();
     let oldValue = observedStyles[name];
@@ -60,15 +69,17 @@ function traverseCssomElements() {
   for (let i = 0; i < cssomElements.length; i++) {
     currentElement = cssomElements[i];
     const observedStyles = currentElement[oldStyles];
-    const currentStyles = getComputedStyle(currentElement);
+    const currentStyles = getComputedStylePerformance(currentElement, "execute" + i);
     for (let name of Object.keys(observedStyles)) {
       let newValue = currentStyles.getPropertyValue(name).trim();
       let oldValue = observedStyles[name];
       if (newValue !== oldValue) {
         observedStyles[name] = newValue;
         currentElement.styleCallback(name, oldValue, newValue);
-        checkProcessedElementsStyleWasAltered(name, processedElements);
-        checkCurrentElementStyleWasAltered(observedStyles, currentElement, name);
+        if (doCheck) {
+          checkProcessedElementsStyleWasAltered(name, processedElements);
+          checkCurrentElementStyleWasAltered(observedStyles, currentElement, name);
+        }
       }
     }
     processedElements.push(currentElement);
@@ -76,10 +87,20 @@ function traverseCssomElements() {
   currentElement = undefined;
 }
 
+export function startStyleCallbackErrors(){
+  doCheck = true;
+}
+
+export function stopStyleCallbackErrors(){
+  doCheck = false;
+}
+
 export function startStyleCallback() {
-  interval = requestAnimationFrame(function(){
+  interval = requestAnimationFrame(function () {
+    const start = performance.now();
     traverseCssomElements();
     startStyleCallback();
+    console.log("total: " + (performance.now() - start));
   });
 }
 

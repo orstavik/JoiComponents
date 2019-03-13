@@ -1,0 +1,55 @@
+<script type="module">
+  import {StyleCallbackMixin, startStyleCallbackErrors, stopStyleCallbackErrors} from "/src/style/StyleCallbackMixin.js";
+
+  class BlueBlue extends StyleCallbackMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+       <style>
+         div#core {
+           background-color: var(--light-color, lightblue);
+           color: var(--dark-color, darkblue);
+         }
+       </style>
+       <div id="core">
+         <slot></slot>
+       </div>`;
+    }
+
+    static get observedStyles() {
+      return ["color"];
+    }
+
+    styleCallback(name, oldValue, newValue) {
+      if (name === "color") {
+        const div = this.shadowRoot.children[1];
+        div.style.setProperty("--light-color", newValue);
+        div.style.setProperty("--dark-color", newValue);
+      }
+    }
+  }
+
+  customElements.define("blue-blue", BlueBlue);
+
+  startStyleCallbackErrors();
+  window.stopStyleCallbackErrors = stopStyleCallbackErrors;
+</script>
+
+<style>
+  #one {
+    color: green;
+  }
+</style>
+
+<blue-blue id="one">green</blue-blue>            <!--[3]-->
+<blue-blue id="two">still blue</blue-blue>
+
+<script>
+  setTimeout(function () {
+    const two = document.querySelector("blue-blue#two");
+    two.style.setProperty("color", "grey");
+    two.innerText = "blue becomes grey";
+    stopStyleCallbackErrors();
+  }, 170);
+</script>
