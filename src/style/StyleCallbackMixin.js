@@ -74,11 +74,13 @@ function traverseCssomElements() {
     processedElements.push(currentElement);
   }
   currentElement = undefined;
-  interval = requestAnimationFrame(traverseCssomElements);
 }
 
 export function startStyleCallback() {
-  interval = requestAnimationFrame(traverseCssomElements);
+  interval = requestAnimationFrame(function(){
+    traverseCssomElements();
+    startStyleCallback();
+  });
 }
 
 export function stopStyleCallback() {
