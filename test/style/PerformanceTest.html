@@ -1,0 +1,33 @@
+<h3 id="fps">FPS: ?</h3>
+<ul>
+  <li>Number of elements: <input type="text" id="count" value="100"></li>
+  <li><a href="#100BlueBlueDashDashColor.html">100 BlueBlue with --color and StyleCallbackMixin</a></li>
+  <li><a href="#100BlueBlueNoStyleCallback.html">100 BlueBlue with native JS and NoMixin</a></li>
+  <li><a href="#stop">stop</a></li>
+</ul>
+<iframe id="test" src="./100BlueBlueDashDashColor.html#100" style="width: 500px; height: 500px;" frameborder="0"></iframe>
+<script>
+  const times = [];
+  let fpsEl = document.querySelector("#fps");
+
+  function refreshLoop() {
+    window.requestAnimationFrame(() => {
+      const now = performance.now();
+      while (times.length > 0 && times[0] <= now - 1000) {
+        times.shift();
+      }
+      times.push(now);
+      fpsEl.innerText = "FPS: " + times.length;
+      refreshLoop();
+    });
+  }
+
+  refreshLoop();
+
+  window.addEventListener("hashchange", function (){
+    var iframe = document.querySelector("iframe");
+    var count = document.querySelector("#count").value;
+    var filename = location.hash.substr(1);
+    iframe.src = "./" + filename + "#" + count;
+  });
+</script>

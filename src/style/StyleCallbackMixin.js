@@ -13,18 +13,11 @@ function CyclicalCssomMutationsError(current, currentProperty, altered, alteredP
     "\nto be called again, cyclically within the same frame.");
 }
 
-function getComputedStylePerformance(el, id) {
-  // const start = performance.now();
-  const computedStyle = getComputedStyle(el);
-  // console.log(id + ": " + (performance.now() - start));
-  return computedStyle;
-}
-
 function checkProcessedElementsStyleWasAltered(triggeringProp, processedElements) {
-  for (let i = 0; i < processedElements.lenght; i++) {
+  for (let i = 0; i < processedElements.length; i++) {
     let el = processedElements[i];
     const observedStyles = el[oldStyles];
-    const currentStyles = getComputedStylePerformance(el, "check" + i);
+    const currentStyles = getComputedStyle(el);
     for (let name of Object.keys(observedStyles)) {
       let newValue = currentStyles.getPropertyValue(name).trim();
       let oldValue = observedStyles[name];
@@ -35,7 +28,7 @@ function checkProcessedElementsStyleWasAltered(triggeringProp, processedElements
 }
 
 function checkCurrentElementStyleWasAltered(observedStyles, currentElement, triggeringProp) {
-  const currentStyles = getComputedStylePerformance(currentElement, "check myself");
+  const currentStyles = getComputedStyle(currentElement);
   for (let name of Object.keys(observedStyles)) {
     let newValue = currentStyles.getPropertyValue(name).trim();
     let oldValue = observedStyles[name];
@@ -69,7 +62,7 @@ function traverseCssomElements() {
   for (let i = 0; i < cssomElements.length; i++) {
     currentElement = cssomElements[i];
     const observedStyles = currentElement[oldStyles];
-    const currentStyles = getComputedStylePerformance(currentElement, "execute" + i);
+    const currentStyles = getComputedStyle(currentElement);
     for (let name of Object.keys(observedStyles)) {
       let newValue = currentStyles.getPropertyValue(name).trim();
       let oldValue = observedStyles[name];
@@ -87,20 +80,18 @@ function traverseCssomElements() {
   currentElement = undefined;
 }
 
-export function startStyleCallbackErrors(){
+export function checkStyleCallbackErrors(){
   doCheck = true;
 }
 
-export function stopStyleCallbackErrors(){
+export function skipStyleCallbackErrors(){
   doCheck = false;
 }
 
 export function startStyleCallback() {
   interval = requestAnimationFrame(function () {
-    const start = performance.now();
     traverseCssomElements();
     startStyleCallback();
-    console.log("total: " + (performance.now() - start));
   });
 }
 

@@ -1,0 +1,78 @@
+<h3>100 BlueBlue with --color and StyleCallbackMixin</h3>
+<script type="module">
+  import {StyleCallbackMixin, checkStyleCallbackErrors} from "/src/style/StyleCallbackMixin.js";
+
+  class BlueBlue extends StyleCallbackMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+       <style>
+         div#core {
+           display: inline;
+           background-color: var(--light-color, lightblue);
+           color: var(--dark-color, darkblue);
+         }
+       </style>
+       <div id="core">
+         <slot></slot>
+       </div>`;
+    }
+
+    static get observedStyles() {
+      return ["--color"];
+    }
+
+    styleCallback(name, oldValue, newValue) {
+      if (name === "--color") {
+        const div = this.shadowRoot.children[1];
+        div.style.setProperty("--light-color", newValue ? "light" + newValue : undefined);
+        div.style.setProperty("--dark-color", newValue ? "dark" + newValue : undefined);
+      }
+    }
+  }
+
+  customElements.define("blue-blue", BlueBlue);
+</script>
+
+<style>
+  blue-blue {
+    --color: grey;
+  }
+  blue-blue:nth-child(2n+0) {
+    --color: green;
+  }
+  blue-blue:nth-child(3n+0) {
+    --color: red;
+  }
+</style>
+<script>
+  let count = parseInt(location.hash.substr(1)) || 10;
+  for (let i = 0; i < count; i++) {
+    let bb = document.createElement("blue-blue");
+    bb.innerText = "BB " + i;
+    document.querySelector("body").appendChild(bb);
+  }
+
+  /**
+   * Shuffles array in place.
+   * @param {Array} a items An array containing the items.
+   */
+  function shuffle(a) {
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      x = a[i];
+      a[i] = a[j];
+      a[j] = x;
+    }
+    return a;
+  }
+
+  setInterval(function () {
+    const bbs = shuffle(Array.from(document.querySelectorAll("blue-blue")));
+    for (let bb of bbs) {
+      document.querySelector("body").appendChild(bb);
+    }
+  }, 10);
+</script>

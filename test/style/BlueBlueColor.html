@@ -1,5 +1,5 @@
 <script type="module">
-  import {StyleCallbackMixin, startStyleCallbackErrors, stopStyleCallbackErrors} from "/src/style/StyleCallbackMixin.js";
+  import {StyleCallbackMixin, checkStyleCallbackErrors, skipStyleCallbackErrors} from "/src/style/StyleCallbackMixin.js";
 
   class BlueBlue extends StyleCallbackMixin(HTMLElement) {
     constructor() {
@@ -32,8 +32,8 @@
 
   customElements.define("blue-blue", BlueBlue);
 
-  startStyleCallbackErrors();
-  window.stopStyleCallbackErrors = stopStyleCallbackErrors;
+  checkStyleCallbackErrors();
+  window.stopStyleCallbackErrors = skipStyleCallbackErrors;
 </script>
 
 <style>
@@ -50,6 +50,6 @@
     const two = document.querySelector("blue-blue#two");
     two.style.setProperty("color", "grey");
     two.innerText = "blue becomes grey";
-    stopStyleCallbackErrors();
+    skipStyleCallbackErrors();
   }, 170);
 </script>

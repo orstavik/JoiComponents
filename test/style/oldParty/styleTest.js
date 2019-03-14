@@ -1,4 +1,4 @@
-import {PartyStyleMixin} from "../../src/style/PartyStyleMixin.js";
+import {PartyStyleMixin} from "../../../src/style/old/PartyStyleMixin.js";
 
 describe('basics', function () {
 

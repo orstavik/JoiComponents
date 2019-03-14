@@ -28,14 +28,10 @@ The StyleCallback pattern follows the requirements specified in HowTo: TraverseT
 ## Implementation: `StyleCallbackMixin`
 
 ```javascript
-
-//function parseCssValues(str){
-//  return //=> [["100", "px"], ["10"], ["rgb", "10", "90%", "0"]]
-//}
-
 let interval;
 let cssomElements = [];
 let currentElement = undefined;
+let doCheck = false;
 const oldStyles = Symbol("oldStyles");
 
 function CyclicalCssomMutationsError(current, currentProperty, altered, alteredProperty) {
@@ -48,7 +44,8 @@ function CyclicalCssomMutationsError(current, currentProperty, altered, alteredP
 }
 
 function checkProcessedElementsStyleWasAltered(triggeringProp, processedElements) {
-  for (let el of processedElements) {
+  for (let i = 0; i < processedElements.length; i++) {
+    let el = processedElements[i];
     const observedStyles = el[oldStyles];
     const currentStyles = getComputedStyle(el);
     for (let name of Object.keys(observedStyles)) {
@@ -102,18 +99,30 @@ function traverseCssomElements() {
       if (newValue !== oldValue) {
         observedStyles[name] = newValue;
         currentElement.styleCallback(name, oldValue, newValue);
-        checkProcessedElementsStyleWasAltered(name, processedElements);
-        checkCurrentElementStyleWasAltered(observedStyles, currentElement, name);
+        if (doCheck) {
+          checkProcessedElementsStyleWasAltered(name, processedElements);
+          checkCurrentElementStyleWasAltered(observedStyles, currentElement, name);
+        }
       }
     }
     processedElements.push(currentElement);
   }
   currentElement = undefined;
-  interval = requestAnimationFrame(traverseCssomElements);
+}
+
+export function checkStyleCallbackErrors(){
+  doCheck = true;
+}
+
+export function skipStyleCallbackErrors(){
+  doCheck = false;
 }
 
 export function startStyleCallback() {
-  interval = requestAnimationFrame(traverseCssomElements);
+  interval = requestAnimationFrame(function () {
+    traverseCssomElements();
+    startStyleCallback();
+  });
 }
 
 export function stopStyleCallback() {
@@ -181,6 +190,8 @@ export function StyleCallbackMixin(type) {
   }
 
   customElements.define("blue-blue", BlueBlue);
+  
+  checkStyleCallbackErrors();
 </script>
 
 <style>
