@@ -124,6 +124,29 @@ export function tokenizeCssValues(str) {
 }
 
 
+class CssValue {
+  constructor(obj){
+    this._obj = obj;
+  }
+
+  getRgbValue(){
+    if (this._obj.type === "function" && this._obj.unit === "rgb")
+      return this._obj.children.map(number => parseInt(number.value));
+    if (this._obj.type === "#"){
+      const str = this._obj.value;
+      if (str.length === 3)
+        return [parseInt(str[0], 16)*16, parseInt(str[1], 16)*16, parseInt(str[2], 16)*16];
+      if (str.length === 6)
+        return [parseInt(str[0]+str[1], 16), parseInt(str[2]+str[3], 16), parseInt(str[4]+str[5], 16)];
+    }
+    return undefined;
+  }
+
+  getValue(){
+    return obj.value;
+  }
+}
+
 export function parseCssValue(str) {
   const tokens = new Tokenizer(str);
   let result = [];
@@ -147,7 +170,7 @@ function parseSpaceSeparatedValueList(tokens) {
     }
     if (next[0] === ",")            //todo check if ,, is a syntax error for ValueList?
       return result;
-    result.push(parseValue(tokens));
+    result.push(new CssValue(parseValue(tokens)));
   }
   return result;
 }
