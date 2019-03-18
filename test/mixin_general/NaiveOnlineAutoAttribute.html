@@ -1,0 +1,65 @@
+<script type="module">
+
+  import {NaiveOnlineAutoAttributeMixin} from "../../src/mixin/NaiveOnlineAutoAttributeMixin.js";
+
+  class TrafficLight extends NaiveOnlineAutoAttributeMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+<style>
+  div {
+    border: 10px solid var(--color-inactive, darkgrey);
+  }
+  :host([auto-online="0"]) div{
+    border-color: var(--color-offline, red);
+  }
+  :host([auto-online="1"]) div{
+    border-color: var(--color-connecting, gold);
+  }
+  :host([auto-online="1000"]) div{
+    border-color: var(--color-online, green);
+  }
+</style>
+<div>
+  <slot></slot>
+</div>
+    `;
+    }
+
+    static get observedAttributes() {
+      return ["auto-online-active"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "auto-online-active") {
+        this.updateAutoOnline();
+      }
+    }
+  }
+
+  customElements.define("traffic-light", TrafficLight);
+</script>
+
+<style>
+  #two {
+    --color-offline: darkblue;
+    --color-connecting: blue;
+    --color-online: lightblue;
+  }
+  #three[auto-online="1000"] {
+    --color-online: pink;
+  }
+</style>
+
+<traffic-light auto-online-active id="one">one</traffic-light>
+<traffic-light auto-online-active id="two">two</traffic-light>
+<traffic-light id="three">three</traffic-light>
+
+<script>
+  function alterAttributesDynamically() {
+    document.querySelector("#one").removeAttribute("auto-online-active");
+    document.querySelector("#three").setAttribute("auto-online-active", "");
+  }
+</script>
+<button onclick="alterAttributesDynamically()">Remove auto-online from #one. Add auto-online to #three</button>
