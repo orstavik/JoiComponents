@@ -105,10 +105,8 @@ function removeFromBatch(el) {
 }
 
 function runBatchProcess() {
-  for (let el of batch) {
-    if (el.hasAttribute("auto-online-active"))
-      el.updateAutoOnline();
-  }
+  for (let el of batch)
+    el.updateAutoOnline();
 }
 
 let onlineState;
@@ -146,9 +144,7 @@ export function NaiveOnlineAutoAttributeMixin(type) {
     }
 
     updateAutoOnline() {
-      this.hasAttribute("auto-online-active") ?
-        this.setAttribute("auto-online", onlineState) :
-        this.removeAttribute("auto-online");
+      this.hasAttribute("auto-online-active") && this.setAttribute("auto-online", onlineState);
     }
   };
 }
@@ -217,7 +213,10 @@ The colors of the `<traffic-light>` element can be specified as CSS variables `-
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "auto-online-active") {
-        this.updateAutoOnline();
+        if (newValue !== null)
+          this.updateAutoOnline();
+        else
+          this.removeAttribute("auto-online");
       }
     }
   }
@@ -236,10 +235,10 @@ The colors of the `<traffic-light>` element can be specified as CSS variables `-
   }
 </style>
 
-<traffic-light auto-online-active id="one">one</traffic-light>
-<traffic-light auto-online-active id="two">two</traffic-light>
+<traffic-light id="one" auto-online-active>one</traffic-light>
+<traffic-light id="two" auto-online-active>two</traffic-light>
 <traffic-light id="three">three</traffic-light>
-<traffic-light auto-online="1" id="four">four</traffic-light>
+<traffic-light id="four" auto-online="1">four</traffic-light>
 
 <script>
   function alterAttributesDynamically() {

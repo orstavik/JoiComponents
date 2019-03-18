@@ -33,7 +33,10 @@
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "auto-online-active") {
-        this.updateAutoOnline();
+        if (newValue !== null)
+          this.updateAutoOnline();
+        else
+          this.removeAttribute("auto-online");
       }
     }
   }
@@ -52,9 +55,10 @@
   }
 </style>
 
-<traffic-light auto-online-active id="one">one</traffic-light>
-<traffic-light auto-online-active id="two">two</traffic-light>
+<traffic-light id="one" auto-online-active>one</traffic-light>
+<traffic-light id="two" auto-online-active>two</traffic-light>
 <traffic-light id="three">three</traffic-light>
+<traffic-light id="four" auto-online="1">four</traffic-light>
 
 <script>
   function alterAttributesDynamically() {

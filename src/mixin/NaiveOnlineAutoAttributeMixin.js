@@ -14,10 +14,8 @@ function removeFromBatch(el) {
 }
 
 function runBatchProcess() {
-  for (let el of batch) {
-    if (el.hasAttribute("auto-online-active"))
-      el.updateAutoOnline();
-  }
+  for (let el of batch)
+    el.updateAutoOnline();
 }
 
 let onlineState;
@@ -55,9 +53,7 @@ export function NaiveOnlineAutoAttributeMixin(type) {
     }
 
     updateAutoOnline() {
-      this.hasAttribute("auto-online-active") ?
-        this.setAttribute("auto-online", onlineState) :
-        this.removeAttribute("auto-online");
+      this.hasAttribute("auto-online-active") && this.setAttribute("auto-online", onlineState);
     }
   };
 }
