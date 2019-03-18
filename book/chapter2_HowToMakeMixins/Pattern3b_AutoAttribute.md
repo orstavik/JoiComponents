@@ -6,56 +6,87 @@ component *automatically*.
 The AutoAttribute serves several purposes. First, when an attribute is either added, altered, or removed
 on an element, that will trigger an `attributeChangedCallback(...)` on that web component. 
 If this was the *only* purpose of the AutoAttribute, then the FunctionalMixin pattern would suffice and 
-should be used instead. However, the reason the AutoAttribute triggers a lifecycle callback (ie. 
-`attributeChangedCallback(...)`) *via* an HTML attribute on the host element, is that the state of an 
-HTML attribute can *also* be *read from CSS*, *set in HTML template*, in addition to being controlled
-and triggering JS functions.
+should be used instead. However, the reason the AutoAttribute *uses* an HTML attribute on the host element
+to *indirectly* trigger a lifecycle callback (ie. `attributeChangedCallback(...)`), 
+is that the HTML attribute can *also* be:
+1. *read from CSS* and used to activate/deactivate CSS rules internally and externally on the web 
+   component,
+2. *set in HTML*, thus started and stopped from the HTML template, and 
+3. while still being indirectly controllable from JS (via `.setAttribute(...)` and 
+   `.removeAttribute(...)`) and reactionable via the `attributeChangedCallback(...)`.
 
 ## The API of the AutoAttribute pattern
 
-1. A web component adds an AutoAttribute as part of its makeup. The AutoAttribute pattern gives the
-   web component the ability to *automatically* spawn and adjust the value of an attribute on the
-   host element.
+1. A web component adds a mixin that implements an AutoAttribute. 
+   The AutoAttribute mixin gives the web component the ability to *automatically* spawn and adjust 
+   the value of an attribute on the host element.
+   
+2. The AutoAttribute always contains two attributes that can be attained the element:
+   1. `auto-attribute-activate` specifies whether the element will be automatically updated or not.
+   2. `auto-attribue` is the attribute whose values will be automatically updated when the
+      `auto-attribute-activate` attribute is there.
+      
+      The default mechanism when the `auto-attribute-activate` in the mixin is *not* to trigger a
+      change in the value of the `auto-attribute` as a direct consequence, only to add the web 
+      component to the current batch to be processed in the next round. It is up to the implementing
+      web component to specify if and how the web component should behave *when* the 
+      `auto-attribute-activate` attribute changes dynamically.
 
-2. The AutoAttribute can be:
-   1. active by default, and then stopped using a `auto-attribute-freeze` attribute, or
-   2. deactive by default, and then started/stopped by adding/removing the `auto-attribute-steps` 
-      attribute to the host element.
+3. Commonly, the AutoAttribute mixin will batch the processing of all the elements that subscribe to/
+   implements it. This ensures more efficient observations. When, and in which order this batch 
+   process is run, depends on the element and/or system property being observed.
+
+4. In many circumstances, the element and/or system property being observed is much more granular
+   than the web component's CSS and/or JS reactions. When the AutoAttribute changes the value of the
+   HTML element, this will therefore cause unnecessary CSSOM calculations and unnecessary 
+   `attributeChangedCallback(...)`. To avoid such unnecesarry CSS and JS reactions, the AutoAttribute 
+   rarely implement a fluent attribute value, but instead only a select few steps (threshold values).
    
-   The AutoAttribute employs a combination of these two alternatives to function successfully.
-   First, by running the callbacks in a batch, all elements are actively checked by default (1.), 
-   but only the elements that has an `auto-attribute-steps` attribute are processed.
+5. These steps are also highly useful in that they enable both internal and external CSS rules to be
+   selected upon them. Internally, the CSS rules look like:
+   1. `* {...}` (default CSS rules, no `auto-attribute`) 
+   2. `:host([auto-attribute]){...}` (CSS rules for all `auto-attribute` steps)
+   3. `:host([auto-attribute=step1]){...}` (CSS rules for all `auto-attribute` step 1)
+   4. `:host([auto-attribute=step2]){...}` (CSS rules for all `auto-attribute` step 2)
+   5. etc.
+    
+   Externally, the CSS rules look like:
+   1. `#el {...}` (default CSS rules, no `auto-attribute`) 
+   2. `#el[auto-attribute]{...}` (CSS rules for all `auto-attribute` steps)
+   3. `#el[auto-attribute=step1]{...}` (CSS rules for all `auto-attribute` step 1)
+   4. `#el[auto-attribute=step2]{...}` (CSS rules for all `auto-attribute` step 2)
+   5. etc.
+    
+   If any external CSS rule is set that can be applicable to the element is set, 
+   then this external rule will have higher priority than any more specific step-wise CSS `:host` 
+   selector inside the web component. Thus, often the two external rules should be:
+    
+   1. `#el:not[auto-attribute] {...}` (default CSS rules, no `auto-attribute`) 
+   2. `#el[auto-attribute=""]{...}` (CSS rules for when `auto-attribute` is set without any 
+      specified step value)
    
-3. In many circumstances, the value being observed and added can be much more granular than the web 
-   component's reaction to it. To avoid both a) mutating the DOM attribute value and b) 
-   triggering a great many unnecessary `attributeChangedCallback(...)`, the AutoAttribute specifies a
-   series of steps that will cause the attribute value to be changed.
-   
-4. The `auto-attribute` is used to control the style on the host element internally in the web component 
-   via rule sets such as `:host(:not([auto-attribute])){...}`, `:host([auto-attribute]){...}`, 
-   `:host([auto-attribute=step1]){...}`, `:host([auto-attribute=step2]){...}`, etc.
-   
-5. Externally, the same `web-component:not([auto-attribute]`, `web-component[auto-attribute=step1]` rule
-   set is used to override the internal styles.
-   
-6. The steps of the attribute value is specified as a separate attribute `auto-attribute-steps` that contain 
-   for example an integer value, an array of integers, or one or more other value(s) suitable for the 
-   state being observed by the AutoAttribute.
+6. The steps of the attribute value can be specified as the value of `auto-attribute-active`.
+   The format of the steps and their processing depends on the mixin implementation.
 
 ## Example: NaiveOnlineAutoAttributeMixin
 
 In this example we will implement a web component that can automatically update an attribute based on 
-whether or not the app has online access. If an `auto-online` attribute is added to the host element, 
-then the component will a) check to see if the browser has an internet connection, and 
-then b) start to listen for the `online` and `offline` events.
-
-The NaiveOnlineAutoAttributeMixin uses an attribute `auto-online-steps` to specify an `onlineTime` 
-for how many ms the element needs to be connected for in order to update the `auto-online` attribute
-to a second step.
+whether or not the app has online access. When an `auto-online-active` attribute is added to the host 
+element, then the component will spawn an `auto-online` attribute on the host element.
 
 If the browser is offline, then `auto-online=0` is set on the host element.
 If the browser is online, then `auto-online=1` is set.
-If the browser has been online for longer than `onlineTime`, then `auto-online=onlineTime` is set.
+If the browser has been online for longer than 1000ms, then `auto-online=1000` is set.
+
+The NaiveOnlineAutoAttributeMixin has three fixed steps: 0, 1, 1000. How to implement custom
+processing of steps will be shown in later examples.
+
+The NaiveOnlineAutoAttributeMixin does not react to dynamic changes of the `auto-online-active`.
+It is left up to the web components to:
+ * remove or keep the `auto-online` attribute (and value) when `auto-online-active` is removed 
+   from an element, and
+ * whether to synchronously trigger the processing of `auto-online` attribute when 
+   `auto-online-active` is added to an element.
 
 ```javascript
 const batch = [];
@@ -65,64 +96,69 @@ function addToBatch(el) {
   if (index >= 0)
     return;
   batch.push(el);
-  updateOnline(el, navigator.online ? 1 : 0);
 }
 
-function removeFromBatch(el){
+function removeFromBatch(el) {
   const index = batch.indexOf(el);
   if (index >= 0)
     batch.splice(index, 1);
 }
 
-function runBatchProcess(state){
-  const els = batch.slice();
-  for (let el of els) {
-    if (batch.indexOf(el)>=0)                      //[x] 
-      updateOnline(el, state);
+function runBatchProcess() {
+  for (let el of batch) {
+    if (el.hasAttribute("auto-online-active"))
+      el.updateAutoOnline();
   }
 }
 
-function updateOnline(el, state){
-  if (!el.hasAttribute("auto-online-steps"))
-    return;
-  if (state === 1){
-    const step = parseInt(el.getAttribute("auto-online-steps")) || 1000;
-    setTimeout(function(){
-      updateOnline(el, step);
-    }, step);
-  }
-  el.setAttribute("auto-online", state);
+let onlineState;
+
+function connecting() {
+  onlineState = 1;
+  runBatchProcess();
+  setTimeout(function () {
+    onlineState = 1000;
+    runBatchProcess();
+  }, 1000);
 }
 
-window.addEventListener("online", function(){
-  runBatchProcess(1);
-});
+function disConnecting() {
+  onlineState = 0;
+  runBatchProcess();
+}
 
-window.addEventListener("offline", function(){
-  runBatchProcess(0);
-});
+navigator.onLine ? connecting() : disConnecting();
+window.addEventListener("online", connecting);
+window.addEventListener("offline", disConnecting);
 
 export function NaiveOnlineAutoAttributeMixin(type) {
   return class NaiveOnlineAutoAttributeMixin extends type {
-    
+
     connectedCallback() {
       super.connectedCallback && super.connectedCallback();
       addToBatch(this);
+      requestAnimationFrame(this.updateAutoOnline.bind(this));
     }
-    
+
     disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
       removeFromBatch(this);
+    }
+
+    updateAutoOnline() {
+      this.hasAttribute("auto-online-active") ?
+        this.setAttribute("auto-online", onlineState) :
+        this.removeAttribute("auto-online");
     }
   };
 }
 ```
 
-The example above is for demonstration purposes, not intended for production.
+The example above is for demonstration purposes. It is not intended for production.
 It is unlikely that the altering the appearance of an element based on the online/offline status 
 described above would require a) a mixin, b) coordinated control both inside and outside the element.
 The purpose of this example is to keep things as simple as possible so to explain the mechanics of 
-the AutoAttribute pattern as it can be applied to other more general use cases.
+the AutoAttribute pattern as it can be applied to other more complex use cases later.
 
 ## Demo: Web traffic lights
 
@@ -135,59 +171,83 @@ The `<traffic-light>` element will have a border that is:
 4. green, when the `NaiveOnlineAutoAttributeMixin` is active and the element has been connected for
    longer than 1000 ms.
    
+The `<traffic-light>` element observes for dynamic changes to the `auto-online-active` attribute 
+and triggers synchronously updates of the value of `auto-online` attribute in all such instances.
+This means essentially that to add static `auto-online` values, the user must 
+*first* `.removeAttribute("auto-online-active")` *before* for example calling `.setAttribute("auto-online", 0)`.
+This also means that setting only the `auto-online=1` value on a `<traffic-light>` element will result
+in choosing the style statically.
+   
 The colors of the `<traffic-light>` element can be specified as CSS variables `--color-offline`, 
 `--color-connecting`, `--color-online`, `--color-inactive`.
-
 
 ```html
 <script type="module">
 
-import {NaiveOnlineAutoAttributeMixin} from "./NaiveOnlineAutoAttributeMixin.js";
+  import {NaiveOnlineAutoAttributeMixin} from "../../src/mixin/NaiveOnlineAutoAttributeMixin.js";
 
-class TrafficLight extends NaiveOnlineAutoAttributeMixin(HTMLElement){
-  constructor(){
-    super();
-    this.attachShadow({mode: "open"});
-    this.shadowRoot.innerHTML = `
+  class TrafficLight extends NaiveOnlineAutoAttributeMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
 <style>
   div {
     border: 10px solid var(--color-inactive, darkgrey);
   }
-  :host([auto-online=0]) div{
+  :host([auto-online="0"]) div{
     border-color: var(--color-offline, red);
   }
-  :host([auto-online=1]) div{
+  :host([auto-online="1"]) div{
     border-color: var(--color-connecting, gold);
   }
-  :host([auto-online>1]) div{
-    border-color: var(--color-connecting, green);
+  :host([auto-online="1000"]) div{
+    border-color: var(--color-online, green);
   }
 </style>
 <div>
   <slot></slot>
 </div>
     `;
+    }
+
+    static get observedAttributes() {
+      return ["auto-online-active"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "auto-online-active") {
+        this.updateAutoOnline();
+      }
+    }
   }
-}
-customElements.define("traffic-light", TrafficLight);
+
+  customElements.define("traffic-light", TrafficLight);
 </script>
 
 <style>
-#two{
-  --color-offline: darkblue;
-  --color-connecting: blue;
-  --color-online: lightblue;
-}
+  #two {
+    --color-offline: darkblue;
+    --color-connecting: blue;
+    --color-online: lightblue;
+  }
+  #three[auto-online="1000"] {
+    --color-online: pink;
+  }
 </style>
 
-<traffic-light auto-online-steps id="one">ONE</traffic-light>
-<traffic-light auto-online-steps=2000 id="two">two</traffic-light>
-<traffic-light id="three">3</traffic-light>
+<traffic-light auto-online-active id="one">one</traffic-light>
+<traffic-light auto-online-active id="two">two</traffic-light>
+<traffic-light id="three">three</traffic-light>
+<traffic-light auto-online="1" id="four">four</traffic-light>
 
-<script >
-  document.querySelector("#one").removeAttribute("auto-online-steps");
-  document.querySelector("#three").addAttribute("auto-online-steps");
+<script>
+  function alterAttributesDynamically() {
+    document.querySelector("#one").removeAttribute("auto-online-active");
+    document.querySelector("#three").setAttribute("auto-online-active", "");
+  }
 </script>
+<button onclick="alterAttributesDynamically()">Remove auto-online from #one. Add auto-online to #three</button>
 ```
 
 ## References
