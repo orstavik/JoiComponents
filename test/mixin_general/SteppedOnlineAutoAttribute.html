@@ -1,0 +1,69 @@
+<script type="module">
+
+  import {SteppedOnlineAutoAttributeMixin} from "../../src/mixin/SteppedOnlineAutoAttributeMixin.js";
+
+  class TrafficLight extends SteppedOnlineAutoAttributeMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+<style>
+  div {
+    border: 10px solid var(--color-inactive, darkgrey);
+  }
+  :host([_online=""]) div{
+    border-color: var(--color-offline, red);
+  }
+  :host([_online^="1:"]) div{
+    border-color: var(--color-connecting, gold);
+  }
+  :host([_online^="2:"]) div{
+    border-color: var(--color-online, green);
+  }
+</style>
+<div>
+  <slot></slot>
+</div>
+    `;
+    }
+
+    static get observedAttributes() {
+      return ["auto-online"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "auto-online") {
+        if (newValue === null)
+          return this.removeAttribute("_online");
+        if (newValue === "" && this._steps.length === 0)
+          newValue = "100, 1500";
+        if (newValue !== "")
+          this.setSteps(newValue);
+        this.onlineConnecting();
+      }
+    }
+  }
+
+  customElements.define("traffic-light", TrafficLight);
+</script>
+
+<traffic-light id="one" auto-online>one</traffic-light>
+<traffic-light id="two" auto-online="2000, 4000">two</traffic-light>
+<traffic-light id="three">three</traffic-light>
+<traffic-light id="four" _online="1:">four</traffic-light>
+
+<script>
+  window.addEventListener("click", function(e){
+    if (e.target.tagName === "TRAFFIC-LIGHT"){
+      e.target.hasAttribute("auto-online") ?
+        e.target.removeAttribute("auto-online") :
+        e.target.setAttribute("auto-online", "");
+    }
+  })
+</script>
+<p>Click on each element to toggle their "auto-online" attribute.</p>
+
+<p>
+  To store the step settings when the "auto-online" attribute is switched off and then on again,
+  the web component should preserve the "auto-online" attribute as a private property.
+</p>
