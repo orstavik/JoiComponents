@@ -1,0 +1,72 @@
+<script type="module">
+  import {NaiveLayoutWidthAttributeMixin} from "../../src/layout/NaiveLayoutWidthAttributeMixin.js";
+
+  class BeltNotches extends NaiveLayoutWidthAttributeMixin(HTMLElement){
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+<style>
+  div {
+    border: 5px solid black;
+  }
+  :host([_layout-width]) div {
+    border-color: grey;
+  }
+  :host([_layout-width=""]) div {
+    border-color: red;
+  }
+  :host([_layout-width^="1:"]) div {
+    border-color: orange;
+  }
+  :host([_layout-width^="2:"]) div {
+    border-color: yellow;
+  }
+  :host([_layout-width^="3:"]) div {
+    border-color: green;
+  }
+  :host([_layout-width^="4:"]) div {
+    border-color: blue;
+  }
+  :host([_layout-width^="5:"]) div {
+    border-color: indigo;
+  }
+  :host([_layout-width^="6:"]) div {
+    border-color: violet;
+  }
+</style>
+<div>nothing yet</div>
+    `;
+    }
+
+    static get observedAttributes(){
+      return ["_layout-width"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue){
+      if (name === "_layout-width"){
+        this.shadowRoot.children[1].innerText = "_layout-width: " + newValue;
+      }
+    }
+  }
+
+  customElements.define("belt-notches", BeltNotches);
+</script>
+
+<div id="parent" style="width: 110px">
+  <belt-notches auto-layout-width="50, 150, 250, 350, 450, 550"></belt-notches>
+</div>
+
+<button id="plus">+50</button>
+<button id="minus">-50</button>
+<script >
+  var parent = document.querySelector("#parent");
+
+  window.addEventListener("click", function(e){
+    if (e.target.id === "plus")
+      parent.style.width = (parseInt(parent.style.width) + 50) + "px";
+    else if (e.target.id === "minus")
+      parent.style.width = (parseInt(parent.style.width) - 50) + "px";
+  });
+</script>

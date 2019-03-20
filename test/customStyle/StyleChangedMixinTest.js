@@ -1,4 +1,4 @@
-import {StyleChangedMixin, pauseStyleChangeCallbacks, restartStyleChangeCallbacks} from "../../src/style/StyleChangedMixin.js";
+import {StyleChangedMixin, pauseStyleChangeCallbacks, restartStyleChangeCallbacks} from "../../src/style/old/StyleChangedMixin.js";
 
 const raf_x = (counter, cb) => requestAnimationFrame(counter === 1 ? cb : () => raf_x(counter - 1, cb));
 
