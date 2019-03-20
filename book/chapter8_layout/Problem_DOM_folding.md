@@ -232,6 +232,48 @@ loops.
 
 The same applies to `styleCallback(...)`
 
+## Two strategies to manage cascading, nested DOM folding processes
+
+As a premise for this discussion, we will assume that no all JS reactions only causes LayCSSOM mutations 
+on descendant elements. JS reactions to CSSOM and JS reactions to LayCSSOM should always only mutate 
+CSSOM and LayCSSOM properties on elements they contain, no one else.
+
+When this premise is fulfilled, there are two strategies the DOM folding process can follow:
+
+1. split the actions in four different layers (DOM NODES, DOM TREE, CSSOM, LayCSSOM).
+   then complete each layer in tree order before stepping into the next layer.
+   
+2. process all four processes (in reality the three last steps DOM TREE, CSSOM, LayCSSOM) 
+   for each element in tree order. 
+   
+The second strategy is more accurate, and if such a system were built bottom up, this strategy 
+would probably be preferred. But. The web platform has already optimized their operation as to work
+best if done as separate layers. Little support exists for calculating *only* smaller segments of the
+CSSOM nor the LayCSSOM at a time.
+
+That is why the first strategy is used.
+
+There are limitations to how many times it can be feasible to calculate CSSOM and LayCSSOM per animation 
+frame. Even thought the CSSOM calculations and LayCSSOM calculations are reused when the final screen 
+image is painted, LayCSSOM should be calculated at max twice per frame and CSSOM reactions processed at max
+two times per frame (yielding potentially three CSSOM calculations). This effect is achieved if LayCSSOM
+reactions are processed only once per animation frame.
+
+Layout reactions and styleCallback(...) comes with great power and complexity. If you make absolutely
+sure that:
+
+1. neither layout reactions nor styleCallback(...) alters nothing more than their descendant elements and 
+   never the input values for their own JS reaction, and
+
+2. that your layout reactions does not require that they cascade within the same frame, but that if 
+   changes of one layout triggers layout changes of a contained element, that the apps behavior can 
+   tolerate that such cascading effects occur across different animation frames,
+   
+then you should be fine. Use JS-based layout reactions and styleCallback(...) sparsely and constrained 
+to not affect the host element and only affect the shadowDOM element makeup.
+
+
+
 ## References
 
  * Layout thrashing
