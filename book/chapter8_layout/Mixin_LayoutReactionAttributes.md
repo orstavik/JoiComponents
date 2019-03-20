@@ -26,7 +26,7 @@ The mixin will process all subscribing elements *once* per `requestAnimationFram
 It then:
 
 1. reads the `auto-layout-width` for all subscribing elements, 
-   and caches this value plus the `.offsetWidth` value for these 
+   and caches this value plus the `.getBoundingClientRect()` value for these 
    elements into a map of `activeElements`, and
 
 2. uses the step information from `activeElements` to find out which 
@@ -200,23 +200,22 @@ whenever its size changes, it updates its `.innerText` so that the user gets inf
 </script>
 ```
 
-
 ## Why LayoutWidthAttributeMixin is naive
 
-1. By batching the reading of the `.offsetWidth` properties forall elements, the browser is only 
+1. By batching the reading of the `.getBoundingClientRect()` for all elements, the browser is only 
 forced to calculate layout once per `requestAnimationFrame` cycle. This reduces the cost of the
-operation.
+operation. And looks nice.
 
 2. However, if CSS rules and/or JS functions mutating the shadowDOM of an element causes the 
-`.offsetWidth` of another element to change, then this information will not be available until the 
-next animation frame. Because all the `.offsetWidth` values was read together *earlier*, to reduce 
+`.getBoundingClientRect()` of another element to change, then this information will not be available until the 
+next animation frame. Because all the `.getBoundingClientRect()` values was read together *earlier*, to reduce 
 the cost of layout calculations. Thus, the CSS or JS reactions that changes `_layout-width` properties 
-of contained elements will not be processed in the same frame, but cascade down the DOM one step per
-animation frame cycle. 
+of contained elements will not be processed in the same frame, but cascade down the DOM *stretched out over 
+time*, one step per animation frame cycle. 
    
 3. Thus, there is an inherent conflict between:
    1. reading the layout property *efficiently* and
-   2. reading the layout property (`.offsetWidth`) *accurately*.
+   2. reading the layout property (`.getBoundingClientRect()`) *accurately*.
    
    We will return to this conflict later.
 
@@ -224,6 +223,15 @@ animation frame cycle.
    no regard to other global processing functions such as `styleCallback(...)`. 
    The app performance would likely benefit from processing style first, 
    before calculating layout.
+
+5. Whenever a `_layout-width` attribute is changed, this can invoke an `attributeChangedCallback(...)`
+   immediately. This `attributeChangedCallback(...)` can alter the DOM in such a way as to add or remove
+   an element which also should react to `_layout-width` properties. These element's style *will* be
+   processed until the next animation frame, thus neither be styled nor trigger callbacks until later.
+   If these elements were *contained* within the element currently being processed, it is likely that
+   the developer would assume and appreciate if these inner elements were included. If these changes
+   to the CSSOM were not contained in the current element, then these changes are likely bad and should
+   cause an error during development. Exactly parallel to the `styleCallback(...)` requirements.
 
 ## References
 
