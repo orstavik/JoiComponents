@@ -59,11 +59,11 @@ CSSValue
 
 // const tokenizer = /(\s+)|([-]*[a-z]+[3d]?)+|([+-]?\d*\.?\d+(e[+-]?\d+)?)|>=|<=|==|(#[0-9a-f]+)|[(),/<>+*%]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/gi;
 //(#[0-9a-f]+)|here was added regex for hash colors                              | i flags for hash colors (FFF)
-const tokenizer = /(\s+)|([a-zA-Z_-]+)|3d|([+-]?\d*\.?\d+(e[+-]?\d+)?)|(#[0-9a-fA-F]+)|>=|<=|==|[(),/<>+*%-]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/g;
+const tokenizer = /(\s+)|3d|([+-]?\d*\.?\d+(e[+-]?\d+)?)|([a-zA-Z_-]+)|(#[0-9a-fA-F]+)|(>=|<=|==|[(),/<>+*%-])|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/g;
 //
 export class CssValueTokenizer {
   constructor(str) {
-    this._input = str;
+    this._input = str.trim();
     this._next = undefined;
     this._nextNext = undefined;
     this._active = true;
@@ -212,7 +212,7 @@ function parseExpression(tokens) {
 function getOperator(tokens) {
   const lookAhead = tokens.lookAhead();
   const lookAheadAhead = tokens.lookAheadAhead();
-  if (lookAhead&&lookAhead[1] /*isSpace*/ && lookAheadAhead && lookAheadAhead[6] /*isOperator*/) {   //todo Max: replaced [5] to [0] in operator check
+  if (lookAhead&&lookAhead[1] /*isSpace*/ && lookAheadAhead && lookAheadAhead[6] /*isOperator*/) {
     tokens.next(); //skip space
     let operator = tokens.next()[0];
     let next;
@@ -240,15 +240,15 @@ function parsePrimitive(tokens) {
   //-------------------------------------------------------------------------------------------------
   if (next[9])                                  //todo how to treat errors, should we allow it to exist?
     return {type: "error", value: next[8]};
-  if (next[2] /*isWord*/)
+  if (next[4] /*isWord*/)
     return {type: "word", value: next[0]};
   if (next[6] /*isSingleQuote*/)
     return {type: "quote", value: next[0], text: next[6]};
   if (next[8] /*isDoubleQuote*/)
     return {type: "quote", value: next[0], text: next[8]};
-  if (next[3] /*isNumber*/) {
+  if (next[2] /*isNumber*/) {
     let nextNextLookahead = tokens.lookAhead();
-    if (nextNextLookahead[2] /*isWord*/ || nextNextLookahead[0] === "%")
+    if (nextNextLookahead[4] /*isWord*/ || nextNextLookahead[0] === "%")
       return {type: "number", unit: tokens.next()[0], value: next[0]};
     return {number: true, value: next[0]};
   }
