@@ -1,22 +1,16 @@
 //should we add "/gi" ?
 /*
-
 needs to be split up into a series of value tokens and comma tokens.
 Then, this big list will be split up into a set of smaller lists on the comma tokens.
-
 So, we can get a flat list,
 or a list of comma separated lists.
 This is simplest to always return as a list of comma separated lists, kinda.
-
 Then, to get the value of each token, we have to access it as either a primitive word, a number value, or a function.
 (The #color is a shortcut for an rgb function, but this is simple and not very relevant.)
-
 The real problem is parsing the CSS function.
 The function consists of a function name, then a "(" and then a list of comma separated function expressions, and then ")".
-
 what can be a function name?
 what can be a function expression?
-
 the function expression can be either a:
 1. quoted string
 2. another function expression
@@ -24,8 +18,6 @@ the function expression can be either a:
 4. calc expression (boolean expression):
    10px + 20%vh
    width >= 200px
-
-
 1. CSS Value token list:
 ********************
 0. <space>                                          \s+
@@ -36,10 +28,8 @@ the function expression can be either a:
 5. <singlequote>                                    '((\\\\|\\'|[^'\n])*)'
 6. <doublequote>                                    "((\\\\|\\"|[^"\n])*)"
 7. any other finding would be an error              .+
-
 1.b Regex Tokenizer:
 ***************
-
   \s+ |
   [a-z]+ |
   [+-]?\d*\.?\d+(e[+-]?\d+)? |
@@ -47,13 +37,9 @@ the function expression can be either a:
   '((\\\\|\\'|[^'\n])*)'|
   "((\\\\|\\"|[^"\n])*)"|
   .+
-
 /\s+|[a-z]+|[+-]?\d*\.?\d+(e[+-]?\d+)?|>=|<=|==|[#(),/<>+*%-]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.*)/g
-
 2.b JS Parser:
 *********
-
-
 3 getPropertyValueObject:
 ************************
 [
@@ -61,7 +47,6 @@ the function expression can be either a:
   [value, value, value],
   ...
 ]
-
 CSSValue
    .getType() returns "color", "number", "word"
    .getValue() returns the interpreted result of the value as a String, that would compute the "if(..)" expression
@@ -72,83 +57,85 @@ CSSValue
 **/
 
 
-const tokenizer = /(\s+)|([a-z]+)|([+-]?\d*\.?\d+(e[+-]?\d+)?)|>=|<=|==|[#(),/<>+*%-]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/g;
-
-class Tokenizer {
+// const tokenizer = /(\s+)|([-]*[a-z]+[3d]?)+|([+-]?\d*\.?\d+(e[+-]?\d+)?)|>=|<=|==|(#[0-9a-f]+)|[(),/<>+*%]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/gi;
+//(#[0-9a-f]+)|here was added regex for hash colors                              | i flags for hash colors (FFF)
+const tokenizer = /(\s+)|([a-zA-Z_-]+)|3d|([+-]?\d*\.?\d+(e[+-]?\d+)?)|(#[0-9a-fA-F]+)|>=|<=|==|[(),/<>+*%-]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/g;
+//
+export class CssValueTokenizer {
   constructor(str) {
     this._input = str;
     this._next = undefined;
     this._nextNext = undefined;
+    this._active = true;
   }
 
   hasNext() {
-    if (this._next === undefined)
-      this._next = tokenizer.exec(this._input);
-    return this._next !== null;
+    return this._active;
   }
 
-  _nextToken(){
+  _nextToken() {
+    if (!this._active)
+      return null;
     const token = tokenizer.exec(this._input);
-    if (token[8])
-      throw new SyntaxError("Illegal token: " + n);
+    if (token === null) {
+      this._active = false;
+      return null;
+    }
+    if (token[9])
+      throw new SyntaxError("Illegal token: " + token[0]);
     return token;
   }
 
   next() {
-    if (this._next === null)
-      throw new Error("Tokenizer OutOfBounds.");
-    if (this._next){
-      let n = this._next;
-      this._next = this._nextNext;
-      this._nextNext = undefined;
-      return n;
-    } //this._next === undefined
-    return this._next = this._nextToken();
+    if (this._next === undefined)
+      return this._nextToken();
+    let n = this._next;
+    this._next = this._nextNext;
+    this._nextNext = undefined;
+    return n;
   }
 
   lookAhead() {
-    return this._next || (this._next = tokenizer.exec(this._input));
+    if (this._next === undefined)
+      this._next = this._nextToken();
+    return this._next;
   }
 
   lookAheadAhead() {
-    if (this._nextNext)
-      return this._nextNext;
-    if (!this._next)
-      this._next = tokenizer.exec(this._input);
-    return (this._nextNext = tokenizer.exec(this._input));
+    if (this._nextNext === undefined){
+      this.lookAhead();
+      this._nextNext = this._nextToken()
+    }
+    return this._nextNext;
   }
-}
-
-export function tokenizeCssValues(str) {
-  return tokenizer.exec(str.trim());
 }
 
 
 class CssValue {
-  constructor(obj){
+  constructor(obj) {
     this._obj = obj;
   }
 
-  getRgbValue(){
+  getRgbValue() {
     if (this._obj.type === "function" && this._obj.unit === "rgb")
       return this._obj.children.map(number => parseInt(number.value));
-    if (this._obj.type === "#"){
+    if (this._obj.type === "#") {
       const str = this._obj.value;
       if (str.length === 3)
-        return [parseInt(str[0], 16)*16, parseInt(str[1], 16)*16, parseInt(str[2], 16)*16];
+        return [parseInt(str[0], 16) * 16, parseInt(str[1], 16) * 16, parseInt(str[2], 16) * 16];
       if (str.length === 6)
-        return [parseInt(str[0]+str[1], 16), parseInt(str[2]+str[3], 16), parseInt(str[4]+str[5], 16)];
+        return [parseInt(str[0] + str[1], 16), parseInt(str[2] + str[3], 16), parseInt(str[4] + str[5], 16)];
     }
     return undefined;
   }
 
-  getValue(){
-    return obj.value;
+  getValue() {
+    return this._obj;
   }
 }
 
 export function parseCssValue(str) {
-  const tokens = new Tokenizer(str);
+  const tokens = new CssValueTokenizer(str);
   let result = [];
   while (tokens.hasNext()) {
     result.push(parseSpaceSeparatedValueList(tokens));
@@ -170,13 +157,17 @@ function parseSpaceSeparatedValueList(tokens) {
     }
     if (next[0] === ",")            //todo check if ,, is a syntax error for ValueList?
       return result;
+
+    if (next === null)            //todo end of the sequence
+      return result;
     result.push(new CssValue(parseValue(tokens)));
   }
   return result;
 }
 
 function parseValue(tokens) {
-  if (tokens.lookAheadAhead()[0] === "(") {
+  const lookAheadAhead = tokens.lookAheadAhead();
+  if (lookAheadAhead && lookAheadAhead[0] === "(") {
     const type = tokens.next()[0];
     tokens.next();  //skip the "("
     const children = parseCssExpressionList(tokens);
@@ -187,7 +178,6 @@ function parseValue(tokens) {
 
 function parseCssExpressionList(tokens) {
   let result = [];
-
   for (let next = tokens.lookAhead(); next; next = tokens.lookAhead()) {
     if (next[1]) //isSpace
       tokens.next();
@@ -209,6 +199,7 @@ function parseExpression(tokens) {
   let value = parseValue(tokens);
   let potentialOperator = getOperator(tokens);
   if (potentialOperator) {
+    tokens.next();                                 //todo: Max: skipped space after operator
     return {
       left: value,
       operator: potentialOperator,
@@ -219,7 +210,9 @@ function parseExpression(tokens) {
 }
 
 function getOperator(tokens) {
-  if (tokens.lookAhead()[1] /*isSpace*/ && tokens.lookAheadAhead()[5] /*isOperator*/) {
+  const lookAhead = tokens.lookAhead();
+  const lookAheadAhead = tokens.lookAheadAhead();
+  if (lookAhead&&lookAhead[1] /*isSpace*/ && lookAheadAhead && lookAheadAhead[6] /*isOperator*/) {   //todo Max: replaced [5] to [0] in operator check
     tokens.next(); //skip space
     let operator = tokens.next()[0];
     let next;
@@ -232,38 +225,33 @@ function getOperator(tokens) {
 
 function parsePrimitive(tokens) {
   const next = tokens.next();
+
+  /*check is a value starts with a hash*/
+  /*This check has been moved bottom up*/
+  //-------------------------------------------------------------------------------------------------
+  if (next[0].startsWith("#")) {                     //todo Max: it make a sense to check hash symbol in the beginning to avoid errors (especially for hash colors)
+    const nextNext = tokens.next();
+    /*Check if it has a valid character length (include #symbol) */
+    if (next[0].length === 4 || next[0].length === 5 || next[0].length === 7 || next[0].length === 9)  //todo Max: fixed # colors possible lengths
+    /*Remove first character from the string in the value property to remove #*/
+      return {color: "#", value: next[0].substr(1)};
+    throw new SyntaxError("illegal #color: " + next[0] + nextNext[0]);
+  }
+  //-------------------------------------------------------------------------------------------------
+  if (next[9])                                  //todo how to treat errors, should we allow it to exist?
+    return {type: "error", value: next[8]};
   if (next[2] /*isWord*/)
-    return next[0];
-  if (next[5] /*isSingleQuote*/)
-    return {quote: next[0], text: next[6]};
-  if (next[7] /*isDoubleQuote*/)
-    return {quote: next[0], text: next[8]};
+    return {type: "word", value: next[0]};
+  if (next[6] /*isSingleQuote*/)
+    return {type: "quote", value: next[0], text: next[6]};
+  if (next[8] /*isDoubleQuote*/)
+    return {type: "quote", value: next[0], text: next[8]};
   if (next[3] /*isNumber*/) {
     let nextNextLookahead = tokens.lookAhead();
     if (nextNextLookahead[2] /*isWord*/ || nextNextLookahead[0] === "%")
-      return {number: tokens.next()[0], value: next[0]};
+      return {type: "number", unit: tokens.next()[0], value: next[0]};
     return {number: true, value: next[0]};
   }
-  if (next[0] === "#") {
-    const nextNext = tokens.next();
-    if (nextNext[3] /*isNumber*/ && (nextNext[3].length === 3 || nextNext[3].length === 6))
-      return {color: "#", value: nextNext[0]};
-    throw new SyntaxError("illegal #color: " + next[0] + nextNext[0]);
-  }
+
   throw new SyntaxError("Illegal CSS primitive value: " + next[0]);
 }
-
-/*
-2. CSS Value BNF:
-*************
-CssValue := ValueList ["," ValueList]*
-ValueList := <space>? Value [<space> Value]* <space>?            //if the next thing is a ",", return, "error"=> error, the rest is a value
-Value := Function | Primitive
-Function := <word> "(" ExpressionList
-ExpressionList := <space>? Expression [<space>* "," <space>* Expression]* <space>? ")"           //if the next thing is a ",", return, "error"=> error, the rest is a value
-Expression := Value [Operation]*
-Operation := <space> <operator> <space> Expression
-Primitive := <word> | Number | HashColor
-HashColor := "#" <number> (of 3 or 6 integers)
-Number := <number> ["%" | <word>]?
- */
