@@ -5,28 +5,24 @@ organizing HTML, CSS and JS code in web apps. "Great!", you might think, ironica
 exactly what we need to solve web problems!" But, stupid as I am, this irony is completely lost on
 me. And so I just continue.
 
-When you change something in the DOM, these **DOM mutations** will usually also alter the screen image 
-presented to the user. For example, if you add or remove an `<img>` element to the DOM, then an image 
+When you change something in the DOM, these **DOM mutations** can alter the screen image. 
+For example, if you add or remove an `<img>` element to the DOM, then an image 
 will (dis)appear on screen. Such DOM mutations can be done in *both* HTML template *and* via JS, and
 it is because the DOM can be created and mutated from both HTML and JS we think of it as "the DOM", and
 not simply "HTML".
  
-All DOM mutations does not *have to* alter the screen image. For example can elements be added to or 
+All DOM mutations must not alter the screen image. For example: elements can be added to or 
 removed from the DOM outside of the viewport; the web app might also load or alter styles or attributes 
-or other data that for some reason or another does not affect the painted image, but something else.
+or other data that for some reason or another does not affect the painted image.
 However, the prototypical end-goal of DOM mutations is to alter the screen image, and 
 so to think of *DOM mutations as the *first step* on a longer journey where changing the screen image is
 the *last* step*, is quite alright.
 
-And this "long journey from DOM mutations to screen image change" I here dub **DOM folding**.
+**DOM folding** are all the steps that start with a DOM mutation and end with a screen image update.
+But, what exactly happens on this journey? What are the obvious, well known steps in between a DOM
+mutation and a screen image update? And what are the lesser known steps? Let's dive in!
 
-1. a DOM mutation is the *first* step of DOM folding.
-2. screen image update is the *last* step of DOM folding.
-
-But what happens in between? This is where things start to get really complex, and really interesting.
-Let's start by discussing the obvious, well-known in-between steps.
-
-## #1: DOM folding involves style calculation
+## #1: CSS
 
 The DOM contains a group of style elements (`<style>` and `<link rel="style">`).
 These style elements adds a series of CSS rules to the web application. 
@@ -38,190 +34,309 @@ all the other elements inside it according to CSS grammar and semantics.
 Almost all DOM mutations, ie. adding, moving, removing or changing an element or an attribute,
 require that the browser (re-)calculate CSSOM values. And this calculation is not a prickly task; on
 the contrary, whenever an element in the DOM mutates, this will likely require the recalculation of not
-only the mutated element, but also all its sibling and descendant elements that now might be found by new 
-CSS selectors or inherit other inheritable or cascading properties. As CSS cascade, DOM mutations can
-cause sweeping changes to the CSSOM, thus requiring inclusive style calculations.
+only the mutated element, but also all its sibling and descendant elements that now might be found by 
+new CSS selectors or inherit other inheritable or cascading properties. 
+As CSS cascade, even a tiny DOM mutation can turn into a flood of CSSOM mutations.
+And so every DOM mutations can potentially cause extensive recalculations of the CSSOM.
 
-## #2: DOM folding involves layout calculation
+## #2: Layout
 
 To turn the CSSOM into a screen image, the first thing the browser does is to calculate the size and position
 of all the CSSOM images in stack of several two dimensional layers. This process is called "layout".
 
-Although quite cumbersome and complex in its detail, layout is not a conceptually complex process overall.
-To calculate layout, the browser tries first to define the position and style of the elements top-down, 
-left-to-right. Some CSSOM elements' size and position can be found this way, looking at only one element.
-But other CSSOM elements have style properties that require the browser to look at the properties of their
-parents, another ancestor element. Other CSSOM elements have even more complex rules that require the
-browser to calculate their size and position together with their siblings, children or descendant elements.
-To do so, the inner workings of layout calculation might need to go up and down and in and out for a couple
-of rounds, in complex ways. But seen from the outside, the CSSOM is passed into a layoutCalculationFunction
-that in turn spits out a CSSOM-with-LAYOUT Object Model (LayCSSOM).
+From a global perspective, layout is a simple function. You pass layout a finished CSSOM, and 
+it spits out a new object that adds width, height and x-, y-, z-coordinates coordinates to every
+element. I call this object the LayCSSOM, as it can be thought of as a CSSOM with layout added.
 
-## #3: DOM -> CSSOM -> LayCSSOM
+However, the inside of the layout calculation can be quite cumbersome and complex.
+To calculate layout, the browser can first try to define the position and style of the elements top-down, 
+left-to-right. But many CSSOM elements' size and position cannot be found in this way.
+Many CSSOM elements have style properties that require the browser to look at the properties of their
+parents, ancestor elements, siblings, children and a combination of such other elements.
+This means that layout calculation might look both up, down, sideways and in and out while it process
+the elements in the CSSOM. And this is important to keep in mind both when specifying the layout of 
+elements in CSS, and especially when implementing layout reactions in JS.
 
-Every time you alter the DOM, this might affect the CSSOM. That means that if you have *two* 
-operations that is going to mutate the DOM, and none of these operations need to know anything about
-the current state of the CSSOM, then you want to perform *both* of these operations *first, before*
-you calculate the CSSOM. This is well known.
+## #3: Postponed CSSOM calculation
 
-Since almost no operations that mutate the DOM read or use the values that would require the 
-CSSOM to be calculated, the browsers *only* calculate the CSSOM at the end of all normal HTML and JS 
-operations. By delaying the CSSOM calculation until after several DOM mutations have all been completed,
-the browsers performance greatly improve. This also reflexively influence the strategies of web 
-developers: as they know they do not have CSSOM values available during DOM mutations, 
-they try their very best to find strategies to make their web apps work that use other means than
-reading style. This is also well known.
+Every time you alter the DOM, this might affect the CSSOM. That means that if you mutate the DOM 
+*twice* in a row, and neither of these operations need to know anything about the CSSOM, 
+then you want to perform *both* of these operations *first, before* you calculate the CSSOM. 
 
-Every time you alter the CSSOM, this might affect the LayCSSOM. That means that if you want to avoid
-calculating the LayCSSOM *before* you update the CSSOM, because any later change to the CSSOM will
-cause you to have to redo your LayCSSOM calculations. Again, this pushes the system architecture to
-establish a pecking order where:
+Very few DOM mutations require CSSOM values. Therefore, the browsers by default *postpone* the 
+calculate of the CSSOM until all HTML and JS operations have been completed. The browsers *only*
+calculate the CSSOM before it paints a new screen image *or* if a script explicitly asks for a CSSOM
+value via `.getComputedStyle()`. *Postponed CSSOM calculation* greatly improves
+the browsers performance.
 
-1. All known DOM mutations are completed first,
-2. then the CSSOM calculation is performed, and
-3. then the LayCSSOM calculation is performed.
+Because the browsers by default *postpone CSSOM calculation*, this has also reflexively influenced 
+the strategies of web developers: DOM mutations that require CSSOM calculations are hundreds of times
+heavier than DOM mutations that do not need CSSOM values, and therefore web developers will do almost
+anything to avoid calling `.getComputedStyle()`.
 
-This, more or less, ends the state of the well-known and agreed upon practice in the browsers.
-Now, let's start to look at the unknown and not agreed upon aspects of DOM folding.
+## #4: Postponed Layout calculation
 
-## #4: DOM mutations = a) DOM events & callbacks then b) `slotchange`
+Every time you alter the CSSOM, this might affect the LayCSSOM. That means that if you mutate the CSSOM 
+*twice* in a row, and neither of these operations need to know anything about the LayCSSOM, 
+then you want to perform *both* of these operations *first, before* you calculate the LayCSSOM. 
+Yes, exactly like CSSOM calculation.
+
+Very few CSSOM mutations require LayCSSOM values. Therefore, the browsers by default *postpone* 
+layout calculation until all HTML, JS *and* CSSOM calculations have been completed. By default, 
+the browsers *only* calculate layout *after* CSSOM calculation and *before* it paints a new screen 
+image, *or* if a script explicitly asks for a CSSOM value via `.getBoundClientRect()`, or similar. 
+*Postponed layout calculation* greatly improves the browsers performance.
+Yes, exactly like postponed CSSOM calculation.
+
+Because the browsers by default *postpone layout calculation*, this has also had a reflexive influence 
+on the strategies of web developers: DOM mutations that require layout calculations are thousands of 
+times heavier than DOM mutations that do not need layout calculation, and therefore web developers will
+bend over backwards to avoid calling `.getBoundingClientRect()`.
+Yes, exactly like with `.getComputedStyle()`.
+
+This, more or less, ends the state of the well-known, best practices in the browsers.
+Now, let's start to look at the unknown aspects of DOM folding.
+
+## #5: DOM NODE mutations vs. DOM TREE mutations
 
 In the world of established web development, all DOM mutations that do not require CSSOM or LayCSSOM
-data can in principle be called at the same time. The business logic of the app might require
-one DOM event to be processed before another, or callbacks to be handled in a certain order, but
-there is no difference between DOM mutations in regards to DOM folding other than that.
-But. I am here to tell you that this is no longer true.
+data are synchronous in JS. The business logic of the app might require one DOM event to be processed 
+before another DOM event or callbacks to be handled in a certain order. But,
+from the perspective of DOM folding, there is no difference between DOM mutations and they can all
+be done in the order the app needs.
+Unfortunately. I am here to tell you that this is no longer true.
 
-With the advent of web components, a new DOM event `slotchange` emerged. This DOM event is triggered
+With web components came a new DOM event: `slotchange`. `slotchange` is triggered
 when a DOM mutation causes one or more elements to be slotted into another element. 
 Currently, this DOM event is processed at the same time as all the other DOM Events and callbacks, 
 ie. synchronously in JS.
-But, when an operation performs many different DOM mutations that in turn causes many elements 
-to for example be added into the DOM in quick succession (which actually happens every time you create
-a DOM branch with web components that chain their `<slot>` elements (see the chapters on `slotCallback`), 
-then several unnecessary `slotchange` events and processes will be triggered that from the perspective 
-of the developer should *not* happen as the DOM mutations required when adding a bunch of DOM events
-prescribed in a single HTML template are considered synchronous in the predicative sense of HTML, and 
-not an imperative sense of JS.
-To fully understand why and how `slotchange` operations should be considered "a secondary
-step" of DOM mutations, and how DOM mutations involving `slotchange` triggered DOM mutations can 
-be split up into two different steps, see the chapters on `slotCallback`. 
 
-The initial stage of DOM folding should therefore be split i two: 
+But, the `slotchange` event looks different from the perspective of HTML (predicative standpoint) and
+from the perspective of JS (imperative standpoint). This becomes evident when you for example make and 
+then add a branch with several web components to the DOM. From the perspective of JS, these elements
+will then be created one by one (a series of `document.createElement` operations) and then the elements 
+are organized in a tree structure (a series of `element.appendChild` operations). However, viewed from
+the declarative standpoint of HTML, creating and adding this branch is just a single step, an atomic
+operation. From the perspective of HTML, there will never exist a series of half-finished, temporary
+HTML branches - these states does not exist in HTML. And therefore, an HTML developer will be very
+surprised to learn that when a branch of HTML nodes are created and added to the DOM, this can trigger
+*multiple* `slotchange` for *the same* `<slot>` elements.
 
-1. **DOM NODE BUNCH** is defining the DOM as a bunch of DOM nodes. Most JS driven DOM mutation 
-   fits within this step:
-   1. creating/deleting DOM nodes and adding/removing them to/from the bunch,
-   2. altering HTML attributes,
-   3. altering the text content of DOM nodes.
-    * adding, moving and removing DOM nodes in the DOM is *not* part of this stage, 
-      although it is only the reactions of these DOM mutation operations that become problematic, 
-      not the operations in themselves.
+This is truly advanced stuff. And to better understand it, I recommend (re)reading the chapter on
+`slotCallback(...)`. A tip along the way is to understand that you can view the process of adding
+an HTML branch *both* as a single operation in HTML (synchronous in the predicative sense => atomic) 
+*and* as a series of several operations in JS (synchronous in the imperative sense => sequence).
+But, the conclusion is never the less the same. There are *two* types of DOM mutations:
+DOM NODE mutations and DOM TREE mutations.
+
+## #6: DOM NODE mutations
+
+**DOM NODE** mutations are mutations that can consider the DOM as just a bunch of nodes. 
+Most JS driven DOM mutations fits within this step:
+
+1. creating/deleting DOM nodes and adding/removing them to/from the bunch,
+
+2. altering HTML attributes,
+
+3. altering the text content of DOM nodes.
+
+ * If you only adding, moving and removing DOM nodes in the DOM is *not* part of this stage, 
+   although it is only the reactions of these DOM mutation operations that become problematic, 
+   not the operations in themselves.
+
+Some parts of what you do when you define the DOM in HTML template also fits in this view.
+HTML attributes are for example a *single DOM NODE* property: you can add HTML attributes to an 
+individual DOM node just as easily as you can adding the same attributes to a DOM node positioned
+in a tree.
+
+HTML elements are also created as single elements. However, in HTML, elements are declared directly 
+*in place*. It is an alien concept to view the declaration of DOM NODES in HTML
+template as a two step process (first making the element and then positioning it).
+But, from the imperative view of JS and the DOM folding process, this *is* a two step process.
+
+## #7: DOM TREE mutations
    
-   Some parts of what you do when you define the DOM in HTML template also fits in this view.
-   HTML attributes are for example a *single DOM NODE* property: you can add HTML attributes to an 
-   individual DOM node just as easily as you can adding the same attributes to a DOM node positioned
-   in a tree.
-   HTML elements are also created as single elements. However, in HTML, elements are declared directly 
-   *in place*. It is an alien concept to view the declaration of DOM NODES in HTML
-   template as a two step process (first making the element and then positioning it).
-   But, from the imperative view of JS and the DOM folding process, this *is* a two step process.
-   
-2. **DOM NODE TREE** is the second stage of DOM mutations. All the DOM NODES in the bunch is neatly
-   ordered into a tree structure. This is the process of considering the order and hierarchy of the
-   DOM nodes. While the DOM NODE BUNCH perspective somewhat fits with our JS perspective on DOM mutations,
-   the DOM NODE TREE stage is very familiar to us as it reflects our HTML view of the *result* of DOM
-   mutations. To make HTML template *feels* very much like only specifying the organisation of DOM nodes, 
-   although from an imperative viewpoint it presupposes that the elements positioned are also first 
-   created.
-   
-   In JS, the act of adding, moving and removing elements into positions as a child of another element
-   is part of this stage. However, purely positioning elements in the DOM is unproblematic, and can 
-   therefore be implemented together with the DOM NODE BUNCH step.
-   However, the `slotchange` event (plus some childlist MutationObserver callbacks) are JS operations 
-   that conceptually require the DOM NODE TREE to be completed before execution.
-   
-   In all likelihood, not splitting these two stages only causes confussion and bugs in the code at
-   design time. Most of these bugs can also be fixed by adding checks that ensures that a DOM NODE TREE
-   mutation only causes reactions in certain situations. However, left unfixed, the problem will 
-   continue to reappear, and applying the `slotchangeCallback(...)` will fix it.
-   
-Conceptually, DOM folding is therefore a process of four steps:
-**DOM NODEs -> DOM TREE -> CSSOM -> LayCSSOM**.
+**DOM TREE** is the second stage of DOM mutations. The DOM TREE stage 'errects' all the DOM NODES 
+in the bunch into a neatly ordered tree structure. This is the process of considering the order and 
+hierarchy of the DOM nodes. While DOM NODE perspective somewhat fits with our JS perspective on DOM 
+mutations, the DOM TREE perspective is very familiar to us from an HTML standpoint as it reflects 
+the finished *result* DOM. To make HTML template *feels* very much like only specifying the 
+organisation of DOM nodes, although from an imperative, JS standpoint it presupposes that the elements 
+positioned are also first created.
 
-## #5: Cascading DOM folding reactions
+In JS, the act of adding, moving and removing elements into positions as a child of another element
+is part of this stage. However, purely positioning elements in the DOM is unproblematic, and can 
+therefore be implemented together with the DOM NODE step.
+However, the `slotchange` event (plus some `childlist` `MutationObserver` callbacks) are JS operations 
+that conceptually require the DOM TREE to be completed before execution.
 
-The final addition to the DOM folding process is that DOM folding process should be considered
-recursive and nested. Let me explain:
+The end result is that DOM folding is a four step process:
+1. DOM NODE
+2. DOM TREE 
+3. CSSOM 
+4. LayCSSOM
 
-Imagine that your application has been running for a little while. The user does something that
-triggers a DOM event that in turn causes a DOM NODE mutation of an HTML attribute on an element. 
-This is the *first* DOM NODE mutation, we change an attribute.
+## #8: DOM folding cascades
 
-The attribute we changed is an observed attribute that causes a web component to add a new branch of
-elements to its shadowDOM.
-Adding this branch of DOM TREE with a series of DOM NODES is a set of several *secondary* DOM TREE 
-mutations. The DOM TREE mutation is "higher order" than the DOM NODE mutations, and therefore likely
-contains many individual DOM NODE mutations.
-But to keep the nested structure simple, we can say that the *first* DOM NODE mutation triggered
+Imagine that your application has been running for a little while. Then, a user action triggers a 
+DOM event listener that in turn mutates an HTML attribute on a DOM NODE. 
+A *first* DOM NODE mutation occurs.
+
+The DOM NODE attribute happens to be on a web component that observes it, and its changing value causes
+this web component to add a new branch of elements to its shadowDOM.
+This little DOM TREE branch contains a series of DOM NODES, thus causing 
 a *second* and *third* DOM NODE mutation and a *forth* DOM TREE mutation.
+One DOM NODE mutation has suddenly spawned to become four DOM NODE/TREE mutations.
 
-For the sake of simplicity, we say that these DOM NODE mutations triggered no imperative JS reaction
-via for example `slotchange` or `attributeChangedCallback(...)`. As the browser completed the
-*second* and *third* DOM NODE mutation, and then concluded the *forth* DOM TREE mutation, that then
-concluded the *first* DOM NODE mutation leaving the DOM (as DOM NODES and DOM TREE) correctly folded
-and processed up to this point. The browser can move on and calculate the CSSOM.
+Thankfully, none of these spawned DOM NODE/TREE mutations triggered a reaction that
+mutated something in the DOM. No `slotchange`, `attributeChangedCallback(...)` or `MutationObserver`
+were listening for these changes. The browser therefore completes the *second* and *third* DOM NODE,
+then the *first* DOM NODE mutation, and then finally the *forth* DOM TREE mutation. 
+(Using the `slotCallback(...)` ensures that DOM TREE mutations are delayed until all DOM NODE 
+mutations are completed.)
+This results in a correctly 'unfolded' DOM, and the browser can move on and calculate the CSSOM.
 
-The mutations of the DOM NODES and DOM TREE caused several mutations in the updated CSSOM.
-We can call them *fifth*, *sixth* and *seventh* CSSOM mutation. The last two mutations creates no 
-JS reaction, but the *fifth* CSSOM mutation triggers a `styleCallback(...)`. The `styleCallback(...)`
-uses the new style value to alter the composition of its shadowDOM, thus spawning yet an *eighth* 
-DOM NODE mutation, a *ninth* DOM TREE mutation, and a *tenth* CSSOM mutation on descendant elements.
-Again, to keep things simple, these three mutations does not cause any additional JS reactions, 
-thus enabling the browser to again move on and pass its calculated and correctly folded CSSOM into the 
-layout process.
+When the CSSOM is recalculated, the DOM NODE and TREE mutations causes a *fifth*, *sixth* and 
+*seventh* CSSOM mutation. The fifth and sixth CSSOM mutations cause no effects, but the seventh 
+CSSOM mutation triggers a JS function `styleCallback(...)`. The `styleCallback(...)`
+uses the new CSSOM value to alter the composition of another web component's shadowDOM, thus 
+spawning an *eighth* DOM NODE mutation, a *ninth* DOM TREE mutation, which in turn
+causes a *tenth* CSSOM mutation.
+To keep things simple, these mutations does not cause any additional JS reactions, 
+thus after having been resolved leaves the browser with a correctly unfolded CSSOM.
+And the browser passes this CSSOM into the layout process.
 
-Again, the newly calculated LayCSSOM contains an *eleventh* and *twelfth* LayCSSOM mutation. 
-The *twelfth* LayCSSOM mutation causes no JS reaction, but the *eleventh* LayCSSOM mutation alters
-the width of an element whose size is observed via `ResizeObserver` or some other kind of layout
-observing callback. This layout observer again causes a *thirteenth* and *fourteenth* DOM NODE 
-mutation. These DOM NODE mutations in turn causes a *fiftennth* mutation in the next updated CSSOM 
-which in turn causes the browser to calculate yet another LayCSSOM object which contain a *sixteenth* 
-LayCSSOM mutation. Luckily, none of these DOM NODE, CSSOM, or LayCSSOM mutations trigger 
-any further JS reactions which in turn leaves the browser with a completed LayCSSOM object that 
-it can pass to its paint process to make an updated screen image.
+Again, the changes in the CSSOM since last layout calculation causes two elements to change dimensions,
+ie. the *eleventh* and *twelfth* LayCSSOM mutation. 
+The *twelfth* LayCSSOM mutation causes no JS reaction, but the *eleventh* LayCSSOM mutation is 
+observed via a `ResizeObserver` or some other kind of layout observing callback. 
+The `ResizeObserver` callback causes a *thirteenth* and *fourteenth* DOM NODE 
+mutation. These DOM NODE mutations in turn causes a *fiftenth* mutation when the CSSOM is calculated 
+next which in turn causes the browser to calculate yet another LayCSSOM object which contain a 
+*sixteenth* LayCSSOM mutation. 
 
-To summarize. We can view DOM folding as a process of completing a change to either a DOM NODE, a 
-DOM TREE, the CSSOM, or the LayCSSOM. However, the process of completing a change *can* spawn
-several other DOM folding processes. This can happen as a consequence of a JS callback method 
-triggered by an observation of a DOM NODE, DOM TREE, CSSOM, or LayCSSOM property, or this can occur
-as a consequence of the three process that is completed at least once per animation frame:
+Neither of these DOM NODE, CSSOM, nor LayCSSOM mutations trigger any further JS reactions 
+that would cause this process to be stretched out, which therefore leaves the browser with a 
+correctly unfolded LayCSSOM that it can pass to the paint process to update the screen image.
 
-1. DOM NODE to DOM TREE (`slotchange` driven) 
-2. DOM TREE to CSSOM (style calculation)
-3. CSSOM to LayCSSOM (layout calculation)
+#### DOM folding cascades
 
+We can view DOM folding as a process of completing a change to either a DOM NODE, a 
+DOM TREE, the CSSOM, or the LayCSSOM. However, these processes can cascade, in *two* dimensions(!).
+1. DOM NODE mutations can cause DOM TREE mutations can cause CSSOM mutations can cause LayCSSOM 
+   mutations.
+2. JS functions observing a LayCSSOM(CSSOM(DOM TREE(DOM NODE))) mutation can in turn cause 
+   mutations of other DOM TREE(DOM NODE) elements.
+
+DOM folding cascades *both* between the different layers of the LayCSSOM *and* between different 
+elements in the LayCSSOM. "OMG!", you might think for yourself. And you are absolutely right.
+
+## #9: How to control DOM folding cascading.
+
+If DOM folding operations cascaded in *all* directions, no OM would ever get to be resolved.
+It is therefore important to *constrain* the directions in which DOM folding cascades. And, there
+are three simple rules *all* DOM folding processes should conform to.
+
+DOM folding always:
+ * cascades from DOM NODE -> DOM TREE -> CSSOM -> LayCSSOM and in
+ * cascades from one element to the next in TREE ORDER (top-down, left-to-right).
+ * no DOM folding processes can *only* mutate any LayCSSOM property of contained elements.
+ 
+As long as the above rules are kept, the hypothesis is that DOM folding can be managed.
+
+## #10: Practical constraints on DOM folding 1
+
+DOM folding is expensive. Due to the nature of CSS and established practices in the browser,
+calling `.getComputedStyle(...)` and `.getBoundingClientRect(..)` takes a lot of time.
+Therefore, it is better to cascade *between elements first* and *between DOM folding layers last*.
+This means that all DOM NODE reactions should be processed first, 
+then all DOM TREE reactions, then all CSSOM reactions, and then all LayCSSOM reactions.
+It might look like this:
+
+```
+LayCSSOM reaction {
+  DOM NODE mutation;
+  DOM NODE reaction {  /*DOM NODE reactions are processed sync*/
+    DOM TREE mutation;
+  }
+  DOM NODE mutation;                   
+  CSSOM mutation;      /*affected, but not yet calculated*/
+  LayCSSOM mutation;   /*affected, but not yet calculated*/
+  DOM TREE mutation;   /*affected, reaction delayed using slotCallback(...)*/
+  
+  DOM TREE reaction {
+    DOM NODE mutation;
+    CSSOM mutations;
+  }
+  CSSOM reaction {
+    DOM NODE mutation;
+    DOM TREE mutation;
+    DOM TREE reaction {
+      DOM NODE mutation;
+      DOM NODE reaction; {
+        DOM NODE reaction;
+      }
+    }
+  }
+  CSSOM reaction {
+    CSSOM mutation;
+    LayCSSOM mutation
+  }
+}
+LayCSSOM reaction {
+  ...
+}
+```
 When DOM folding processes 'unfold', they form a hierarchy. 
 
 1. the DOM NODE and DOM TREE processes run. Here all the DOM NODE operations run and all the
    reactions to individual DOM NODE operations such as `attributeChangedCallback(...)` run
    synchronously in JS. 
    
-2. Then the reactions to DOM TREE mutations run. These operations might trigger DOM NODE mutation
-   and DOM NODE reactions, and these will be completed first before any other queued DOM NODE mutation
-   can run. In essense, a DOM TREE operation will finish all pending DOM NODE operations before it
-   passes its control to the next DOM TREE operation.
+2. Then DOM TREE reactions run. `slotCallback(...)` delays them using `async/await` (`Promises`). 
+   These reactions can trigger DOM NODE mutation and DOM NODE reactions, and these 
+   will be completed first before any other queued DOM TREE reaction can run. 
+   In essence, a DOM TREE reaction will finish all pending DOM NODE reaction before it
+   passes its control to the next DOM TREE reaction.
    
-3. Then, when the DOM TREE is still and ready, the CSSOM is calculated. Any CSSOM reactions will here
-   be queued and all DOM NODE and DOM NODE mutations and reactions it causes will be performed according
-   to the same order described in point 1. and 2. above. Only after all the DOM NODE and DOM TREE 
-   processes has been concluded, will the next CSSOM reaction be processed.
+3. Then, when the DOM TREE is ready, the CSSOM is calculated. This will trigger potential CSSOM reactions.
+   The CSSOM reaction will ensure that all DOM NODE and DOM TREE reactions will finish before 
+   passing control to the next queued CSSOM reaction.
    
-4. Finally, once the CSSOM is still and completely unfolded, then the LayCSSOM is calculated.
-   If and when LayCSSOM properties trigger a new reaction that mutates either a DOM NODE, the DOM TREE 
-   or the CSSOM, the steps 1, 2 and 3 will be repeated and resolved before moving on. 
-   
-## #6: Requirement to control cascading DOM folding processes
+4. Finally, once the CSSOM is completely unfolded, the LayCSSOM is calculated.
+   Any LayCSSOM reaction will complete all DOM NODE, DOM TREE and CSSOM calculations as described 
+   in steps 1, 2 and 3 before passing control to the next LayCSSOM reaction. 
+
+## #10: Practical constraints on DOM folding 2
+
+To calculate CSSOM and LayCSSOM accurately is costly. However, these costs can be cut if one also
+cuts in accuracy. For example. If you assume that no LayCSSOM reactions will trigger any CSSOM 
+reactions, you can process all CSSOM reactions once and then all LayCSSOM reactions once, 
+per animation frame. This is principally naive, as LayCSSOM reactions can cascade into new 
+CSSOM reactions. But it is faster, and might yield a good practical solution, in some situations.
+
+In any case, there might be several different strategies by which DOM folding might run, 
+with varying degrees of accuracy. Below, the strategies are listed from most accurate/most costly to 
+least accurate/costly:
+
+1. Cascade both CSSOM and LayCSSOM reactions for each element in TreeOrder.
+
+2. Cascade all CSSOM reactions first, then all LayCSSOM reactions. 
+   After every LayCSSOM reaction, process all pending CSSOM reactions. 
+   Process next LayCSSOM reactions from scratch every time (check for LayCSSOM reactions from root 
+   element every time).
+    
+3. Cascade all CSSOM reactions first, then all LayCSSOM reactions. 
+   After every LayCSSOM reaction, process all pending CSSOM reactions. 
+   Process next LayCSSOM reaction based only on the state of the LayCSSOM when the first 
+   LayCSSOM reaction was triggered.
+      
+4. Cascade all elements in CSSOM first, then LayCSSOM, and check for CSSOM reactions for every 
+   LayCSSOM reaction. Process next LayCSSOM reaction from scratch every time.
+
+2. Cascade all elements in CSSOM first, then LayCSSOM once, and repeat until no more LayCSSOM reactions 
+   trigger.
+
 
 There are several criteria that can and should be used to control the complexity of DOM folding.
 First, layout reactions should be kept at a minimum. And with extreme care. Whenever layout changes 
