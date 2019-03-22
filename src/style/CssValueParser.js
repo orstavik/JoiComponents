@@ -21,7 +21,7 @@ the function expression can be either a:
 1. CSS Value token list:
 ********************
 0. <space>                                          \s+
-1. <word>                                           [a-z]+
+1. <word>                                           [\w][\w\d]*             -3e3
 2. <number>                                         [+-]?(\d+.\d+|.\d+|\d+)(e[+-]?\d+)?
 4. <operator>                                       >=|<=|==|[#\(\),<>/*+%-]
 "==", "<=", ">=", "#", "+", "-", "*", "/", ">", "<", "%", "(", ",", ")"
@@ -38,8 +38,23 @@ the function expression can be either a:
   "((\\\\|\\"|[^"\n])*)"|
   .+
 /\s+|[a-z]+|[+-]?\d*\.?\d+(e[+-]?\d+)?|>=|<=|==|[#(),/<>+*%-]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.*)/g
+
 2.b JS Parser:
 *********
+
+  CSS Value BNF:
+  *************
+  CssValue ::= ValueList ("," ValueList)*
+  ValueList ::= <space>? Value (<space> Value)* <space>?            //if the next thing is a ",", return, "error"=> error, the rest is a value
+  Value ::= Function | Primitive
+  Function ::= <word> "(" <space>? ExpressionList <space>? ")"
+  ExpressionList ::= Expression (<space>* "," <space>* Expression)*            //if the next thing is a ",", return, "error"=> error, the rest is a value
+  Expression ::= Value (Operation)*
+  Operation ::= <space> <operator> <space> Expression
+  Primitive ::= <word> | Number | HashColor
+  HashColor ::= "#" <number>{3,4,6,8}
+  Number ::= <number> ("%" | <word>)?
+
 3 getPropertyValueObject:
 ************************
 [
@@ -48,19 +63,20 @@ the function expression can be either a:
   ...
 ]
 CSSValue
-   .getType() returns "color", "number", "word"
+   .getType() returns "number", "number with unit", "word", "color", "colorword", what about special "inherit"
    .getValue() returns the interpreted result of the value as a String, that would compute the "if(..)" expression
-   .getNumberValue()
-   .getNumberType()
+   .getNumberValue() parseInt() can we expect our users to know and handle that? yes.
+   .getNumberUnit() === "type", can we expect our users to know and handle that? yes.
+   .canBeAColor()
    .getColorValue()
+   .getRgbValue()
+   .getListOfPossibleProperties() "solid" will then return border, border-type,
+   .isUniversalPropertyValue() "inherit, initial" etc.
 *
 **/
 
+const tokenizer = /(\s+)|([+-]?\d*\.?\d+(e[+-]?\d+)?)|([a-zA-Z_-][a-zA-Z_0-9-]*)|(#[0-9a-fA-F]+)|(>=|<=|==|[(),/<>+*%-])|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/g;
 
-// const tokenizer = /(\s+)|([-]*[a-z]+[3d]?)+|([+-]?\d*\.?\d+(e[+-]?\d+)?)|>=|<=|==|(#[0-9a-f]+)|[(),/<>+*%]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/gi;
-//(#[0-9a-f]+)|here was added regex for hash colors                              | i flags for hash colors (FFF)
-const tokenizer = /(\s+)|3d|([+-]?\d*\.?\d+(e[+-]?\d+)?)|([a-zA-Z_-]+)|(#[0-9a-fA-F]+)|(>=|<=|==|[(),/<>+*%-])|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/g;
-//
 export class CssValueTokenizer {
   constructor(str) {
     this._input = str.trim();
@@ -81,7 +97,7 @@ export class CssValueTokenizer {
       this._active = false;
       return null;
     }
-    if (token[9])
+    if (token[11])
       throw new SyntaxError("Illegal token: " + token[0]);
     return token;
   }
@@ -242,10 +258,10 @@ function parsePrimitive(tokens) {
     return {type: "error", value: next[8]};
   if (next[4] /*isWord*/)
     return {type: "word", value: next[0]};
-  if (next[6] /*isSingleQuote*/)
-    return {type: "quote", value: next[0], text: next[6]};
-  if (next[8] /*isDoubleQuote*/)
-    return {type: "quote", value: next[0], text: next[8]};
+  if (next[7] /*isSingleQuote*/)
+    return {type: "quote", value: next[0], text: next[7]};
+  if (next[9] /*isDoubleQuote*/)
+    return {type: "quote", value: next[0], text: next[9]};
   if (next[2] /*isNumber*/) {
     let nextNextLookahead = tokens.lookAhead();
     if (nextNextLookahead[4] /*isWord*/ || nextNextLookahead[0] === "%")

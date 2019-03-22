@@ -12,7 +12,7 @@ function tokensToArray(tokens) {
   var test3 = "yellow blue transparent skyblue ghostwhite whitesmoke";
   var test4 = "rgba(0, 0, -255, 0.5) rgb(100%, 0%, 0%) rgba(100%, 0%, 0%, 1) hsl(0, 100%, 50%) hsl(120, 100%, 50%) hsla(240, 100%, 50%, 0.5)";
   var test5 = 'url("./abcd.png") url("http://mysite.example.com/mycursor.png") url("./abc/def.png") ';
-  var test6 = "rotate3d(1, -1, 1, 45deg) rotate(23deg)  calc(12vw * 20%) matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -50, -100, 0, 1.1) var(--custom-prop, red)";
+  var test6 = "matrix3d(12,12) rotate3d(1, -1, 1, 45deg) rotate(23deg)  calc(12vw * 20%) matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -50, -100, 0, 1.1) var(--custom-prop, red)";
   var test6a =  " ";
 //  var test3 = "rotate(23deg) calc(12vw * 20%), var(--custom-prop), url('https://wow.com/img.jpg?size=12,24,,,')";
 //  var test4 = " +20px -12.20px .5e-125 sugarwhite";
@@ -80,6 +80,7 @@ describe('Tokenizer', function () {
       ["%", undefined, undefined, undefined, undefined, undefined, "%", undefined, undefined, undefined, undefined, undefined],
     ]);
   });
+  
  it("colors: yellow blue transparent skyblue ghostwhite whitesmoke", function () {
     const tokens = new CssValueTokenizer("yellow blue transparent skyblue ghostwhite whitesmoke");
     const tokensRes = tokensToArray(tokens);
@@ -191,32 +192,62 @@ describe('Tokenizer', function () {
     ]);
   });
 
-  it("url: url('./abcd.png') url('http://mysite.example.com/mycursor.png') url('./abc/def.png')", function () {
-    const tokens = new CssValueTokenizer("url('./abcd.png') url('http://mysite.example.com/mycursor.png') url('./abc/def.png')");
+  it("url: url('./abcd.png')", function () {
+    const tokens = new CssValueTokenizer("url('./abcd.png')");
     const tokensRes = tokensToArray(tokens);
     expect(tokensRes).to.deep.equal([
       ["url", undefined, undefined, undefined, "url", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
       ["(", undefined, undefined, undefined, undefined, undefined, "(", undefined, undefined, undefined, undefined, undefined],
       ["'./abcd.png'", undefined, undefined, undefined, undefined, undefined, undefined, "./abcd.png", "g", undefined, undefined, undefined],
       [")", undefined, undefined, undefined, undefined, undefined, ")", undefined, undefined, undefined, undefined, undefined],
-      [" ", " ", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+    ]);
+  });
+
+  it('url: url("./abcd.png")', function () {
+    const tokens = new CssValueTokenizer('url("./abcd.png")');
+    const tokensRes = tokensToArray(tokens);
+    expect(tokensRes).to.deep.equal([
+      ["url", undefined, undefined, undefined, "url", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+      ["(", undefined, undefined, undefined, undefined, undefined, "(", undefined, undefined, undefined, undefined, undefined],
+      ['"./abcd.png"', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "./abcd.png", "g", undefined],
+      [")", undefined, undefined, undefined, undefined, undefined, ")", undefined, undefined, undefined, undefined, undefined],
+    ]);
+  });
+
+  it("url: url('http://mysite.example.com/mycursor.png')", function () {
+    const tokens = new CssValueTokenizer("url('http://mysite.example.com/mycursor.png')");
+    const tokensRes = tokensToArray(tokens);
+    expect(tokensRes).to.deep.equal([
       ["url", undefined, undefined, undefined, "url", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
       ["(", undefined, undefined, undefined, undefined, undefined, "(", undefined, undefined, undefined, undefined, undefined],
       ["'http://mysite.example.com/mycursor.png'", undefined, undefined, undefined, undefined, undefined, undefined, "http://mysite.example.com/mycursor.png", "g", undefined, undefined, undefined],
       [")", undefined, undefined, undefined, undefined, undefined, ")", undefined, undefined, undefined, undefined, undefined],
-      [" ", " ", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+    ]);
+  });
+
+  it("url: url('./abc/def.png')", function () {
+    const tokens = new CssValueTokenizer("url('./abc/def.png')");
+    const tokensRes = tokensToArray(tokens);
+    expect(tokensRes).to.deep.equal([
       ["url", undefined, undefined, undefined, "url", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
       ["(", undefined, undefined, undefined, undefined, undefined, "(", undefined, undefined, undefined, undefined, undefined],
       ["'./abc/def.png'", undefined, undefined, undefined, undefined, undefined, undefined, "./abc/def.png", "g", undefined, undefined, undefined],
       [")", undefined, undefined, undefined, undefined, undefined, ")", undefined, undefined, undefined, undefined, undefined],
     ]);
   });
+
+  it("number or word: -3e3", function () {
+    const tokens = new CssValueTokenizer("-3e3");
+    const tokensRes = tokensToArray(tokens);
+    expect(tokensRes).to.deep.equal([["-3e3",undefined,"-3e3","e3",undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined]]);
+  });
+
   it("Css functions: rotate3d(1, -1, 1, 45deg) rotate(23deg)  calc(12vw * 20%) matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -50, -100, 0, 1.1) var(--custom-prop, red))", function () {
     const tokens = new CssValueTokenizer("rotate3d(1, -1, 1, 45deg) rotate(23deg)  calc(12vw * 20%) matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -50, -100, 0, 1.1) var(--custom-prop, red)");
     const tokensRes = tokensToArray(tokens);
+
     expect(tokensRes).to.deep.equal([
-      ["rotate", undefined, undefined, undefined, "rotate", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
-      ["3d", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+      ["rotate3d", undefined, undefined, undefined, "rotate3d", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
       ["(", undefined, undefined, undefined, undefined, undefined, "(", undefined, undefined, undefined, undefined, undefined],
       ["1", undefined, "1", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
       [",", undefined, undefined, undefined, undefined, undefined, ",", undefined, undefined, undefined, undefined, undefined],
@@ -248,8 +279,7 @@ describe('Tokenizer', function () {
       ["%", undefined, undefined, undefined, undefined, undefined, "%", undefined, undefined, undefined, undefined, undefined],
       [")", undefined, undefined, undefined, undefined, undefined, ")", undefined, undefined, undefined, undefined, undefined],
       [" ", " ", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
-      ["matrix", undefined, undefined, undefined, "matrix", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
-      ["3d", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+      ["matrix3d", undefined, undefined, undefined, "matrix3d", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
       ["(", undefined, undefined, undefined, undefined, undefined, "(", undefined, undefined, undefined, undefined, undefined],
       ["1", undefined, "1", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
       [",", undefined, undefined, undefined, undefined, undefined, ",", undefined, undefined, undefined, undefined, undefined],
