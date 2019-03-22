@@ -319,36 +319,62 @@ In any case, there might be several different strategies by which DOM folding mi
 with varying degrees of accuracy. Below, the strategies are listed from most accurate/most costly to 
 least accurate/costly:
 
-1. Cascade both CSSOM and LayCSSOM reactions for each element in TreeOrder.
+1. **Complete element-by-element**:
+   Process both CSSOM and LayCSSOM reactions before moving on to the next element in TreeOrder.
 
-2. Cascade all CSSOM reactions first, then all LayCSSOM reactions. 
-   After every LayCSSOM reaction, process all pending CSSOM reactions. 
-   Process next LayCSSOM reaction from scratch every time (check for LayCSSOM reactions from root 
-   element every time).
+2. **Complete layer-by-layer**:
+   Process CSSOM reactions for all elements first, then the first LayCSSOM reactions. 
+   After every LayCSSOM reaction, process all CSSOM reactions again. 
+   When selecting the next LayCSSOM reaction, observe LayCSSOM values a new.
     
-3. Cascade all CSSOM reactions first, then all LayCSSOM reactions. 
-   After every LayCSSOM reaction, process all pending CSSOM reactions. 
-   Process next LayCSSOM reaction based only on the state of the LayCSSOM when the first 
-   LayCSSOM reaction was triggered.
-      
-4. Cascade all elements in CSSOM first, then LayCSSOM.
-   Do not check any CSSOM reactions after LayCSSOM reaction until the next frame. 
+3. **Complete style, layout only once**:
+   Process CSSOM reactions for all elements first.
+   Then observe the LayCSSOM values for elements with LayCSSOM reactions, and cache these values. 
+   After every LayCSSOM reaction, process all CSSOM reactions again. 
+   When selecting the next LayCSSOM reaction, reuse the cached LayCSSOM values.
+   
+4. **Style once, layout once**:
+   Process CSSOM reactions for all elements first, then process LayCSSOM reactions for all elements second.
+   Do not check for any new CSSOM reactions between LayCSSOM reactions.
+   CSSOM reactions that are caused by a LayCSSOM reaction will not be processed until the next frame
+   (ie. they will cascade across animation frames).
 
-It is unrealistic to calculate CSSOM and LayCSSOM many times per animation frame. 
-It simply takes too much time. 
-Even thought the CSSOM calculations and LayCSSOM calculations are reused when the final screen 
-image is painted, your app will probably *not* tolerate more than a handful CSSOM or LayCSSOM 
-calculations per frame. Thus, strategy 3 and 4 is likely the most accurate CSSOM and LayCSSOM
-reactions you can afford.
+Minor DOM mutations might cause large cascading recalculations of first style and second layout that 
+might seem superfluous, but due to the finer grammatical and semantic details of CSS are necessary.
+Browsers also process CSSOM and LayCSSOM differently. And use different strategies to speed this 
+process up. And they base most of their style and layout calculation efficiency mechanisms on the 
+concept that they will only be calculated once per frame. All of these factors, and more, 
+are counter arguments to implementing CSSOM and LayCSSOM reactions.
 
-> Layout reactions should likely not cause LayCSSOM mutations that trigger a JS reaction within the same 
-frame. If there are reactions, they should be on contained elements and preferably reactions to layout 
-changes.
-  
-> Layout reactions can be a bit tricky to ensure only affects contained elements.
-To put simply, only use layout reactions on elements with a size fixed top-down, 
-such as `display: block`.
+Some rules of thumb can and therefore should be used when working with CSSOM and LayCSSOM reactions.
 
+1. Layout reactions can be a bit tricky to ensure only affects contained elements.
+   To put simply, only use layout reactions on elements whose size is calculated top-down, 
+   such as `display: block`.
+
+2. Layout and style reactions should be turned off when they are not needed for longer periods.
+   Using a nested `requestAnimationFrame(()=>requestAnimationFrame(()=>styleAndLayoutReactionsOff());`
+   can for example turn styleAndLayoutReactions after first or second iteration.
+
+3. Layout reactions can be turned on only in certain circumstances, such as triggered by the `resize`
+   event.
+   
+4. Style calculations mostly depend on DOM NODE or DOM TREE mutations, situations that cannot 
+   efficiently be observed using DOM events, MutationObservers or similar. Alternative strategies
+   to reduce the load of style reactions can therefore be to pause all style reactions:
+   1. for 50ms if no style reactions was processed last round, or
+   2. until certain aspects of an apps global state is altered (ie. activate style reactions via a
+      single state observer).
+
+5. Both style and layout reactions should be used on elements there are few of in an app, 
+   such as elements that structure the entire app. For example: 
+   If you make a game, the frames around the game, the menu and possibly visualization of game 
+   controllers might react to style and layout mutations. These elements will likely alter rarely 
+   (thus is ok to pause) and one-of-a-kind (will not fill the list of elements that need to observe
+   and possibly react to style and layout changes). Game pieces and game objects on the other hand are 
+   likely to be many-of-a-kind and actively changing. Although style and layout absolutely *can be*
+   used to successfully manage these elements look an appearance, to do so would definitively require
+   more attention to race conditions and performance bottlenecks. 
 
 ## References
 
