@@ -1,10 +1,10 @@
-# Pattern: NaiveLayoutAttributes
+# Pattern: NaiveLayoutAttribute
 
-The LayoutAttributes pattern uses the SteppedAutoAttribute pattern to *automatically* update 
-and add several layout attributes that reflect the current state of an element's layout on the host 
-element. 
+The NaiveLayoutAttribute pattern uses the SteppedAutoAttribute pattern to *automatically* update 
+and add several a layout attribute that reflect the current state of an element's layout `width` 
+on the host element. 
 
-The purpose of the LayoutAttributes is to automatically trigger:
+The purpose of the NaiveLayoutAttribute is to automatically trigger:
 1. CSS selectors both inside and outside of an element based on the elements layout and
 2. `attributeChangedCallback(...)` method inside the web component, if needed.
 

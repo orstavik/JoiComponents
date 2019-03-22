@@ -1,35 +1,3 @@
-chapter 1: how to react to layout: 1
-ResizeObserver inside a web component.
-Layout reactions can be done using ResizeObserver.
-This gives the element a way observe its own size.
-
-chapter 2:  ResizeCallbackMixin.    NaiveLayoutMixin
-Takes the reaction set up using ResizeObserver, and then wraps it in a Mixin. 
-Very simple. Very short.
-
-problem with this is that it can only be controlled from a) inside the web component
-and b) from JS. Not from outside the component, not from CSS. Other problems are c)the order of 
-the callbacks and d) the timing of the callback (before or after style (CSSOM mutation) reactions), 
-but that we will return to later.
-
-chapter 3: how to react to layout: 2
-CSS media queries reacting to layout changes (of the window).
-This could be VERY useful for a web component too.
-It could select between styles depending on the component dimensions, or position.
-If the component.width > 200px, the component is styled as big, if it is < 200px, it is styled as small.
-If it is positioned to the right, it is rotated to the right. To the left, it is rotated left.
-
-How to make a CSS media query for a web component?
-How to make a layoutCallback() that can be a) overridden externally and b) controlled via HTML and CSS
-too.
-
-
-NaiveLayoutAttribute
-We do this by marking the layout as an attribute to the web component. This attribute and its values
-can be used to control styles on the web component. The attribute can also be used to trigger an
-attributeChangedCallback(...).
-
-
 chapter 4: Mixin LayoutAttribute. AutoAttribute, with dynamic steps, that runs TreeOrder.
 
 This mixin sets a series of steps on the element. The auto-layout -attribute is only updated when the 
