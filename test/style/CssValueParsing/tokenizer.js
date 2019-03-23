@@ -242,6 +242,12 @@ describe('Tokenizer', function () {
     expect(tokensRes).to.deep.equal([["-3e3",undefined,"-3e3","e3",undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined]]);
   });
 
+  it("minus is an operator: -", function () {
+    const tokens = new CssValueTokenizer("-");
+    const tokensRes = tokensToArray(tokens);
+    expect(tokensRes).to.deep.equal([["-",undefined,undefined,undefined,undefined,undefined,"-",undefined,undefined,undefined,undefined,undefined]]);
+  });
+
   it("Css functions: rotate3d(1, -1, 1, 45deg) rotate(23deg)  calc(12vw * 20%) matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -50, -100, 0, 1.1) var(--custom-prop, red))", function () {
     const tokens = new CssValueTokenizer("rotate3d(1, -1, 1, 45deg) rotate(23deg)  calc(12vw * 20%) matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -50, -100, 0, 1.1) var(--custom-prop, red)");
     const tokensRes = tokensToArray(tokens);

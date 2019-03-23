@@ -22,7 +22,7 @@ the function expression can be either a:
 1. CSS Value token list:
 ********************
 0. <space>                                          \s+
-1. <word>                                           [\w][\w\d]*             -3e3
+1. <word>                                           [-]*[a-zA-Z_][a-zA-Z_0-9-]*         "-", "--", "---", etc. and "---3d" are not legal css variable names; "--_" and "---d3" are legal
 2. <number>                                         [+-]?(\d+.\d+|.\d+|\d+)(e[+-]?\d+)?
 4. <operator>                                       >=|<=|==|[#\(\),<>/*+%-]
 "==", "<=", ">=", "#", "+", "-", "*", "/", ">", "<", "%", "(", ",", ")"
@@ -65,7 +65,8 @@ CSSValue
 *
 **/
 
-const tokenizer = /(\s+)|([+-]?\d*\.?\d+(e[+-]?\d+)?)|([a-zA-Z_-][a-zA-Z_0-9-]*)|(#[0-9a-fA-F]+)|(>=|<=|==|[(),/<>+*%-])|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/g;
+const tokenizer = /(\s+)|([+-]?\d*\.?\d+(e[+-]?\d+)?)|([-]*[a-zA-Z_][a-zA-Z_0-9-]*)|(#[0-9a-fA-F]+)|(>=|<=|==|[(),/<>+*%-])|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/g;
+
 
 export class CssValueTokenizer {
   constructor(str) {
@@ -164,6 +165,10 @@ class CssValue {
   }
 }
 
+function throwSyntaxError(msg, token){
+  throw new SyntaxError(msg + "\n  " + token.input + "\n  " + new Array(token.index + 1).join(" ") + "^");
+}
+
 /**
  *   CSS Value BNF:
  *************
@@ -231,7 +236,7 @@ function parseCssExpressionList(tokens) {
         continue;
       if (next[0] === ")")
         return result;
-      throw SyntaxError("Illegal CSS expression list.");
+      throwSyntaxError("Illegal CSS value expression list:", next);
     }
   }
 }

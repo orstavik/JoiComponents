@@ -17,6 +17,13 @@ describe("Parser correct", function () {
     ]);
   });
 
+  it("empty comma list: blue,, red", function () {
+    const ast = parseCssValue("blue,, red");
+    expect(ast).to.deep.equal(
+      [[{"type": "word", "value": "blue"}], [], [{"type": "word", "value": "red"}]]
+    );
+  });
+
   it("number: 10px +.2e-23 50%", function () {
     const ast = parseCssValue("10px +.2e-23 50%");
     expect(ast).to.deep.equal([[
@@ -28,58 +35,59 @@ describe("Parser correct", function () {
 
   it("expression: calc(10px + 20%)", function () {
     const ast = parseCssValue("calc(10px + 20%)");
-    debugger;
+    expect(ast).to.deep.equal([[
+      {
+        type: "function",
+        name: "calc",
+        children: [{
+          type: "operation",
+          left: {type: "number", unit: "px", value: "10"},
+          operator: "+",
+          right: {type: "number", unit: "%", value: "20"}
+        }]
+      }
+    ]]);
   });
 
-//   it("expression: calc(3px + 3% - 3em)", function () {
-//     const ast = parseCssValue("calc(3px + 3% - 3em)");
-//     const res = astToValues(ast);
-//     expect(res).to.deep.equal([
-//       ["red", "blue"]
-//     ]);
-//     const res2 = astToTypes(ast);
-//     expect(res2).to.deep.equal([
-//       ["word", "word"]
-//     ]);
-//   });
-// });
-//
-// describe("Parser error", function () {
-//   it("empty comma list: blue,, red", function () {     //todo should this be an error??
-//   it("operation lacking space 1: calc(4px+4%)", function () {
-//     const ast = parseCssValue("calc(4px+4%)");
-//     const res = astToValues(ast);
-//     expect(res).to.deep.equal([
-//       ["red", "blue"]
-//     ]);
-//     const res2 = astToTypes(ast);
-//     expect(res2).to.deep.equal([
-//       ["word", "word"]
-//     ]);
-//   });
-//
-//   it("operation lacking space 2: calc(5px +5%)", function () {
-//     const ast = parseCssValue("calc(5px +5%)");
-//     const res = astToValues(ast);
-//     expect(res).to.deep.equal([
-//       ["red", "blue"]
-//     ]);
-//     const res2 = astToTypes(ast);
-//     expect(res2).to.deep.equal([
-//       ["word", "word"]
-//     ]);
-//   });
-//
-//   it("operation lacking space 3: calc(6px+ 6%)", function () {
-//     const ast = parseCssValue("calc(6px+ 6%)");
-//     const res = astToValues(ast);
-//     expect(res).to.deep.equal([
-//       ["red", "blue"]
-//     ]);
-//     const res2 = astToTypes(ast);
-//     expect(res2).to.deep.equal([
-//       ["word", "word"]
-//     ]);
-//   });
-//
+  it("expression: calc(3px + 3% - 3em)", function () {
+    const ast = parseCssValue("calc(3px + 3% - 3em)");
+    expect(ast).to.deep.equal(
+      [[{
+        "type": "function",
+        "name": "calc",
+        "children": [{
+          "type": "operation",
+          "left": {"type": "number", "unit": "px", "value": "3"},
+          "operator": "+",
+          "right": {
+            "type": "operation",
+            "left": {"type": "number", "unit": "%", "value": "3"},
+            "operator": "-",
+            "right": {"type": "number", "unit": "em", "value": "3"}
+          }
+        }]
+      }]]
+    );
+  });
+});
+
+describe("Parser error", function () {
+  it("operation lacking space 1: calc(4px+4%)", function () {
+    expect(() => parseCssValue("calc(4px+4%)")).to.throw(SyntaxError,
+      "Illegal CSS value expression list:\n  calc(4px+4%)\n          ^");
+  });
+
+  it("operation lacking space 2: calc(5px +5%)", function () {
+    const ast = parseCssValue("calc(5px +5%)");
+    expect(ast).to.deep.equal(
+
+    );
+  });
+
+  it("operation lacking space 3: calc(6px+ 6%)", function () {
+    const ast = parseCssValue("calc(6px+ 6%)");
+    expect(ast).to.deep.equal(
+
+    );
+  });
 });
