@@ -53,17 +53,17 @@ describe("Parser correct", function () {
     const ast = parseCssValue("calc(3px + 3% - 3em)");
     expect(ast).to.deep.equal(
       [[{
-        "type": "function",
-        "name": "calc",
-        "children": [{
-          "type": "operation",
-          "left": {"type": "number", "unit": "px", "value": "3"},
-          "operator": "+",
-          "right": {
-            "type": "operation",
-            "left": {"type": "number", "unit": "%", "value": "3"},
-            "operator": "-",
-            "right": {"type": "number", "unit": "em", "value": "3"}
+        type: "function",
+        name: "calc",
+        children: [{
+          type: "operation",
+          left: {type: "number", unit: "px", value: "3"},
+          operator: "+",
+          right: {
+            type: "operation",
+            left: {type: "number", unit: "%", value: "3"},
+            operator: "-",
+            right: {type: "number", unit: "em", value: "3"}
           }
         }]
       }]]

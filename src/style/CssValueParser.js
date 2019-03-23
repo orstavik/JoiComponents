@@ -118,34 +118,47 @@ export class CssValueTokenizer {
 }
 
 export function interpretCssValue(value) {
-  function hsl(args) {
+  function hsl(name, args) {
     return convertHslToRgb(args);
   }
 
-  function colorcalc(args) {
+  function colorcalc(name, args) {
     //identify the operator in the args, and then interpret it
   }
 
-  function calc(args) {
+  function calc(name, args) {
     let printOfTheOperatorArgs = "do + 12px - of + all + args";
     return "calc(" +printOfTheOperatorArgs+ ")";
   }
 
-  function __defaultInterpretation(args) {
-    return "rgb(" + args.join(",") + ")";
+  function hash(name, str) {
+    if (str.length === 3)
+      return [parseInt(str[0], 16) * 16, parseInt(str[1], 16) * 16, parseInt(str[2], 16) * 16];
+    if (str.length === 6)
+      return [parseInt(str[0] + str[1], 16), parseInt(str[2] + str[3], 16), parseInt(str[4] + str[5], 16)];
+
+    let printOfTheOperatorArgs = "do + 12px - of + all + args";
+    return "calc(" +printOfTheOperatorArgs+ ")";
+  }
+
+  function __defaultInterpretation(name, args) {
+    return name + "(" + args.join(",") + ")";
   }
 
   if (value.type === "function") {
     let args = value.children.map(child => interpretCssValue(child));
+    let name = value.name === "#" ? "hash" : value.name;
     let fn = this[value.name];
     if (!fn instanceof Function)
       fn = this[__defaultInterpretation];
-    return fn(args);
+    return fn(name, args);
   }
   if (value.type === "operator")
     return value;
   if (value.type === "number")
     return value.value + (value.unit || "");
+  if (value.type === "word")
+    return getColorWordValue(value.value) || value.value;
   return value.value;
 }
 
@@ -316,7 +329,7 @@ function getOperator(tokens) {
   const operator = tokens.next()[0];
   const space2 = tokens.next();
   if (!space2[1])           //there is no space after the operator
-    throw new SyntaxError("Css value operator '" + operator + "' must be surrounded by space: " + space2[0]);
+    throwSyntaxError("Css value operator must be surrounded by space:", space2);
   return operator;
 }
 
