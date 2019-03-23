@@ -9,6 +9,14 @@ describe("Parser correct", function () {
     ]]);
   });
 
+  it("comma: red, blue", function () {
+    const ast = parseCssValue("red, blue");
+    expect(ast).to.deep.equal([
+      [{type: "word", value: "red"}],
+      [{type: "word", value: "blue"}]
+    ]);
+  });
+
   it("number: 10px +.2e-23 50%", function () {
     const ast = parseCssValue("10px +.2e-23 50%");
     expect(ast).to.deep.equal([[
@@ -37,6 +45,7 @@ describe("Parser correct", function () {
 // });
 //
 // describe("Parser error", function () {
+//   it("empty comma list: blue,, red", function () {     //todo should this be an error??
 //   it("operation lacking space 1: calc(4px+4%)", function () {
 //     const ast = parseCssValue("calc(4px+4%)");
 //     const res = astToValues(ast);
