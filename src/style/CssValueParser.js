@@ -51,7 +51,7 @@ the function expression can be either a:
   Value ::= Function | Primitive
   Function ::= <word> "(" <space>? ExpressionList <space>? ")"
   ExpressionList ::= Expression (<space>* "," <space>* Expression)*            //if the next thing is a ",", return, "error"=> error, the rest is a value
-  Expression ::= Value (Operation)*
+  Expression ::= Value Operation?
   Operation ::= <space> <operator> <space> Expression
   Primitive ::= <word> | Number | HashColor
   HashColor ::= "#" <number>{3,4,6,8}
@@ -120,7 +120,7 @@ export class CssValueTokenizer {
   }
 
   lookAheadAhead() {
-    if (this._nextNext === undefined){
+    if (this._nextNext === undefined) {
       this.lookAhead();
       this._nextNext = this._nextToken()
     }
@@ -134,6 +134,21 @@ class CssValue {
     this._obj = obj;
   }
 
+  //colorcalc(red - blue)
+  // interpret(){
+  //   if(this._obj.type === "function" && this._obj.unit === "colorcalc"){
+  //     //here we would take the operation, if the operation is "-"
+  //     if (this.children[1].getType() === "operation" && this.children[1].getValue() === "-"){
+  //       let left = this.children[0];
+  //       let right = this.children[1].children[0];
+  //       let hslLeft = getHslValue(left);
+  //       let hslRight = getHslValue(right);
+  //       let halfway = mergeHslValues(hslLeft, hslRight);
+  //       return hslToRGB(halfway);
+  //     }
+  //   }
+  // }
+  //
   getRgbValue() {
     if (this._obj.type === "function" && this._obj.unit === "rgb")
       return this._obj.children.map(number => parseInt(number.value));
@@ -148,8 +163,14 @@ class CssValue {
   }
 
   getValue() {
+    if (this._obj.type === "function") {
+      return {name: this._obj.name, args: this._obj.children.map(child => child.getValue())}
+    }
+    if (this._obj.type === "number")
+      return this._obj.unit ? this._obj.value + this._obj.unit : this._obj.value;
     return this._obj.value;
   }
+
   getType() {
     return this._obj.type;
   }
@@ -181,7 +202,7 @@ function parseSpaceSeparatedValueList(tokens) {
 
     if (next === null)            //todo end of the sequence
       return result;
-    result.push(new CssValue(parseValue(tokens)));
+    result.push(parseValue(tokens));
   }
   return result;
 }
@@ -189,10 +210,10 @@ function parseSpaceSeparatedValueList(tokens) {
 function parseValue(tokens) {
   const lookAheadAhead = tokens.lookAheadAhead();
   if (lookAheadAhead && lookAheadAhead[0] === "(") {
-    const type = tokens.next()[0];
+    const name = tokens.next()[0];
     tokens.next();  //skip the "("
     const children = parseCssExpressionList(tokens);
-    return {type, children};
+    return {type: "function", name, children};
   }
   return parsePrimitive(tokens);
 }
@@ -216,32 +237,35 @@ function parseCssExpressionList(tokens) {
   }
 }
 
+// calc(21px +%12px)
+
 function parseExpression(tokens) {
-  let value = parseValue(tokens);
-  let potentialOperator = getOperator(tokens);
-  if (potentialOperator) {
-    tokens.next();                                 //todo: Max: skipped space after operator
+  const left = parseValue(tokens);
+  const operator = getOperator(tokens);
+  if (operator) {
     return {
-      left: value,
-      operator: potentialOperator,
+      type: "operation",
+      left,
+      operator,
       right: parseExpression(tokens)
     };
   }
-  return value;
+  return left;
 }
 
 function getOperator(tokens) {
-  const lookAhead = tokens.lookAhead();
-  const lookAheadAhead = tokens.lookAheadAhead();
-  if (lookAhead&&lookAhead[1] /*isSpace*/ && lookAheadAhead && lookAheadAhead[6] /*isOperator*/) {
-    tokens.next(); //skip space
-    let operator = tokens.next()[0];
-    let next;
-    if (!(next = tokens.next())[1] /*isNotSpace*/)
-      throw new SyntaxError("Css value operator '" + operator + "' must be surrounded by space: " + next[0]);
-    return operator;
-  }
-  return undefined;
+  const space = tokens.lookAhead();
+  if (!space || !space[1]) //next is not space
+    return undefined;
+  tokens.next(); //skip space
+  const op = tokens.lookAhead();
+  if (!op || !op[6]) //nextNext is not an operator
+    return undefined;
+  const operator = tokens.next()[0];
+  const space2 = tokens.next();
+  if (!space2[1])           //there is no space after the operator
+    throw new SyntaxError("Css value operator '" + operator + "' must be surrounded by space: " + space2[0]);
+  return operator;
 }
 
 function parsePrimitive(tokens) {
@@ -268,10 +292,10 @@ function parsePrimitive(tokens) {
   if (next[9] /*isDoubleQuote*/)
     return {type: "quote", value: next[0], text: next[9]};
   if (next[2] /*isNumber*/) {
-    let nextNextLookahead = tokens.lookAhead();
-    if (nextNextLookahead[4] /*isWord*/ || nextNextLookahead[0] === "%")
+    let lookAhead = tokens.lookAhead();
+    if (lookAhead[4] /*isWord*/ || lookAhead[0] === "%")
       return {type: "number", unit: tokens.next()[0], value: next[0]};
-    return {number: true, value: next[0]};
+    return {type: "number", value: next[0]};
   }
 
   throw new SyntaxError("Illegal CSS primitive value: " + next[0]);
