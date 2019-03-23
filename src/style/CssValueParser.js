@@ -44,18 +44,6 @@ the function expression can be either a:
 2.b JS Parser:
 *********
 
-  CSS Value BNF:
-  *************
-  CssValue ::= ValueList ("," ValueList)*
-  ValueList ::= <space>? Value (<space> Value)* <space>?            //if the next thing is a ",", return, "error"=> error, the rest is a value
-  Value ::= Function | Primitive
-  Function ::= <word> "(" <space>? ExpressionList <space>? ")"
-  ExpressionList ::= Expression (<space>* "," <space>* Expression)*            //if the next thing is a ",", return, "error"=> error, the rest is a value
-  Expression ::= Value Operation?
-  Operation ::= <space> <operator> <space> Expression
-  Primitive ::= <word> | Number | HashColor
-  HashColor ::= "#" <number>{3,4,6,8}
-  Number ::= <number> ("%" | <word>)?
 
 3 getPropertyValueObject:
 ************************
@@ -176,6 +164,20 @@ class CssValue {
   }
 }
 
+/**
+ *   CSS Value BNF:
+ *************
+ CssValue ::= ValueList ("," ValueList)*
+ ValueList ::= <space>? Value (<space> Value)* <space>?            //if the next thing is a ",", return, "error"=> error, the rest is a value
+ Value ::= Function | Primitive
+ Function ::= <word> "(" <space>? ExpressionList <space>? ")"
+ ExpressionList ::= Expression (<space>* "," <space>* Expression)*            //if the next thing is a ",", return, "error"=> error, the rest is a value
+ Expression ::= Operation | Value
+ Operation ::= Value <space> <operator> <space> Expression
+ Primitive ::= <word> | Number | HashColor
+ HashColor ::= "#" <number>{3,4,6,8}
+ Number ::= <number> ("%" | <word>)?
+ */
 export function parseCssValue(str) {
   const tokens = new CssValueTokenizer(str);
   let result = [];
@@ -193,14 +195,11 @@ export function parseCssValue(str) {
 function parseSpaceSeparatedValueList(tokens) {
   let result = [];
   for (let next = tokens.lookAhead(); next; next = tokens.lookAhead()) {
-    if (next[1] /*isSpace*/) {
+    if (next && next[1] /*isSpace*/) {
       tokens.next();
       continue;
     }
-    if (next[0] === ",")            //todo check if ,, is a syntax error for ValueList?
-      return result;
-
-    if (next === null)            //todo end of the sequence
+    if (next[0] === ",")
       return result;
     result.push(parseValue(tokens));
   }
@@ -236,8 +235,6 @@ function parseCssExpressionList(tokens) {
     }
   }
 }
-
-// calc(21px +%12px)
 
 function parseExpression(tokens) {
   const left = parseValue(tokens);
