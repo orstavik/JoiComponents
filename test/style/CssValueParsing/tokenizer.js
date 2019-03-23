@@ -1,4 +1,4 @@
-import {CssValueTokenizer, parseCssValue} from "../../../src/style/CssValueParser.js";
+import {CssValueTokenizer} from "../../../src/style/CssValueParser.js";
 
 function tokensToArray(tokens) {
   const res = [];
@@ -336,21 +336,6 @@ describe('Tokenizer', function () {
       [" ", " ", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
       ["red", undefined, undefined, undefined, "red", undefined, undefined, undefined, undefined, undefined, undefined, undefined],
       [")", undefined, undefined, undefined, undefined, undefined, ")", undefined, undefined, undefined, undefined, undefined]
-    ]);
-  });
-});
-
-//todo wait making more of this until we have the tokenizer and the strategy for making the wrapper of the CSSValue class
-function astToObject(ast) {
-  return ast.map(row => row.map(value => value.getValue()));
-}
-
-describe("Parser", function () {
-  it("words: red blue", function () {
-    const ast = parseCssValue("red blue");
-    const res = astToObject(ast);
-    expect(res).to.deep.equal([
-      ["red", "blue"]
     ]);
   });
 });

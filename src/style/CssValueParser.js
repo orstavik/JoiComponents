@@ -18,6 +18,7 @@ the function expression can be either a:
 4. calc expression (boolean expression):
    10px + 20%vh
    width >= 200px
+
 1. CSS Value token list:
 ********************
 0. <space>                                          \s+
@@ -28,6 +29,7 @@ the function expression can be either a:
 5. <singlequote>                                    '((\\\\|\\'|[^'\n])*)'
 6. <doublequote>                                    "((\\\\|\\"|[^"\n])*)"
 7. any other finding would be an error              .+
+
 1.b Regex Tokenizer:
 ***************
   \s+ |
@@ -37,7 +39,7 @@ the function expression can be either a:
   '((\\\\|\\'|[^'\n])*)'|
   "((\\\\|\\"|[^"\n])*)"|
   .+
-/\s+|[a-z]+|[+-]?\d*\.?\d+(e[+-]?\d+)?|>=|<=|==|[#(),/<>+*%-]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.*)/g
+/\s+|[a-z]+|[+-]?\d*\.?\d+(e[+-]?\d+)?|>=|<=|==|[#(),/<>+*%-]|'((\\\\|\\'|[^'\n])*)'|"((\\\\|\\"|[^"\n])*)"|(.+)/g
 
 2.b JS Parser:
 *********
@@ -146,7 +148,10 @@ class CssValue {
   }
 
   getValue() {
-    return this._obj;
+    return this._obj.value;
+  }
+  getType() {
+    return this._obj.type;
   }
 }
 
