@@ -117,6 +117,56 @@ export class CssValueTokenizer {
   }
 }
 
+export function interpretCssValue(value) {
+  function hsl(args) {
+    return convertHslToRgb(args);
+  }
+
+  function colorcalc(args) {
+    //identify the operator in the args, and then interpret it
+  }
+
+  function calc(args) {
+    let printOfTheOperatorArgs = "do + 12px - of + all + args";
+    return "calc(" +printOfTheOperatorArgs+ ")";
+  }
+
+  function __defaultInterpretation(args) {
+    return "rgb(" + args.join(",") + ")";
+  }
+
+  if (value.type === "function") {
+    let args = value.children.map(child => interpretCssValue(child));
+    let fn = this[value.name];
+    if (!fn instanceof Function)
+      fn = this[__defaultInterpretation];
+    return fn(args);
+  }
+  if (value.type === "operator")
+    return value;
+  if (value.type === "number")
+    return value.value + (value.unit || "");
+  return value.value;
+}
+
+
+export function getRgbValue(_obj) {
+  if (_obj.type === "function" && _obj.unit === "rgb")
+    return _obj.children.map(number => parseInt(number.value));
+  if (_obj.type === "#") {
+    const str = _obj.value;
+    if (str.length === 3)
+      return [parseInt(str[0], 16) * 16, parseInt(str[1], 16) * 16, parseInt(str[2], 16) * 16];
+    if (str.length === 6)
+      return [parseInt(str[0] + str[1], 16), parseInt(str[2] + str[3], 16), parseInt(str[4] + str[5], 16)];
+  }
+  if (_obj.type === "function" && _obj.unit === "hsl")
+    return convertHslToRgb(_obj);
+  if (_obj.type === "function" && _obj.unit === "colorcalc") {
+    return interpretColorCalc(_obj);
+  }
+  return undefined;
+}
 
 class CssValue {
   constructor(obj) {
@@ -165,7 +215,7 @@ class CssValue {
   }
 }
 
-function throwSyntaxError(msg, token){
+function throwSyntaxError(msg, token) {
   throw new SyntaxError(msg + "\n  " + token.input + "\n  " + new Array(token.index + 1).join(" ") + "^");
 }
 
