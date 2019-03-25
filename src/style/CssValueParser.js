@@ -70,6 +70,7 @@ const tokenizer = /(\s+)|([+-]?\d*\.?\d+(e[+-]?\d+)?)|([-]*[a-zA-Z_][a-zA-Z_0-9-
 
 export class CssValueTokenizer {
   constructor(str) {
+    tokenizer.lastIndex = 0;
     this._input = str.trim();
     this._next = undefined;
     this._nextNext = undefined;
