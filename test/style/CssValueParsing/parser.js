@@ -78,16 +78,17 @@ describe("Parser error", function () {
   });
 
   it("operation lacking space 2: calc(5px +5%)", function () {
-    const ast = parseCssValue("calc(5px +5%)");
-    expect(ast).to.deep.equal(
-
-    );
+    expect(() => parseCssValue("calc(5px +5%)")).to.throw(SyntaxError,
+      "Illegal CSS value expression list:\n  calc(5px +5%)\n           ^");
   });
 
   it("operation lacking space 3: calc(6px+ 6%)", function () {
-    const ast = parseCssValue("calc(6px+ 6%)");
-    expect(ast).to.deep.equal(
+    expect(() => parseCssValue("calc(6px+ 6%)")).to.throw(SyntaxError,
+      "Illegal CSS value expression list:\n  calc(6px+ 6%)\n          ^");
+  });
 
-    );
+  it("operation lacking operator : calc(6px 6%)", function () {
+    expect(() => parseCssValue("calc(6px 6%)")).to.throw(SyntaxError,
+      "Illegal CSS value expression list:\n  calc(6px 6%)\n           ^");
   });
 });
