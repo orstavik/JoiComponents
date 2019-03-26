@@ -7,8 +7,7 @@ As we have seen, `slotchange` is a vehicle that enables a custom element to *rea
 But. `slotchange` excludes unassignable slottable-mutations. But why is that an issue?
 What would be the purpose of listening for slottable-mutations that 
 would not directly result in "nothing being slotted"?
-The principle purpose of reacting to something that would not be slotted, is 
-**to make the unslottable slottable**.
+The purpose of reacting to a slottable event would be to make **the unslotted slotted**.
 
 That is the principle usecase. Completely non-intelligeble. We need a practical usecase.
 Let's say we wan't to make a list. This list should be sorted, like a good old fashioned `<OL>`.

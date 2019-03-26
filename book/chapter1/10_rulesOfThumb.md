@@ -1,4 +1,4 @@
-# Web component anti-patterns
+# Web component rules of thumb
 
 1. Don't use `this.innerHTML`.
    Custom elements have a host element. 
@@ -37,9 +37,12 @@
    
    The polyfill has the `HTMLUnknownElement` class for its elements, not their proper class type.
    
+6. Don't use `setAttributes(...)` or `getAttribute(...)` in the constructor. 
+   Attributes are assigned to web components after the construction of the element.
    
-   
-   
+7. don't rely on attributes being set in the element. Expect every attributes default value to be unset.
+   Use different CSS values to select active DOM as a `:host([attribute="value"])`
+
 
 ## Core web component patterns:
  * The internal workings of the `shadowDom` should only be observed and controlled 

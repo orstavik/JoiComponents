@@ -2,26 +2,33 @@
 
 ## The native web components cookbook
 
-"The web component design patterns" is a set of recipes for developing simple and reusable web components. 
+"Web component design patterns" is a set of recipes for developing simple and reusable web components. 
 This book is framework independent: all patterns are intended to run natively in any browser 
 that supports web components and vanilla es6. 
 However, the book is meant to be framework relevant: 
 the patterns should all be useful to understand either how to make web components in other frameworks or
 how other frameworks could or should function internally.
 
-WC patterns consists of the following types of recipes:
-* problem descriptions that detail and frame frequent issues and use-cases,
-* patterns that explain how to solve these problems and build web components,
-* isolated functional mixins that implement some of these patterns, plus
-* a few other resources that implements some of patterns needed to make a complete app.
+Web component patterns consists of the following types of recipes:
+* problem descriptions that detail and frame frequent use-cases,
+* patterns that explain how to solve these problems,
+* mixins that illustrate how these patterns can be implemented and reused, plus
+* demos and tests of both problems, patterns and implementations.
 
-> Please refer to this project when you build on it!
+> If you have your own use cases, problems, patterns and/or solutions that you feel JOI about,
+> please let us know!
 
 ## Chapter 1: How to make a web component?
-1. [Define, load and use custom elements](book/chapter1/Pattern1_CreateElement.md)
-6. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
-8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
-<!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
+1. [Intro: Why Web components? reuse!](book/chapter1/todo)
+2. [HowTo: CreateElement](book/chapter1/2_HowTo_CreateElement)
+3. [HowTo: CreateShadowDom](book/chapter1/3_HowTo_CreateShadowDom)
+4. [HowTo: CloseShadowDOM](book/chapter1/4_HowTo_closed_shadowRoot)
+5. [WhatIs: Upgrade](book/chapter1/5_WhatIs_upgrade.md)
+6. [Pattern: TemplateSwitcheroo](book/chapter1/6_Pattern_TemplateSwitcheroo)
+<!--
+3. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
+9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)
+-->
 
 ## Chapter 2: How to make mixins
 1. [Reactive method](book/chapter2_HowToMakeMixins/Pattern1_ReactiveMethod.md)
@@ -37,7 +44,6 @@ WC patterns consists of the following types of recipes:
 ## Chapter 3: Lifecycle callbacks
 1. [Intro: element lifecycle](book/chapter3_lifecycle/Intro_element_lifecycle.md)
 2. [Pattern: setupCallback()](book/chapter3_lifecycle/Mixin2_InitialAttributes.md)
-3. [Pattern: delay setup](book/chapter3_lifecycle/Pattern1_TemporaryTemplate.md)
 4. [Mixin: UnloadDisconnects](book/chapter3_lifecycle/Mixin3_unload_disconnects.md)
 1. [.attributeChangedCallback()](book/chapter3_lifecycle/HowTo_attributeChangedCallback.md)
 <!--4. .hashChangedCallback()-->

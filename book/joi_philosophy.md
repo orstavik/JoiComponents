@@ -1,10 +1,35 @@
+## The JOI mission
 
-## The philosophy of JOI
+To work with JOI is:
+ 
+ * **simple**. JOI require *no* CLI or other design time support framework. This means that you
+   can use it directly in any pure text editor and online sandbox such as codepen or jsfiddle.
+ 
+ * **clean**. Individual JOI resources have *no* bindings to each other. 
+   JOI is no [octopus monster](https://en.wikipedia.org/wiki/Cthulhu), neither explicitly nor implicitly. 
+   At the same time, JOI is complete. JOI provides *a solution to the whole problem*.
+   JOI is *externally modular*: you can *truly* pick and choose. 
+   JOI is not only *internally modular*, split up into codependent modules to keep its own development 
+   going fast forward.
 
-JOI is intended to be FUD free.
-JOI should be well modularized, so that the developer can use only certain aspects and leave other behind.
-JOI should be extendable, so that developers can complement the framework with their own modules on equal terms.
-JOI should try to justify every pattern and solution, and primarily focus on the problems and "laws" *behind* the solutions. 
+ * **easy**. When possible, JOI specifies the solution as a design pattern/cookbook recipe.
+   Instead of providing our own way of doing things as JS scripts, 
+   we solve problems and use-cases using only the standard, native resources when we can.
+   The use cases are still there. The problems are still solved. They are just solved using the most
+   familiar resource of all: the platform. The standard is JOI's only binding and dependency.
+   
+ * **FUD free**! Web frameworks are great. They give us black boxes full of magic and wonder. 
+   But, have you ever wondered what *actually happens* inside your framework? Have you ever been
+   uncertain about what the framework does? Have you ever doubted your own code because you don't know
+   exactly how the framework will react? Have you feared your own or another developer's platform and 
+   framework?
+   
+   JOIs mission is *not* to give you another black box of magic. 
+   JOIs mission is to expose all the wonder, problems, use-cases, choices, decisions, patterns, and
+   implementation behind modern web frameworks. 
+   JOI wants to give you a cookbook for *how to work with a modern, web component framework*.
+   JOI is first the text-book manual, second the framework code.
+   JOI explains and justifies itself, so you no longer have to.
 
 ### What is framework FUD?
 

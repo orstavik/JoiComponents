@@ -195,6 +195,9 @@ In this demo, we upgrade a custom element that is a cloned out from a `<template
       console.log("UpgradeThree constructor");
       this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML = "<slot></slot><span></span>";
+      this.shadowRoot.addEventListener("slotchange", function(){
+        console.log("UpgradeThree slotchange");
+      })
     }
 
     static get observedAttributes() {
@@ -216,17 +219,12 @@ In this demo, we upgrade a custom element that is a cloned out from a `<template
 
   console.log("App start");
   customElements.define("upgrade-three", UpgradeThree);
-  console.log("App upgrade-two defined");
-</script>
-<template>
-  <upgrade-three punctuation=")">hello sweden</upgrade-three>
-</template>
-<script>
-  console.log("App before cloning upgrade-three");
-  var template = document.querySelector("template").content;
-  var clone = template.cloneNode(true);
+  console.log("App after upgrade-two defined");
+  var template = document.createElement("template");
+  template.innerHTML = '<upgrade-three punctuation=")">Hello Ukraine</upgrade-three>';
+  console.log("App after template instantiating upgrade-three");
+  var clone = template.content.cloneNode(true);
   console.log("App after cloning upgrade-three");
-  console.log("App before appending upgrade-three");
   document.querySelector("body").appendChild(clone);
   console.log("App after appending upgrade-three");
 </script>

@@ -1,0 +1,17 @@
+<div style="width: 100vw; height: 100vh;">
+  You see me immediately
+</div>
+
+<template id="temporaryTemplate">                         <!--[1]-->
+  <below-the-fold>                                        <!--[2]-->
+    You must scroll to see me
+  </below-the-fold>
+</template>
+<script>
+  const scrollSwitcheroo = function (e) {                        //[3]
+    const c = document.querySelector("#temporaryTemplate");
+    c.parentNode.replaceChild(c.content, c);               //[4]
+    window.removeEventListener("scroll", scrollSwitcheroo);
+  };
+  window.addEventListener("scroll", scrollSwitcheroo);
+</script>

@@ -30,7 +30,7 @@ There are two issues are concerning the custom element `constructor()`:
 1. Initial HTML attributes cannot be safely read nor set in the `constructor()`.
 This is solved using the [Pattern: .initialAttributesCallback](todo).
 2. When custom elements are added under a `<template>` element, then *only* 
-the HTMLElement's constructor() is triggered, and 
+the HTMLElement's super constructor() is triggered, and 
 the custom elements own constructor and setup is delayed until connected.
 This can be used to delay the construction of elements with the [Pattern: temporaryTemplate](todo).
 
@@ -44,7 +44,12 @@ These callbacks are triggered synchronously when they occur, ie. irregularly:
 
 ## mixin callbacks
 
-There are two key lifecycle moments that are not natively supported by callbacks.
+There are five key lifecycle moments that are not natively supported by callbacks:
+1. attributesReady(), 
+2. slotCallback(), 
+3. styleCallback(), 
+4. LayoutAttributes triggering attributesChangedCallback()
+5. unloadDisconnectsCallback()
 
 ### `slotchangeCallback()` 
 

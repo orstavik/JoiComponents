@@ -1,9 +1,12 @@
-# Pattern: TemporaryTemplate
+# Pattern: TemplateSwitcheroo
 
-The TemporaryTemplate pattern describe how we can delay the construction of HTML elements 
-parsed from the main HTML document.
-Delaying the construction of elements via JS and from the parser via `innerHTML`
-is simply done by directly postponing the JS function that creates the elements instead.
+The TemplateSwitcheroo pattern describe how we can delay the construction of HTML elements 
+in the main HTML document. The TemplateSwitcheroo pattern uses the features that elements 
+instantiated inside a `<template>` element remains in their empty shell, template state until they 
+are later used [cf. WhatIs: Upgrade](5_WhatIs_upgrade). 
+The TemplateSwitcheroo can be used both:
+1. statically for elements described in the entry-point HTML files, such as index.html, and 
+2. dynamically for elements constructed in JS via `.innerHTML` on `<template>` elements.
 
 ## Problem: display above the fold content asap.
 
@@ -42,7 +45,7 @@ To delay a HTML element, we want to:
    of neither the root nor children elements,
    as these methods might cause both heavy network and computing processes.
 
-## Pattern: TemporaryTemplate
+## Pattern: TemplateSwitcheroo
 
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) says it perfectly:
 
@@ -55,32 +58,39 @@ To delay a HTML element, we want to:
     while loading the page, it does so only to ensure that those contents are valid; 
     the element's contents are not rendered, however. 
 
-By wrapping a group of HTML elements inside a `<template>` element, 
-the browser will on the elements *inside* the template:
+In the previous chapter [WhatIs: upgrade](5_WhatIs_upgrade), we saw how elements created inside a 
+`<template>` element is only instantiated in temporary shell state. We will now use this native 
+feature to demote and delay content. 
+
+First, we wrap a group of HTML elements inside a `<template>` element.
+For all the elements placed *under* the template, the browser will:
  * ONLY run the `super` constructor (of `HTMLElement`), and 
- * NOT run any custom element's `constructor()` (weird, right?!), 
+ * NOT run any custom element's `constructor()` (yes, it is a bit weird), 
  * NOT trigger the custom element's (observed) `attributeChangedCallback()`, 
- * NOT connect any *inside* elements to the DOM and trigger their `connectedCallback()`, and
- * NOT perform any style, layout calculations or paint job for those inside elements.
+ * NOT connect any elements to the DOM and trigger their `connectedCallback()`,
+ * NOT trigger any `slotchange` events, and
+ * NOT perform any style, layout or paint calculations for the elements.
 
 Then, when needed, the template element can replace itself with its own `content`.
 
 ```html
-<div style="width: 100vw; height: 100vh;">                                  
-  You see me immediately                               
+<div style="width: 100vw; height: 100vh;">
+  You see me immediately
 </div>
 
-<template id="temporaryTemplate">                             <!--[1]-->
-  <below-the-fold>
+<template id="temporaryTemplate">                         <!--[1]-->
+  <below-the-fold>                                        <!--[2]-->
     You must scroll to see me
   </below-the-fold>
-</template>                                               <!--[1]-->
-<script>                                                    //[2]
-  setTimeout(()=>{                                          //[3]
-    const c = document.querySelector("#temporaryTemplate");     //[4]
-    document.body.replaceChild(c.content, c);               //[4]
-  }, 3000);                                                 
-</script>                                                 <!--[2]-->
+</template>
+<script>
+  const scrollSwitcheroo = function (e) {                        //[3]
+    const c = document.querySelector("#temporaryTemplate");
+    c.parentNode.replaceChild(c.content, c);               //[4]
+    window.removeEventListener("scroll", scrollSwitcheroo);
+  };
+  window.addEventListener("scroll", scrollSwitcheroo);
+</script>
 ```
 1. The non-critical content `<below-the-fold>` is wrapped in a template.
 2. A script is added that::
@@ -89,18 +99,11 @@ Then, when needed, the template element can replace itself with its own `content
 
 ## Extra tip: `block`-style the template node
 
-To avoid having content jump **down**, which can frustrate the user,
-style the `<template>` node as a block that is big enough.
-Depending on:
-1. the duration of the delay,
-2. the content added,
-3. how dynamic this content is,
-4. what type of content below (or above) is shifted
-
-can affect how you wish to reserve space.
-But, a general tip is that content jumping up into view is likely to be better
-perceived by the user than content in view (that the user is looking at trying to read) 
-jumping down out of view (thus "escaping" the users hunt for information).
+Adding content dynamically on the page can cause content to jump **down** or **up** on screen, 
+depending on both the content added and the user's scroll history. Such jumps are bad, they can
+frustrate the user. Thankfully, such jumps can sometimes be avoided by having the `<template>` node 
+reserve the space where it will be added. We do this by styling the `<template>` tag as a `block` 
+with fixed `width` and `height`. 
 
 Below is the same example above, extended with the `block`-style tip, 
 and with a custom element implementation to illustrate when the children elements
@@ -146,20 +149,23 @@ However. Both of the mechanisms above *connects the defered/preloaded elements t
 Neither the `defer` nor `preload` attributes are available for normal and custom HTML elements.
 Due to these HTML attributes semantics, these attributes would not apply to children of an element.
 
-## Anti-patterns: delay elements using CSS or shadowDOM
+## Anti-patterns: delay elements using CSS
 
 Traditional tricks such as marking an element with the style `display: none` or `visibility: hidden`
 or the HTML attribute `hidden`, will:
  * yes, hide the element and its children from view 
- (except descendants of `visibility: hidden` elements that are marked `visibility: visible`);
+   (except descendants of `visibility: hidden` elements that are marked `visibility: visible`);
  * yes, in the case of `display: none` free the browser from calculating layout; but 
- * no, always trigger the `connectedCallback()` methods of both the root and children elements.
+ * no, always trigger the full `constructor()`, `connectedCallback()` and other custom element methods 
+   of both the root and children elements.
+
+## Anti-patterns: delay elements using dynamic `<slot>`
 
 Another trick, to put children elements inside a custom element with a shadowDOM and 
 then delay adding a `<slot>` element in that shadowDOM will:
- * yes, hide the children elements from view 
-   (although I am not sure how much of the style and layout work the browser will delay); but
- * no, still trigger the `connectedCallback()` methods of both the root and children elements.
+ * no, the children elements will be hidden from view, but style and layout work will still be processed; and
+ * no, always trigger the full `constructor()`, `connectedCallback()` and other custom element methods 
+   of both the root and children elements.
 
 ## Reference
 

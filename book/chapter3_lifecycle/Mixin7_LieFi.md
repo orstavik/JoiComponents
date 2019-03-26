@@ -1,5 +1,7 @@
 # Mixin: LieFi
 
+Todo, this could be converted to a ComposedEvent that employs listeners that poll for extra 
+information.
 Todo. This should probably not be a mixin, but an element or a function..
 
 A typical problem for web apps working on a 3g/4g connection, is that the browser is registered as online, 

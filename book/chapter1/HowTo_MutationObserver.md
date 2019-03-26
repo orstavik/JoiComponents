@@ -3,7 +3,7 @@
 ## `MutationObserver`
 
 The DOM is dynamic. 
-Using JS, developers add and remove nodes in the DOM all the run-time.
+In JS, elements and nodes are added to and removed from the DOM all the (run-)time.
 In the normal DOM, such changes are observed using the `MutationObserver` API.
 
 ```javascript

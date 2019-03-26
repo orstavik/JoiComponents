@@ -270,7 +270,7 @@ slottables {
    This callback hook would enable `<VAR>` / TEMPLATE to implement a below-the-fold 
    solution in a single line.
    
-   Ref: [Pattern: TemporaryTemplate](../chapter3_lifecycle/Pattern1_TemporaryTemplate.md)
+   Ref: [Pattern: TemplateSwitcheroo](../chapter1/Pattern_TemplateSwitcheroo)
    
 2. Setting up the `<TEMPLATE>` element as a document node can also be used as a means to create an
    HTML-import like functionality.
