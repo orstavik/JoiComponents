@@ -1,0 +1,37 @@
+<upgrade-one punctuation="!">hello world</upgrade-one>
+
+<script>
+  class UpgradeOne extends HTMLElement{
+    constructor(){
+      super();
+      console.log("UpgradeOne constructor");
+      console.log("UpgradeOne constructor dirty check: ", emptyShell === this);
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<slot></slot><span></span>";
+      this.shadowRoot.addEventListener("slotchange", function(){
+        console.log("UpgradeOne slotchange");
+      })
+    }
+
+    static get observedAttributes(){
+      console.log("UpgradeOne observedAttributes");
+      return ["punctuation"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue){
+      console.log("UpgradeOne attributesChangedCallback");
+      if (name === "punctuation"){
+        this.shadowRoot.querySelector("span").innerText = newValue;
+      }
+    }
+    connectedCallback(){
+      console.log("UpgradeOne connectedCallback");
+      console.log("UpgradeOne connectedCallback dirty check: ", emptyShell === this);
+    }
+  }
+  console.log("App start");
+  var emptyShell = document.querySelector("upgrade-one");
+  customElements.define("upgrade-one", UpgradeOne);
+  console.log("App dirty check: ", emptyShell === document.querySelector("upgrade-one"));
+  console.log("App end");
+</script>
