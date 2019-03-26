@@ -39,7 +39,7 @@ This can be used to delay the construction of elements with the [Pattern: tempor
 Some **callbacks** already exist on the `HTMLElement` class. 
 These callbacks are triggered synchronously when they occur, ie. irregularly:
 1. `connectedCallback()` and `disconnectedCallback()`
-2. [`attributeChangedCallback()`](HowTo_attributeChangedCallback.md)
+2. [`attributeChangedCallback()`](../chapter1/HowTo_attributeChangedCallback.md)
 3. `adoptedCallback()`
 
 ## mixin callbacks

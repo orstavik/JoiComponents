@@ -25,6 +25,8 @@ Web component patterns consists of the following types of recipes:
 4. [HowTo: CloseShadowDOM](book/chapter1/4_HowTo_closed_shadowRoot)
 5. [WhatIs: Upgrade](book/chapter1/5_WhatIs_upgrade.md)
 6. [Pattern: TemplateSwitcheroo](book/chapter1/6_Pattern_TemplateSwitcheroo)
+7. [HowTo: attributeChangedCallback](book/chapter1/7_HowTo_attributeChangedCallback)
+8. [Pattern: TheEnd](book/chapter1/8_Pattern_TheEnd)
 <!--
 3. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
 9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)
@@ -45,7 +47,7 @@ Web component patterns consists of the following types of recipes:
 1. [Intro: element lifecycle](book/chapter3_lifecycle/Intro_element_lifecycle.md)
 2. [Pattern: setupCallback()](book/chapter3_lifecycle/Mixin2_InitialAttributes.md)
 4. [Mixin: UnloadDisconnects](book/chapter3_lifecycle/Mixin3_unload_disconnects.md)
-1. [.attributeChangedCallback()](book/chapter3_lifecycle/HowTo_attributeChangedCallback.md)
+1. [.attributeChangedCallback()](book/chapter1/HowTo_attributeChangedCallback.md)
 <!--4. .hashChangedCallback()-->
 <!-- 4. liefi-->
 
