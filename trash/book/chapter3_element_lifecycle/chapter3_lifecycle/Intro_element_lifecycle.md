@@ -65,7 +65,7 @@ LightDOM children can be dynamically styled using the CSS selector `::slotted()`
 But, there are limits to what can be styled in CSS. 
 And when children elements are used as input parameters, the element should respond to such changes.
 Thus, changes in the number or type of child elements might require a reaction, an update of the shadowDOM or
-actions towards the children elements added (cf. [HelicopterParentChild](../chapter6_html_comp/Pattern2_HelicopterParentChild.md)).
+actions towards the children elements added (cf. [HelicopterParentChild](../../../../book/chapter6_html_comp/Pattern2_HelicopterParentChild.md)).
 
 This lifecycle event can be understood as **changes to slottables, ie. the list of flattened children nodes**.
 Natively, this event is supported by the `slotchange` event, 

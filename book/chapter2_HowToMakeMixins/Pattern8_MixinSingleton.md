@@ -148,7 +148,7 @@ function SimpleSingleton(Base){
 ```
 To learn more about the use of the connected/disconnected-session as an alternative to 
 constructor/"destructor"-session, see 
-[Mixin: UnloadsDisconnects](../chapter3_lifecycle/Mixin3_unload_disconnects.md). 
+[Mixin: UnloadsDisconnects](../../trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin3_unload_disconnects.md). 
 
 ## Use of MixinSingleton
  

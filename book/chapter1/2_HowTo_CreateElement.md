@@ -13,7 +13,30 @@ always present, custom elements must be:
                                                    
 To define a custom HTML element, you need to:
 1. make a JS class that `extends HTMLElement` and 
-2. override the `constructor()` and/or `connectedCallback()`.
+2. override the `constructor()`.
+
+The `constructor()` is the first lifecycle callback of a custom element, called when the element is 
+first created (with some exceptions, cf. [WhatIs: Upgrade](5_WhatIs_upgrade)).
+In the `constructor()` of your custom element definition you must first call `super()`.
+
+For web components, the `constructor()` also has the following tasks:
+1. `this.attachShadow({mode: "open"});` and subsequent `this.shadowRoot...` operations.
+   See [HowTo: CreateShadowDOM](3_HowTo_CreateShadowDom) and [HowTo: CloseShadowDOM](4_HowTo_closed_shadowRoot) 
+   for more information.
+2. Create event listener objects for reuse in `connectedCallback()` and `disconnectedCallback()`.
+3. Setup regular JS properties that will be needed by the custom element.
+
+Below is an example of a custom element `constructor()`:
+
+```
+constructor(){
+  super();
+  this.attachShadow({mode: "open"});
+  this.shadowRoot.innerHTML = "<h1>I'm setup in the constructor.</h1>";
+  this._reuseableEventListener = (e) => this.myEventFunction(e);
+  this.aDataProperty = null;
+}
+```
 
 ## Demo: define `class MyFirstElement`
 ```javascript
@@ -72,7 +95,7 @@ After the custom element is loaded, you can instantiate a custom element with:
 * `document.createElement`, and/or
 * an HTML tag in your HTML code.
 
-## Demo: use `<my-first-element>` 
+## Demo: use `<my-first-element>` as a module
 
 ```html
 <my-first-element></my-first-element>                       <!-- will be 'upgraded' when the element is loaded -->
@@ -89,7 +112,8 @@ After the custom element is loaded, you can instantiate a custom element with:
 <my-first-element></my-first-element>                       <!-- script type="module" does not break the flow of parsing, so this will also be 'updated' when the element is loaded -->
 ```
 
-And as a sync script:
+## Demo: use `<my-first-element>` as a sync script
+
 ```html
 <my-first-element></my-first-element>                       <!-- will be 'upgraded' when the element is loaded -->
 

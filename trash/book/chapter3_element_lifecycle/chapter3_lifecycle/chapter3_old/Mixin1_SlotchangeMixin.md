@@ -28,7 +28,7 @@ This means that HTML comments and text nodes, not just element nodes, are includ
 
 ## Implementation issues with `SlotchangeMixin`
 
-[`SlotchangeMixin`](../../../src/slot/SlottableMixin.js) 
+[`SlotchangeMixin`](../../../../../src/slot/SlottableMixin.js) 
 listens for `slotchange` events on the `.shadowRoot` of the custom element.
 To achieve this efficiently, `SlotchangeMixin` assumes that the custom element 
 creates an "open" `.shadowRoot` in the *constructor()*.

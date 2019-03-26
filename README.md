@@ -19,7 +19,7 @@ Web component patterns consists of the following types of recipes:
 > please let us know!
 
 ## Chapter 1: How to make a web component?
-1. [Intro: Why Web components? reuse!](book/chapter1/todo)
+1. [Intro: Web components](book/chapter1/1_Intro_web_comp)
 2. [HowTo: CreateElement](book/chapter1/2_HowTo_CreateElement)
 3. [HowTo: CreateShadowDom](book/chapter1/3_HowTo_CreateShadowDom)
 4. [HowTo: CloseShadowDOM](book/chapter1/4_HowTo_closed_shadowRoot)
@@ -27,6 +27,7 @@ Web component patterns consists of the following types of recipes:
 6. [Pattern: TemplateSwitcheroo](book/chapter1/6_Pattern_TemplateSwitcheroo)
 7. [HowTo: attributeChangedCallback](book/chapter1/7_HowTo_attributeChangedCallback)
 8. [Pattern: TheEnd](book/chapter1/8_Pattern_TheEnd)
+9. [Anti-pattern: TwoConstructors](book/chapter1/9_Anti_TwoConstructors)
 <!--
 3. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
 9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)
@@ -44,9 +45,9 @@ Web component patterns consists of the following types of recipes:
 8. [Discussion: isolate FunctionalMixins](book/chapter2_HowToMakeMixins/Discussion_IsolatedFunctionalMixin.md)
 
 ## Chapter 3: Lifecycle callbacks
-1. [Intro: element lifecycle](book/chapter3_lifecycle/Intro_element_lifecycle.md)
-2. [Pattern: setupCallback()](book/chapter3_lifecycle/Mixin2_InitialAttributes.md)
-4. [Mixin: UnloadDisconnects](book/chapter3_lifecycle/Mixin3_unload_disconnects.md)
+1. [Intro: element lifecycle](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Intro_element_lifecycle.md)
+2. [Pattern: setupCallback()](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin2_InitialAttributes.md)
+4. [Mixin: UnloadDisconnects](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin3_unload_disconnects.md)
 1. [.attributeChangedCallback()](book/chapter1/HowTo_attributeChangedCallback.md)
 <!--4. .hashChangedCallback()-->
 <!-- 4. liefi-->

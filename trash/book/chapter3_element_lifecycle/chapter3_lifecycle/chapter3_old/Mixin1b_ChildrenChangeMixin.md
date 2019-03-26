@@ -30,7 +30,7 @@ elements is what the element needs to be notified of in many use-cases.
 But it should mean *all potentially slottable elements from the outside*.
 
 ## `SlotchangeMixin`
-[`SlotchangeMixin`](../../../src/slot/SlottableMixin.js) 
+[`SlotchangeMixin`](../../../../../src/slot/SlottableMixin.js) 
 implements a different strategy to observe `slotchange` events.
 Instead of attaching event listeners for `slotchange` events on the `.shadowRoot`, 
 `SlotchangeMixin` uses `MutationObserver` to **observe the `childNodes` of the `host` node**.

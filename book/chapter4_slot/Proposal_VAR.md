@@ -50,7 +50,7 @@ existing browsers without breaking existing applications relying on existing `<S
 
    Ref: [Problem: DeclarativeResolution](Problem_DeclarativeResolution.md)
    Ref: [Pattern: BatchedConstructorCallbacks](../chapter2_HowToMakeMixins/Pattern10_BatchedConstructorCallbacks.md)
-   Ref: [Mixin: InitialAttributes](../chapter3_lifecycle/Mixin2_InitialAttributes.md)
+   Ref: [Mixin: InitialAttributes](../../trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin2_InitialAttributes.md)
    
 4. New feature/usecase: Make web components reactive to unassigned slotables.
    
