@@ -70,6 +70,7 @@ const tokenizer = /(\s+)|([+-]?\d*\.?\d+(e[+-]?\d+)?)|([-]*[a-zA-Z_][a-zA-Z_0-9-
 
 export class CssValueTokenizer {
   constructor(str) {
+    tokenizer.lastIndex = 0;
     this._input = str.trim();
     this._next = undefined;
     this._nextNext = undefined;
@@ -89,7 +90,7 @@ export class CssValueTokenizer {
       return null;
     }
     if (token[11])
-      throw new SyntaxError("Illegal token: " + token[0]);
+      throwSyntaxError("Illegal token: ", token);
     return token;
   }
 
@@ -345,7 +346,7 @@ function parsePrimitive(tokens) {
     if (next[0].length === 4 || next[0].length === 5 || next[0].length === 7 || next[0].length === 9)  //todo Max: fixed # colors possible lengths
     /*Remove first character from the string in the value property to remove #*/
       return {color: "#", value: next[0].substr(1)};
-    throw new SyntaxError("illegal #color: " + next[0] + nextNext[0]);
+   throwSyntaxError("Illegal #color: ", next);
   }
   //-------------------------------------------------------------------------------------------------
   if (next[9])                                  //todo how to treat errors, should we allow it to exist?
@@ -362,6 +363,5 @@ function parsePrimitive(tokens) {
       return {type: "number", unit: tokens.next()[0], value: next[0]};
     return {type: "number", value: next[0]};
   }
-
-  throw new SyntaxError("Illegal CSS primitive value: " + next[0]);
+  throwSyntaxError("Illegal CSS primitive value: ", next);
 }
