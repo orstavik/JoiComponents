@@ -339,7 +339,6 @@ function parsePrimitive(tokens) {
 
   /*check is a value starts with a hash*/
   /*This check has been moved bottom up*/
-  //-------------------------------------------------------------------------------------------------
   if (next[0].startsWith("#")) {                     //todo Max: it make a sense to check hash symbol in the beginning to avoid errors (especially for hash colors)
     const nextNext = tokens.next();
     /*Check if it has a valid character length (include #symbol) */
@@ -348,8 +347,7 @@ function parsePrimitive(tokens) {
       return {color: "#", value: next[0].substr(1)};
    throwSyntaxError("Illegal #color: ", next);
   }
-  //-------------------------------------------------------------------------------------------------
-  if (next[9])                                  //todo how to treat errors, should we allow it to exist?
+  if (next[9]==="")                                //if it will be extra quote, next[9] will be equal "".  
     return {type: "error", value: next[8]};
   if (next[4] /*isWord*/)
     return {type: "word", value: next[0]};
