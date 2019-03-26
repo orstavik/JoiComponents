@@ -150,7 +150,7 @@ But, it is manageable, with careful study, the help of some tools and watching y
 
 ## to max: labels for sketch
 
-* GreenFrame uses another web component PAssePArtout in its shadowDOM.
+* GreenFrame uses another web component PassePartout in its shadowDOM.
 GreenFrame then place its `<slot id="outerSlot">` as a child of the PAssePArtout host node.
 When `<slot id="outerSlot">` is placed as a slotable of PAssePArtout, 
 the relationship between `<slot id="outerSlot">` and the `<passe-partout>` host node

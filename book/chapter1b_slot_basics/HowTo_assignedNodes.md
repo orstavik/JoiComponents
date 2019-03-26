@@ -22,8 +22,9 @@ When the `assignedNodes` and `assignedElements` are flattened,
 what you will see is the final content of a `<slot>` element 
 as it will be presented in the flattened DOM. 
 If you use `.assignedNodes()` and `.assignedElements()` *without* flattening the result,
-then when the `<slot>` is chained to another `<slot>` you will not get a result that 
+then when the `<slot>` is chained to another `<slot>` you will *not* get a result that 
 reflect the final situation in the flattened DOM.
+
 But, when composing a custom element, you should anticipate that your element could be used 
 inside other custom elements and thus have other `<slot>` elements as its children in the lightDOM.
 And, in general, the assigned nodes and elements of a `<slot>` should only be accessed from within

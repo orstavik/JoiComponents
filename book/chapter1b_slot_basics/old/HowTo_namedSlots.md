@@ -93,7 +93,7 @@ But, you don't want to alter the lightDOM, transposed children directly from wit
 That would be reaching into the lightDOM, and we wan't to avoid that.
 So, if you mark lightDOM elements with the `slot`-attribute and suddenly feel the urge to 
 also make changes in or around the slotted element, this is a sign that you do not want the `slot`
-pattern, but are on your way to creating a pair of elements using the [HelicopterParentChild pattern](../chapter6_html_comp/Pattern2_HelicopterParentChild.md).
+pattern, but are on your way to creating a pair of elements using the [HelicopterParentChild pattern](../../chapter6_html_comp/Pattern2_HelicopterParentChild.md).
 
 <!--
 All `<slot>` elements refer to children elements of the `host` element in the lightDOM.

@@ -8,7 +8,7 @@ It is called the shadowDOM because:
    
 Conversely, the **lightDOM** is the name of the HTML document where the custom element (`host` node)
 is used. All the HTML elements in this document is supposed to be seen. As they are visible and open,
-the developer should both know about them and from this context use JS to manipulate them.
+the developer should be able to see them directly and use JS to manipulate them.
 These nodes are "in the light".
 
 Soon, we will make these terms a bit more complicated as we start using web components inside 
@@ -86,4 +86,5 @@ for the `GreenFrame` custom element in this example.
    5. text node: `↵...`
 
 ## References
+
  * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
