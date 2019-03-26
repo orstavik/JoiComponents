@@ -1,66 +1,56 @@
 # WhatIs: `<SLOT>`
+                                                                   
+To **"compose HTML"** is to put HTML elements a) next to each other, b) nested inside each other's 
+lightDOM and c) nested inside each other's shadowDOM.
 
-HTML is a language of HTML elements. 
-You can put elements next to eachother, and you can put elements inside each other. 
-To **"compose HTML"** is to put together an HTML document by placing HTML elements next to and inside each other.
-
-### Compose HTML elements side by side
-
-When you put HTML elements next to each other, 
+When you put HTML elements **next to each other**, 
 they will be presented as beads on a string. You may of course use CSS to 
-style the look of this string: make it go upside down, right to left, 
-stop after the fifth bead, etc. But, regardless of the shape of the string, 
+style the look of this string: make it go top-down, bottom-up, left-to-right, right-to-left, 
+only show the first five elements, etc. But, regardless of the style of the string of elements, 
 the beads you put on it is one after the other, sequential.
 
-When you make a web component (a custom HTML element with an inner html document (a shadowDOM)), 
-and place it next to other HTML elements, the web component will
-place itself on the screen next to the other elements and 
-present its inner html document as its children.
-Using web components like this is simple, straight forward.
-(And it is a good way to encapsulate HTML and CSS code, 
-hiding low level from view and creating several local scopes for CSS, which we really like).  
+When you nest HTML elements inside *only* each other's lightDOM *or* shadowDOM, 
+they will be presented as frames-within-frames or boxes-within-boxes.
+You may of course use CSS to style the look these boxes: some boxes may be contained within each 
+other as frames and passe partout around a picture; other boxes may be be skewed, the inner box 
+overflow the borders of the outer box; or the inner and outer boxes may stretch or pull to make 
+each other fit. Regardless, as long as you only nest elements in *either* the lightDOM *or* the 
+shadowDOM, they are simply boxes-within-boxes.
 
-### Compose HTML elements within each other
+But, what if you nest HTML elements *both* in each other's lightDOM *and* shadowDOM?
 
-When you put HTML elements inside each other, you can think of them as frames within frames.
-When you set up the first element, the outer frame, it will fill its own border, 
-and create a space for the next frame.
-This reserved space for the inner frame we can think of as a **slot**.
-The slot is an opening inside an HTML element into which we can put our other elements.
+## `<slot>` merges lightDOM elements into the shadowDOM 
 
-Sometimes, the size of the HTML frame is static, meaning it is fixed from above.
-But most HTML frames are elastic, like rubber, meaning that their size and shape 
-depends on the size of what is put into the slot.
-If an elastic frame receives a small pass photo, 
-it will shrink and wrap itself around the matchbox sized slot.
-If an elastic frame receives a man-sized portait of a medieval king, 
-it will grow and wrap itself around that.
+When you nest HTML elements inside each other in *both* the shadowDOM *and* the lightDOM, 
+you have a problem. You have a *two*-dimensional boxes-within-boxes structure.
+And the browser/HTML can only display *one* uniform boxes-within-boxes structure on screen.
+So, how do you unify the boxes-within-boxes structure from the lightDOM with the
+boxes-within-boxes structure from the shadowDOM? 
+                                            
+The most simple and immediate answer is: you don't. You choose one. And in HTML, the shadowDOM is
+chosen and nested lightDOM elements are kicked to the curve. (That is, when you have nested elements 
+in *two* dimension, both shadowDOM and lightDOM.)
 
-HTML elements can also be put inside each other in many levels, as frames within frames within frames within... etc.
-Here, the outer element gives the frame, then comes a passepartout, then another passpartout and on and on,
-until the final atomic photo is put in place.
-Each element, until the last atomic one, will all reserve a **slot** for its inner content.
-And each frame will contain its own rules of whether it should:
-stretch to fill the slot from its parent frame, 
-remain a fixed size, or 
-shrink to fit the content of its slot.
+But. There is *one* way to merge elements from the lightDOM into the shadowDOM. 
+If you place a `<slot>` element inside the shadowDOM of an element, then that `<slot>` element
+will "pick up" the lightDOM children elements that was suppressed, and place them in the hierarchy of
+the shadowDOM. The `<slot>` element reserves a space for the lightDOM elements in the unified
+boxes-within-boxes structure of the shadowDOM. This way of symbolically moving elements from the lightDOM
+into the shadowDOM is called to "transpose" elements.
 
-HTML elements can also both **contain several slots** and **fill several elements in each slot**.
-Each HTML frame control how their different inner slots are positioned against each other.
-They can decide to show them side by side, one on top of the other, hide one of them,
-stretch one to fit the other, etc. etc.
-But, when several HTML elements are put together into the same slot,
-the outer element will treat the elements as a group. 
-The outer HTML frame will therefore stretch to accommodate 
-or statically define the frame around this group of HTML elements, but it will not go in between 
-the entities in this group.
+## Many `<slot>` elements with many transposed elements
 
-When you make a web component and place other HTML nodes inside that component, 
-you therefore need to define the *slot* where these other nodes can be placed. 
-This is done by simply placing a special HTML element called **`<SLOT>`** 
-in the place where you want the other nodes to be filled in the inner html document of 
-your web component. 
-The `<SLOT>` marks the X, or the square around which your web component will wrap its frame.
+A shadowDOM can both:
+1. contain several `<slot>` elements and 
+2. fill several lightDOM elements into a single `<slot>`.
+
+To use several different `<slot>` elements to host different types of lightDOM elements is fairly
+straight forward. [`name` and `slot` attributes](4_WhatIs_slotname) are added on the `<slot>` and 
+transposed elements respectively, and then matched as the nested structures are merged.
+
+Similarly, several lightDOM elements can be transposed into a single `<slot>` element. 
+This one-to-many relationship between `<slot>` and transposed nodes gives the shadowDOM the 
+flexibility it needs to capture and encapsulate lightDOM elements.
 
 ## Example: `<green-frame>` with `<slot>`
 
