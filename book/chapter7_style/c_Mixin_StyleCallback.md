@@ -214,22 +214,28 @@ export function StyleCallbackMixin(type) {
 
 ## Use-cases for `styleCallback(...)`
 
-There are two domains in which observed style properties will be most relevant: 
-custom enumeration values and colors.
+There are three main use-cases for `styleCallback(...)`: 
+custom shortcuts, custom enumeration values and color processing.
 
 Some custom elements would like to implement custom style property words.
 CSS is full of such "special words" already: style properties such as `caption-side` for `<table>` 
 asks the user to choose one of the following words `left, right, top-outside, bottom-outside`.
 By simply recognizing which word is chosen, the web component can adjust its inner style accordingly.
 
-Layout properties are much harder to identify as the browser can and will perform complex calculation 
-to find its final value. Therefore, reacting to CSS layout values such as length, width, position,
-etc. based only on CSSOM values will likely be less useful than reacting to LayCSSOM values after
-layout has completed the calculation.
+`styleCallback(...)` is also good for processing custom CSS shorthand properties.
+Using `styleCallback(...)`, the user of the web component can be presented with a simpler, more readable
+CSS property that the web component itself can split into several, precise CSS properties.
 
-CSS color properties on the other hand are fully available when accessed in the CSSOM. After CSSOM, 
+CSS color properties are fully available when accessed in the CSSOM. After CSSOM, 
 the browser will make no new calculation that will alter the colors shown on screen. Thus, doing
 color transformation based on CSSOM values is a good use case for `styleCallback(...)` reactions.
+
+Layout properties on the other hand are much harder to identify. Even though CSSOM contains
+lots of properties for length, width, position, etc., the browser will perform complex layout 
+calculation after these CSSOM values are calculated that would be extremely heavy to replicate using
+JS and CSSOM values only. Therefore, it is better to react to layout values based on LayCSSOM values, and
+not CSSOM values.
+
 
 ## Future work
 
