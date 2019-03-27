@@ -519,32 +519,32 @@ describe("Parser error", function () {
       "Illegal token: \n  rotate[4deg)\n        ^");
   });
 
-  it("Illegal color 1: # 1", function () {
+  it("Illegal color space: # 1", function () {
     expect(() => parseCssValue("# 1")).to.throw(SyntaxError,
       "Illegal token: \n  # 1\n  ^");
   });
 
-  it("Illegal color 2: #1", function () {
+  it("Illegal color 1: #1", function () {
     expect(() => parseCssValue("#1")).to.throw(SyntaxError,
       "Illegal #color: \n  #1\n  ^");
   });
 
-  it("Illegal color 3: #12", function () {
+  it("Illegal color 2: #12", function () {
     expect(() => parseCssValue("#12")).to.throw(SyntaxError,
       "Illegal #color: \n  #12\n  ^");
   });
 
-  it("Illegal color 4: #12345", function () {
+  it("Illegal color 5a: #12345", function () {
     expect(() => parseCssValue("#12345")).to.throw(SyntaxError,
       "Illegal #color: \n  #12345\n  ^");
   });
 
-  it("Illegal color 5: #12345", function () {
+  it("Illegal color 5b: #12345", function () {
     expect(() => parseCssValue("#12345")).to.throw(SyntaxError,
       "Illegal #color: \n  #12345\n  ^");
   });
 
-  it("Illegal color 6: #1234567", function () {
+  it("Illegal color 7: #1234567", function () {
     expect(() => parseCssValue("#1234567")).to.throw(SyntaxError,
       "Illegal #color: \n  #1234567\n  ^");
   });
