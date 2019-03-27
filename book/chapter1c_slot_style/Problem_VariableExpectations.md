@@ -255,7 +255,7 @@ Question 4 is most difficult. Remembering the names of women is always tricky, a
 
 What does this tell us? 
 Quite a lot, actually.
-Once Zsa Zsa Gàbor enters the stage, our mind will start struggling to remember the names and sex
+Once Zsa Zsa Gàbor enters the stage, our mind will start struggling to remember the names and gender
 of the other people involved. 
 be given a lot It is too difficult for our mind to remember Jane, James and Janet ,
 but we do remember that there were some persons there, and maybe their sex.

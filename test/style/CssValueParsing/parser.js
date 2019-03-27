@@ -58,6 +58,13 @@ describe("Parser correct", function () {
     ]]);
   });
 
+  it("number: 10", function () {
+    const ast = parseCssValue("10");
+    expect(ast).to.deep.equal([[
+      {type: "number", value: "10"},
+    ]]);
+  });
+
   it("expression: calc(10px + 20%)", function () {
     const ast = parseCssValue("calc(10px + 20%)");
     expect(ast).to.deep.equal([[
@@ -164,14 +171,14 @@ describe("Colors", function () {
   it("hash colors 3 characters 1: #123", function () {
     const color = parseCssValue("#123");
     expect(color).to.deep.equal(
-      [[{color: '#', value: '123'}]]
+      [[{type: '#', value: '123'}]]
     );
   });
 
   it("hash colors 3 characters 2: #abc", function () {
     const color = parseCssValue("#f09");
     expect(color).to.deep.equal(
-      [[{color: '#', value: 'f09'}]]
+      [[{type: '#', value: 'f09'}]]
     );
   });
 
@@ -179,56 +186,56 @@ describe("Colors", function () {
   it("hash colors 3 characters 3: #12b", function () {
     const color = parseCssValue("#12b");
     expect(color).to.deep.equal(
-      [[{color: '#', value: '12b'}]]
+      [[{type: '#', value: '12b'}]]
     );
   });
 
   it("hash colors 6 characters 1: #123456", function () {
     const color = parseCssValue("#123456");
     expect(color).to.deep.equal(
-      [[{color: '#', value: '123456'}]]
+      [[{type: '#', value: '123456'}]]
     );
   });
 
   it("hash colors 6 characters 2: #ffabcd", function () {
     const color = parseCssValue("#ffabcd");
     expect(color).to.deep.equal(
-      [[{color: '#', value: 'ffabcd'}]]
+      [[{type: '#', value: 'ffabcd'}]]
     );
   });
 
   it("hash colors 6 characters 3: #ff0099 ", function () {
     const color = parseCssValue("#ff0099");
     expect(color).to.deep.equal(
-      [[{color: '#', value: 'ff0099'}]]
+      [[{type: '#', value: 'ff0099'}]]
     );
   });
 
   it("hash colors 6 characters 4: #FFFFFF", function () {
     const color = parseCssValue("#FFFFFF");
     expect(color).to.deep.equal(
-      [[{color: '#', value: 'FFFFFF'}]]
+      [[{type: '#', value: 'FFFFFF'}]]
     );
   });
 
   it("hash colors 8 characters 1: #12345678", function () {
     const color = parseCssValue("#12345678");
     expect(color).to.deep.equal(
-      [[{color: '#', value: '12345678'}]]
+      [[{type: '#', value: '12345678'}]]
     );
   });
 
   it("hash colors 8 characters 2: #fff00012", function () {
     const color = parseCssValue("#fff00012");
     expect(color).to.deep.equal(
-      [[{color: '#', value: 'fff00012'}]]
+      [[{type: '#', value: 'fff00012'}]]
     );
   });
 
   it("hash colors 8 characters 3: #FF0099FF", function () {
     const color = parseCssValue("#FF0099FF");
     expect(color).to.deep.equal(
-      [[{color: '#', value: 'FF0099FF'}]]
+      [[{type: '#', value: 'FF0099FF'}]]
     );
   });
 

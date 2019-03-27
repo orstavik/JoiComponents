@@ -28,10 +28,23 @@ Web component patterns consists of the following types of recipes:
 7. [HowTo: attributeChangedCallback](book/chapter1/7_HowTo_attributeChangedCallback)
 8. [Pattern: TheEnd](book/chapter1/8_Pattern_TheEnd)
 9. [Anti-pattern: TwoConstructors](book/chapter1/9_Anti_TwoConstructors)
+10. [RulesOfThumb for web components](book/chapter1/10_rulesOfThumb)
 <!--
 3. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
 9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)
 -->
+
+## Chapter 2: ShadowDOM
+1. [What is: shadowDOM](book/chapter1b_slot_basics/1_WhatIs_shadowDOM)
+2. [What is: `<slot>`](book/chapter1b_slot_basics/2_WhatIs_slot)
+3. [What is: slot fallback nodes](book/chapter1b_slot_basics/3_WhatIs_slot_fallback_nodes)
+4. [What is: slot name](book/chapter1b_slot_basics/4_WhatIs_slotname)
+5. [What is: slot chain](book/chapter1b_slot_basics/5_WhatIs_slotchain)
+6. [Pattern: GentleMom](book/chapter1b_slot_basics/6_Pattern_GentleMom)
+7. [Pattern: GentleMom](book/chapter1b_slot_basics/6_Pattern_GentleMom)
+
+
+
 
 ## Chapter 2: How to make mixins
 1. [Reactive method](book/chapter2_HowToMakeMixins/Pattern1_ReactiveMethod.md)
@@ -52,14 +65,6 @@ Web component patterns consists of the following types of recipes:
 <!--4. .hashChangedCallback()-->
 <!-- 4. liefi-->
 
-## Chapter 4a: slot
-1. [What is: `<slot>`](book/chapter1b_slot_basics/WhatIs_slot.md)
-2. [What is: shadowDOM](book/chapter1b_slot_basics/WhatIs_shadowDOM.md)
-3. [What is: slot fallback nodes](book/chapter1b_slot_basics/WhatIs_slot_fallback_nodes.md)
-4. [What is: slot name](book/chapter1b_slot_basics/WhatIs_slotname.md)
-5. [What is: slot chain](book/chapter1b_slot_basics/WhatIs_slotchain.md)
-6. [Pattern: GentleMom](book/chapter1b_slot_basics/Pattern_GentleMom.md)
-
 ## Chapter 4b: slot style
 1. [HowTo: style `<slot>`](book/chapter1c_slot_style/WhatIs_style_slot.md)
 2. [HowTo: `::slotted(*)`](book/chapter1c_slot_style/WhatIs_style_slotted.md)
@@ -74,9 +79,9 @@ Web component patterns consists of the following types of recipes:
 2. [Proposal: `<VAR>`](book/chapter4_slottable/Proposal_VAR.md)
 
 ...
-4. [How to `<slot>`](book/chapter1b_slot_basics/HowTo_slot.md)
-4. [How to name `<slot>`s](book/chapter1b_slot_basics/HowTo_namedSlots.md)
-5. [How to chain `<slot>`s](book/chapter1b_slot_basics/HowTo_chainSlots.md)
+4. [How to `<slot>`](book/chapter1b_slot_basics/old/HowTo_slot.md)
+4. [How to name `<slot>`s](book/chapter1b_slot_basics/old/HowTo_namedSlots.md)
+5. [How to chain `<slot>`s](book/chapter1b_slot_basics/old/HowTo_chainSlots.md)
 6. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
 7. [Pattern: `slotchange`](book/chapter1b_slot_basics/Pattern2_slotchange.md)
 8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
