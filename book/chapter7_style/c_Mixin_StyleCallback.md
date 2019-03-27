@@ -212,6 +212,25 @@ export function StyleCallbackMixin(type) {
 </script>
 ```
 
+## Use-cases for `styleCallback(...)`
+
+There are two domains in which observed style properties will be most relevant: 
+custom enumeration values and colors.
+
+Some custom elements would like to implement custom style property words.
+CSS is full of such "special words" already: style properties such as `caption-side` for `<table>` 
+asks the user to choose one of the following words `left, right, top-outside, bottom-outside`.
+By simply recognizing which word is chosen, the web component can adjust its inner style accordingly.
+
+Layout properties are much harder to identify as the browser can and will perform complex calculation 
+to find its final value. Therefore, reacting to CSS layout values such as length, width, position,
+etc. based only on CSSOM values will likely be less useful than reacting to LayCSSOM values after
+layout has completed the calculation.
+
+CSS color properties on the other hand are fully available when accessed in the CSSOM. After CSSOM, 
+the browser will make no new calculation that will alter the colors shown on screen. Thus, doing
+color transformation based on CSSOM values is a good use case for `styleCallback(...)` reactions.
+
 ## Future work
 
 A fully functioning `styleCallback(..)` that adhere to the requirements in HowTo: TraverseTheCssom 
