@@ -1,0 +1,44 @@
+<script>
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML =
+        `<style>
+          ::slotted(*){
+            border-right: 6px solid green;
+          }
+          *::slotted(*){
+            border-bottom: 6px solid green;
+          }
+          slot[name="title"]::slotted(h1) {
+            color: green;
+          }
+          ::slotted(h1) {
+            color: red;
+          }
+          ::slotted(p.specific){
+            color: darkgreen;
+          }
+        </style>
+        <div>
+           <slot name="title"></slot>
+           <slot></slot>
+        </div>`;
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+</script>
+<style>
+  body {
+    color: blue;
+  }
+  p {
+    color: lightblue;
+  }
+</style>
+<green-frame>
+  <h1 slot="title">Hello </h1>
+  <p class="specific"><span>world!</span></p>
+</green-frame>

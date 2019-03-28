@@ -66,7 +66,7 @@ Web component patterns consists of the following types of recipes:
 <!-- 4. liefi-->
 
 ## Chapter 4b: slot style
-1. [HowTo: style `<slot>`](book/chapter1c_slot_style/WhatIs_style_slot.md)
+1. [HowTo: style `<slot>`](book/chapter2_slot_basics/WhatIs_style_slot.md)
 2. [HowTo: `::slotted(*)`](book/chapter1c_slot_style/WhatIs_style_slotted.md)
 3. [Problem: SlotStyleCreep](book/chapter1c_slot_style/Problem_StylingSlots.md)
 

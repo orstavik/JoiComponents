@@ -1,35 +1,38 @@
 # HowTo: `::slotted(*)`
 
 As we saw in the previous chapter, slotted nodes are first and foremost 
-styled from their original, lightDOM document.
-Slotted nodes will also inherit CSS properties of their parent nodes in the flattened DOM.
-But, what if we from the context of the shadowDOM wished to style the assigned nodes
-with CSS properties that are not inheritable?
-Enter CSS `::slotted(*)`.
+styled using regular CSS rules and selectors in the lightDOM document in which they are declared.
+Slotted nodes can also inherit CSS properties from both their lightDOM and shadowDOM context.
+So, we can style slotted content.                             
 
-`::slotted(...)` is a special form of CSS selector (a CSS pseudo class):
-`::slotted(...)` adds CSS rules to the nodes which gets slotted, to nodes from a different document.
-Here are the rules regarding `::slotted(...)` that you need to know:
+But, what if we wanted to "style non-inherited CSS properties of one or more transposed ("slotted") 
+element? The shadowDOM standard include a special CSS selector (a CSS pseudo class):
+`::slotted(...)` to solve this one particular use-case.
 
-1. `::slotted(...)` selects *only the slotted children*, **not the slotted descendants**. 
+`::slotted(...)` works like this:
 
-2. Inside the `::slotted(...)` selector you specify which child nodes you wish to select.
-   `::slotted(h1)` will only select slotted `<h1>` children.
-   `::slotted(*)` selects all slotted children in the `<slot>` 
-   (and this is therefore what we consider the default version of the `::slotted(...)` 
-   pseudo class selector).
+1. The `::slotted(...)` selector will match any HTML element that is transposed into a `<slot>`
+   in the shadowDOM. This essentially means that:
+   1. a CSS rule *from the shadowDOM* can apply to child elements of the host node *in the lightDOM*, 
+   2. when and only when these child elements gets transposed "slotted". 
 
-3. **CSS rules from lightDOM document always trumps `::slotted(...)` rules in the shadowDOM document**
-   when they apply to the same slotted node.
-   `::slotted(...)` is a CSS pseudo class with CSS specificity of 0,
-    and regardless of the precision of the internal selector within the `::slotted(...)` query,
-    the CSS rule `::slotted(...)` is always considered least important. 
+2. The `::slotted(...)` selector matches **slotted children only**, *not slotted descendants*.
+   There is no CSS selector that from the shadowDOM can ascribe a non-inherited CSS property to the
+   child of a slotted element.
 
-4. **`::slotted(...)` properties always trumps inherited properties**. Of course.
+3. Inside the `::slotted(...)` selector you can specify which child nodes you wish to select.
+   * `::slotted(*)` selects all slotted child elements.
+   * `::slotted(h1)` will only select slotted `<h1>` elements.
+ 
+4. `::slotted(...)` has very low priority. As a rule of thumb, CSS rules in lightDOM document 
+   trumps `::slotted(...)` rules in the shadowDOM for the same element, regardless of the 
+   specificity of the inside selector within the `::slotted(...)` selector. 
 
-5. To select a specific `<slot>` for a `::slotted(...)` rule, prefix the `::slotted(...)` selector.
-   `::slotted(*)` selects the slotted children *for all `<slot>` nodes in the document*.
-   `slot[name="boo"]::slotted(h1)` selects the slotted children *only for the `<slot name="boo">` node*.
+5. `::slotted(...)` properties will trump CSS properties that is only inherited. Of course.
+
+6. To select a specific `<slot>` for a `::slotted(...)` rule, prefix the `::slotted(...)` selector.
+   * `slot[name="boo"]::slotted(h1)` selects <h1> elements that are slotted into the `<slot name="boo">`.
+   * `*::slotted(*)` (same as `::slotted(*)`) selects all slotted elements for all `<slot>` elements.
 
 ## Example: `<green-frame>` with `::slotted(...)` style
 
@@ -38,31 +41,23 @@ Here are the rules regarding `::slotted(...)` that you need to know:
   class GreenFrame extends HTMLElement {
     constructor() {
       super();
-      this.attachShadow({
-        mode: "open"
-      });
+      this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML =
         `<style>
-          div {
-            display: block;
-            border: 10px solid green;
+          ::slotted(*){
+            border-right: 6px solid green;
+          }
+          *::slotted(*){
+            border-bottom: 6px solid green;
+          }
+          slot[name="title"]::slotted(h1) {
+            color: green;
           }
           ::slotted(h1) {
             color: red;
-            border-bottom: 6px solid red;
-          }
-          slot[name="title"]::slotted(h1) {
-            border-left: 6px solid purple;
-          }
-          ::slotted(span){
-            font-style: italics;
           }
           ::slotted(p.specific){
-            color: blue;
-          }
-          ::slotted(*){
-            color: orange;
-            border-top: 6px solid blue;
+            color: darkgreen;
           }
         </style>
         <div>
@@ -71,23 +66,20 @@ Here are the rules regarding `::slotted(...)` that you need to know:
         </div>`;
     }
   }
+
   customElements.define("green-frame", GreenFrame);
 </script>
 <style>
   body {
-    color: grey;
+    color: blue;
   }
   p {
-    color: pink;
-  }
-  h1 {
-    color: green;
+    color: lightblue;
   }
 </style>
 <green-frame>
   <h1 slot="title">Hello </h1>
   <p class="specific"><span>world!</span></p>
-  <h2>by Orstavik</h2>
 </green-frame>
 ```
 

@@ -1,0 +1,55 @@
+<script>
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML =
+        `<style>
+          slot {
+            font-weight: bold;
+            font-style: italic;
+          }
+        </style>
+
+        <div>
+          <slot><span>Hello shadow element!</span></slot>
+        </div>`;
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<style>
+  #container {
+    color: green;
+  }
+  green-frame > * {
+    font-style: normal;
+  }
+  span {
+    font-weight: normal;
+  }
+</style>
+
+<div id="container">
+  <green-frame>Hello light text!</green-frame>
+  <br/>
+  <green-frame><span>Hello light element!</span></green-frame>
+  <br/>
+  <green-frame></green-frame>
+</div>
+<ul>
+  <li>
+    The three "Hello..." are all green as they inherit this CSS property from the #container in the lightDOM.
+  </li>
+  <li>
+    The span in "Hello light element!" has both a normal font-style and font-weight.
+    These CSS properties are applied directly to the span element in the lightDOM.
+    The inheritance from the lightDOM wins over inheritance from the slot in the shadowDOM.
+  </li>
+  <li>
+    The other two "Hello..." are bold italic because they are text nodes without any style that inherit from the
+    slot element inside the shadowDOM. When text nodes are transposed as the top node, they come without style.
+  </li>
+</ul>

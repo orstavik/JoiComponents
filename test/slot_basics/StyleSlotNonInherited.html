@@ -1,0 +1,55 @@
+<script>
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML =
+        `<style>
+          slot {
+            display: inline-block;
+            border-left: 4px solid green;
+          }
+          span {
+            border-left: 4px solid red;
+            border-bottom: 4px solid red;
+          }
+        </style>
+
+        <div>
+          <slot><span>Hello shadow element!</span></slot>
+        </div>`;
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<style>
+  span {
+    border-left: 4px solid blue;
+    border-top: 4px solid blue;
+  }
+</style>
+
+<green-frame>Hello light text!</green-frame>
+<br/>
+<green-frame><span>Hello light element!</span></green-frame>
+<br/>
+<green-frame></green-frame>
+
+<ul>
+  <li>
+    Besides all three elements is a green border left. This green border is associated with the slot element itself,
+    which being "display: inline-block;" gets a border.
+  </li>
+  <li>
+    "Hello light element!" has a blue border top and left, as the span element is given this CSS property in the lightDOM
+    in which it is declared. It has no red border, neither left nor bottom, as the CSS rules inside the shadowDOM
+    does not apply to elements transposed into it.
+  </li>
+  <li>
+    "Hello shadow element!" has a red border bottom and left, as the span element is given this CSS property in the
+    shadowDOM in which it is declared. It has no blue border, neither left nor top, as the CSS rules in the lightDOM
+    does not apply to elements in the shadowDOM.
+  </li>
+</ul>
