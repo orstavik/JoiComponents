@@ -35,18 +35,18 @@ Web component patterns consists of the following types of recipes:
 -->
 
 ## Chapter 2: ShadowDOM
-1. [What is: shadowDOM](book/chapter1b_slot_basics/1_WhatIs_shadowDOM)
-2. [What is: `<slot>`](book/chapter1b_slot_basics/2_WhatIs_slot)
-3. [What is: slot fallback nodes](book/chapter1b_slot_basics/3_WhatIs_slot_fallback_nodes)
-4. [What is: slot name](book/chapter1b_slot_basics/4_WhatIs_slotname)
-5. [What is: slot chain](book/chapter1b_slot_basics/5_WhatIs_slotchain)
-6. [Pattern: GentleMom](book/chapter1b_slot_basics/6_Pattern_GentleMom)
-7. [Pattern: GentleMom](book/chapter1b_slot_basics/6_Pattern_GentleMom)
+1. [What is: shadowDOM](book/chapter2_slot_basics/1_WhatIs_shadowDOM)
+2. [HowTo: `<slot>`](book/chapter2_slot_basics/2_HowTo_slot)
+3. [HowTo: name `<slot>`](book/chapter2_slot_basics/3_HowTo_nameSlots)
+4. [HowTo: `<slot>` fallback nodes](book/chapter2_slot_basics/4_HowTo_slot_fallback_nodes)
+5. [HowTo: `.assignedNodes()`](book/chapter2_slot_basics/5_HowTo_assignedNodes)
+6. [Pattern: style `<slot>`](book/chapter2_slot_basics/6_HowTo_style_slot.md)
+7. [Pattern: `::slotted(*)`](book/chapter2_slot_basics/7_HowTo_slotted)
 
+## Chapter 3: `<slot>` matroska
+1. [What is: SlotMatroska](book/chapter3_slot_matroska/1_WhatIs_SlotMatroska)
 
-
-
-## Chapter 2: How to make mixins
+## Chapter 5: How to make mixins
 1. [Reactive method](book/chapter2_HowToMakeMixins/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](book/chapter2_HowToMakeMixins/Pattern2_FunctionalMixin.md)
 3. [StaticSetting](book/chapter2_HowToMakeMixins/Pattern3_StaticSettings.md)
