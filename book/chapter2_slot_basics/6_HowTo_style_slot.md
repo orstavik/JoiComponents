@@ -1,6 +1,93 @@
 # HowTo: style `slot`
 
-Both `<slot>` nodes themselves and their slotted nodes are first and foremost 
+The **primary** method of styling the content of `<slot>` elements is by adding rules in the DOM
+in which that content is declared.
+
+Five facts about styling (the content of) `<slot>` elements:
+
+1. As we described in [2_HowTo_slot](2_HowTo_slot), when lightDOM elements are transposed into
+   a `<slot>` element, they do *not* replace the `<slot>` element in the lightDOM. 
+
+2. LightDOM elements that are transposed *keep* their CSS properties from the lightDOM. You can think
+   of it as if CSS is calculated first, and then the already styled elements are moved from the
+   lightDOM document to the shadowDOM document. 
+
+3. LightDOM text nodes that are transposed *do not keep* their CSS properties from the lightDOM.
+
+4. When fallback nodes are used to fill a `<slot>` element, the `<slot>` element remains as a wrapper 
+   around the fallback nodes. Thus, the `<slot>` element exists in the flattened DOM *both* when it 
+   is filled with either transposed nodes or fallback nodes.
+   
+5. The child elements of a `<slot>` can be styled as any regular element in the shadowDOM.
+    
+This means that you can style: 
+
+1. the `<slot>` element *itself* with CSS properties specified in the shadowDOM,
+2. the `<slot>` elements' *fallback nodes* with CSS properties specified in the shadowDOM,
+3. transposed *elements* with CSS properties specified in the lightDOM,
+3. transposed *text nodes* with CSS properties specified in the lightDOM that will be inherited from
+   the `<slot>` element.
+   
+## Example: `<green-frame>` with style
+
+In this example we add some CSS rules to the green frame.
+Here we only attempt to illustrate how the CSS rules work, *not* style itself.
+
+```html
+<script>
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({
+        mode: "open"
+      }); //[1]
+      this.shadowRoot.innerHTML =
+       `<style>
+          div {
+            display: block;
+            border: 10px solid green;
+            color: skyblue;
+          }
+          slot {
+            color: blue;
+            border-left: 2px solid blue;
+          }
+          span {
+            border-top: 2px solid red;
+          } 
+        </style>
+
+        <div>
+          <slot></slot>
+          <h2>by orstavik</h2>
+        </div>`;
+    }
+  }
+  customElements.define("green-frame", GreenFrame);
+</script>
+<style>
+  body {
+    color: grey;
+  }
+
+  h1 {
+    color: green;
+  }
+
+  span {
+    border-bottom: 2px solid green;
+  }
+</style>
+<green-frame>
+  <h1>Hello </h1>
+  <p><span>world!</span></p>
+</green-frame>
+<green-frame>hello sunshine!</green-frame>
+```
+
+## Old drafts
+
+Both `<slot>` elements themselves and their slotted nodes are first and foremost 
 **styled normally in their respective lightDOM context**.
 When you in a (lightDOM) document place a node as a slotable node under another custom element, 
 ie. as a child of a custom element's host node, then that slotable node is 
