@@ -1,4 +1,4 @@
-# HowTo: chain slot
+# WhatIs: SlotMatroska
 
 Web components can use other web components in their shadowDOM.
 This gives a web component the ability to encapsulate several other custom elements side-by-side,

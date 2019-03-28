@@ -79,9 +79,9 @@ Web component patterns consists of the following types of recipes:
 2. [Proposal: `<VAR>`](book/chapter4_slottable/Proposal_VAR.md)
 
 ...
-4. [How to `<slot>`](book/chapter1b_slot_basics/old/HowTo_slot.md)
-4. [How to name `<slot>`s](book/chapter1b_slot_basics/old/HowTo_namedSlots.md)
-5. [How to chain `<slot>`s](book/chapter1b_slot_basics/old/HowTo_chainSlots.md)
+4. [How to `<slot>`](book/chapter3_slot_matroska/old/HowTo_slot.md)
+4. [How to name `<slot>`s](book/chapter3_slot_matroska/old/HowTo_namedSlots.md)
+5. [How to chain `<slot>`s](book/chapter3_slot_matroska/old/HowTo_chainSlots.md)
 6. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
 7. [Pattern: `slotchange`](book/chapter1b_slot_basics/Pattern2_slotchange.md)
 8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
