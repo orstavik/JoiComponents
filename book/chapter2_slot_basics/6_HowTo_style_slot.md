@@ -1,209 +1,158 @@
 # HowTo: style `slot`
 
-The **primary** method of styling the content of `<slot>` elements is by adding rules in the DOM
-in which that content is declared.
-
-Five facts about styling (the content of) `<slot>` elements:
+A primary purpose of the shadowDOM is to prevent CSS rules in the lightDOM to affect elements
+in the shadowDOM, and vice versa, to protect elements in the lightDOM to be styled by CSS rules
+in the shadowDOM. This means that the **primary** method of styling the content of `<slot>` 
+elements is by adding rules in the DOM in which that content is declared. We can summarize these 
+rules as **five facts** about styling (the content of) `<slot>` elements:
 
 1. As we described in [2_HowTo_slot](2_HowTo_slot), when lightDOM elements are transposed into
    a `<slot>` element, they do *not* replace the `<slot>` element in the lightDOM. 
+   Furthermore, when fallback nodes are used to fill a `<slot>` element, the `<slot>` element 
+   remains as a wrapper around the fallback nodes. Thus, the `<slot>` element exists in the flattened 
+   DOM, and the `<slot>` element *itself* can be *styled*.
 
-2. LightDOM elements that are transposed *keep* their CSS properties from the lightDOM. You can think
-   of it as if CSS is calculated first, and then the already styled elements are moved from the
+2. LightDOM nodes that are transposed *keep* their CSS properties from the lightDOM. You can think
+   of it as if CSS is calculated first, and then the already styled nodes are moved from the
    lightDOM document to the shadowDOM document. 
-
-3. LightDOM text nodes that are transposed *do not keep* their CSS properties from the lightDOM.
-
-4. When fallback nodes are used to fill a `<slot>` element, the `<slot>` element remains as a wrapper 
-   around the fallback nodes. Thus, the `<slot>` element exists in the flattened DOM *both* when it 
-   is filled with either transposed nodes or fallback nodes.
    
-5. The child elements of a `<slot>` can be styled as any regular element in the shadowDOM.
+3. The child elements of a `<slot>` can be styled as any regular element in the shadowDOM.
     
+4. Inherited CSS properties for transposed *elements* are first picked from the lightDOM and 
+   then from the shadowDOM.
+
+5. Text nodes inherit no CSS properties directly from the lightDOM context, but indirectly via the
+   host node and then slot element inside the shadowDOM.
+
 This means that you can style: 
 
 1. the `<slot>` element *itself* with CSS properties specified in the shadowDOM,
-2. the `<slot>` elements' *fallback nodes* with CSS properties specified in the shadowDOM,
-3. transposed *elements* with CSS properties specified in the lightDOM,
-3. transposed *text nodes* with CSS properties specified in the lightDOM that will be inherited from
-   the `<slot>` element.
+2. the `<slot>` elements' *fallback nodes* with CSS properties specified in the shadowDOM, and
+3. transposed *nodes* with CSS properties specified in the lightDOM.
+4. Inherited CSS properties for transposed *nodes* can be declared in the shadowDOM if the value
+   of that CSS property coming from the lightDOM is `inherit`.
+
+## Example: Non-inherited CSS properties from normal CSS selectors
+
+```html
+<script>
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML =
+        `<style>
+          slot {
+            display: inline-block;
+            border-left: 4px solid green;
+          }
+          span {
+            border-left: 4px solid red;
+            border-bottom: 4px solid red;
+          }
+        </style>
+
+        <div>
+          <slot><span>Hello shadow element!</span></slot>
+        </div>`;
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<style>
+  span {
+    border-left: 4px solid blue;
+    border-top: 4px solid blue;
+  }
+</style>
+
+<green-frame>Hello light text!</green-frame>
+<br/>
+<green-frame><span>Hello light element!</span></green-frame>
+<br/>
+<green-frame></green-frame>
+
+<ul>
+  <li>
+    Besides all three elements is a green border left. This green border is associated with the slot element itself,
+    which being "display: inline-block;" gets a border.
+  </li>
+  <li>
+    "Hello light element!" has a blue border top and left, as the span element is given this CSS property in the lightDOM
+    in which it is declared. It has no red border, neither left nor bottom, as the CSS rules inside the shadowDOM
+    does not apply to elements transposed into it.
+  </li>
+  <li>
+    "Hello shadow element!" has a red border bottom and left, as the span element is given this CSS property in the
+    shadowDOM in which it is declared. It has no blue border, neither left nor top, as the CSS rules in the lightDOM
+    does not apply to elements in the shadowDOM.
+  </li>
+</ul>
+
+```
    
-## Example: `<green-frame>` with style
-
-In this example we add some CSS rules to the green frame.
-Here we only attempt to illustrate how the CSS rules work, *not* style itself.
+## Example: Inherited CSS properties from normal CSS selectors
 
 ```html
 <script>
   class GreenFrame extends HTMLElement {
     constructor() {
       super();
-      this.attachShadow({
-        mode: "open"
-      }); //[1]
+      this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML =
-       `<style>
-          div {
-            display: block;
-            border: 10px solid green;
-            color: skyblue;
-          }
+        `<style>
           slot {
-            color: blue;
-            border-left: 2px solid blue;
+            font-weight: bold;
+            font-style: italic;
           }
-          span {
-            border-top: 2px solid red;
-          } 
         </style>
 
         <div>
-          <slot></slot>
-          <h2>by orstavik</h2>
+          <slot><span>Hello shadow element!</span></slot>
         </div>`;
     }
   }
+
   customElements.define("green-frame", GreenFrame);
 </script>
-<style>
-  body {
-    color: grey;
-  }
 
-  h1 {
+<style>
+  #container {
     color: green;
   }
-
+  green-frame > * {
+    font-style: normal;
+  }
   span {
-    border-bottom: 2px solid green;
+    font-weight: normal;
   }
 </style>
-<green-frame>
-  <h1>Hello </h1>
-  <p><span>world!</span></p>
-</green-frame>
-<green-frame>hello sunshine!</green-frame>
+
+<div id="container">
+  <green-frame>Hello light text!</green-frame>
+  <br/>
+  <green-frame><span>Hello light element!</span></green-frame>
+  <br/>
+  <green-frame></green-frame>
+</div>
+<ul>
+  <li>
+    The three "Hello..." are all green as they inherit this CSS property from the #container in the lightDOM.
+  </li>
+  <li>
+    The span in "Hello light element!" has both a normal font-style and font-weight.
+    These CSS properties are applied directly to the span element in the lightDOM.
+    The inheritance from the lightDOM wins over inheritance from the slot in the shadowDOM.
+  </li>
+  <li>
+    The other two "Hello..." are bold italic because they are text nodes without any style that inherit from the
+    slot element inside the shadowDOM. When text nodes are transposed as the top node, they come without style.
+  </li>
+</ul>
 ```
-
-## Old drafts
-
-Both `<slot>` elements themselves and their slotted nodes are first and foremost 
-**styled normally in their respective lightDOM context**.
-When you in a (lightDOM) document place a node as a slotable node under another custom element, 
-ie. as a child of a custom element's host node, then that slotable node is 
-first and foremost styled regularly with the CSS rules from that (lightDOM) document.
-When you add a `<slot>` node to a custom element's shadowDOM document,
-then that shadowDOM document is the lightDOM document around that `<slot>` node, and
-that `<slot>` node would be styled with the regular CSS rules that applies to it from that document.
-
-Let me put it another way. Please, let me go on explaining and preeeeeaching about the beeeautiful 
-principles of styling `<slot>`s.
-Let me do that because you and I, we both believe that *talking* about styling `<slot>`s will make it 
-understandable.
-Or maybe not. Maybe styling `<slot>`s is easier done than said.
-Let's try with an example and diagram instead:
-
-## Example: `<green-frame>` with style
-
-In this example we add some CSS rules to the green frame.
-Here we only attempt to illustrate how the CSS rules work, *not* style itself.
-
-```html
-<script>
-  class GreenFrame extends HTMLElement {
-    constructor() {
-      super();
-      this.attachShadow({
-        mode: "open"
-      }); //[1]
-      this.shadowRoot.innerHTML =
-       `<style>
-          div {
-            display: block;
-            border: 10px solid green;
-            color: skyblue;
-          }
-          slot {
-            color: blue;
-            border-left: 2px solid blue;
-          }
-          span {
-            border-top: 2px solid red;
-          } 
-        </style>
-
-        <div>
-          <slot></slot>
-          <h2>by orstavik</h2>
-        </div>`;
-    }
-  }
-  customElements.define("green-frame", GreenFrame);
-</script>
-<style>
-  body {
-    color: grey;
-  }
-
-  h1 {
-    color: green;
-  }
-
-  span {
-    border-bottom: 2px solid green;
-  }
-</style>
-<green-frame>
-  <h1>Hello </h1>
-  <p><span>world!</span></p>
-</green-frame>
-```
-
-### Diagram
-
-<a 
-href="https://rawgit.com/orstavik/JoiComponents/master/book/chapter1c_slot_style/svg/style_regular.svg"
-target="_blank">
-Open the diagram in a new tab</a>.
-
-## What happened?
-
-When the browser creates the DOM, it will parse the content of all `<style>` and 
-`<link rel="stylesheet">` elements and set up `stylesheet` objects on the document root node. 
-These `stylesheet` objects form the basis of the CSSOM.
-
-*Before* the DOM is flattened, the CSSOM rules are merged into the DOM hierarchy. 
-At this point, the documents in the DOM still remain separate, and 
-this means that the rules in the CSSOM `stylesheet` objects are matched to the
-nodes *within each document*. 
-
-*Then* the DOM is flattened. To flatten the DOM thus means to move/transpose nodes:
- * **with individually attributed CSS rules**
- * **from the host** node parent in the lightDOM
- * **to the slot** node parent inside the shadowDOM.
-
-*After* the DOM is flattened, **inherited** CSS property values gets attributed to each node.
-The inherited value of CSS properties thus follow the *flattened* hierarchy of the DOM working
-*across DOM document borders*.
-
-*As a result* in the flattened DOM, we see that:
-1. **CSS rules** are *only* attributed **within document borders, before documents are flattened** while
-2. **CSS inheritance** is done **across document borders, after documents are flattened**.
-
-With regular CSS selectors, this gives us 4 ways to style `<slot>` and slotted nodes:
-
-1. The `<slot>` element itself can be directly attributed CSS rules from its document (shadowDOM). 
-2. The `<slot>` element can inherit styles from its parents nodes in its document (shadowDOM).
-3. The slotted nodes can be directly attributed CSS rules from their document (lightDOM).¸and
-4. The `<slot>` and slotted nodes can both inherit CSS properties from the host node and all its ascendants
-in the lightDOM as inheritable CSS properties are not stopped by document borders.
-
-## For chapter on style creep
-
-There is a strange thing about the `<slot>` element as an HTML variable.
-As mentioned before, `<slot>` elements are not resolved, but filled with content.
-This means that in the flattened DOM, the `<slot>` element still exist. 
-And this means that the `<slot>` itself *can be styled*.
  
 ## References
+
  * dunno
