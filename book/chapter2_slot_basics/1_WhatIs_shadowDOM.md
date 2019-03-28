@@ -6,14 +6,19 @@ It is called the shadowDOM because:
 2. the inner document of that custom element is intended **not** to be seen, 
    to be encapsulated in a black box and hidden from view, metaphorically "in the shadows".
    
-Conversely, the **lightDOM** is the name of the HTML document where the custom element (`host` node)
+Conversely, the **lightDOM** is the name of the HTML document where a web component
 is used. All the HTML elements in this document is supposed to be seen. As they are visible and open,
 the developer should be able to see them directly and use JS to manipulate them.
 These nodes are "in the light".
 
-Soon, we will make these terms a bit more complicated as we start using web components inside 
-other web components. But until then, think of the **shadowDOM** as the document inside 
-the web component and the **lightDOM** as the document around the web component's `host` node.
+All ShadowDOMs are connected to an element. And all lightDOM children elements have a parent HTML element.
+The HTML element in the lightDOM which has the shadowDOM attached to it we call the **host** element.
+The host element is the connection where a shadowDOM is connected to a lightDOM.
+
+> todo move this to the chained web component chapter
+> Later, when we nest web components inside each other's shadowDOM, these terms will become slightly more
+> complicated. But until then, think of the **shadowDOM** as the document inside 
+> the web component and the **lightDOM** as the document around the web component's `host` node.
 
 ## Example: `<green-frame>` with two slotted nodes
 
@@ -61,7 +66,7 @@ for the `GreenFrame` custom element in this example.
    the previous chapter and example.
 2. This time, however, two elements: `<h1>Hello </h1>` and `<p>world!</p>`,
    was placed as slottable nodes for the `<green-frame>` element.
-3. Both of these nodes therefore gets "transposed"/"kidnapped" by the inner `<slot>` element
+3. Both of these nodes therefore gets "transposed"/moved into the inner `<slot>` element
    when the DOM is flattened.
 4. But, we end up getting 5 DOM nodes being slotted. This is because `<slot>` elements can be filled
    with both HTML elements and HTML text nodes.

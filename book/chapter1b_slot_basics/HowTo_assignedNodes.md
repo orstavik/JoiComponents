@@ -44,6 +44,82 @@ The JS api does not give this result. It flattens the SLOTs. Except, of course, 
 Confused? Good, that means your mind is working like a normal persons;)
 
 
+## `<slot>` gotya #2: Slot fallback nodes are only shown from the top level?
+
+And. Just one more thing. If you have a `<slot>` element at the top level lightDOM, then
+the children of that element *will* be considered `.assignedNodes()`. "What's that?", you might say.
+"Are some `<slot>.childNodes` suddenly `.assignedNodes()` after all? And *why* would anybody put a 
+`<slot>` element at the top lightDOM anyway?" All highly valid questions. And all too weird to be 
+answered here and now. But, as you might stumble upon this later, I will show how this gotya plays out 
+in an example.
+
+## Example: Using `.assignedNodes()` 
+
+```html
+<script>
+  class GreenFrame extends HTMLElement {       
+    
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =             
+        `<style>
+          div {
+            display: block;                                  
+            border: 10px solid green;
+          }
+        </style>
+
+        <div>
+          <slot>Now you see me.</slot>
+        </div>`;
+    }
+  }
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame id="one"></green-frame>
+<green-frame id="two">hello world</green-frame>
+<green-frame id="three">
+  <h1>hello sunshine</h1>
+</green-frame>
+<green-frame id="four">
+</green-frame>
+<green-frame id="five">
+  <slot>
+    <h1>hello again</h1>
+  </slot>
+</green-frame>
+<slot id="six">
+  <h1>hello hello</h1>
+</slot>
+
+<script >
+function flatDomChildNodes(slot){
+  let flattenedChildren = slot.assignedNodes();
+  if (flattenedChildren.length === 0)
+    return slot.childNodes;
+  return flattenedChildren;        
+}
+
+const one = document.querySelector("#one").shadowRoot.children[1].children[0];
+const two = document.querySelector("#two").shadowRoot.children[1].children[0];
+const three = document.querySelector("#three").shadowRoot.children[1].children[0];
+const four = document.querySelector("#four").shadowRoot.children[1].children[0];
+const five = document.querySelector("#five").shadowRoot.children[1].children[0];
+const six = document.querySelector("#six");
+
+console.log(one.assignedNodes());
+console.log(flatDomChildNodes(one));
+console.log(two.assignedNodes());
+console.log(three.assignedNodes());
+console.log(four.assignedNodes());
+console.log(five.assignedNodes());
+console.log(six.assignedNodes());
+</script>
+```
+
+
 ### Chrome bug: Chained-slots-not-always-flattened
 
 In Chrome, there is a bug. If you *erroneously* add `<slot>` elements at the top level, 

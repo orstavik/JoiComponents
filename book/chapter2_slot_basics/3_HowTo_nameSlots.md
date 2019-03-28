@@ -1,10 +1,13 @@
 # WhatIs: `slot` and `name` attributes
 
-As mentioned in the first chapter, [What is: slot](WhatIs_slot.md), 
-a web component can contain several different slots.
-When it does, the web component needs to distinguish both:
- * between the different slots in the shadowDOM, and 
- * which slotable node in the lightDOM belongs to which `<slot>` element in the shadowDOM.
+A web component can contain several different slots.
+By including several different slots, the browser can place different lightDOM elements in different
+positions in its shadowDOM.
+
+To place different lightDOM elements in different positions in the shadowDOM, 
+the web component needs to differentiate:
+ * between the different `<slot>` elements in the shadowDOM, and 
+ * which slotable node in the lightDOM belongs to which shadowDOM `<slot>` element.
 
 To distinguish between different `<slot>` elements in the shadowDOM, 
 each `<slot>` element is given a `name` attribute, for example:
@@ -12,12 +15,12 @@ each `<slot>` element is given a `name` attribute, for example:
 the `name` value is *the empty string `""`*, the same as an empty `name` attribute would produce.
 
 To identify which slotable node belongs to which `<slot>`,
-slotable elements in the lightDOM can be given a `slot` attribute.
-As with the `<slot>` `name` attribute, 
-if you assign no `slot` attribute to a slottable element or node,
+the lightDOM elements is given a `slot` attribute.
+If you assign no `slot` attribute to a slotable element or node,
 the `slot` attribute value would still be considered `""`.
+Thus, the `slot` and `name` attributes echo each other.
 As text DOM nodes cannot be given an attribute value, all slottable text node would be filled into 
-the default, empty-string `<slot>`.
+the default, empty-name `<slot>` element.
 
 ## Example: `<green-frame>` with a label
 
@@ -82,5 +85,5 @@ todo
    
 
 ## References
- 
- 
+  
+ *

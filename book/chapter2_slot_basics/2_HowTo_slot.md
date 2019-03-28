@@ -1,4 +1,4 @@
-# WhatIs: `<SLOT>`
+# HowTo: `<SLOT>`
                                                                    
 To **"compose HTML"** is to put HTML elements a) next to each other, b) nested inside each other's 
 lightDOM and c) nested inside each other's shadowDOM.
@@ -10,47 +10,40 @@ only show the first five elements, etc. But, regardless of the style of the stri
 the beads you put on it is one after the other, sequential.
 
 When you nest HTML elements inside *only* each other's lightDOM *or* shadowDOM, 
-they will be presented as frames-within-frames or boxes-within-boxes.
+they will be presented as boxes-within-boxes.
 You may of course use CSS to style the look these boxes: some boxes may be contained within each 
-other as frames and passe partout around a picture; other boxes may be be skewed, the inner box 
+other as a frame with a passe partout and a picture; other boxes may be be skewed, the inner box 
 overflow the borders of the outer box; or the inner and outer boxes may stretch or pull to make 
-each other fit. Regardless, as long as you only nest elements in *either* the lightDOM *or* the 
-shadowDOM, they are simply boxes-within-boxes.
+each other fit. Regardless of style, as long as you only nest elements in *either* the lightDOM 
+*or* the shadowDOM, they are simply boxes-within-boxes.
 
-But, what if you nest HTML elements *both* in each other's lightDOM *and* shadowDOM?
+But, what happens when you nest HTML elements *both* inside each other's lightDOM *and* shadowDOM?
 
 ## `<slot>` merges lightDOM elements into the shadowDOM 
 
 When you nest HTML elements inside each other in *both* the shadowDOM *and* the lightDOM, 
-you have a problem. You have a *two*-dimensional boxes-within-boxes structure.
-And the browser/HTML can only display *one* uniform boxes-within-boxes structure on screen.
-So, how do you unify the boxes-within-boxes structure from the lightDOM with the
-boxes-within-boxes structure from the shadowDOM? 
+you have a problem. You have a *two-dimensional* boxes-within-boxes structure.
+And the browser/HTML can only display a *one-dimensional* boxes-within-boxes structure on screen.
+So, how do you unify such a two-dimensional boxes-within-boxes structure into one? How do the browser
+merge lightDOM and shadowDOM children? 
                                             
-The most simple and immediate answer is: you don't. You choose one. And in HTML, the shadowDOM is
-chosen and nested lightDOM elements are kicked to the curve. (That is, when you have nested elements 
-in *two* dimension, both shadowDOM and lightDOM.)
+The immediate answer is: the browser doesn't. It simply chooses one. And in HTML, when an element has
+both lightDOM and shadowDOM children elements, the shadowDOM is chosen and the lightDOM children are 
+kicked to the curve.
 
 But. There is *one* way to merge elements from the lightDOM into the shadowDOM. 
 If you place a `<slot>` element inside the shadowDOM of an element, then that `<slot>` element
 will "pick up" the lightDOM children elements that was suppressed, and place them in the hierarchy of
 the shadowDOM. The `<slot>` element reserves a space for the lightDOM elements in the unified
-boxes-within-boxes structure of the shadowDOM. This way of symbolically moving elements from the lightDOM
-into the shadowDOM is called to "transpose" elements.
+boxes-within-boxes structure of the shadowDOM. This way of symbolically moving elements from the 
+lightDOM into the shadowDOM is called to "transpose" elements.
 
-## Many `<slot>` elements with many transposed elements
+*Before* lightDOM elements are transposed into the shadowDOM `<slot>` elements, we call the DOM 
+"the DOM"; *after* the lightDOM child elements are moved into the shadowDOM `<slot>` elements,
+we call the DOM **the flattened DOM**.
 
-A shadowDOM can both:
-1. contain several `<slot>` elements and 
-2. fill several lightDOM elements into a single `<slot>`.
-
-To use several different `<slot>` elements to host different types of lightDOM elements is fairly
-straight forward. [`name` and `slot` attributes](4_WhatIs_slotname) are added on the `<slot>` and 
-transposed elements respectively, and then matched as the nested structures are merged.
-
-Similarly, several lightDOM elements can be transposed into a single `<slot>` element. 
-This one-to-many relationship between `<slot>` and transposed nodes gives the shadowDOM the 
-flexibility it needs to capture and encapsulate lightDOM elements.
+*Many* lightDOM elements can be moved into a *single* shadowDOM `<slot>` element. If the host element
+has many children in the lightDOM, then many children can be added under the `<slot>` element.
 
 ## Example: `<green-frame>` with `<slot>`
 
