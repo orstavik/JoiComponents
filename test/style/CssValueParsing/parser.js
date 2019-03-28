@@ -19,7 +19,7 @@ describe("Parser correct", function () {
       {type: "number", unit: "rem", value: "1"}
     ]]);
   });
-  
+
   it("comma: red, blue", function () {
     const ast = parseCssValue("red, blue");
     expect(ast).to.deep.equal([
@@ -34,7 +34,7 @@ describe("Parser correct", function () {
       [[{"type": "word", "value": "blue"}], [], [{"type": "word", "value": "red"}]]
     );
   });
-  
+
   it("angle units: rotate(10deg)", function () {
     const deg = parseCssValue("rotate(10deg)");
     expect(deg).to.deep.equal(
@@ -101,8 +101,8 @@ describe("Parser correct", function () {
       }]]
     );
   });
-  
-   it("rgb color missed space: rgb(255.5,0.5,0.3)", function () {
+
+  it("rgb color missed space: rgb(255.5,0.5,0.3)", function () {
     const color = parseCssValue("rgb(255.5,0.5,0.3)");
     expect(color).to.deep.equal(
       [[{
@@ -466,91 +466,109 @@ describe("Colors", function () {
 describe("Parser error", function () {
   it("operation lacking space 1: calc(4px+4%)", function () {
     expect(() => parseCssValue("calc(4px+4%)")).to.throw(SyntaxError,
-      "Illegal CSS value expression list:\n  calc(4px+4%)\n          ^");
+      "Illegal CSS value expression list:\n  calc(4px+4%)\n          ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("operation lacking space 2: calc(5px +5%)", function () {
     expect(() => parseCssValue("calc(5px +5%)")).to.throw(SyntaxError,
-      "Illegal CSS value expression list:\n  calc(5px +5%)\n           ^");
+      "Illegal CSS value expression list:\n  calc(5px +5%)\n           ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("operation lacking space 3: calc(6px- 6%)", function () {
     expect(() => parseCssValue("calc(6px- 6%)")).to.throw(SyntaxError,
-      "Illegal CSS value expression list:\n  calc(6px- 6%)\n            ^");
+      "Illegal CSS value expression list:\n  calc(6px- 6%)\n            ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("operation lacking space 4: calc(var(--custom-prop)/ 2)", function () {
     expect(() => parseCssValue("calc(var(--custom-prop)/2)")).to.throw(SyntaxError,
-      "Illegal CSS value expression list:\n  calc(var(--custom-prop)/2)\n                         ^");
+      "Illegal CSS value expression list:\n  calc(var(--custom-prop)/2)\n                         ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("operation lacking several spaces 5: calc( calc( 100px +2)- 2)", function () {
     expect(() => parseCssValue("calc( calc( 100px +2)- 2)")).to.throw(SyntaxError,
-      "Illegal CSS value expression list:\n  calc( calc( 100px +2)- 2)\n                    ^");
+      "Illegal CSS value expression list:\n  calc( calc( 100px +2)- 2)\n                    ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("operation lacking operator 1: calc(6px 6%)", function () {
     expect(() => parseCssValue("calc(6px 6%)")).to.throw(SyntaxError,
-      "Illegal CSS value expression list:\n  calc(6px 6%)\n           ^");
+      "Illegal CSS value expression list:\n  calc(6px 6%)\n           ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("lack of space is not confused with a minus number 1: calc(-10px+ -6vw)", function () {
     expect(() => parseCssValue("calc(-10px+ -6vw)")).to.throw(SyntaxError,
-      "Illegal CSS value expression list:\n  calc(-10px+ -6vw)\n            ^");
+      "Illegal CSS value expression list:\n  calc(-10px+ -6vw)\n            ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("lack of space is not confused with a minus number 2: calc(-20vh +-8%)", function () {
     expect(() => parseCssValue("calc(-20vh +-8%)")).to.throw(SyntaxError,
-      "Css value operator must be surrounded by space:\n  calc(-20vh +-8%)\n              ^");
+      "Css value operator must be surrounded by space:\n  calc(-20vh +-8%)\n              ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("lack of space is not confused with a minus number 3: calc(-6px+-6%)", function () {
     expect(() => parseCssValue("calc(-6px+-6%)")).to.throw(SyntaxError,
-      "Illegal CSS value expression list:\n  calc(-6px+-6%)\n           ^");
+      "Illegal CSS value expression list:\n  calc(-6px+-6%)\n           ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("Illegal token 1: rotate(4deg]", function () {
     expect(() => parseCssValue("rotate(4deg]")).to.throw(SyntaxError,
-      "Illegal token: \n  rotate(4deg]\n             ^");
+      "Illegal token: \n  rotate(4deg]\n             ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("Illegal token 2: rotate[4deg)", function () {
     expect(() => parseCssValue("rotate[4deg)")).to.throw(SyntaxError,
-      "Illegal token: \n  rotate[4deg)\n        ^");
+      "Illegal token: \n  rotate[4deg)\n        ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("Illegal color space: # 1", function () {
     expect(() => parseCssValue("# 1")).to.throw(SyntaxError,
-      "Illegal token: \n  # 1\n  ^");
+      "Illegal token: \n  # 1\n  ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("Illegal color 1: #1", function () {
     expect(() => parseCssValue("#1")).to.throw(SyntaxError,
-      "Illegal #color: \n  #1\n  ^");
+      "Illegal #color: \n  #1\n  ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("Illegal color 2: #12", function () {
     expect(() => parseCssValue("#12")).to.throw(SyntaxError,
-      "Illegal #color: \n  #12\n  ^");
+      "Illegal #color: \n  #12\n  ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("Illegal color 5a: #12345", function () {
     expect(() => parseCssValue("#12345")).to.throw(SyntaxError,
-      "Illegal #color: \n  #12345\n  ^");
+      "Illegal #color: \n  #12345\n  ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("Illegal color 5b: #12345", function () {
     expect(() => parseCssValue("#12345")).to.throw(SyntaxError,
-      "Illegal #color: \n  #12345\n  ^");
+      "Illegal #color: \n  #12345\n  ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("Illegal color 7: #1234567", function () {
     expect(() => parseCssValue("#1234567")).to.throw(SyntaxError,
-      "Illegal #color: \n  #1234567\n  ^");
+      "Illegal #color: \n  #1234567\n  ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 
   it("Illegal CSS primitive value 1: 21as 9,7))", function () {
     expect(() => parseCssValue("21as 9,7))")).to.throw(SyntaxError,
-      "Illegal CSS primitive value: \n  21as 9,7))\n          ^");
+      "Illegal CSS primitive value: \n  21as 9,7))\n          ^")
+      .that.satisfy(function (err) {console.log(err); return true;});
   });
 });
