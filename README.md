@@ -43,8 +43,25 @@ Web component patterns consists of the following types of recipes:
 6. [Pattern: style `<slot>`](book/chapter2_slot_basics/6_HowTo_style_slot.md)
 7. [Pattern: `::slotted(*)`](book/chapter2_slot_basics/7_HowTo_slotted)
 
-## Chapter 3: `<slot>` matroska
-1. [What is: SlotMatroska](book/chapter3_slot_matroska/1_WhatIs_SlotMatroska)
+## Chapter 3: SlotMatroska
+1. [HowTo: chain slots](book/chapter3_slot_matroska/1_HowTo_chainSlots)
+2. [Problem: SlotMatroska](book/chapter3_slot_matroska/2_Problem_SlotMatroska)
+3. [Problem: SlotStyleCreep](book/chapter3_slot_matroska/3_Problem_SlotMatroskaStyleCreep)
+3. [Problem: FallbackNodesFallout](book/chapter3_slot_matroska/4_Problem_FallbackNodesFallout)
+
+
+## Chapter 3y: Slottables
+2. [Problem: SlotchangeEavesdropping](book/chapter4_slottable/Problem_SlotchangeEavesdropping.md)
+2. [Problem: DeclarativeResolution](book/chapter4_slottable/Problem_DeclarativeResolution.md)
+2. [Problem: slotchange issues](book/chapter4_slottable/Problem_slotchange_issues.md)
+2. [Pattern: Slottables](book/chapter4_slottable/Pattern_Slottables.md)
+2. [Theory: SlotVariable](book/chapter4_slottable/Theory_SlotVariable.md)
+2. [Proposal: `<VAR>`](book/chapter4_slottable/Proposal_VAR.md)
+...
+7. [Pattern: `slotchange`](book/chapter1b_slot_basics/Pattern2_slotchange.md)
+8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
+<!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
+
 
 ## Chapter 5: How to make mixins
 1. [Reactive method](book/chapter2_HowToMakeMixins/Pattern1_ReactiveMethod.md)
@@ -64,28 +81,6 @@ Web component patterns consists of the following types of recipes:
 1. [.attributeChangedCallback()](book/chapter1/HowTo_attributeChangedCallback.md)
 <!--4. .hashChangedCallback()-->
 <!-- 4. liefi-->
-
-## Chapter 4b: slot style
-1. [HowTo: style `<slot>`](book/chapter2_slot_basics/WhatIs_style_slot.md)
-2. [HowTo: `::slotted(*)`](book/chapter1c_slot_style/WhatIs_style_slotted.md)
-3. [Problem: SlotStyleCreep](book/chapter1c_slot_style/Problem_StylingSlots.md)
-
-## Chapter 4: Slottables
-2. [Problem: SlotchangeEavesdropping](book/chapter4_slottable/Problem_SlotchangeEavesdropping.md)
-2. [Problem: DeclarativeResolution](book/chapter4_slottable/Problem_DeclarativeResolution.md)
-2. [Problem: slotchange issues](book/chapter4_slottable/Problem_slotchange_issues.md)
-2. [Pattern: Slottables](book/chapter4_slottable/Pattern_Slottables.md)
-2. [Theory: SlotVariable](book/chapter4_slottable/Theory_SlotVariable.md)
-2. [Proposal: `<VAR>`](book/chapter4_slottable/Proposal_VAR.md)
-
-...
-4. [How to `<slot>`](book/chapter3_slot_matroska/old/HowTo_slot.md)
-4. [How to name `<slot>`s](book/chapter3_slot_matroska/old/HowTo_namedSlots.md)
-5. [How to chain `<slot>`s](book/chapter3_slot_matroska/old/HowTo_chainSlots.md)
-6. [Pattern: createShadowDOM](book/chapter1/Pattern1_shadowDomStrategies.md)
-7. [Pattern: `slotchange`](book/chapter1b_slot_basics/Pattern2_slotchange.md)
-8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
-<!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
 
 
 ## Chapter 5: Gestures

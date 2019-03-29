@@ -1,13 +1,3 @@
-# Problem: SlotStyleCreep
-
-> CSS style creep: CSS rules applied in one part of the document that 
-> styles an element in another part of the document, without the developer's awareness.
-
-CSS is not simple. Transposing slotable nodes is not simple. 
-Lets for good measure add CSS to a slot chain and see how creepy things get.
-
-## Example 1: FancyHeader
-
 In the following example an HTML is created with a custom element called `<fancy-header>`.
 The `<fancy-header>` has a shadowDOM with a `<header-impl>` node.
 The `<header-impl>` element only contains a `<style>` and a `<slot>`. 
@@ -134,6 +124,3 @@ And if you are feeling confused, embrace it like a `<SLOT>`, 'cause there's more
          kids behvaing badly gets no presents from santa.
       -> theory on variable resolution vs transposition
 
-## References
-
- * [CCS spec: flattening DOM](https://drafts.csswg.org/css-scoping/#flattening)

@@ -41,10 +41,10 @@ five categories:
 1. **Style creep**. As all the `<slot>` elements remain in the flattened DOM, styles can creep 
    onto and infect the innermost transposed nodes in ways that are very hard to predict and control.
 
-2. **Fallback nodes fallout**. In a SlotMatroska fallback nodes *only* work on the top and bottom 
-   layer, not in the middle(!). Thus, if a `<slot>` element is placed as a child of another web 
-   component, ie. a mid-level chained slot, then that mid-level `<slot>` element *cannot* use 
-   fallback nodes.
+2. **Fallback nodes fallout**. In a SlotMatroska fallback nodes *only* work on the top most `<slot>`,
+   not lower level `<slot>`s. Thus, if a `<slot>` element is placed as a child of another web 
+   component, ie. a mid-level chained slot, then the fallback nodes of the low level `<slot>` element
+   is permanently lost.
 
 3. **Flatten true is false**. `.assignedNodes()` provide a setting `{flatten: true}`. You might assume 
    that "flatten" here is related to the flattened DOM. But the opposite is true. 
@@ -53,10 +53,6 @@ five categories:
    Yes, `.assignedNodes({flatten: true})` can be useful, but it is also trying to trick you into
    forgetting that `<slot>` elements are *not* removed in the flattened DOM, but remain as 
    SlotMatroskas.
-   
-   The behavior of `.assignedNodes()` is very tightly linked to the behavior 
-   of slot fallback nodes. And as mid-level fallback nodes do not appear in a SlotMatroska, 
-   neither do they in `.assignedNodes()`. 
       
 4. **SlotchangeNipSlip**. SlotMatroskas can cause `slotchange` events to go awry. The `.shadowRoot` 
    of web components using other web components can receive `slotchange` events that has nothing to 
