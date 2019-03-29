@@ -1,0 +1,56 @@
+<script>
+  class PassePartout extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 20px solid grey;
+          }
+        </style>
+
+        <div>
+          <slot id="inner"></slot>
+        </div>`;
+    }
+  }
+  class GreenFrame extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 10px solid green;
+          }
+        </style>
+
+        <div>
+          <passe-partout>
+            <slot id="outer"></slot>
+          </passe-partout>
+        </div>`;
+    }
+  }
+  customElements.define("passe-partout", PassePartout);
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame>Picture this!</green-frame>
+
+<ul>
+  <li>
+    The text "Picture this!" is transposed from the lightDOM of the main document to slot#outer.
+  </li>
+  <li>
+    The slot#outer is then transposed from the shadowDOM of GreenFrame to the shadowDOM of PassePartout.
+  </li>
+  <li>
+    Here, the shadowDOM of the particular GreenFrame _is_ the lightDOM for the particular PassePartout element.
+    PassePartout elements can be reused in many different settings, and
+    so PassePartout elements can have many different lightDOMs.
+  </li>
+</ul>
