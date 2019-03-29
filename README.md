@@ -40,7 +40,7 @@ Web component patterns consists of the following types of recipes:
 3. [HowTo: name `<slot>`](book/chapter2_slot_basics/3_HowTo_nameSlots)
 4. [HowTo: `<slot>` fallback nodes](book/chapter2_slot_basics/4_HowTo_slot_fallback_nodes)
 5. [HowTo: `.assignedNodes()`](book/chapter2_slot_basics/5_HowTo_assignedNodes)
-6. [Pattern: style `<slot>`](book/chapter2_slot_basics/6_HowTo_style_slot.md)
+6. [Pattern: style `<slot>`](book/chapter2_slot_basics/6_HowTo_style_slot)
 7. [Pattern: `::slotted(*)`](book/chapter2_slot_basics/7_HowTo_slotted)
 
 ## Chapter 3: SlotMatroska
