@@ -1,0 +1,68 @@
+<script>
+  class PassePartout extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          *:not(style) {
+            display: block;
+            border: 8px solid grey;
+          }
+        </style>
+
+        <div>
+          <slot id="inner"></slot>
+        </div>`;
+    }
+  }
+  class GreenFrame extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          *:not(style) {
+            display: block;
+            border: 8px solid green;
+          }
+        </style>
+
+        <div>
+          <passe-partout>
+            <slot id="outer"></slot>
+          </passe-partout>
+        </div>`;
+    }
+  }
+  customElements.define("passe-partout", PassePartout);
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame>Picture this!</green-frame>
+
+<ul>
+  <li>
+    This example uses a trick CSS selector to capture all elements in the DOM: "*:not(style)".
+    The idea is that we want to apply the non-inherited border to all elements, except the style element.
+  </li>
+  <li>
+    However, there are several aspects of the StyleMatroska that becomes relevant here.
+    First, the "*:not(style)" selector applies to the slot element too.
+    Second, when we set "display: block;", this drastically alters the behavior of the slot element.
+    Third, the green and grey border is the added to the slot element too,
+    in addition to the div in both web components and the passe-partout in GreenFrame.
+  </li>
+  <li>
+    Finally, we are exposed to the fact that slots are nested in reverse document order in the flattened DOM.
+    Thinking about the structure, it would be natural to think of the slot element of PassePartout being
+    wrapped inside the slot element of GreenFrame. However, the opposite is true. And therefore, an
+    extra green frame appears _inside_ the PassePartout.
+  </li>
+  <li>
+    Although confusing, non-inherited CSS properties are manageable. Controlling and understanding inherited CSS
+    properties is much trickier.
+  </li>
+</ul>

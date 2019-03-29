@@ -1,0 +1,53 @@
+<script>
+  class PassePartout extends HTMLElement {
+
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 20px solid grey;
+          }
+        </style>
+
+        <div>
+          <slot id="inner">
+            Picture this in a passe partout!
+          </slot>
+        </div>`;
+    }
+  }
+
+  class GreenFrame extends HTMLElement {
+
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 10px solid green;
+          }
+        </style>
+
+        <div>
+          <passe-partout>
+            <slot id="outer">Picture this in a green frame!</slot>
+          </passe-partout>
+        </div>`;
+    }
+  }
+
+  customElements.define("passe-partout", PassePartout);
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame>Hello world!</green-frame>
+<br>
+<green-frame></green-frame>
+
+<p>
+  This essentially works fine. Inside the second green frame it says: "Picture this in a green frame!".
+  The slot#inner is passed slot#outer, which does not have any transposed nodes. It then uses its fallback nodes.
+</p>

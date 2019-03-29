@@ -1,0 +1,86 @@
+<script>
+  class PassePartout extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            color: grey;
+          }
+          * {
+            font-style: normal;
+          }
+        </style>
+
+        <div>
+          <slot id="inner"></slot>
+        </div>`;
+    }
+  }
+  class GreenFrame extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            color: green;
+          }
+          * {
+            font-style: italic;
+          }
+        </style>
+
+        <div>
+          <passe-partout>
+            <slot id="outer"></slot>
+          </passe-partout>
+        </div>`;
+    }
+  }
+  customElements.define("passe-partout", PassePartout);
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame>Picture this!</green-frame>
+
+<ul>
+  <li>
+    Green and italic is specified in the outermost web component;
+    grey and normal in the innermost.
+    The result? grey italic.
+  </li>
+  <li>
+    The reason is that the CSS rules are applied in the normal DOM, then the DOM is flattened, and
+    then the inheritance of CSS properties are calculated.
+  </li>
+  <li>
+    For the "font-style", it looks like this:
+    <pre>
+...
+  < green-frame >                   italic
+    < div >                         italic
+      < passe-partout >             italic
+        < div >                     normal
+          < slot id="inner" >       normal
+            < slot id="outer" >     italic
+              Picture this!           => italic
+    </pre>
+  </li>
+  <li>
+    For the "color", it looks like this:
+    <pre>
+...
+  < green-frame >
+    < div >                         green
+      < passe-partout >
+        < div >                     grey
+          < slot id="inner" >
+            < slot id="outer" >
+              Picture this!           => grey
+    </pre>
+  </li>
+</ul>

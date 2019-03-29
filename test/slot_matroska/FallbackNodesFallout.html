@@ -1,0 +1,57 @@
+<script>
+  class PassePartout extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 20px solid grey;
+          }
+          .think {
+            border-color: red orange yellow orange;
+            border-width:  10px 8px 9px 8px;
+            border-style:  dotted dotted dashed dotted;
+          }
+        </style>
+
+        <div>
+          <slot id="inner">
+            <div class="think inside the slot">I am a nice elaborate set of DOM nodes!</div>
+          </slot>
+        </div>`;
+    }
+  }
+  class GreenFrame extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 10px solid green;
+          }
+        </style>
+
+        <div>
+          <passe-partout>
+            <slot id="outer" class="redundancy stinks"></slot>
+          </passe-partout>
+        </div>`;
+    }
+  }
+  customElements.define("passe-partout", PassePartout);
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame>Hello world from the lightDOM!</green-frame>
+<br>
+<green-frame></green-frame>
+
+<p>
+  This example fails. The option of falling back to the nodes specified in slot#inner is not possible.
+  If GreenFrame wishes to just use the default content of PassePartout, GreenFrame cannot at the same time
+  chain its own slot to PassePartout.
+</p>
