@@ -15,99 +15,84 @@ it can look like this:
 ```
 
 Such a layer-cake of `<slot>` elements we call a **SlotMatroska**.
+And as you use more and more web components, the flattened DOM gets filled with such SlotMatroskas. 
+But. Is that a problem?
 
-## SlotMatroska problems
+ * Are not SlotMatroskas an irrelevant technical detail concerning the inner workings of the 
+   flattened DOM that web developers do not need to consider?
 
-When web components reuse other web components and chain their slots, the flattened DOM gets filled
-with SlotMatroskas. The SlotMatroskas might look innocent and irrelevant: are not SlotMatroskas an
-irrelevant technical detail concerning the inner workings of the flattened DOM that we do not need to
-consider?; are not the SlotMatroskas purely for decoration in dev tools, the `<slot>` elements do 
-affect the final view in any other way?; and in any case, are not SlotMatroskas a necessary evil, 
-something the browsers *must* do in order to get shadowDOM to work?
+ * Are not the SlotMatroskas purely for decoration in dev tools? Can we not assume that
+   the `<slot>` matroska elements do not have any effect on the final view or behavior?
 
-The answer is... no. SlotMatroskas are both relevant, a real source of confusion and bugs, unnecessary
-and persistently unfamiliar, even when you get to know it. SlotMatroskas as evil. And you should "know 
-thy enemy". In this chapter I therefore make a full frontal assault on the evil SlotMatroska. 
-I will show its tricks in a simple form, so you know what to look out for on the battlefield.
+ * Are not SlotMatroskas a necessary evil? Must not the browser implement them to get 
+   the shadowDOM working?
 
-The first issue with SlotMatroskas is that they are unfamiliar to us linguistically. HTML `<slot>`s
-is a placeholder, a variable that allows us to compose with HTML as a more powerful declarative 
-programming language. But. By resolving itself as a SlotMatroska, the `<slot>` variable behaves 
-differently than similar variables that it can be compared to in both programming and natural languages.
-These linguistic structures are so closely related to our ways of thinking, so naturalized for us, 
-that you safely can assume that you will never fully naturalize and get comfortable with the logic of
-SlotMatroskas.
+The answer is no. No, no, no. SlotMatroskas are relevant: they cause real confusion and bugs.
+SlotMatroskas are also unnecessary, and they will remain unfamiliar, even after you learn it. 
+SlotMatroskas are evil. In this chapter I will therefore do a full frontal assault on the evil 
+SlotMatroska. I expose its dirty tricks in simple forms, so that you know what to look out for 
+on the battlefield. The plan is "know thy enemy".
 
-The second issue with SlotMatroskas is style creep. As all the `<slot>` elements remain in the 
-flattened DOM, styles can creep onto and infect the innermost transposed nodes in ways that are
-very hard to predict and control.
+## SlotMatroska NipSlips
 
-The third issue with SlotMatroskas is fallback nodes. As the `<slot>` elements do not "replace"
-themselves with their assigned nodes, fallback nodes are only *half* work for chained slots:
-if a `<slot>` element is placed as a child of a web component with a shadowDOM, then that `<slot>` 
-element *cannot* use fallback nodes.
+The dirty tricks of the SlotMatroska we call SlotMatroskaNipSlips. And they can be grouped into
+five categories:
 
-The forth issue with SlotMatroskas is `.assignedNodes()`. As fallback nodes do not fully work
-in a SlotMatroska, it looks like the browser developers behind `.assignedNodes()` got confused 
-themselves. In the algortihm a patch was added to include `<slot>` element fallback nodes on
-the top level lightDOM, but this patch was not included in the middle level of SlotMatroskas.
-Assigned nodes thus reflect the exact same problem as fallback nodes.
-To add to the confusion, `.assignedNodes({flatten: true})` does not represent the flattened DOM,
-but is essentially a `.childNodes` were all the `<slot>` elements are replaced by their children, 
-recursively. And althought it would be natural to assume that this type of "flattening" was the same
-type of "flattening" done in the browser, the "flatten" in assignedNodes and the "flatten" in the 
-flattened DOM are completely the opposite.
+1. **Style creep**. As all the `<slot>` elements remain in the flattened DOM, styles can creep 
+   onto and infect the innermost transposed nodes in ways that are very hard to predict and control.
 
-The fifth issue with SlotMatroskas is `slotchange` events gone awry. This means that web components 
-using other web components cannot assume that `slotchange` events that occur in their shadowDOM
-has to do with one of their `<slot>` elements. In a SlotMatroska you are best served verifying all 
-`slotchange` events.
+2. **Fallback nodes fallout**. In a SlotMatroska fallback nodes *only* work on the top and bottom 
+   layer, not in the middle(!). Thus, if a `<slot>` element is placed as a child of another web 
+   component, ie. a mid-level chained slot, then that mid-level `<slot>` element *cannot* use 
+   fallback nodes.
 
-## Old drafts
+3. **Flatten true is false**. `.assignedNodes()` provide a setting `{flatten: true}`. You might assume 
+   that "flatten" here is related to the flattened DOM. But the opposite is true. 
+   Yes, `.assignedNodes({flatten: true})` *do* unwrap and replace any slots (except a top level 
+   `<slot>` element), but as we have described before, this is *not* the state of the flattened DOM. 
+   Yes, `.assignedNodes({flatten: true})` can be useful, but it is also trying to trick you into
+   forgetting that `<slot>` elements are *not* removed in the flattened DOM, but remain as 
+   SlotMatroskas.
+   
+   The behavior of `.assignedNodes()` is very tightly linked to the behavior 
+   of slot fallback nodes. And as mid-level fallback nodes do not appear in a SlotMatroska, 
+   neither do they in `.assignedNodes()`. 
+      
+4. **SlotchangeNipSlip**. SlotMatroskas can cause `slotchange` events to go awry. The `.shadowRoot` 
+   of web components using other web components can receive `slotchange` events that has nothing to 
+   do with them. In a web component with a SlotMatroska you must therefore always verify which 
+   `<slot>` is element is your relevant origin for your `slotchange` event.
 
-There are several *key* issues that needs to be addressed here:
+5. **Never gonna get it**. SlotMatroskas are linguistically unfamiliar. At its core, the HTML `<slot>` 
+   element is a variable: a placeholder that can be filled with different content depending on context. 
+   But. The `<slot>` variable is *resolved* differently than similar variables in other programming 
+   languages: `<slot>` variables *become* a SlotMatroskas, they are not recursively *replaced* like 
+   normal variables. Furthermore, this concept of "variables being replaced" is not a free choice 
+   programming languages can choose to opt in or out of. Normal variable resolution is sedimented in 
+   our natural languages; it is so ingrained in our our way of thinking, either by birth or by 
+   breeding, that you can safely assume that you instinctively for a looooong time will erroneously 
+   think of `<slot>` elements as being *replaced, and not filled* in the flattened DOM.
+   SlotMatroska variables are extremely *counter-intuitive* to naturalize, and you should not set up
+   your code, methods, or practices on the premise that they will be.
 
-1. The `<slot id="innerSlot">` is **not replaced(!)** by the last slotable nodes directly.
-   If it were, the result would indeed be truly flat:
-```html
-<img src="picThis.jpg" ...>
-```
+## SlotMatroska Solutions
 
-2. The `<slot id="innerSlot">` is not filled with **only the last slotable** nodes neither.
-   **All** the in-between, mediating `<slot>`s are included in the final result, 
-   wrapping the final flattened slotted nodes in a **`<slot>` matroska**.
+SlotMatroska NipSlips cannot be fixed without completely ripping the guts out of the `<slot>` 
+element behavior. And, this is practically impossible. Thus, the best way to fix the SlotMatroska 
+NipSlips is to add a new native element alongside the `<slot>` element: a *true, normal* HTML variable. 
+I therefore propose a new HTML element, an "Internet VARiable" called `<i-var>` (since `<var>` is 
+already taken, unfortunately).
 
-3. The order of the `<slot>`s in the `<slot>` matroska is **inside-out**.
-   In the flattened DOM, `<slot>`s in the flattened chain appears in the reverse order in 
-   which the documents that they belong to appear. 
+Second, two `slotCallback(slotName, oldValue, newValue)` mixins are created. This callback fixes the 
+problem with `slotchange` events gone awry, and also problems related to DOM folding reactions, 
+which I will return to later.
 
-It is *easy* to get confused working with such a structure. And in the next chapters we will discuss in
-detail:
- * Why the `<slot>` structure will confuse you. 
- * How a **`<slot>` matroska** can confuse you.
- * Tips to help you remember the `<slot>` principles. 
- * Guidelines to avoid `<slot>` confusion.
+## References
 
-## Discussion 
-This is not a simple topic. Don't be sad or frustrated if you don't understand it fully yet.
-Think of it as a sign of mental health and a proof of your own humanity.
-Also, take solace in that when I first heard about such *linking slots*, 
-I too found it unnatural and unappealing.
-I also considered it a strange edge-case and fairly irrelevant. 
+ * 
 
-But. The good news is that it is actually much easier to get accustomed to linking slots than
-might first appear.
-*Linking slots* is neither particularly difficult nor strange.
-It resembles many other forms of linking familiar to JS programmers and HTML developers, and 
-can fall quite quickly into place.
-Second, it is a much more useful than might first be considered.
-In fact, once familiar with the concept, any web component made to be reused in different contexts
-both benefit greatly and need to take slot chains into account.
 
-In my own view, it is not the perfect structure for what we can call nested HTML composition.
-But, it is manageable, with careful study, the help of some tools and watching your steps.
-
-## to max: labels for sketch
+## old drafts
 
 * GreenFrame uses another web component PassePartout in its shadowDOM.
 GreenFrame then place its `<slot id="outerSlot">` as a child of the PAssePArtout host node.
@@ -118,7 +103,3 @@ form a **slot link**.
 * The `<slot id="outerSlot">`, `<slot id="outerSlot">` and `<img src="picThis.jpg" ...>` make 
 up a **slot chain**.
 
-## References
- 
-
- 

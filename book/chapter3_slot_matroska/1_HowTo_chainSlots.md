@@ -105,22 +105,43 @@ We saw this clearly in [HowTo: style slot](../chapter2_slot_basics/6_HowTo_style
 Thus, when looking at a slot chain like the one above, 
 we can think of this process happening recursively from the inside out.
 
-1. `<slot id="inner">` inside `PassePartout` "grabs" the `<slot id="outer">` 
-   inside `GreenFrame`. This produces this partially flattened piece of DOM:
+First, `<slot id="inner">` inside `PassePartout` "grabs" the `<slot id="outer">` 
+inside `GreenFrame`. This produces this partially flattened piece of DOM:
 ```html
 <slot id="inner">
   <slot id="outer"></slot>
 </slot>
 ```
 
-2. `<slot id="outer">` inside `GreenFrame` then "grabs" the `Picture this!`
-   from the main html document. This produces the final flattened piece of DOM:
+Second, `<slot id="outer">` inside `GreenFrame` then "grabs" the `Picture this!`
+from the main html document. This produces the final flattened piece of DOM:
 ```html
-<slot id="inner">
-  <slot id="outer">
-    Picture this!
-  </slot>
-</slot>
+ ...
+  <green-frame>
+    <div>
+      <slot id="inner">
+        <slot id="outer">
+          Picture this!
+        </slot>
+      </slot>
+    </div>
+  </green-frame>
+ ... 
+```
+
+Note 1: The order of the `<slot>`s in the SlotMatroska is **inside-out**.
+In the flattened DOM, the `<slot>` elements appear in the reverse document order. 
+
+Note 2: Neither `<slot id="inner">` nor `<slot id="outer">` are replaced in the flattened DOM. 
+It is **WRONG** to think of the flattened DOM like this:
+```html
+ ...
+  <green-frame>
+    <div>
+      Picture this!  (!!WRONG!!)
+    </div>
+  </green-frame>
+ ... 
 ```
 
 ## References
