@@ -49,7 +49,8 @@ Web component patterns consists of the following types of recipes:
 3. [Problem: SlotStyleCreep](book/chapter3_slot_matroska/3_Problem_SlotMatroskaStyleCreep)
 4. [Problem: FallbackNodesFallout](book/chapter3_slot_matroska/4_Problem_FallbackNodesFallout)
 5. [Problem: FlattenTrueIsFalse](book/chapter3_slot_matroska/5_Problem_FlattenTrueIsFalse)
-6. [Theory: VariableExpectations](book/chapter3_slot_matroska/6_Theory_VariableExpectations)
+6. [Problem: SlotchangeNipSlip](book/chapter3_slot_matroska/6_Problem_SlotchangeEavesdropping)
+7. [Theory: VariableExpectations](book/chapter3_slot_matroska/7_Theory_VariableExpectations)
 
 
 ## Chapter 3y: Slottables

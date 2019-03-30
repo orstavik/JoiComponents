@@ -1,4 +1,4 @@
-# Problem: SlotchangeEavesdropping
+# Problem: SlotchangeNipSlip
 
 Two core web component principles:
  * Only `composed` events propagate up from the shadowDOM inside a custom element and through to the
@@ -353,7 +353,7 @@ export function naiveSlotchangeCallback(el){
 We conclude this chapter with our previous example, corrected not to eavesdrop on indirect grandchild 
 `slotchange` events. In the next chapter we will look at the multitude of initial `slotchange` events 
 that you see in the example, why they arise and how to best resolve the issue:
-[Problem: DeclarativeResolution](Problem_DeclarativeResolution.md).
+[Problem: DeclarativeResolution](../chapter4_slotCallback/Problem_DeclarativeResolution.md).
 
 ```html
 <family-photo>

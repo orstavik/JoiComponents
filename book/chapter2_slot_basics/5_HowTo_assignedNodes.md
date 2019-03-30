@@ -12,12 +12,11 @@
 ## `{flatten: true}`
 
 The `.assignedNodes()` return a list of all the lightDOM nodes that are transposed into a `<slot>`.
-But, if the `<slot>` content is fallback nodes of the `<slot>` itself, ie. its `.childNodes`, 
-then `.assignedNodes()` returns an empty list. 
-
-To get the fallback nodes from `.assignedNodes()` if there are no transposed nodes, the option
-`{flatten: true}` can be used. `.assignedNodes({flatten: true})` returns the list nodes that 
-naively can be considered the childNodes of the `<slot>` element in the flattened DOM.
+But, if the `<slot>` gets no transposed nodes and instead fallback to its `.childNodes`,
+then `.assignedNodes()` returns an empty list. To get the fallback nodes from `.assignedNodes()` 
+if there are no transposed nodes, use  `.assignedNodes({flatten: true})`. 
+`.assignedNodes({flatten: true})` returns first any transposed nodes, and 
+then falls back to the `.childNodes` list. 
 
 ## Example: `.assignedNodes()` and `.assignedNodes({flatten: true})`
 
@@ -71,6 +70,10 @@ naively can be considered the childNodes of the `<slot>` element in the flattene
   console.log(four.assignedNodes({flatten: true}));
 </script>
 ```
+
+Naively, `.assignedNodes({flatten: true})` can be considered a `<slot>`'s flattened DOM child nodes. 
+But, this is incorrect. In [Problem: FlattenTrueIsFalse](../chapter3_slot_matroska/5_Problem_FlattenTrueIsFalse)
+we discuss the problems with `.assignedNodes({flatten: true})` in more depth.
 
 ## References
 

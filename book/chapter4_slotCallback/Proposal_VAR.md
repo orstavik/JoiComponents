@@ -22,7 +22,7 @@ existing browsers without breaking existing applications relying on existing `<S
    Tomorrow: `slotchange` events is a private matter between a custom element and its `<SLOT>`s,
    and will never reach other unrelated custom elements.
    
-   Ref: [Problem: SlotchangeEavesdropping](Problem_SlotchangeEavesdropping.md)
+   Ref: [Problem: SlotchangeEavesdropping](../chapter3_slot_matroska/Problem_SlotchangeEavesdropping.md)
    
 2. Unify and simplify the resolution of assigned nodes and fallback nodes in `<SLOT>`.
    
