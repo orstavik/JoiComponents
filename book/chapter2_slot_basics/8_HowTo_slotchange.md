@@ -1,6 +1,7 @@
 # HowTo: `slotchange`
 
-The `slotchange` event is dispatched from `<slot>` elements when their `assignedNodes` change.
+The `slotchange` event is dispatched from `<slot>` elements whenever the list of nodes transposed
+to `<slot>` element changes (its `assignedNodes` change).
                              
 The `slotchange` event bubbles, and this means that you can listen for all `slotchange` in the
 shadowDOM of a web component by adding an event listener to its root:
@@ -22,7 +23,7 @@ listening for `slotchange` events on `this` inside a web component will NOT work
 
     constructor(){
       super();
-      this.attachShadow({mode: "open"});     //[1]
+      this.attachShadow({mode: "open"});   
       this.shadowRoot.innerHTML =
         `<style>
           div {
@@ -44,7 +45,7 @@ listening for `slotchange` events on `this` inside a web component will NOT work
   customElements.define("green-frame", GreenFrame);
 </script>
 
-<green-frame id="one"></green-frame>                                                <!--3-->
+<green-frame id="one"></green-frame>                                         
 <green-frame id="two"><h1>Hello world!</h1></green-frame>                                                <!--3-->
 
 <script>
@@ -58,8 +59,12 @@ listening for `slotchange` events on `this` inside a web component will NOT work
   setTimeout(function(){
     const h2 = document.createElement("h2");
     h2.innerText = "Stay green!";
-    document.querySelector("green-frame#two").appendChild(h2); //[10]
+    document.querySelector("green-frame#two").appendChild(h2); 
   }, 2000);
+  setTimeout(function(){
+    const h1 = document.querySelector("h1");
+    document.querySelector("green-frame#two").appendChild(h1); 
+  }, 4000);
 </script>
 
 <ol>
@@ -73,8 +78,12 @@ listening for `slotchange` events on `this` inside a web component will NOT work
     After the initial slotchange event, you will see the content of the slot with the fallback nodes being logged.
   </li>
   <li>
-    Finally, after 2000ms, you will see a second slotchange event. This slotchange event occurs as second node is
+    After 2000ms, you will see a second slotchange event. This slotchange event occurs as second node is
     appended in the lightDOM and then transposed into the green-frame shadowDOM.
+  </li>
+  <li>
+    After 4000ms, you will see a third slotchange event. This slotchange event occurs as the order 
+    of the transposed nodes change.
   </li>
   <li>
     In Safari browsers (IOS todo), the initial slotchange event is *not* dispatched.
