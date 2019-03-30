@@ -1,0 +1,75 @@
+<script>
+  class PassePartout extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 20px solid grey;
+          }
+        </style>
+
+        <div>
+          <slot id="inner">Hello grey world</slot>
+        </div>`;
+    }
+  }
+  class GreenFrame extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 10px solid green;
+          }
+        </style>
+
+        <div>
+          <passe-partout>
+            <slot id="outer">Hello green world</slot>
+          </passe-partout>
+        </div>`;
+    }
+  }
+  customElements.define("passe-partout", PassePartout);
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame id="one"><slot id="strange">hello world</slot></green-frame>
+<br>
+<slot id="two"><h1>hello sunshine</h1></slot>
+
+<script>
+  function flatDomChildNodes(slot, options){
+    const flattenedChildren = slot.assignedNodes(options);
+    if (flattenedChildren.length === 0)
+      return slot.childNodes;
+    if (!options || !options.flatten)
+      return flattenedChildren;
+    const flatFlat = [];
+    for (let node of flattenedChildren) {
+      if (node.tagName === "SLOT"){
+        for (let child of node.childNodes)
+          flatFlat.push(child);
+      } else {
+        flatFlat.push(node);
+      }
+    }
+    return flatFlat;
+  }
+  
+  const onePassePartout = document.querySelector("#one").shadowRoot.children[1].children[0];
+  const one = onePassePartout.shadowRoot.children[1].children[0];
+  const two = document.querySelector("#two");
+
+  console.log("--------one--------------");
+  console.log("assignedNodes({flatten: true})", one.assignedNodes({flatten: true}));
+  console.log("flatDomChildNodes({flatten: true}): ", flatDomChildNodes(one, {flatten: true}));
+  console.log("--------two--------------");
+  console.log("assignedNodes({flatten: true})", two.assignedNodes({flatten: true}));
+  console.log("flatDomChildNodes({flatten: true}): ", flatDomChildNodes(two, {flatten: true}));
+</script>

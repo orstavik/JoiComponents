@@ -21,32 +21,28 @@
 </script>
 
 <green-frame id="one"></green-frame>
+<br>
 <green-frame id="two">hello world</green-frame>
+<br>
 <green-frame id="three">
   <h1>hello sunshine</h1>
 </green-frame>
+<br>
 <green-frame id="four">
 </green-frame>
 
 <script >
-  function flatDomChildNodes(slot){
-    let flattenedChildren = slot.assignedNodes();
-    if (flattenedChildren.length === 0)
-      return slot.childNodes;
-    return flattenedChildren;
-  }
-
   const one = document.querySelector("#one").shadowRoot.children[1].children[0];
   const two = document.querySelector("#two").shadowRoot.children[1].children[0];
   const three = document.querySelector("#three").shadowRoot.children[1].children[0];
   const four = document.querySelector("#four").shadowRoot.children[1].children[0];
 
   console.log(one.assignedNodes());
-  console.log(flatDomChildNodes(one));
+  console.log(one.assignedNodes({flatten: true}));
   console.log(two.assignedNodes());
-  console.log(flatDomChildNodes(two));
+  console.log(two.assignedNodes({flatten: true}));
   console.log(three.assignedNodes());
-  console.log(flatDomChildNodes(three));
+  console.log(three.assignedNodes({flatten: true}));
   console.log(four.assignedNodes());
-  console.log(flatDomChildNodes(four));
+  console.log(four.assignedNodes({flatten: true}));
 </script>
