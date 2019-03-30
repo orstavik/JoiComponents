@@ -48,7 +48,7 @@ existing browsers without breaking existing applications relying on existing `<S
    Tomorrow: A single callback in all custom elements that guarantee that both attributes 
    and assigned nodes are ready. This callback will also function as an `initialAttributesCallback`
 
-   Ref: [Problem: DeclarativeResolution](Problem_DeclarativeResolution.md)
+   Ref: [Problem: DeclarativeResolution](../chapter4_slotCallback/Problem_DeclarativeResolution.md)
    Ref: [Pattern: BatchedConstructorCallbacks](../chapter2_HowToMakeMixins/Pattern10_BatchedConstructorCallbacks.md)
    Ref: [Mixin: InitialAttributes](../../trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin2_InitialAttributes.md)
    
@@ -59,7 +59,7 @@ existing browsers without breaking existing applications relying on existing `<S
    Tomorrow: This feature will enable new *declarative* HTML composition patterns such as
    allowing elements to adjust, sort and structure the shadowDOM depending on slotted nodes *only*.
 
-   Ref: [Pattern: Slottables](Pattern_Slottables.md)
+   Ref: [Pattern: Slottables](../chapter4_slotCallback/Pattern_Slottables.md)
 
 5. Delay full construction of `<SLOT>` fallback nodes until used.
    
@@ -119,7 +119,7 @@ existing browsers without breaking existing applications relying on existing `<S
     Tomorrow: Manage all *externally* triggered slotchange events reactively, but 
     trigger no reaction on *internally* triggered slotchange events.
     
-    Ref: [Problem: StylingSlots](Problem_slotchange_issues.md)
+    Ref: [Problem: StylingSlots](../chapter4_slotCallback/Problem_slotchange_issues.md)
    
 10. Open up for future efficiency by providing a cleaner, unified model for HTML variables. 
 
