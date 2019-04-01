@@ -71,6 +71,7 @@
   const mousemoveListener = e => onMousemove(e);
   const mouseupListener = e => onMouseup(e);
   const mouseoutListener = e => onMouseout(e);
+  const onFocusListener = e => onFocus(e);
 
   function startSequence(target, e) {
     const body = document.querySelector("body");
@@ -85,6 +86,7 @@
     body.style.userSelect = "none";
     window.addEventListener("mousemove", mousemoveListener, true);
     window.addEventListener("mouseup", mouseupListener, true);
+    window.addEventListener("focus", onFocusListener, true);
     !sequence.cancelMouseout && window.addEventListener("mouseout", mouseoutListener, true);
     return sequence;
   }
@@ -100,6 +102,7 @@
     document.querySelector("body").style.userSelect = globalSequence.userSelectStart;
     window.removeEventListener("mousemove", mousemoveListener, true);
     window.removeEventListener("mouseup", mouseupListener, true);
+    window.removeEventListener("focus", onFocusListener, true);
     window.removeEventListener("mouseout", mouseoutListener, true);
     return undefined;
   }
@@ -163,6 +166,13 @@
     const target = globalSequence.target;
     globalSequence = stopSequence();
     dispatchPriorEvent(target, cancelEvent, trigger);
+  }
+  
+  function onFocus(trigger) {
+    const focusInEvent = makeDraggingEvent("cancel", trigger);
+    const target = globalSequence.target;
+    globalSequence = stopSequence();
+    dispatchPriorEvent(target, focusInEvent, trigger);
   }
 
   window.addEventListener("mousedown", e => onMousedown(e));
