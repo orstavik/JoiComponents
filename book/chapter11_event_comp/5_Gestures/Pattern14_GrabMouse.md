@@ -106,7 +106,7 @@ function startSequenceState(e){                                 //[1]
   primaryEvent = e;                                     
   window.addEventListener("mouseup", onMouseup);             
   window.addEventListener("mouseout", onMouseout);           
-  window.addEventListener("focusin", onFocusin);           
+  window.addEventListener("focus", onFocus);           
   window.addEventListener("startselect", onStartselect);           
   userSelectCache = document.children[0].style.userSelect;
   document.children[0].style.userSelect = "none";
@@ -116,7 +116,7 @@ function resetSequenceState(){
   primaryEvent = undefined;                                     
   window.removeEventListener("mouseup", onMouseup);             
   window.removeEventListener("mouseout", onMouseout);           
-  window.removeEventListener("focusin", onFocusin);           
+  window.removeEventListener("focus", onFocus);           
   window.removeEventListener("selectstart", onSelectstart);           
   document.children[0].style.userSelect = userSelectCache;
 }
@@ -145,7 +145,7 @@ var onMouseout = function (trigger){                            //[3]
   resetSequenceState();                                         
 }
 
-var onFocusin = function (trigger){                           //[4]
+var onFocus = function (trigger){                           //[4]
   trigger.target.dispatchEvent(new CustomEvent("long-press-cancel", {bubbles: true, composed: true, detail: duration}));
   resetSequenceState();                                         
 }
@@ -168,8 +168,8 @@ window.addEventListener("mousedown", onMousedown);
 3. If the `mouse` cursor moves out of the `window`, this would likely cause confusion, and so will
    instead also simply cancel the event.
    
-4. If an `alert(...)` was triggered during the EventSequence, this would trigger a change of focus and a
-   `focusin` event. Any `focusin` event would be considered a disturbance and cancel the EventSequence.
+4. If an `alert(...)` was triggered during the EventSequence, this would trigger a change of the focus event. 
+   Any `focus` event would be considered a disturbance and cancel the EventSequence.
    
 5. Extra eventlistener that calls `preventDefault()` on `selectstart` events in case CSS property 
    `user-select` is not supported.
