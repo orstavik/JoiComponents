@@ -196,4 +196,5 @@ window.addEventListener("long-press-cancel", function(e){
 
 ## References
 
- * [MDN: focus event](https://developer.mozilla.org/en-US/docs/Web/API/Element/focus_event)
+ * [MDN: `focus` event](https://developer.mozilla.org/en-US/docs/Web/API/Element/focus_event)
+ * [MDN: `selectstart` event](https://developer.mozilla.org/en-US/docs/Web/Events/selectstart)
