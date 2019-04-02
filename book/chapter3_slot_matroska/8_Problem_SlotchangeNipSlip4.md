@@ -1,4 +1,4 @@
-# Problem: SlotchangeNipSlip
+# SlotchangeNipSlip #4: SlotchangeEavesdropping / BigBrotherEavesDropping
 
 Two core web component principles:
  * Only `composed` events propagate up from the shadowDOM inside a custom element and through to the

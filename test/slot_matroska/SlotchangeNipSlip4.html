@@ -1,0 +1,175 @@
+<template id="portrait">
+  <style>
+    #frameOne {
+      display: block;
+      position: relative;
+      width: 300px;
+      height: 300px;
+    }
+    #frameTwo {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      box-sizing: border-box;
+      width: 100%;
+      display: inline-block;
+    }
+  </style>
+  <green-frame id="frameOne">
+    <slot>a picture</slot>
+    <green-frame id="frameTwo">
+      <slot name="label">of somebody</slot>
+    </green-frame>
+  </green-frame>
+</template>
+
+<template id="frame">
+  <style>
+    :host {
+      border: 4px solid green;
+    }
+  </style>
+  <slot></slot>
+</template>
+
+<script>
+  class PortraitFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      const template = document.querySelector("#portrait").content.cloneNode(true);
+      this.shadowRoot.appendChild(template);
+      this.shadowRoot.addEventListener("slotchange", this.slotchangeCallback.bind(this));
+    }
+
+    slotchangeCallback(event) {
+      console.log(this.id, event.composedPath());
+    }
+  }
+
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      const template = document.querySelector("#frame").content.cloneNode(true);
+      this.shadowRoot.appendChild(template);
+      this.shadowRoot.addEventListener("slotchange", this.slotchangeCallback.bind(this));
+    }
+
+    slotchangeCallback(event) {
+      console.log(this.id, event.composedPath());
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+  customElements.define("portrait-frame", PortraitFrame);
+</script>
+
+<portrait-frame id="portrait"></portrait-frame>
+
+<script>
+  const portrait = document.querySelector("portrait-frame");
+
+  setTimeout(() => {
+    console.log("One: -------------------------------");
+    console.log("Adding '¯\\_(ツ)_/¯' to the lightDOM.");
+    const addedLabel = document.createElement("h2");
+    addedLabel.innerText = "¯\\_(ツ)_/¯";
+    portrait.appendChild(addedLabel);
+  }, 3000);
+
+  setTimeout(() => {
+    console.log("Two: -------------------------------");
+    const addedLabel = document.createElement("div");
+    addedLabel.setAttribute("slot", "label");
+    addedLabel.innerText = "a selfportrait by ivar";
+    console.log("Adding label: "+addedLabel.innerText);
+    portrait.appendChild(addedLabel);
+  }, 6000);
+
+
+</script>
+
+<ol>
+  <li>
+    After "One: -----", the "¯\_(ツ)_/¯" is added to protrait-frame's main green-frame slot.
+    This dynamic change should trigger a slotchange event that will be intercepted by both slot
+    on the portrait-frame element and the green-frame element.
+    A single slotchange event, that is captured by two slotchange event listeners.
+    (Att! Be aware that this slot change event will trigger two event listener callbacks either
+    when it is placed on the slot element themselves or on the shadowRoot.)
+
+<pre>
+...
+< portrait-frame >
+  #shadowRoot                                       the slotchange event bubbles up to this shadowRoot, which is composed:false border
+    < style >
+    < green-frame id="frameOne" >
+      #shadowRoot                                   the slotchange is intercepted here, which could well be relevant
+        < style >
+        < slot (from green-frame) >
+          < slot (from portrait-frame) >
+            < h2 (¯\_(ツ)_/¯) >                     this node is added triggering the slotchange event
+        < green-frame id="frameTwo" >
+            #shadowRoot
+              < style >
+              < slot name="label" (from green-frame) >
+                < slot name="label" (from portrait-frame) >
+                  by somebody
+</pre>
+
+  </li>
+  <li>
+    After "Two: -----", the "'self-portrait' by ivar" is added to portrait-frame's "label" green-frame slot.
+    This dynamic change should also trigger a slotchange event, and we would expect this slotchange event to be
+    intercepted by both the portrait-frame and green-frame#two, but not green-frame#one event listener.
+    However, this slotchange event is intercepted by both. The reason for this is that the slotchange event propagates
+    in the flattened DOM. And although it is "composed: false", it will bubble up to the shadowRoot of the host element
+    of the outermost slot element nearest the change. In this case, the flattened DOM looks like this:
+
+<pre>
+...
+< portrait-frame >
+  #shadowRoot                                              the slotchange event bubbles up to this shadowRoot, which is composed:false border
+    < style >
+    < green-frame id="frameOne" >
+      #shadowRoot                                          the slotchange is intercepted here, but this is an irrelevant SlotchangeNipSlip #4
+        < style >
+        < slot (from green-frame) >
+          < slot (from portrait-frame) >
+            < h2 (¯\_(ツ)_/¯) >
+        < green-frame id="frameTwo" >
+            #shadowRoot                                    the slotchange is intercepted here, which could well be relevant
+              < style >
+              < slot name="label" (from green-frame) >
+                < slot name="label" (from portrait-frame) >
+                  < div (a selfportrait by ivar) >         this node is added triggering the slotchange event
+</pre>
+  </li>
+
+  <li>
+    It might be argued that by adding the event listener directly on the slot element, this problem could be avoided.
+    But, this disregards two problems. First, the same nested positioning could be done with the slot element as a 
+  </li>
+
+</ol>
+<!--
+<script>
+  function findDirectSlotNode(e, shadowRoot) {
+    const path = e.composedPath();
+    for (let i = 0; i < path.length - 1; i++) {
+      let node = path[i];
+      if (node.getRootNode() === shadowRoot)
+        return {directSlotNode: node, indirectness: i};
+    }
+    return null;
+  }
+
+  function naiveSlotchangeCallback(el) {
+    el.shadowRoot.addEventListener("slotchange", e => {   //[*]
+      const slot = findDirectSlotNode(e, el.shadowRoot);
+      slot && el.slotchangeCallback(slot.directSlotNode, slot.indirectness, e);
+    });
+  }
+</script>
+-->

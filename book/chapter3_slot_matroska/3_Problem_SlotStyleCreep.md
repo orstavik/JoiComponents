@@ -73,15 +73,14 @@ In this chapter, we illustrate this behavior in a SlotMatroska. We start with th
     wrapped inside the slot element of GreenFrame. However, the opposite is true. And therefore, an
     extra green frame appears _inside_ the PassePartout.
   </li>
-  <li>
-    Although confusing, non-inherited CSS properties are manageable. Controlling and understanding inherited CSS
-    properties is much trickier.
-  </li>
 </ul>
 ```
 
 ## Example 2: SlotStyleCreep inherited
 
+Although confusing, non-inherited CSS properties are manageable. 
+Controlling and understanding inherited CSS properties is much trickier.
+    
 ```html
 <script>
   class PassePartout extends HTMLElement {
@@ -171,39 +170,31 @@ In this chapter, we illustrate this behavior in a SlotMatroska. We start with th
 </ul>
 ```
 
-## Discussion
+## The `:not(slot)` trick
 
-To understand how non-inherited CSS styles are applied in a SlotMatroska require mainly that
-the developer remembers that:
+To understand how non-inherited CSS styles are applied in a SlotMatroska,
+the developer must envisage:
 
 1. all the `<slot>` elements *remain* in the flattened DOM hierarchy
 2. in *reverse document order*.
 
-For non-inherited styles this is not that problematic, as many of them are not activated unless
-the `<slot>` elements also alters its `display` altered. Thus, if you do not write too wide
-CSS selectors such as `*:not(style)` and you don't alter the `<slot>` `display` property, then
-you likely will not experience SlotStyleCreep for non-inherited CSS properties.
+For non-inherited styles this is not that problematic: Unless the `<slot>` elements also alters its 
+`display` property, such styles would rarely be applied. Thus, wide CSS selectors such as `*` 
+will not alter the appearance of the `<slot>` element because its `display` property does not afford
+it.
 
-But. The same cannot be said about inherited CSS properties. It is not unlikely that a `<slot>` 
-styles its inherited properties, either by accident or by design. And it is not unlikely that 
-the developer will guess the flattened DOM `<slot>` order wrong, either temporarily or permanently.
-Thus, that an inherited CSS style from the outer web component `<slot>` happens to overwrite an
-inherited CSS style from an inner web component, without developer intent or awareness, will occur.
+But, the same cannot be said about inherited CSS properties. It is not unlikely that:
+1. wide CSS selectors such as `*` are used to specify inherited properties inside a shadowDOM,
+   thus being applied to the `<slot>` element itself, and
+2. thereby causing inherited CSS properties to be applied to the transposed nodes, 
+   because the outer slot in the regular DOM becomes the inner slot in the flattened DOM.
 
-Thus:
-
-1. Be aware of SlotStyleCreep. It is a SlotMatroskaNipSlip. Especially for inherited CSS properties.
-
-2. To avoid SlotStyleCreep for all CSS properties, ensure that the CSS selectors inside your shadowDOM
-   does not match the `<slot>` elements.
+SlotStyleCreep for inherited CSS styles particularly, is an intrinsic problem with the SlotMatroska.
+Thus, be aware that your *wide* CSS selectors inside a shadowDOM *DO NOT* apply to `<slot>` elements.
+When in doubt, `:not(slot)` your shadowDOM CSS selectors.
 
 ## References
 
  * [CCS spec: flattening DOM](https://drafts.csswg.org/css-scoping/#flattening)
  
-## todo
-
--> style chained slots ::slotted
-   discussion: "no ::slotted(*) presents for the children of slots"
-   kids behvaing badly gets no presents from santa.
 

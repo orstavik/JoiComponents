@@ -1,13 +1,14 @@
 # Problem: FallbackNodesFallout
 
-In [WhatIs: slot fallback nodes](3_WhatIs_slot_fallback_nodes), we looked at what it means
-to be a gentleman developer of web component and `<slot>`s. 
-Makers of web components should provide their users with `<slot>` elements so that they can 
-adapt the content of the component to their own use cases; and 
-users of web components should avoid overwriting the default value (the fallback nodes) if they
-don't really need to.
+In [WhatIs: slot fallback nodes](3_WhatIs_slot_fallback_nodes), we looked at how a gentleman 
+web component developer should treat his `<slot>`s: 
+makers of web components should provide their users with `<slot>` elements so that their users can 
+adapt the content of the component to their own use cases; 
+users of web components should not overwrite the default value (the fallback nodes) in another
+web component if they don't need to do so.
 
-But, what do we do in a SlotMatroska? We have a couple of use cases that we need to consider.
+But, what do we do in a SlotMatroska? The SlotMatroska gives us a couple of use cases that 
+we need to consider.
 
 ## Use-case 1: Customize fallback nodes
 
@@ -69,8 +70,9 @@ Making a web component that (re)uses other web components, we often need to:
 <green-frame></green-frame>
 
 <p>
-  This essentially works fine. Inside the second green frame it says: "Picture this in a green frame!".
-  The slot#inner is passed slot#outer, which does not have any transposed nodes. It then uses its fallback nodes.
+  This works fine. Inside the second green frame it says: "Picture this in a green frame!".
+  The slot#inner is passed slot#outer, which does not have any transposed nodes. 
+  It then uses its fallback nodes.
 </p>
 ```
 
@@ -78,8 +80,8 @@ Making a web component that (re)uses other web components, we often need to:
 
 Sometimes though, the inner web component might provide a nice and/or not easily replicated 
 fallback node structure that the outer web component wish to reuse. If the inner web component
-provides a good fallback, the outer web component should avoid creating a second redundant set of
-fallback nodes.
+provides a good fallback, then the outer web component should avoid creating a second redundant 
+set of fallback nodes, when their users in turn do not pass in any transposed nodes.
 
 ```html
 <script>
@@ -135,29 +137,36 @@ fallback nodes.
 <green-frame></green-frame>
 
 <p>
-  This example fails. The option of falling back to the nodes specified in slot#inner is impossible!
-  If GreenFrame wishes to just use the default content of PassePartout, it cannot at the same time
-  chain its own slot to PassePartout.
+  This example FAILS. There is no "nice elaborate set of DOM nodes!" shown on screen.
+  The option of falling back to the nodes specified in slot#inner is impossible.
+  If GreenFrame wishes to just use the default content of PassePartout, 
+  it cannot at the same time chain its own slot to PassePartout.
 </p>
 ```
 
-## Discussion
+## Why FallbackNodesFallout happen
 
 The second example fails because the inner `<slot>` element *is not empty*, but instead filled with
-an empty outer `<slot>` element. This feels like irregular behavior, but it actually is in line with
-the logic of SlotMatroska. As the `<slot>` placeholders are filled, also with each other. This means 
-that once `<slot>` is chained to another `<slot>`, then their fallback nodes are permanently lost.
-This is not only a problem as it happens, this is also a problem for building courteous conventions:
-if `<slot>`s fallback nodes cannot be relied on once web components are nested, to give user web
-components the *option* to overwrite certain content that is anticipated to remain constant in say 80%
-of its use, becomes a liability as other web components then often must fill this slot with their own
-fallback nodes.
+an empty outer `<slot>` element: 
+1. `<slot>` placeholders can be filled with each other. 
+2. once an outer `<slot>` is chained to an inner `<slot>`, then the outer `<slot>` will fill the 
+   inner `<slot>`.
+3. When the inner `<slot>` element is filled, then its fallback nodes are permanently lost.
+4. Even when the outer `<slot>` has no fallback nodes of its own to offer.
 
-One could argue that this is a feature, and not a bug. That if the logic was reverse, then there would
-be noe way to replace the content of the inner `<slot>` with nothing. But, this is a bad argument.
-First, the `<slot>` could be filled with a simple space text node, thus likely wiping the slate clean.
-Second, the use case of filling a `<slot>` with nothing is less frequent and less problematic to 
-overcome. 
+This feels like irregular behavior, but it actually is in line with the logic of SlotMatroska. 
+It is not a bug in the browser, it is a bug in the spec.
+
+## Consequence of FallbackNodesFallout
+
+One could argue that FallbackNodesFallout is a feature, and not a bug:
+if the logic was reverse, then there would be noe way to replace the content of the inner `<slot>` 
+with `empty`. 
+But, this is not a good argument: in the opposite scenario, the inner `<slot>` could be wiped clean 
+with an empty space text or HTML comment node.
+
+FallbackNodesFallout is not only a problem as it happens. FallbackNodesFallout is also a problem 
+for building courteous conventions. FallbackNodesFallout hinder web components in (re)using each other.
 
 ## References
 

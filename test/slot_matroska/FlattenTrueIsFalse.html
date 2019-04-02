@@ -44,12 +44,17 @@
 <slot id="two"><h1>hello sunshine</h1></slot>
 
 <script>
-  function flatDomChildNodes(slot, options){
-    const flattenedChildren = slot.assignedNodes(options);
+  function flatDomChildNodes(slot){
+    const transposed= slot.assignedNodes();
+    if (transposed.length === 0)
+      return slot.childNodes;
+    return transposed;
+  }
+
+  function simplifiedFlatDomChildNodes(slot){
+    const flattenedChildren = slot.assignedNodes({flatten: true});
     if (flattenedChildren.length === 0)
       return slot.childNodes;
-    if (!options || !options.flatten)
-      return flattenedChildren;
     const flatFlat = [];
     for (let node of flattenedChildren) {
       if (node.tagName === "SLOT"){
@@ -61,15 +66,17 @@
     }
     return flatFlat;
   }
-  
+
   const onePassePartout = document.querySelector("#one").shadowRoot.children[1].children[0];
   const one = onePassePartout.shadowRoot.children[1].children[0];
   const two = document.querySelector("#two");
 
   console.log("--------one--------------");
-  console.log("assignedNodes({flatten: true})", one.assignedNodes({flatten: true}));
-  console.log("flatDomChildNodes({flatten: true}): ", flatDomChildNodes(one, {flatten: true}));
+  console.log("assignedNodes({flatten: true}): ", one.assignedNodes({flatten: true}));
+  console.log("flatDomChildNodes(slot): ", flatDomChildNodes(one));
+  console.log("simplifiedFlatDomChildNodes(slot): ", simplifiedFlatDomChildNodes(one));
   console.log("--------two--------------");
-  console.log("assignedNodes({flatten: true})", two.assignedNodes({flatten: true}));
-  console.log("flatDomChildNodes({flatten: true}): ", flatDomChildNodes(two, {flatten: true}));
+  console.log("assignedNodes({flatten: true}): ", two.assignedNodes({flatten: true}));
+  console.log("flatDomChildNodes(slot): ", flatDomChildNodes(two));
+  console.log("simplifiedFlatDomChildNodes(slot): ", simplifiedFlatDomChildNodes(two));
 </script>

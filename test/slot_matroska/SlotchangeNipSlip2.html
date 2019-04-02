@@ -1,0 +1,67 @@
+<script>
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            border: 4px solid green;
+          }
+        </style>
+        <slot>¯\\_(ツ)_/¯</slot>
+      `;
+      this.shadowRoot.addEventListener("slotchange", function(e){
+        console.log(this.id, e.composedPath());
+      }.bind(this));
+    }
+  }
+
+  class DoubleFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            border: 4px solid green;
+          }
+        </style>
+        <green-frame id="three">
+          <slot>Hello sunshine!</slot>
+        </green-frame>
+      `;
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+  customElements.define("double-frame", DoubleFrame);
+</script>
+
+<green-frame id="one">Hello world!</green-frame>
+<green-frame id="two"></green-frame>
+<double-frame></double-frame>
+
+<script>
+  setTimeout(function(){
+    document.querySelector("#one").innerText = "";
+  }, 1000);
+</script>
+<ol>
+  <li>
+    When the elements are created, two slotchange events are dispatched.
+    The first slotchange is for green-frame#one. This is triggered by the text node "Hello world!"
+    being transposed into the green-frame slot.
+    The second slotchange is triggered by the slot node with the fallback text node "Hello sunshine!"
+    being transposed into the green-frame#three slot.
+    But, if no transposed nodes are passed at startup, and the slot inside green-frame uses its
+    "¯\_(ツ)_/¯" fallback text node, then _NO_ slotchange event will trigger.
+  </li>
+  <li>
+    After 1000ms the "Hello world!" text node is removed from green-frame#one.
+    This causes the list of transposed nodes to change to empty, and this triggers the third slotchange event.
+    This means that slotchange events will be triggered every time a slot falls back to its fallback nodes _after_
+    a node has first been transposed into it. The _only_ time a slotchange event does _not_ occur for a change in
+    the displayed content of a slot in the flattened DOM is when a slot uses its initial fallback nodes.
+  </li>
+</ol>

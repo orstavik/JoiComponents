@@ -1,0 +1,153 @@
+<script>
+  function simplifiedFlatDomChildNodes(slot){
+    const flattenedChildNodes = slot.assignedNodes({flatten: true});
+    if (flattenedChildNodes.length === 0)
+      return slot.childNodes;
+    const flatFlat = [];
+    for (let node of flattenedChildNodes) {
+      if (node.tagName === "SLOT"){
+        for (let child of node.childNodes)
+          flatFlat.push(child);
+      } else {
+        flatFlat.push(node);
+      }
+    }
+    return flatFlat;
+  }
+
+  class SisyphusList extends HTMLElement {
+    constructor() {
+      super();
+      this.now = new Date();
+      this.dayMonth = "day";
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <slot>
+          <sisyphus-item id="one">roll stone up the hill</sisyphus-item>
+          <sisyphus-item id="two">roll stone up the hill</sisyphus-item>
+          <sisyphus-item id="three">roll stone up the hill</sisyphus-item>
+        </slot>
+      `;
+      console.log("constructor() driven processFlatDomChildren: ", this.dayMonth);
+      this.processFlatDomChildren(this.shadowRoot.children[0].childNodes);
+      this.shadowRoot.addEventListener("slotchange", function(e){
+        console.log(this.id);
+        debugger;
+        console.log("slotchange driven processFlatDomChildren: ", this.dayMonth);
+        this.processFlatDomChildren(simplifiedFlatDomChildNodes(this.shadowRoot.children[0]));
+      }.bind(this));
+    }
+
+    static get observedAttributes(){
+      return ["day-month"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "day-month"){
+        this.dayMonth = newValue;
+        console.log("attribute() driven processFlatDomChildren: ", this.dayMonth);
+        this.processFlatDomChildren(simplifiedFlatDomChildNodes(this.shadowRoot.children[0]))
+      }
+    }
+
+    processFlatDomChildren(childNodes){
+      let i = 0;
+      for (let child of childNodes) {
+        if (child.tagName && child.tagName === "SISYPHUS-ITEM"){
+          if (this.dayMonth === "day") {
+            let time = new Date(this.now);
+            time.setDate(time.getDate()+i++);
+            child.updatePlan(time.toLocaleDateString("en-US", {weekday: "short"}));
+          }
+          else if(this.dayMonth === "month") {
+            let time = new Date(this.now);
+            time.setMonth(time.getMonth()+i++);
+            child.updatePlan(time.toLocaleDateString("en-US", {month: "short"}));
+          }
+        }
+      }
+    }
+  }
+
+  class SisyphusItem extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host(*){
+            display: block;
+          }
+        </style>
+        <span>§*/: </span>
+        <slot>How nice, nothing to do!</slot>
+      `;
+    }
+    updatePlan(txt){
+      this.shadowRoot.querySelector("span").innerText = txt + ": ";
+      const child = simplifiedFlatDomChildNodes(this.shadowRoot.children[2])[0];
+    }
+  }
+
+  customElements.define("sisyphus-list", SisyphusList);
+  customElements.define("sisyphus-item", SisyphusItem);
+</script>
+
+<sisyphus-list id="lifeInGeneral"></sisyphus-list>
+
+<sisyphus-list id="lifeAsAWebDeveloper" day-month="month">
+  <sisyphus-item id="a">understand the SlotMatroska</sisyphus-item>
+  <sisyphus-item id="b">understand the SlotMatroska</sisyphus-item>
+  <sisyphus-item id="c">understand the SlotMatroska</sisyphus-item>
+</sisyphus-list>
+
+
+<h3>SlotchangeNipSlip #3</h3>
+This example illustrate the problems of viewing fallback nodes as the default state of a web component and _not_
+giving a slotchange event when a slot is declared using its fallback nodes.
+<ol>
+  <li>
+    During constructor(): The default state needs to be processed, because the relationship to the
+    nested web component depends on an context dependent state (this.now). Although the relationship
+    between sisyphus-list and sisyphus-item is known, this relationship builds on contextual data
+    which is not accessible in HTML nor CSS template.
+  </li>
+  <li>
+    Both the sisyphus-list elements process this initial state. The first list, #lifeInGeneral,
+    needs and will use the result of this process. But as we will see, #lifeAsAWebDeveloper does here
+    do redundant work.
+  </li>
+  <li>
+    During attributeChangedCallback(): The default state needs to be processed again because the
+    nested web components needs to be processed based on a per element specific state (this.dayMonth).
+    If no attribute is set, no attributeChangedCallback() will be triggered. Without manually
+    postponing the processing task, which is far from trivial, #lifeAsAWebDeveloper will here perform
+    first re-processing of the sisyphus-items, making previous processing redundant.
+  </li>
+  <li>
+    During slotchange event listener: The second sisyphus-list, #lifeAsAWebDeveloper, however gets
+    a slotchange event. In fact, it can somewhere between 4, 6 or 7, depending on the browser and
+    your "debugger;" statements. What?! 4, 6 _or_ 7 slotchange events?! Depending on "debugger;"?!
+    Yes... The mayhem that is RedundantSlotchangeCreations is discussed in SlotchangeNipSlip #4.
+    For now, we simply say that at least one slotchange event was triggered.
+  </li>
+  <li>
+    The slotchange event listener will again need to reprocess the sisyphus-items, making the two
+    previous processes of sisyphus-items redundant.
+  </li>
+  <li>
+    The SlotchangeNipSlip #3 problem is that:
+    a) since sisyphus-list#lifeInGeneral gets no slotchange event nor attributeChangedCallback(),
+    the sisyphus-list web component needs to process its flattened DOM children from the constructor().
+    b) sisyphus-list#lifeAsAWebDeveloper is instantiated with both an attribute and transposed nodes.
+    This means that the sisyphus-list#lifeAsAWebDeveloper gets an additional attributeChangedCallback and at least
+    on slotchange callback. sisyphus-list#lifeAsAWebDeveloper only needs process the last of these
+    triggers.
+  </li>
+  <li>
+    As we will see later, the solution to SlotchangeNipSlip #3 is to control the timing of the
+    slotchange reaction better, and to trigger the same reaction whenever a slot element instantiates
+    itself (regardless of initial state). This will patch the problem of
+    MissingInitialFallbackNodeSlotchange, along with the other SlotchangeNipSlip problems.
+  </li>
+</ol>
