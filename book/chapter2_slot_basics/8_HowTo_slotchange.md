@@ -91,10 +91,9 @@ listening for `slotchange` events on `this` inside a web component will NOT work
 ## SlotchangeNipSlip #1: Old Safari Bug
 
 In Safari browsers, the initial slotchange event is *not* dispatched.
-This is a bug in the old Safari browsers. It was patched in IOS v. (todo).
-https://trac.webkit.org/changeset/235458/webkit
+This is a bug in the old Safari browsers. It is patched in IOS TP (March 2019).
 
-If you need to support older Safari browsers, you either need to reduce your dependency to the 
+To support Safari, you either need to reduce your dependency to the 
 initial slotchange event (which can be tricky) or ensure that all browsers call the function added as
 the initial slotchange event, but only once (which also can be a bit tricky).
 
