@@ -1,7 +1,6 @@
-# SlotchangeNipSlip #2: MissingInitialFallbackNodeSlotchange
+# Problem: NoFallbackSlotchange
 
 > todo incorporated the terms flatDOM and flatDOM-childNodes of a <slot>.
-> todo rename to InitialFallback?
 
 The `slotchange` event rests on the following premises:
 
@@ -17,13 +16,13 @@ which in turn means that the `slotchange` event is dispatched when:
  * *after* having had any `assignedNodes`.
 
 This means that a `slotchange` event will:
-1. *ALWAYS* be dispatch when a `<slot>` element's flatDOM-childNodes,
+1. *ALWAYS* be dispatch when a `<slot>` element's flatDOM-childNodes changes,
 2. *EXCEPT* when the `<slot>` element has no flatDOM-childNodes initially,
-2. *EXCEPT* when the `<slot>` element uses its fallback nodes initially, and
-3. *EXCEPT* when *both* a `<slot>` element *is* currently showing its fallback nodes *and* 
+3. *EXCEPT* when the `<slot>` element uses its fallback nodes initially, and
+4. *EXCEPT* when *both* a `<slot>` element *is* currently showing its fallback nodes *and* 
    its `.childNodes` in the non-flattened shadowDOM is altered dynamically via JS.
 
-The conclusion is that the `slotchange` event is an *almost complete proxy* for
+The conclusion is that the `slotchange` event is an *almost complete proxy* for when
 "`<slot>` element's flatDOM-childNodes changes".
 
 ## What is the use-case for `slotchange`?
@@ -32,35 +31,43 @@ The question facing a developer of a web component is:
  * do I need to react to `assignedNodes` changes, or 
  * do I need to react to "`<slot>` element's flatDOM-childNodes changes"? 
 
-The problem facing developers is that
-*reacting* to `assignedNodes` or flatDOM-childNodes changes does not occur in a vacuum.
+To answer this question, we must first remember that *reacting* to either `assignedNodes` or 
+flatDOM-childNodes changes does not occur in a vacuum.
+On the contrary, these reactions usually hinges on some need to process the nodes in question.
+These processes are *very rarely context-free*; usually they rely on state data. The question is,
+is this state data exclusively connected to the `assignedNodes`?
 
-Reacting to changes in `assignedNodes` and/or *all* flatDOM-childNodes hinge on some kind of 
-processing of the nodes in question being performed. These processes *can* be context-free. 
-An example of a context-free process is an web component with a `<slot>` element that only reads
-how many `assignedNodes` the `<slot>` element has, and then show that number top-right inside itself. 
-In such context-free processes, a good argument can be made that a `<slot>` element's 
-fallback nodes should *never* be processed via a JS reaction, but that the state for the fallback
-nodes should be managed in static HTML/CSS template in the shadowDOM (or alternatively via JS 
-in the `constructor()` if a pure HTML/CSS solution is unavailable).
+A naive process that counts the number of `assignedNodes` of a `<slot>` element 
+and then print that number in the web components shadowDOM *only* needs the `assignedNodes` context. 
+If the same count were to be applied to the web components own fallback nodes, then 
+a good argument could be made that this state should not be processed as a `slotchange` reaction,
+but rather be fixed in static HTML/CSS template in the shadowDOM (alternatively fixed in the 
+`constructor()`). In such a naive use-case, the context would likely be restricted to the 
+`assignedNodes`.
 
 But, what if:
-1. the processing of `assignedNodes` and/or *all* flatDOM-childNodes is context-dependent?
-2. And is such context-dependent processing of flatDOM-childNodes a relevant use-case? 
-3. Can then the output of the fallback nodes be known in advance of element construction? 
-4. Can the result from this process be described in HTML/CSS? 
+1. the processing of `assignedNodes` and flatDOM-childNodes depend on context outside themselves?
+2. Is such context-dependent processing of flatDOM-childNodes a relevant use-case? 
 
 Yes, context-dependent processing of `<slot>` element's flatDOM-childNodes is relevant. In fact, most
-processing of `assignedNodes` is likely to be context-dependent: the flatDOM-childNodes might need
-to be processed using *global* and/or *element specific* input data.
+processing of `assignedNodes` is likely to dependent on context outside the `assignedNodes` themselves.
+We can think of this context as *global* and *element specific* input data.
+And in such a situation, what is true for `assignedNodes` is true for *all* flatDOM-childNodes. 
+
+And:
+1. Can then the output of the fallback nodes be known in advance of element construction? 
+2. Can the result from this process be described in HTML/CSS? 
 
 No, if a `<slot>` element's flatDOM-childNodes are processed using context input data, then 
 this input data is often inaccessible from HTML/CSS. This means that *all* flatDOM-childNodes are
 likely to require a "change-reaction".
 
-In sum, this means that reacting to "`<slot>` element's flatDOM-childNodes changes" is likely the more
-common use-case in that when reacting to "`assignedNodes` changes", this reaction likely require
-context input data which in turn would require the same processing of the fallback childNodes.
+Below we illustrate the fact that:
+ * reacting to "`<slot>` element's flatDOM-childNodes changes" is a more common use-case than
+ * reacting to "`assignedNodes` changes"
+
+because reacting to "`assignedNodes` changes" is likely driven by the need to process context input 
+data which apply equally to *all* flatDOM-childNodes.
 
 > The initial state of a `<slot>` element's flatDOM-childNodes is its `.childNodes`, an not `[]`.
 
@@ -179,7 +186,7 @@ This example illustrate:
 </sisyphus-list>
 
 
-<h3>SlotchangeNipSlip #2</h3>
+<h3>NoFallbackSlotchange </h3>
 
 This example illustrate the problems of viewing 
 a) fallback nodes as the default state of a web component and 
@@ -222,7 +229,7 @@ b) _not_ giving a slotchange event when a slot is declared using its fallback no
 </ol>
 ```
 
-The SlotchangeNipSlip #3 problem is that:
+The NoFallbackSlotchange problem is that:
 
 1. The `sisyphus-list` must process both the `assignedNodes` and the fallback nodes of its 
    `<slot>` element because it needs to alert them about a context-dependent state.
@@ -237,15 +244,15 @@ The SlotchangeNipSlip #3 problem is that:
    `attributeChangedCallback(..)` and at least on `slotchange` event listener.
    `sisyphus-list#lifeAsAWebDeveloper` will call `processFlatDomChildren(..)` 3x, doubly redundant.
 
-As we will see later, the solution to SlotchangeNipSlip #3 is to control the timing of the 
-`slotchange` reaction. To solve this particular use-case, the function that reacts to `slotchange` is
-simply triggered *every* time an element that needs it is constructed, regardless of initial state. 
+As we will see later, the solution to NoFallbackSlotchange is to control the timing of the 
+`slotchange` reaction. To solve this particular use-case, the function that reacts to `slotchange` 
+is simply triggered *every* time an element that needs it is constructed, regardless of initial state. 
 
-## Example: SlotchangeNipSlip #2
+## Example: NoFallbackSlotchange 
 
-The next example also illustrate the MissingInitialFallbackNodeSlotchange problem. 
-This example does not illustrate the use-case behind this problem, only how the problem occur
-initially, and not later in a `<slot>` element's lifecycle.
+This example does not illustrate the use-case behind the NoFallbackSlotchange problem, 
+only how the NoFallbackSlotchange problem occur initially, and not later in a `<slot>` element's 
+lifecycle.
 
 ```html
 <script>
@@ -297,7 +304,7 @@ initially, and not later in a `<slot>` element's lifecycle.
     document.querySelector("#one").innerText = "";
   }, 1000);
 </script>
-<h3>SlotchangeNipSlip #2</h3>
+<h3>NoFallbackSlotchange</h3>
 <ol>
   <li>
     When the elements are created, two slotchange events are dispatched.
@@ -322,60 +329,3 @@ initially, and not later in a `<slot>` element's lifecycle.
 
  * 
  
-
- ## Old drafts
- The argument for triggering `slotchange` only for transposed nodes is that it would avoid calling 
- unnecessary `slotchange` reactions for a known state. The problem with this argument is that it
- does not take into account that other unknown contextual factors can drive and trigger the need
- to process the fallback nodes in ways that cannot be described statically in HTML and CSS.
- 
- This means that quite frequently, `<slot>` fallback nodes needs to be processed in the constructor,
- thus causing the redundancy problem to be shifted to the listener of slotchange callbacks.
- 
- Even at creation time, the
- context of the web component is not known. It might be filled with transposed nodes to begin with,
- it might not. If processing the childNodes and transposed nodes is heavy, it would be better to 
- 
- 
- 
- , and thus does not need to be processed (which is not correct 
- in that the context of the web component is not known, and this also factors into the creation processing)
- and b) that the initial state of the web component is its fallback nodes, and not empty (which is
- not helpful in real life web components).
- 
- But this argument and the current premises are not well suited for web component reaction.
-  
- 1. Web components need to react to changes in the list of displayed content of a `<slot>` element 
- in the flattened DOM. This use case is *more frequent* than reacting to changes in the list of 
- transposed nodes *only*. The reason for this is that *if* a web component needs to do an operation
- based on the state of transposed nodes, these operations might also do some work *on* the transposed
- nodes. Imagine for example an attribute value on the host element, such as a symbol type on a list, 
- that needs to be applied and communicated to the childnodes in view. Such transference of parent 
- state to its flattened DOM children can be triggered by `attributeChangedCallback(..)`. But, what if
- the state of the parent web component list was not established by an attribute with its own callback?
- In such cases you would like to perform the operation of updating the list symbol of the child 
- elements, whether they are transposed or fallback nodes. 
- 
- 2. To *opt out of and abort* a `slotchange` reaction that include fallback nodes is simpler than 
- it is to *add* a trigger to the initial state based on fallback nodes, without doing redundant work. 
- Put simply:
-  
-  * if the fallback nodes is the default, initial state of the web component, then the developer should
-    process this state in the constructor. This might be a little work.
-  
-  * Then if the web component is created directly with transposed nodes, then it is likely that this 
-    initial setup against fallback nodes was a complete waste. 
-  
-  * This leads the developer to try to delay the initial setup against fallback nodes until it
-    has been verified that no transposed nodes are added during creation. As we will describe later, 
-    this is doable, but not trivial.
- 
- Conclusion: The slotchange event is most relevant when it signals: "a change in
- the list of child nodes in the flattened DOM" and when the default state of this list is empty, and not the fallback
- nodes. This only requires triggering slotchange reactions when a slot uses its list of fallback nodes as its initial
- result, and this makes it far simpler for the developer of a web component to write ordered reactions based on the
- current state of a slot.
- 
- Therefore, best practice is therefore to react to both fallback nodes and transposed nodes alike.
- SlotchangeNipSlip #2 is the fact that no `slotchange` event is dispatched when a `<slot>` element
- uses fallback nodes as its *initial* list of child nodes in the flattened DOM.

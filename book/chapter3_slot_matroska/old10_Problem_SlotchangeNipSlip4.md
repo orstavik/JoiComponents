@@ -469,3 +469,62 @@ setTimeout(()=>{
 ```
 ## References
 
+## other drafffts
+
+
+ ## Old drafts
+ The argument for triggering `slotchange` only for transposed nodes is that it would avoid calling 
+ unnecessary `slotchange` reactions for a known state. The problem with this argument is that it
+ does not take into account that other unknown contextual factors can drive and trigger the need
+ to process the fallback nodes in ways that cannot be described statically in HTML and CSS.
+ 
+ This means that quite frequently, `<slot>` fallback nodes needs to be processed in the constructor,
+ thus causing the redundancy problem to be shifted to the listener of slotchange callbacks.
+ 
+ Even at creation time, the
+ context of the web component is not known. It might be filled with transposed nodes to begin with,
+ it might not. If processing the childNodes and transposed nodes is heavy, it would be better to 
+ 
+ 
+ 
+ , and thus does not need to be processed (which is not correct 
+ in that the context of the web component is not known, and this also factors into the creation processing)
+ and b) that the initial state of the web component is its fallback nodes, and not empty (which is
+ not helpful in real life web components).
+ 
+ But this argument and the current premises are not well suited for web component reaction.
+  
+ 1. Web components need to react to changes in the list of displayed content of a `<slot>` element 
+ in the flattened DOM. This use case is *more frequent* than reacting to changes in the list of 
+ transposed nodes *only*. The reason for this is that *if* a web component needs to do an operation
+ based on the state of transposed nodes, these operations might also do some work *on* the transposed
+ nodes. Imagine for example an attribute value on the host element, such as a symbol type on a list, 
+ that needs to be applied and communicated to the childnodes in view. Such transference of parent 
+ state to its flattened DOM children can be triggered by `attributeChangedCallback(..)`. But, what if
+ the state of the parent web component list was not established by an attribute with its own callback?
+ In such cases you would like to perform the operation of updating the list symbol of the child 
+ elements, whether they are transposed or fallback nodes. 
+ 
+ 2. To *opt out of and abort* a `slotchange` reaction that include fallback nodes is simpler than 
+ it is to *add* a trigger to the initial state based on fallback nodes, without doing redundant work. 
+ Put simply:
+  
+  * if the fallback nodes is the default, initial state of the web component, then the developer should
+    process this state in the constructor. This might be a little work.
+  
+  * Then if the web component is created directly with transposed nodes, then it is likely that this 
+    initial setup against fallback nodes was a complete waste. 
+  
+  * This leads the developer to try to delay the initial setup against fallback nodes until it
+    has been verified that no transposed nodes are added during creation. As we will describe later, 
+    this is doable, but not trivial.
+ 
+ Conclusion: The slotchange event is most relevant when it signals: "a change in
+ the list of child nodes in the flattened DOM" and when the default state of this list is empty, and not the fallback
+ nodes. This only requires triggering slotchange reactions when a slot uses its list of fallback nodes as its initial
+ result, and this makes it far simpler for the developer of a web component to write ordered reactions based on the
+ current state of a slot.
+ 
+ Therefore, best practice is therefore to react to both fallback nodes and transposed nodes alike.
+ NoFallbackSlotchange is the fact that no `slotchange` event is dispatched when a `<slot>` element
+ uses fallback nodes as its *initial* list of child nodes in the flattened DOM.
