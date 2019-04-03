@@ -1,0 +1,100 @@
+<script>
+  function log(e) {
+    console.log(this.tagName, e.target.tagName + "#" + e.target.id);
+  }
+
+  class TheFather extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<the-child><slot id='father'></slot></the-child>";
+      this.shadowRoot.addEventListener("slotchange", log.bind(this));
+    }
+  }
+
+  class TheChild extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<slot id='child'></slot>";
+      this.shadowRoot.addEventListener("slotchange", log.bind(this));
+    }
+  }
+
+  customElements.define("the-father", TheFather);
+  customElements.define("the-child", TheChild);
+</script>
+
+<the-father>matroska</the-father>
+
+
+<h3>Explanation: </h3>
+First, the flattened DOM looks like this:
+<pre>
+...
+  < the-father >
+    #shadowRoot                   * slotchange listener
+      < the-child >
+        #shadowRoot               * slotchange listener
+          < slot#child >
+            < slot#father >
+              matroska
+</pre>
+
+Take note of two things:
+<ol>
+  <li>
+    The slot elements appear in reverse document order.
+  </li>
+  <li>
+    The slotchange event listeners are attached to the #shadowRoot of each element.
+    This causes the inner web component to be triggered first and then the outer web component.
+  </li>
+  <li>
+    If the slotchange event listener were attached to the slot elements instead,
+    then they would run in reverse document order.
+  </li>
+</ol>
+
+Creating this DOM produces three logs:
+<pre>
+THE-CHILD  SLOT#child
+THE-CHILD  SLOT#father
+THE-FATHER SLOT#father
+</pre>
+
+<ol>
+  <li>
+    The first log output comes from slot#father being transposed into slot#child.
+    The event start bubbling from the slot#child, is then caught by the event listener on the-child#shadowRoot,
+    and finally stopped by the border between < the-child > host element and its #shadowRoot.
+    <pre>
+...
+  < the-father >
+    #shadowRoot
+      < the-child >                        _
+        #shadowRoot                        *1
+          < slot#child >       slotchange  ^
+            < slot#father >
+              matroska
+</pre>
+  </li>
+  <li>
+    The second and third log output is produced by the same(!) slotchange event.
+    The event occurs when the "matroska" text node is being transposed into slot#father.
+    The event then bubbles up, and because it is "composed: false", it is stopped by the border
+    between the-child and its #shadowRoot. However, because the slot elements remain in the flattened
+    DOM in reverse document order as a SlotMatroska, the slotchange event listener on both the
+    the-father and the-child element are triggered. Producing two outputs.
+    <pre>
+...
+  < the-father >                          _
+    #shadowRoot                             *3
+      < the-child >                        |
+        #shadowRoot                         *2
+          < slot#child >                   |
+            < slot#father >slotchange  ^
+              matroska
+</pre>
+  </li>
+</ol>

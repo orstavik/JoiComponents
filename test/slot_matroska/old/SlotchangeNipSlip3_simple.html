@@ -1,0 +1,117 @@
+<script>
+  class PortraitFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host(*){
+            border: 10px solid darkgreen;
+            width: 300px;
+            height: 300px;
+            display: block;
+          }
+          green-frame {
+            box-sizing: border-box;
+            display: block;
+            width: 100%;
+            height: 100%;
+          }
+        </style>
+        <green-frame id="frameOne">
+          <slot>a picture</slot>
+        </green-frame>`;
+    }
+  }
+
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            border: 4px solid green;
+          }
+        </style>
+        <slot></slot>`;
+      this.shadowRoot.addEventListener("slotchange", console.log);
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+  customElements.define("portrait-frame", PortraitFrame);
+</script>
+
+<style> pre {margin: 0} </style>
+
+<portrait-frame id="portrait">
+  <pre>¯\_(ツ)_/¯</pre>
+  <script>var take = "a break";</script>
+  <pre>  ( . ) </pre>
+  <script>var take5;</script>
+  <pre>   === </pre>
+  <pre>  |   | </pre>
+  <pre>  | | | </pre>
+  <pre>  | | | </pre>
+  <pre>   ^ ^ </pre>
+</portrait-frame>
+
+<script>
+  const div = document.createElement("div");
+  div.innerHTML = `
+    <portrait-frame id="portrait">
+      <h2>¯\\_(ツ)_/¯</h2>
+      <h2>¯\\_(ツ)_/¯</h2>
+      <span>self-portrait, by ivar</span>
+    </portrait-frame>`;
+//  document.querySelector("body").appendChild(div);
+</script>
+
+<h3>SlotchangeNipSlip #3: CreateRedundantSlotchangeEvents </h3>
+
+
+
+We start viewing the situation from HTML.
+<ol>
+  <li>
+    A h2 and span element are declared in the top most lightDOM.
+  </li>
+  <li>
+    The h2 and span elements are then transposed into their respective slot element in the portrait-frame shadowDOM.
+  </li>
+  <li>
+    Then, the two slot elements in the portrait-frame shadowDOM are transposed into two different green-frame elements
+    and their inner slots.
+  </li>
+  <li>
+    From the perspective of HTML, this should trigger a total of four slotchange events.
+  </li>
+</ol>
+
+But, in JS, four(?!) slotchange events are triggered.
+<ol>
+  <li>
+    frameOne (2) [slot, document-fragment]<br>
+    This event is triggered as the first slot in portrait-frame is transposed to the inner slot in the first green-frame
+    element.
+  </li>
+  <li>
+    frameTwo (2) [slot, document-fragment]<br>
+    This event is triggered as the first slot in portrait-frame is transposed to the inner slot in the first green-frame
+    element.
+  </li>
+  <li>
+    frameOne (5) [slot, slot, document-fragment, green-frame#frameOne, document-fragment]<br>
+    portrait (5) [slot, slot, document-fragment, green-frame#frameOne, document-fragment]<br>
+    "¯\_(ツ)_/¯" is added to the portrait-frame element. This element is then transposed to the portrait-frame element
+    and then the green-frame#one. The green-frame#one slotchange event listener is triggered first, then the portrait.
+  </li>
+  <li>
+    frameTwo (5) [slot, slot, document-fragment, green-frame#frameTwo, document-fragment]<br>
+    portrait (5) [slot, slot, document-fragment, green-frame#frameTwo, document-fragment]<br>
+    "self-portrait, by ivar" is added to the portrait-frame element. This element is then transposed to the
+    portrait-frame element and then the green-frame#two. The inner, green-frame#two slotchange event listener is
+    triggered first, then the outer portrait-frame event listener.
+  </li>
+</ol>

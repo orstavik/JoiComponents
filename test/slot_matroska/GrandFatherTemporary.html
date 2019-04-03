@@ -1,0 +1,96 @@
+<script>
+  function log(e){
+    const transposedNodes = e.target.assignedNodes({flatten: true});
+    let output = "";
+    if (transposedNodes.length)
+      output = transposedNodes[0].data;
+    console.log(this.tagName + ":      " + e.target.tagName + "#" + e.target.id, "      => " + output);
+  }
+
+  class GrandFather extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<the-father><slot id='grandFather'></slot></the-father>";
+      this.shadowRoot.addEventListener("slotchange", log.bind(this));
+    }
+  }
+  class TheFather extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<the-child><slot id='father'></slot></the-child>";
+      this.shadowRoot.addEventListener("slotchange", log.bind(this));
+    }
+  }
+  class TheChild extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<slot id='child'></slot>";
+      this.shadowRoot.addEventListener("slotchange", log.bind(this));
+    }
+  }
+  customElements.define("grand-father", GrandFather);
+  customElements.define("the-father", TheFather);
+  customElements.define("the-child", TheChild);
+</script>
+
+<grand-father>matroska</grand-father>
+
+
+<h3>Explanation: </h3>
+The flattened DOM looks like this:
+<pre>
+...
+  < grand-father >
+    #shadowRoot
+      < the-father >
+        #shadowRoot
+          < the-child >
+            #shadowRoot
+              < slot#child >
+                < slot#father >
+                  < slot#grandFather >
+                    matroska
+</pre>
+
+Constructing this DOM produces six logs:
+<pre>
+THE-CHILD:      SLOT#father       =>
+THE-FATHER:     SLOT#father       =>
+THE-CHILD:      SLOT#child        =>
+THE-CHILD:      SLOT#grandFather  => matroska
+THE-FATHER:     SLOT#grandFather  => matroska
+GRAND-FATHER:   SLOT#grandFather  => matroska
+</pre>
+
+A view of the DOM in which the three slotchange events are executed.
+
+<pre>
+                         in-complete DOM                              completed DOM
+  < grand-father >                           § < grand-father >                     _
+    #shadowRoot                              §   #shadowRoot                         *6
+      < the-father >                   _     §     < the-father >                   |
+        #shadowRoot                    *2    §       #shadowRoot                     *5
+          < the-child >                |  _  §         < the-child >                |
+            #shadowRoot                *1 *3 §           #shadowRoot                 *4
+              < slot#child >           |  ^  §             < slot#child >           |
+                < slot#father >        ^     §               < slot#father >        |
+                  < slot#grandFather >       §                 < slot#grandFather > ^
+                    ""                       §                   matroska
+</pre>
+
+<ol>
+  <li>
+    When log 1, 2, and 3 run, the DOM is in a temporary state.
+    The grand-father element is created, but it does not have any child nodes yet:
+    the "matroska" text node is not yet registered as its child.
+    This means that when the log functions run assignedNodes({flatten: true}), it is empty.
+  </li>
+  <li>
+    When log 4, 5, and 6 run, the DOM is completed. The "matroska" text node is now registered
+    as a child of the grand-father host element, and the assignedNodes({flatten: true})
+    return the anticipated result "matroska".
+  </li>
+</ol>

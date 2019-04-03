@@ -1,0 +1,123 @@
+<script>
+  class PortraitFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host(*){
+            border: 10px solid darkgreen;
+            width: 300px;
+            height: 300px;
+            display: block;
+          }
+          green-frame {
+            box-sizing: border-box;
+            display: block;
+            width: 100%;
+            height: 100%;
+          }
+        </style>
+        <green-frame id="frameOne">
+          <slot id="outer">a picture</slot>
+        </green-frame>`;
+    }
+  }
+
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            border: 4px solid green;
+          }
+        </style>
+        <slot id="inner"></slot>`;
+      this.shadowRoot.addEventListener("slotchange", function(e){
+        console.log(e.composedPath(), e.target.assignedElements(), e.target.assignedElements({flatten: true}));
+      });
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+  customElements.define("portrait-frame", PortraitFrame);
+</script>
+
+<style> pre {margin: 0} </style>
+
+<portrait-frame id="portrait">
+  <pre>¯\_(ツ)_/¯</pre>
+  <pre>  |   | </pre>
+  <pre>  | 6 | </pre>
+  <pre>   === </pre>
+  <pre>  |   | </pre>
+  <pre>  | | | </pre>
+  <pre>  | | | </pre>
+  <pre>   ^ ^ </pre>
+</portrait-frame>
+
+<h3>SlotchangeExplosion #1</h3>
+
+We start viewing the situation from HTML.
+<ol>
+  <li>
+    A portrait-frame with a bunch of pre children are declared in the top most lightDOM.
+  </li>
+  <li>
+    The portrait-frame has a slot with a green-frame element that it chains its slot element to.
+  </li>
+  <li>
+    The green-frame has a slot element.
+  </li>
+  <li>
+    From the perspective of HTML, the declaration of the portrait-frame should trigger one relevant
+    slotchange event as the pre elements are transposed from the topmost lightDOM to the slot inside green-frame.
+  </li>
+</ol>
+
+In JS, you (most likely) see two slotchange events. Why?
+<ol>
+  <li>
+    [slot#inner, document-fragment] <br>
+    [slot#outer] <br>
+    []<br>
+    The first slotchange event is caused by slot#outer being transposed into slot#inner.
+    This slotchange event occurs on a temporary DOM branch construction.
+    A this point in time, portrait-frame is still being created and no childNodes is yet connected to its host element.
+    Therefore, the slot#inner.assignedElements({flatten: true}) returns an empty list.
+    This slotchange event is not really redundant, a slotchange explosion, because we should be alerted about the
+    slot#inner getting transposed content. The main problem with this slotchange event is that it is coming too early.
+  </li>
+  <li>
+    [slot#outer, slot#inner, document-fragment, green-frame#frameOne, document-fragment] <br>
+    [pre, pre, pre, pre, pre, pre, pre] <br>
+    [pre, pre, pre, pre, pre, pre, pre]<br>
+    The second slotchange event is caused by all the pre elements being transposed into slot#outer.
+    Important to note here is that this slotchange event is not dispatched on slot#inner, but bubbles *from*
+    slot#outer *to* slot#inner. This is very strange, but it is because the flattened DOM looks like this:
+    <pre>
+...
+  < portrait-frame >
+    #shadowRoot
+      ..
+      < green-frame >
+        #shadowRoot
+          < slot#inner >
+            < slot#outer >
+              < pre >¯\_(ツ)_/¯
+              < pre >  |   |
+              ...
+    </pre>
+    The second slotchange event is the one we want. The problem with this slotchange event is that it really dispatched
+    on slot#outer, not the slot#inner. It would be natural to assume that when the pre-nodes become transposed all the
+    way into slot#inner, a slotchange event would be dispatched directly from slot#inner. This is not so. The reason the
+    slotchange event listener for slot#inner receives a slotchange event is that this event will bubble all the way up
+    to #shadowRoot under portrait-frame.
+  </li>
+  <li>
+    If your browser displays _more than_ two slotchange events, don't worry. I will explain why this happens in the
+    next example.
+  </li>
+</ol>

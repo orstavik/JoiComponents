@@ -1,6 +1,7 @@
 # SlotchangeNipSlip #2: MissingInitialFallbackNodeSlotchange
 
 > todo incorporated the terms flatDOM and flatDOM-childNodes of a <slot>.
+> todo rename to InitialFallback?
 
 The `slotchange` event rests on the following premises:
 

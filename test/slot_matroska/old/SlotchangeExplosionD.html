@@ -1,0 +1,121 @@
+<script>
+  class PortraitFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host(*){
+            border: 10px solid darkgreen;
+            width: 300px;
+            height: 300px;
+            display: block;
+          }
+          green-frame {
+            box-sizing: border-box;
+            display: block;
+            width: 100%;
+            height: 100%;
+          }
+        </style>
+        <green-frame id="frameOne">
+          <slot id="outer">a picture</slot>
+        </green-frame>`;
+    }
+  }
+
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            border: 4px solid green;
+          }
+        </style>
+        <slot id="inner"></slot>`;
+      this.shadowRoot.addEventListener("slotchange", function (e) {
+        console.log(e.composedPath(), e.target.assignedNodes(), e.target.assignedNodes({flatten: true}));
+      });
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+  customElements.define("portrait-frame", PortraitFrame);
+</script>
+
+<template id="portrait">
+  <portrait-frame>
+    <pre>¯\_(ツ)_/¯</pre>
+    <pre>  |   | </pre>
+    <pre>  | 6 | </pre>
+    <pre>   === </pre>
+    <pre>  |   | </pre>
+    <pre>  | | | </pre>
+    <pre>  | | | </pre>
+    <pre>   ^ ^ </pre>
+  </portrait-frame>
+</template>
+
+<div id="container"></div>
+<style> pre { margin: 0 } </style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const div = document.querySelector("div#container");
+    const template = document.querySelector("template#portrait");
+    div.appendChild(template.content.cloneNode(true));
+//    div.innerHTML = template.innerHTML;
+  });
+</script>
+
+<h3>SlotchangeExplosion #3</h3>
+<p>
+  When we view this situation from HTML, it looks the same as in our previous example SlotchangeExplosion #1.
+  The only difference is that two empty scripts will be processed along the way.
+  But, in your console, you should now see 4 (or more) logs. Why is that?
+</p>
+<p>
+  The first script deliberately causes the browser to break its creation of the DOM.
+  This means that the browser will make a "temporary" DOM branch that looks like this:
+<pre>
+...
+  < portrait-frame >
+    #shadowRoot
+      ..
+      < green-frame >
+        #shadowRoot
+          < slot#inner >
+            < slot#outer >
+              < pre >¯\_(ツ)_/¯
+              < pre >  |   |
+              ---break 1---
+</pre>
+This is the temporary state of the DOM in which the second slotchange event is dispatched.
+And you can see this state in the slot#outer.assignedElements({flatten: true}) which is:
+`[pre, pre, pre, script]`
+</p>
+<p>
+  The second script does the same with a "temporary" DOM branch that looks like this:
+<pre>
+...
+  < portrait-frame >
+    #shadowRoot
+      ..
+      < green-frame >
+        #shadowRoot
+          < slot#inner >
+            < slot#outer >
+              < pre >¯\_(ツ)_/¯
+              < pre >  |   |
+              < pre >  | 6 |
+              ---break 2---
+</pre>
+This is the temporary state of the DOM in which the third slotchange event is dispatched.
+And you can see this state in the slot#outer.assignedElements({flatten: true}) which is:
+`[pre, pre, pre, script, pre, script]`
+</p>
+<p>
+  The last slotchange event occurs when the DOM branch is complete. :
+</p>

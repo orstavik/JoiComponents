@@ -1,4 +1,11 @@
-# SlotchangeNipSlip #4: SlotchangeEavesdropping / BigBrotherEavesDropping
+# SlotchangeNipSlip: SlotchangeEavesdropping / BigBrotherEavesDropping
+
+In [Problem: SlotchangeSurprise](7_Problem_SlotchangeSurprise), we saw how multiple `slotchange` 
+events can surprise us. In this chapter, we how *completely* irrelevant `slotchange` events
+might trigger a `slotchange` listener, and thus how web components might accidentally eavesdrop 
+on `slotchange` events they should not be party of. We start with an example:
+
+## Example: 
 
 Two core web component principles:
  * Only `composed` events propagate up from the shadowDOM inside a custom element and through to the
