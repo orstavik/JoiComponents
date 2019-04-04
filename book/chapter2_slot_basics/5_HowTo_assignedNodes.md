@@ -1,4 +1,4 @@
-#HowTo: `HTMLSlotElement.assignedNodes()`
+# HowTo: `HTMLSlotElement.assignedNodes()`
 
 `<slot>` elements have two methods to discover which nodes are assigned to them:
 
