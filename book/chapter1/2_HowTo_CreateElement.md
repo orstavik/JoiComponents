@@ -1,6 +1,6 @@
 # HowTo: Create custom elements
 
-Normal HTML elements such as `<p>` and `<h1>` and `<ul are defined by the HTML standard.
+Normal HTML elements such as `<p>` and `<h1>` and `<ul>` are defined by the HTML standard.
 When you use a normal HTML element in your web app, you get their default look and behavior 
 out of the box. Custom elements are similar to normal HTML elements in that they can be *used* 
 in the same way as a normal HTML element in your web app. But, while normal HTML elements are 
