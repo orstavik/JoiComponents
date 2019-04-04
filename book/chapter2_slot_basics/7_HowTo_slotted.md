@@ -31,7 +31,7 @@ element? The shadowDOM standard include a special CSS selector (a CSS pseudo cla
 5. `::slotted(...)` properties will trump CSS properties that is only inherited. Of course.
 
 6. To select a specific `<slot>` for a `::slotted(...)` rule, prefix the `::slotted(...)` selector.
-   * `slot[name="boo"]::slotted(h1)` selects <h1> elements that are slotted into the `<slot name="boo">`.
+   * `slot[name="boo"]::slotted(h1)` selects `<h1>` elements that are slotted into the `<slot name="boo">`.
    * `*::slotted(*)` (same as `::slotted(*)`) selects all slotted elements for all `<slot>` elements.
 
 ## Example: `<green-frame>` with `::slotted(...)` style
