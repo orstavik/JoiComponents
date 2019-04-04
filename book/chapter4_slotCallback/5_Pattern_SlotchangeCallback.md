@@ -88,7 +88,41 @@ export function SlotchangeCallbackMixin(base) {
 ## Demo: SlotchangeCallback
 
 ```html
+<template>
+  <style>
+    div { border: 4px solid green; }
+  </style>
+  <div>
+    <slot></slot>
+  </div>
+</template>
 
+<script type="module">
+
+  import {SlotchangeCallbackMixin} from "../../src/slot/SlotchangeCallbackMixin.js";
+
+  class GreenFrame extends SlotchangeCallbackMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      const templ = document.querySelector("template").content.cloneNode(true);
+      this.shadowRoot.appendChild(templ);
+    }
+
+    slotchangeCallback(slot){
+      console.log(slot);
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const div = document.querySelector("div");
+    div.innerHTML = "<green-frame>¯\\_(ツ)_/¯</green-frame>";
+  });
+</script>
+<green-frame>¯\_(ツ)_/¯</green-frame>
+<div>fill me up!</div>
 ```
 
 ## Discussion
@@ -102,34 +136,53 @@ The implementation `SlotchangeCallbackMixin` fixes several of the SlotMatroska p
 
 However, it still suffers from some problems:
 
-1. It depends on the web component having a shadowDOM
-2. NoFallbackSlotchange
-3. If the content of a slot is empty, it triggers a slotchangeCallback
-4. It does not alert the web component if there is content that *could* be slotted, but which 
-   currently is not.
-5. FallbackNodesFallout: If the content of a slot is empty, it hides the fallback childNodes.
+## Slottables, not slotted
 
-The next step attempts to fix the next four issues in one fell swoop. 
+1. It depends on the web component having a shadowDOM
+2. It does not alert the web component if there is content that *could* be slotted, but which 
+   currently is not.
+
+The next step attempts to fix the two issues in one fell swoop. 
 
 1. Instead of relying on the shadowRoot, this solution looks directly at the childNodes of the
    host node. 
-2. This requires a custom method to identify Slottables grouped under different `slot` attributes.
-3. This method can then optionally exclude groups that contain only empty `<slot>` elements 
-   (which can be surrounded by whitespace, but it must contain at least one empty `<slot>` element).
-4. This mixin also looks into the shadowRoot, if one such exists, and will at startup call a 
-   slotCallback for each of these `<slot>` elements that uses their fallback nodes at startup.
-5. This mixin also will then listen for `slotchange` events externally for any chained
+2. This requires a custom method to identify Slottables grouped under different `slot` attributes/name strings.
+3. This mixin also will then listen for `slotchange` events externally for any chained
    slot elements among the host element childNodes that are not currently mapped internally in the 
    web component, plus add a MutationObserver for changes to the childList to detect slottable, but not
    slotted nodes being altered.
-6. To identify *when* a slot is added to the shadowDOM, a `slotchange` listener is also added on the 
+
+## NoFallbackSlotchange
+
+1. If the element has a shadowRoot, the mixin will at startup locate all the `<slot>` 
+   elements within it, in addition to all the slotable groups. If the name of the slot is empty,
+   the mixin will use the childNodes of the child as its flatDOM-childNodes.
+
+2. To capture dynamic changes to the childList of slot nodes that are currently showing the fallback
+   nodes, a MutationObserver(childList) will be added to all slot elements in this mode.
+   
+3. This mixin does not capture when a slot element is added to the shadowRoot after setup which do uses 
+   its fallback nodes and does not get any transposed nodes.
+
+4. To identify *when* a slot is added to the shadowDOM, a `slotchange` listener is also added on the 
    shadowRoot if it exists.
 
-This mixin will not capture the dynamic changes made to the childList of slot nodes. This can be 
-remided by adding a childNodes mutation observer on a slot element when it is in fallback mode.
+## Empty set of nodes
 
-This mixin does not capture when a slot element is added to the shadowRoot after setup which do uses 
-its fallback nodes and does not get any transposed nodes.
+If the content of a slot is empty, it triggers a slotchangeCallback
+
+The next solution again will try to fix these problems with these actions:
+The function that groups slottables can identify "empty groups".
+   An empty group is a contains:
+   1. at least one `<slot>` element,
+   2. the assignedNodes({flatten: true}) for all the `<slot>` elements is an empty array
+   3. if so, these `<slot>` elements can be surrounded by whitespace, but nothing else.
+
+## alter the name of a slot to allow for GentleMom principle
+
+3. FallbackNodesFallout: If the content of a slot is empty, it hides the fallback childNodes.
+
+
 
 ## References
 
