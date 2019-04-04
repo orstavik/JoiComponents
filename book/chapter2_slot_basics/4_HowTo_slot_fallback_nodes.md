@@ -116,4 +116,4 @@ both regular CSS styles and `::slotted` CSS styles or styling the `<slot>` eleme
 We will return to this in later chapters.
 
 ## References
- * https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom
+ * [light DOM vs. shadow DOM](https://developers.google.com/web/fundamentals/web-components/shadowdom#lightdom)
