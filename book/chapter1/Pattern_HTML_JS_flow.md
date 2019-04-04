@@ -2,9 +2,9 @@
 
 The sequence of the DOM resolution callbacks:
 
-1. Individual dom node updates (ie. AttributeChangedCallback)
-2. DomBranch updates (ie. SlottablesCallback)
-3. Cssom rule attributions (ie. StyleChangedCallback)
+1. Individual DOM node updates (ie. AttributeChangedCallback)
+2. DOMBranch updates (ie. SlottablesCallback)
+3. CSSOM rule attributions (ie. StyleChangedCallback)
 4. Layout calculations (ie. LayoutChangedCallback)
 5. Paint (no callback)
 
