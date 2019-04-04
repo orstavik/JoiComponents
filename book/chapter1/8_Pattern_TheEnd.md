@@ -17,8 +17,9 @@ and then abruptly close that page without closing the connection.
 If thousands of users/browsers behave in this manner,
 the poor server starts hoarding memory and sockets for users that are no longer connected,
 slowing or blocking the service for users that are still connected.
- 
-![Why close db connections](https://preview.ibb.co/nHqPyz/Corel_DRAW_X7_Graphic.png)
+<p align="center">
+  <img src="https://preview.ibb.co/nHqPyz/Corel_DRAW_X7_Graphic.png" alt="Why close db connections">
+</p>
 
 ## Problem 2: please tell me how it ends!
 
