@@ -1,0 +1,35 @@
+<template>
+  <style>
+    div { border: 4px solid green; }
+  </style>
+  <div>
+    <slot></slot>
+  </div>
+</template>
+
+<script type="module">
+
+  import {SlotchangeCallbackMixin} from "../../src/slot/SlotchangeCallbackMixin.js";
+
+  class GreenFrame extends SlotchangeCallbackMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      const templ = document.querySelector("template").content.cloneNode(true);
+      this.shadowRoot.appendChild(templ);
+    }
+
+    slotchangeCallback(slot){
+      console.log(slot);
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const div = document.querySelector("div");
+    div.innerHTML = "<green-frame>¯\\_(ツ)_/¯</green-frame>";
+  });
+</script>
+<green-frame>¯\_(ツ)_/¯</green-frame>
+<div>fill me up!</div>

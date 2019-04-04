@@ -1,0 +1,92 @@
+<script type="module">
+
+  import {DOMBranchReadyMixin} from "../../src/slot/DOMBranchReadyMixin.js";
+
+  function dblPrt(fn){
+//    Promise.resolve().then(function(){
+      Promise.resolve().then(fn);
+//    });
+  }
+
+  function log(e){
+    const message = this.tagName;
+    const nodes = e.composedPath()[0].assignedNodes({flatten: true});
+    const onFulfilled = function(){
+      console.log(message, nodes);
+    };
+    onFulfilled();
+//    dblPrt(onFulfilled);
+  }
+
+  class Inner extends HTMLElement {
+//  class Inner extends DOMBranchReadyMixin(HTMLElement) {
+    constructor() {
+      super();
+      console.log("Constructor", this);
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<b><slot></slot></b>";
+      this.shadowRoot.addEventListener("slotchange", log.bind(this));
+      var self = this;
+      dblPrt(()=> console.log(self.tagName, "dblPrt from constructor"));
+    }
+    domBranchReady() {
+      const slot = this.shadowRoot.children[0].children[0];
+      console.log("domBranchReady", this);
+      console.log("isConnected", this.isConnected);
+      console.log("flattenedAssignedNode", slot.assignedNodes({flatten: true})[0]);
+      console.log("attribute", this.getAttribute("a"));
+    }
+    connectedCallback(){
+      console.log("connected", this);
+      Promise.resolve().then(()=>{console.log("connectedEnd", this);});
+    }
+  }
+
+  class Middle extends HTMLElement {
+//  class Middle extends DOMBranchReadyMixin(HTMLElement) {
+    constructor() {
+      super();
+      console.log("Constructor", this);
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<inner-inner a='innerAttr'><slot></slot></inner-inner>";
+      this.shadowRoot.addEventListener("slotchange", log.bind(this));
+    }
+    domBranchReady() {
+      const slot = this.shadowRoot.children[0].children[0];
+      console.log("domBranchReady", this);
+      console.log("isConnected", this.isConnected);
+      console.log("flattenedAssignedNode", slot.assignedNodes({flatten: true})[0]);
+      console.log("attribute", this.getAttribute("a"));
+    }
+    connectedCallback(){
+      console.log("connected", this);
+      Promise.resolve().then(()=>{console.log("connectedEnd", this);});
+    }
+  }
+
+  class Outer extends HTMLElement {
+//  class Outer extends DOMBranchReadyMixin(HTMLElement) {
+    constructor() {
+      super();
+      console.log("Constructor", this);
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<middle-middle a='middleAttr'><slot></slot></middle-middle>";
+      this.shadowRoot.addEventListener("slotchange", log.bind(this));
+    }
+    domBranchReady() {
+      const slot = this.shadowRoot.children[0].children[0];
+      console.log("domBranchReady", this);
+      console.log("isConnected", this.isConnected);
+      console.log("flattenedAssignedNode", slot.assignedNodes({flatten: true})[0]);
+      console.log("attribute", this.getAttribute("a"));
+    }
+    connectedCallback(){
+      console.log("connected", this);
+      Promise.resolve().then(()=>{console.log("connectedEnd", this);});
+    }
+  }
+  customElements.define("inner-inner", Inner);
+  customElements.define("middle-middle", Middle);
+  customElements.define("outer-outer", Outer);
+</script>
+<outer-outer a='outerAttr'>.</outer-outer>

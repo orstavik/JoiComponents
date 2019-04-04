@@ -62,7 +62,6 @@ add a 10px wide green border around it.
       this.shadowRoot.innerHTML =             
         `<style>
           div {
-            display: block;                                  
             border: 10px solid green;
           }
         </style>

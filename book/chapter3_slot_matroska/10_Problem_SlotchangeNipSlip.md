@@ -207,24 +207,26 @@ shadowRoot top, whenever web components are nested *in a lightDOM*, they will ac
 each others slotchange events.
 
 However, there is a universal, pure function that can alert you if a `slotchange` event.
-We call this function `isNipSlip(composedPath, shadowRoot)`.
-`isNipSlip(..)` checks to see if there are any non-`<slot>` elements between the `shadowRoot`
+We call this function `notNipSlip(composedPath, shadowRoot)`.
+`notNipSlip(..)` checks to see if there are any non-`<slot>` elements between the `shadowRoot`
 and `<slot>` elements in the start of the `composedPath`.
 All directly chained `<slot>` elements are lined up *at the beginning* of the `composedPath`, and
-indirectly chained `<slot>` elements are behind at least *one* non-`<slot>` element in the `composedPath.
+indirectly chained `<slot>` elements are behind at least *one* non-`<slot>` element in the `composedPath()`.
+`notNipSlip(...)` returns `null` if the `slotchange` is a SlotchangeNipSlip; 
+otherwise `notNipSlip(...)` returns the `<slot>` element which is housed in the current `shadowRoot`.
 
 ```javascript
-function isNipSlip(composedPath, shadowRoot){
+function notNipSlip(composedPath, shadowRoot){
   for(let node of composedPath){
     if (node.tagName !== "SLOT")
-      return false;
+      return null;
     if (node.ownerDocument === shadowRoot)
-      return true;
+      return node;
   }
-  return false;
+  return null;
 }
-```
-> todo 
+``` 
 
 ## References
 
+ * 

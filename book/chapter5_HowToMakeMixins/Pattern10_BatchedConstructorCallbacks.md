@@ -46,14 +46,15 @@ until the entire DOM-branch on which it depends is completed.
 
 ## The completion of DOM-branch construction: 1) Main document parser
 
-There are two modes of DOM construction. First, the parser of the main document. Second, the sync mode. 
+There are two modes of DOM construction. First, parsing of the main document. Second, sync mode. 
 
 The parser of the main document creates custom elements one by one in the main DOM document.
-To explain how the construction of elements happen here, is beyond the scope of this book, let alone this chapter,
-but to make a long story short, the construction of the main DOM branch is *marked* by the triggering
-of domContentLoaded event (DCL).
+To explain how the construction of elements happen here, is beyond the scope of this book, 
+let alone this chapter,
+but to make a long story short, the end of the construction of the main DOM branch is *marked* by 
+the `domContentLoaded` event (DCL).
 
-Until dcl, the main dom branch is still being constructed.
+Before DCL, the main dom branch is still being constructed.
 Some smaller branches of the main dom branch might be complete, but 
 the browser gives no "partial-dom-branch-loaded" events as it goes along.
 This means that if you wish to delay an event until a batch of dom nodes in the main DOM document
@@ -87,7 +88,7 @@ The BatchedConstructorCallback uses the constructor to both
    The delayed microtask will allow all the other "normal" construction processes to finish
    before it flags the element as constructed.
    
-3. When the element starts flushing its que, it does this in order last in-first out.
+3. When the element starts flushing its que, it does this in LIFO order (last in, first out).
    It then processes each task, and then register that task as completed.
    
 4. Since the tasks being flushed might start new constructors that gets added to the que,

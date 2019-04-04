@@ -88,7 +88,7 @@ listening for `slotchange` events on `this` inside a web component will NOT work
 </ol>
 ```
 
-## SlotchangeNipSlip #1: Old Safari Bug
+## Problem: SlotchangeLostOnSafari
 
 In Safari browsers, the initial slotchange event is *not* dispatched.
 This is a bug in the old Safari browsers. It is patched in IOS TP (March 2019).

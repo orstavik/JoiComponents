@@ -1,0 +1,62 @@
+<script>
+  function PostSlotchangeCallbackMixin(base) {
+    return class  PostSlotchangeCallbackMixin extends base {
+      constructor(){
+        super();
+        const self = this;
+        Promise.resolve().then(function(){
+          Promise.resolve().then(function(){
+            self.postSlotchangeCallback();
+          });
+        });
+      }
+    }
+  }
+
+  class GreenFrame extends PostSlotchangeCallbackMixin(HTMLElement) {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+    <style>
+      div { border: 4px solid green;}
+    </style>
+    <div><slot></slot></div>`;
+      this.shadowRoot.addEventListener("slotchange", () => console.log("GreenFrame slotchange"));
+    }
+    postSlotchangeCallback(){
+      console.log("GreenFrame POST Slotchange");
+    }
+  }
+
+  class BlueFrame extends PostSlotchangeCallbackMixin(HTMLElement) {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+    <style>
+      div { border: 4px dotted blue;}
+    </style>
+    <div><green-frame><slot></slot></green-frame></div>`;
+      this.shadowRoot.addEventListener("slotchange", () => console.log("BlueFrame slotchange"));
+    }
+    postSlotchangeCallback(){
+      console.log("BlueFrame POST Slotchange");
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+  customElements.define("blue-frame", BlueFrame);
+</script>
+
+<blue-frame>¯\_(ツ)_/¯</blue-frame>
+
+<div>fill me up</div>
+
+<script>
+  setTimeout(function(){
+    console.log("--------------");
+    const div = document.querySelector("div");
+    div.innerHTML = "<blue-frame>¯\\_(ツ)_/¯</blue-frame>";
+  }, 1000);
+</script>

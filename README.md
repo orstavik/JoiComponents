@@ -56,7 +56,6 @@ Web component patterns consists of the following types of recipes:
 10. [Problem: SlotchangeNipSlip](book/chapter3_slot_matroska/10_Problem_SlotchangeNipSlip)
 11. [Theory: VariableExpectations](book/chapter3_slot_matroska/11_Theory_VariableExpectations)
 
-
 ## Chapter 3y: Slottables
 2. [Problem: SlotchangeEavesdropping](book/chapter4_slottable/Problem_SlotchangeEavesdropping.md)
 2. [Problem: DeclarativeResolution](book/chapter4_slottable/Problem_DeclarativeResolution.md)

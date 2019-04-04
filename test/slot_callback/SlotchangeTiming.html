@@ -1,0 +1,34 @@
+<template>
+  <style>
+    div { border: 4px solid green; }
+  </style>
+  <div>
+    <slot></slot>
+  </div>
+</template>
+
+<script>
+  class GreenFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      console.log("1. SYNC constructor");
+      Promise.resolve().then(() => console.log("3. ASYNC constructor before shadowDOM"));
+      Promise.resolve().then(() => Promise.resolve().then(() => console.log("7. 2xASYNC constructor before shadowDOM")));
+      const templ = document.querySelector("template").content.cloneNode(true);
+      this.shadowRoot.appendChild(templ);
+      Promise.resolve().then(() => console.log("5. ASYNC constructor after shadowDOM"));
+      this.shadowRoot.addEventListener("slotchange", () => console.log("4. **slotchange**"));
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const div = document.querySelector("div");
+    div.innerHTML = "<green-frame>¯\\_(ツ)_/¯</green-frame>";
+    console.log("2. SYNC task after slotchange is queued");
+    Promise.resolve().then(() => console.log("6. ASYNC task after slotchange"));
+  });
+</script>
+<div>fill me up!</div>

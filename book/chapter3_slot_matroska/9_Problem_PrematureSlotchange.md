@@ -147,6 +147,57 @@ The solution to this problem is to *delay* the reactions of `slotchange` event l
 earliest, appropriate point when the DOM branch is complete both from an HTML and JS perspective.
 In later chapters about the `slotCallback`, I will do just that.
 
+## `<script>` trigger `slotchange` events too
+
+There is another way to trigger `slotchange` events to be dispatched prematurely: `<script>`s.
+Below is an example to illustrate how and when.
+
+## Example: ScriptTriggerSlotchange
+
+```html
+<script>
+  class GreenFrame extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 10px solid green;
+          }
+        </style>
+        <div>
+          <slot>This is life!</slot>
+        </div>`;
+
+      const slot = this.shadowRoot.children[1].children[0];
+      this.shadowRoot.addEventListener("slotchange", function(){
+        console.log(slot.assignedNodes({flatten: true}));
+      });
+    }
+  }
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame>
+  <script>theSunIsShining();</script>
+  <pre>¯\_(ツ)_/¯</pre>
+  <script>takeABreak;</script>
+  <pre>  |   | </pre>
+  <script>relax;</script>
+  <pre>  | 6 | </pre>
+  <script>putYourFeetUp;</script>
+  <pre>   === </pre>
+  <script>enjoyLife;</script>
+  <pre>  |   | </pre>
+  <script>letSomeOneElseDoTheJob();</script>
+  <pre>  | | | </pre>
+  <script>tomorrow === aNewDay;</script>
+  <pre>   ^ ^ </pre>
+</green-frame>
+```
+
 ## References
 
  * 

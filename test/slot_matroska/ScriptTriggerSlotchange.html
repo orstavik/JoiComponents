@@ -1,0 +1,41 @@
+<script>
+  class GreenFrame extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 10px solid green;
+          }
+        </style>
+        <div>
+          <slot>This is life!</slot>
+        </div>`;
+
+      const slot = this.shadowRoot.children[1].children[0];
+      this.shadowRoot.addEventListener("slotchange", function(){
+        console.log(slot.assignedNodes({flatten: true}));
+      });
+    }
+  }
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame>
+  <script>theSunIsShining();</script>
+  <pre>¯\_(ツ)_/¯</pre>
+  <script>takeABreak;</script>
+  <pre>  |   | </pre>
+  <script>relax();</script>
+  <pre>  | 6 | </pre>
+  <script>putYourFeetUp();</script>
+  <pre>   === </pre>
+  <script>enjoyLife();</script>
+  <pre>  |   | </pre>
+  <script>someOneElse.doTheJob();</script>
+  <pre>  | | | </pre>
+  <script>tomorrow.isANewDay;</script>
+  <pre>   ^ ^ </pre>
+</green-frame>
