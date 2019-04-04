@@ -43,12 +43,12 @@ Then, just refactor to one of the other two strategies when your component nears
 
 The Template strategy consists of the following steps:
 1. Set up a template outside of the element.
-2. set up the shadowRoot in the constructor.
+2. Set up the shadowRoot in the constructor.
 3. Populate the shadowRoot by deep cloning the template. 
 
 ```javascript
-const template = document.createElement("template");            //[1]
-template.innerHTML = "<span>the</span> <span>template</span>";   //[2]
+const template = document.createElement("template");                 //[1]
+template.innerHTML = "<span>the</span> <span>template</span>";       //[2]
                                                 
 class TemplateComponent extends HTMLElement {
   
