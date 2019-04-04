@@ -24,7 +24,7 @@ However, there are more factors to be considered:
 1. Often, we *do* want to delay many tasks associated with web component construction.
    But. Delaying element construction tasks is best accomplished as high as possible in the DOM 
    hierarchy of the app, not inside a general web component oriented towards reuse. Other patterns 
-   such as [TemplateSwitcheroo](6_Pattern_TemplateSwitcheroo) that work higher up are here *both* 
+   such as [TemplateSwitcheroo](6_Pattern_TemplateSwitcheroo.md) that work higher up are here *both* 
    more efficient as it delays more tasks *and* give better control of both the timing and (visual) 
    side-effects of delayed web component construction.
    
