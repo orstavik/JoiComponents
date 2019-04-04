@@ -27,9 +27,9 @@ And all the observers are triggered.
 
 This gives the following sequence:
 0. User interaction, app timer, persistence layer trigger
-1. single state reduce
-2. single state compute
-3. single state observe. -> trigger DOM update in some elements
+1. Single state reduce
+2. Single state compute
+3. Single state observe. -> trigger DOM update in some elements
 4. Individual dom node updates (ie. AttributeChangedCallback)
 5. DomBranch updates (ie. SlottablesCallback)
 6. Cssom rule attributions (ie. StyleChangedCallback)
@@ -43,9 +43,9 @@ If it does, the frames will be very big.
 *above* itself in the DOM. Each change at each level should be considered a new frame, and 
 one should try to avoid stacking too high.
 
-## implementation
+## Implementation
 
-for style. You need a per document check. Each element will register itself, but it will in essense
+For style. You need a per document check. Each element will register itself, but it will in essense
 listen for an styleChanged event coming from the document.
 
 This presupposes that the different --custom-css-properties gets registered in each document.
