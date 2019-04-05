@@ -1,0 +1,66 @@
+<script type="module">
+
+  import {FalloutFix} from "../../src/slot/FalloutFix.js";
+
+  class PassePartout extends FalloutFix(HTMLElement) {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 20px solid grey;
+          }
+          .think {
+            border-color: red orange yellow orange;
+            border-width:  10px 8px 9px 8px;
+            border-style:  dotted dotted dashed dotted;
+          }
+        </style>
+
+        <div>
+          <slot id="inner">
+            <div class="think inside the slot">I am a nice elaborate set of DOM nodes!</div>
+          </slot>
+        </div>`;
+    }
+  }
+  class GreenFrame extends HTMLElement {
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});     //[1]
+      this.shadowRoot.innerHTML =
+        `<style>
+          div {
+            border: 10px solid green;
+          }
+        </style>
+
+        <div>
+          <passe-partout>
+            <slot id="outer" class="redundancy stinks"></slot>
+          </passe-partout>
+        </div>`;
+    }
+  }
+  customElements.define("passe-partout", PassePartout);
+  customElements.define("green-frame", GreenFrame);
+</script>
+
+<green-frame id="one">Hello world from the lightDOM!</green-frame>
+<br>
+<green-frame id="two"></green-frame>
+
+<script>
+  setTimeout(function(){
+    document.querySelector("#two").innerText = "hello sunshine!";
+  }, 3000);
+</script>
+<p>
+  This example WORKS. "nice elaborate set of DOM nodes!" are shown on screen.
+  With FalloutFix, the option of falling back to the nodes specified in slot#inner is possible.
+  If GreenFrame wishes to just use the default content of PassePartout,
+  it will when its own slot is empty.
+</p>

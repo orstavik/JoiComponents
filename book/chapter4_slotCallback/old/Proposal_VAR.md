@@ -37,7 +37,7 @@ existing browsers without breaking existing applications relying on existing `<S
    2. have very few consequences for today's model 
       (all behavioral changes could be considered fixes).
    
-   Ref: [Theory: SLOT as HTML variable](../chapter3_slot_matroska/old/Theory_SlotVariable.md)
+   Ref: [Theory: SLOT as HTML variable](../../chapter3_slot_matroska/old/Theory_SlotVariable.md)
 
 3. Support the usecase of "setting up custom elements" as soon as 
    assigned nodes (and attributes) are available.
@@ -48,9 +48,9 @@ existing browsers without breaking existing applications relying on existing `<S
    Tomorrow: A single callback in all custom elements that guarantee that both attributes 
    and assigned nodes are ready. This callback will also function as an `initialAttributesCallback`
 
-   Ref: [Problem: DeclarativeResolution](../chapter3_slot_matroska/old/Problem_DeclarativeResolution.md)
+   Ref: [Problem: DeclarativeResolution](../../chapter3_slot_matroska/old/Problem_DeclarativeResolution.md)
    Ref: [Pattern: BatchedConstructorCallbacks](../chapter2_HowToMakeMixins/Pattern10_BatchedConstructorCallbacks.md)
-   Ref: [Mixin: InitialAttributes](../../trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin2_InitialAttributes.md)
+   Ref: [Mixin: InitialAttributes](../../../trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin2_InitialAttributes.md)
    
 4. New feature/usecase: Make web components reactive to unassigned slotables.
    

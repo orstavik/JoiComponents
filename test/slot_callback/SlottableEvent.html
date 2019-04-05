@@ -1,0 +1,46 @@
+<template>
+  <style>
+    div { border: 4px solid green; }
+  </style>
+  <div>
+    <slot>Hello sunshine</slot>
+  </div>
+</template>
+
+<script type="module">
+
+  import {SlottablesEvent} from "../../src/slot/SlottablesEvent.js";
+
+  class GreenFrame extends SlottablesEvent(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      const templ = document.querySelector("template").content.cloneNode(true);
+      this.shadowRoot.appendChild(templ);
+      this.addEventListener("slottables-changed", function(e){
+        console.log(this.id, e.detail, e);
+      }.bind(this));
+    }
+  }
+
+  customElements.define("green-frame", GreenFrame);
+
+  setTimeout(function () {
+    const two = document.querySelector("#two");
+    two.innerHTML = "";
+    const one = document.querySelector("#one");
+    one.innerHTML = "<green-frame id=\"four\"></green-frame>";
+  }, 1000);
+</script>
+<green-frame id="one"></green-frame>
+<green-frame id="two"><h1>hello sunshine</h1>¯\_(ツ)_/¯</green-frame>
+<green-frame id="three"><h1>hello sunshine</h1><h2 slot="nowYouSeeMe"></h2>¯\_(ツ)_/¯</green-frame>
+
+<pre>
+two {slot: slot}
+three {slot: slot}
+three {slot: Slottables}
+two {slot: slot}
+one {slot: slot}
+//it doesn't print #four, nor "one, because there never are any slottables being added.
+</pre>
