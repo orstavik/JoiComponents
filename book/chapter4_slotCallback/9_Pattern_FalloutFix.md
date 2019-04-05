@@ -33,35 +33,53 @@ EmptyButNotEmpty. While hidden, no transposed nodes will reach them, thus allowi
 own fallback childNodes.
 
 ```javascript
-import {SlottablesEvent} from "SlottablesEvent.js";
+import {SlottablesEvent} from "./SlottablesEvent.js";
 
-function emptyButNotEmpty(assignedNodesFlatten){
+function hasEmptyChainedSlot(slot) {
   let emptySlot = false;
-  for (let node of assignedNodesFlatten) {
-    if (node.tagName && node.tagName === "SLOT"){
+  let ws = 0;
+  for (let node of slot.assignedNodes()) {
+    if (node.tagName && node.tagName === "SLOT") {
       if (node.childNodes.length !== 0)
         return false;
       emptySlot = true;
-    } else if(!(node.nodeType === 3 && !(/[^\t\n\r ]/.test(node.textContent)))){
-      return false;                 
+    } else if (node.nodeType !== 3 || /[^\t\n\r ]/.test(node.textContent)) {
+      return false;
+    } else {
+      ws++;
     }
   }
-  return emptySlot;
+  return ws;
+}
+
+function emptyButNotEmpty(slot) {
+  let ws = hasEmptyChainedSlot(slot);
+  if (ws === false)
+    return false;
+  const assignedNodesFlatten = slot.assignedNodes({flatten: true});
+  for (let node of assignedNodesFlatten) {
+    if (node.nodeType === 3 && !(/[^\t\n\r ]/.test(node.textContent)))
+      ws--;
+    else
+      return false;
+  }
+  return ws === 0;
 }
 
 const suffix = "_EmptyButNotEmpty";
 
 function checkNoFallout(el, slot) {
-  if (!(slot instanceof HTMLElement))
-    return;
-  if (emptyButNotEmpty(slot.assignedNodes({flatten: true}))){
-    const slots = el.shadowRoot.querySelectorAll(slot.name);
-    for (let slot of slots) 
+  const isSlot = slot instanceof HTMLElement;
+  const empty = emptyButNotEmpty(slot);
+  if (isSlot && empty) {               //hidden
+    const q = name === "" ? 'slot:not([name]), slot[name=""]' : 'slot[name="' + name + '"]';
+    const slots = el.shadowRoot.querySelectorAll(q);
+    for (let slot of slots)
       slot.setAttribute("name", slot.name + suffix);
-  } else {
-    const slots = el.shadowRoot.querySelectorAll(slot.name + suffix);
-    for (let slot of slots) 
-      slot.setAttribute("name", slot.name + suffix);
+  } else if (!isSlot && !empty) {
+    const slots = el.shadowRoot.querySelectorAll('slot[name="' + slot.name + suffix + '"]');
+    for (let node of slots)
+      node.setAttribute("name", slot.name);
   }
 }
 
@@ -79,8 +97,10 @@ export function FalloutFix(base) {
 
 ```html
 <script type="module">
+
   import {FalloutFix} from "../../src/slot/FalloutFix.js";
-  class PassePartout extends HTMLElement {
+
+  class PassePartout extends FalloutFix(HTMLElement) {
 
     constructor(){
       super();
@@ -104,7 +124,7 @@ export function FalloutFix(base) {
         </div>`;
     }
   }
-  class GreenFrame extends FalloutFix(HTMLElement) {
+  class GreenFrame extends HTMLElement {
 
     constructor(){
       super();
@@ -127,14 +147,19 @@ export function FalloutFix(base) {
   customElements.define("green-frame", GreenFrame);
 </script>
 
-<green-frame>Hello world from the lightDOM!</green-frame>
+<green-frame id="one">Hello world from the lightDOM!</green-frame>
 <br>
-<green-frame></green-frame>
+<green-frame id="two"></green-frame>
 
+<script>
+  setTimeout(function(){
+    document.querySelector("#two").innerText = "hello sunshine!";
+  }, 3000);
+</script>
 <p>
   This example WORKS. "nice elaborate set of DOM nodes!" are shown on screen.
   With FalloutFix, the option of falling back to the nodes specified in slot#inner is possible.
-  If GreenFrame wishes to just use the default content of PassePartout, 
+  If GreenFrame wishes to just use the default content of PassePartout,
   it will when its own slot is empty.
 </p>
 ```

@@ -104,7 +104,7 @@ function mapNodesBySlotAttribute(nodes) {
 }
 
 function getSlotIfAny(el, name) {
-  const q = name === "" ? 'slot, slot[name=""]' : 'slot[name="' + name + '"]';
+  const q = name === "" ? 'slot:not([name]), slot[name=""]' : 'slot[name="' + name + '"]';
   return el.shadowRoot ? el.shadowRoot.querySelector(q): undefined;
 }
 

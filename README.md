@@ -29,10 +29,6 @@ Web component patterns consists of the following types of recipes:
 8. [Pattern: TheEnd](book/chapter1/8_Pattern_TheEnd)
 9. [Anti-pattern: TwoConstructors](book/chapter1/9_Anti_TwoConstructors)
 10. [RulesOfThumb for web components](book/chapter1/10_rulesOfThumb)
-<!--
-3. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
-9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)
--->
 
 ## Chapter 2: ShadowDOM
 1. [What is: shadowDOM](book/chapter2_slot_basics/1_WhatIs_shadowDOM)
@@ -56,18 +52,19 @@ Web component patterns consists of the following types of recipes:
 10. [Problem: SlotchangeNipSlip](book/chapter3_slot_matroska/10_Problem_SlotchangeNipSlip)
 11. [Theory: VariableExpectations](book/chapter3_slot_matroska/11_Theory_VariableExpectations)
 
-## Chapter 3y: Slottables
-2. [Problem: SlotchangeEavesdropping](book/chapter4_slottable/Problem_SlotchangeEavesdropping.md)
-2. [Problem: DeclarativeResolution](book/chapter4_slottable/Problem_DeclarativeResolution.md)
-2. [Problem: slotchange issues](book/chapter4_slottable/Problem_slotchange_issues.md)
-2. [Pattern: Slottables](book/chapter4_slottable/Pattern_Slottables.md)
-2. [Theory: SlotVariable](book/chapter4_slottable/Theory_SlotVariable.md)
-2. [Proposal: `<VAR>`](book/chapter4_slottable/Proposal_VAR.md)
-...
-7. [Pattern: `slotchange`](book/chapter1b_slot_basics/Pattern2_slotchange.md)
-8. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
-<!--9. [Discussion: slotchange](book/chapter1/Old_slotchange.md)-->
-
+## Chapter 4: `slotCallback(..)`
+1. [Pattern: NaiveSlotCallback](book/chapter4_slotCallback/1_Pattern_NaiveSlotCallback)
+2. [Pattern: MySlotCallback](book/chapter4_slotCallback/2_Pattern_MySlotCallback)
+3. [Pattern: SlotCallbackAfterDCL](book/chapter4_slotCallback/3_Pattern_SlotCallbackAfterDCL)
+4. [Pattern: PostSlotchangeCallback](book/chapter4_slotCallback/4_Pattern_PostSlotchangeCallback)
+5. [Pattern: SlotchangeCallback](book/chapter4_slotCallback/5_Pattern_SlotchangeCallback)
+6. [Pattern: SlotChildCallback](book/chapter4_slotCallback/6_Pattern_SlotChildCallback)
+7. [Pattern: SlottablesEvent](book/chapter4_slotCallback/7_Pattern_SlottablesEvent)
+8. [Pattern: SlottablesCallback](book/chapter4_slotCallback/8_Pattern_SlottablesCallback)
+9. [Pattern: FalloutFix](book/chapter4_slotCallback/9_Pattern_FalloutFix)
+<!--
+3. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
+-->
 
 ## Chapter 5: How to make mixins
 1. [Reactive method](book/chapter2_HowToMakeMixins/Pattern1_ReactiveMethod.md)
@@ -80,27 +77,7 @@ Web component patterns consists of the following types of recipes:
 8. [MixinSingletons](book/chapter2_HowToMakeMixins/Pattern8_MixinSingleton.md)
 8. [Discussion: isolate FunctionalMixins](book/chapter2_HowToMakeMixins/Discussion_IsolatedFunctionalMixin.md)
 
-## Chapter 3: Lifecycle callbacks
-1. [Intro: element lifecycle](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Intro_element_lifecycle.md)
-2. [Pattern: setupCallback()](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin2_InitialAttributes.md)
-4. [Mixin: UnloadDisconnects](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin3_unload_disconnects.md)
-1. [.attributeChangedCallback()](book/chapter1/HowTo_attributeChangedCallback.md)
-<!--4. .hashChangedCallback()-->
-<!-- 4. liefi-->
-
-
-## Chapter 5: Gestures
-1. [Sloppy fingers](book/chapter11_event_comp/chapter5_gestures/Problem1_sloppy_fingers.md)
-2. [Gesture stuttering](book/chapter11_event_comp/chapter5_gestures/Problem2_gesture_stuttering.md)
-3. [Touch makes mouse](book/chapter11_event_comp/chapter5_gestures/Problem3_touch_the_mouse.md)
-4. [Conflicting gestures](book/chapter11_event_comp/chapter5_gestures/Problem4_conflicting_gestures.md)
-5. [InvadeAndRetreat!](book/chapter11_event_comp/chapter5_gestures/Pattern5_InvadeAndRetreat.md)
-6. [Coarse sensors](book/chapter11_event_comp/chapter5_gestures/Problem5_coarse_sensors.md)
-7. [DragFlingMixin](book/chapter11_event_comp/chapter5_gestures/Mixin1_DraggingFlingGesture.md) (PointerGesture)
-8. [SwipeFlingMixin](book/chapter11_event_comp/chapter5_gestures/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-9. [PinchGesture](book/chapter11_event_comp/chapter5_gestures/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
-
-## Chapter 4: Patterns for HTML Composition
+## Chapter 6: Patterns for HTML Composition
 1. [Introduction: HTML is list](book/chapter6_html_comp/Intro_HTML-Lists.md)
 2. [FosterParentChild (`<ul-li>`)](book/chapter6_html_comp/Pattern1_FosterParentChild.md)
 3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter6_html_comp/Pattern2_HelicopterParentChild.md)
@@ -133,6 +110,29 @@ Z. Sibling based ordered list.
 4. [Compound elements, replace CSS pseudo elements](book/chapter7_style/old/Pattern4_css_pseudo_elements.md) 
 5. [ResponsiveLayout, extend CSS media queries](book/chapter7_style/old/Pattern5_ResponsiveLayout.md)
 6. [Discussion about CSS pseudo elements and CSS media queries](book/chapter7_style/old/Discussion_mediaqueries_pseudoelements.md) 
+
+<!--
+## Chapter 3: Lifecycle callbacks
+1. [Intro: element lifecycle](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Intro_element_lifecycle.md)
+2. [Pattern: setupCallback()](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin2_InitialAttributes.md)
+4. [Mixin: UnloadDisconnects](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin3_unload_disconnects.md)
+1. [.attributeChangedCallback()](book/chapter1/HowTo_attributeChangedCallback.md)
+4. .hashChangedCallback()
+4. liefi
+
+## Chapter 5: Gestures
+1. [Sloppy fingers](book/chapter11_event_comp/chapter5_gestures/Problem1_sloppy_fingers.md)
+2. [Gesture stuttering](book/chapter11_event_comp/chapter5_gestures/Problem2_gesture_stuttering.md)
+3. [Touch makes mouse](book/chapter11_event_comp/chapter5_gestures/Problem3_touch_the_mouse.md)
+4. [Conflicting gestures](book/chapter11_event_comp/chapter5_gestures/Problem4_conflicting_gestures.md)
+5. [InvadeAndRetreat!](book/chapter11_event_comp/chapter5_gestures/Pattern5_InvadeAndRetreat.md)
+6. [Coarse sensors](book/chapter11_event_comp/chapter5_gestures/Problem5_coarse_sensors.md)
+7. [DragFlingMixin](book/chapter11_event_comp/chapter5_gestures/Mixin1_DraggingFlingGesture.md) (PointerGesture)
+8. [SwipeFlingMixin](book/chapter11_event_comp/chapter5_gestures/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
+9. [PinchGesture](book/chapter11_event_comp/chapter5_gestures/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
+-->
+
+
 
 <!--3. [.resizeCallback()](book/chapter4_basicMixins_whileConnected/Mixin2_ResizeMixin.md)-->
 
