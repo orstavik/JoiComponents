@@ -13,8 +13,8 @@
     }
   }
 
-  function PostSlotchangeCallbackMixin(base) {
-    return class PostSlotchangeCallbackMixin extends base {
+  function PostSlotchangeMixin(base) {
+    return class PostSlotchangeMixin extends base {
       constructor(){
         super();
         callPostSlotchangeCallback(this);
@@ -22,7 +22,7 @@
     }
   }
 
-  class GreenFrame extends PostSlotchangeCallbackMixin(HTMLElement) {
+  class GreenFrame extends PostSlotchangeMixin(HTMLElement) {
     constructor(){
       super();
       this.attachShadow({mode: "open"});
@@ -38,7 +38,7 @@
     }
   }
 
-  class BlueFrame extends PostSlotchangeCallbackMixin(HTMLElement) {
+  class BlueFrame extends PostSlotchangeMixin(HTMLElement) {
     constructor(){
       super();
       this.attachShadow({mode: "open"});

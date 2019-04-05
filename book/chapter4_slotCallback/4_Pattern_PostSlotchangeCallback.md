@@ -70,7 +70,7 @@ The log prints:
    a task can be added to the micro-task que *before* a `slotchange` event is queued, and 
    still be run *after* the `slotchange` event.
 
-## Implementation: `NaivePostSlotchangeCallbackMixin`
+## Implementation: `NaivePostSlotchangeMixin`
 
 When we are making mixins, this last 2xASYNC trick is useful. When we are making a mixin, 
 this gives us the ability to:
@@ -80,8 +80,8 @@ this gives us the ability to:
 4. *after* its initial `slotchange` event has been triggered (2xASYNC). 
 
 ```javascript
-function PostSlotchangeCallbackMixin(base) {
-  return class  PostSlotchangeCallbackMixin extends base {
+function PostSlotchangeMixin(base) {
+  return class  PostSlotchangeMixin extends base {
     constructor(){
       super();
       const self = this;
@@ -103,8 +103,8 @@ This demo illustrate two things about PostSlotchangeCallback:
 
 ```html
 <script>
-  function PostSlotchangeCallbackMixin(base) {
-    return class  PostSlotchangeCallbackMixin extends base {
+  function PostSlotchangeMixin(base) {
+    return class  PostSlotchangeMixin extends base {
       constructor(){
         super();
         const self = this;
@@ -117,7 +117,7 @@ This demo illustrate two things about PostSlotchangeCallback:
     }
   }
 
-  class GreenFrame extends PostSlotchangeCallbackMixin(HTMLElement) {
+  class GreenFrame extends PostSlotchangeMixin(HTMLElement) {
     constructor(){
       super();
       this.attachShadow({mode: "open"});
@@ -133,7 +133,7 @@ This demo illustrate two things about PostSlotchangeCallback:
     }
   }
 
-  class BlueFrame extends PostSlotchangeCallbackMixin(HTMLElement) {
+  class BlueFrame extends PostSlotchangeMixin(HTMLElement) {
     constructor(){
       super();
       this.attachShadow({mode: "open"});
@@ -183,7 +183,7 @@ GreenFrame POST Slotchange
 When the browser is in parser-mode, it will empty the micro-task que *before* it dispatches
 `slotchange` events. How do we solve this dilemma?
 
-## Implementation: `PostSlotchangeCallbackMixin`
+## Implementation: `PostSlotchangeMixin`
 
 When the parser is still parsing the DOM, it will delay triggering `slotchange` events until it
 either pauses or finishes. As there is no way to be alerted about a parse-pause situation, the
@@ -208,8 +208,8 @@ function callPostSlotchangeCallback(self){
   }
 }
 
-function PostSlotchangeCallbackMixin(base) {
-  return class PostSlotchangeCallbackMixin extends base {
+function PostSlotchangeMixin(base) {
+  return class PostSlotchangeMixin extends base {
     constructor(){
       super();
       callPostSlotchangeCallback(this);
@@ -236,8 +236,8 @@ function PostSlotchangeCallbackMixin(base) {
     }
   }
 
-  function PostSlotchangeCallbackMixin(base) {
-    return class PostSlotchangeCallbackMixin extends base {
+  function PostSlotchangeMixin(base) {
+    return class PostSlotchangeMixin extends base {
       constructor(){
         super();
         callPostSlotchangeCallback(this);
@@ -245,7 +245,7 @@ function PostSlotchangeCallbackMixin(base) {
     }
   }
 
-  class GreenFrame extends PostSlotchangeCallbackMixin(HTMLElement) {
+  class GreenFrame extends PostSlotchangeMixin(HTMLElement) {
     constructor(){
       super();
       this.attachShadow({mode: "open"});
@@ -261,7 +261,7 @@ function PostSlotchangeCallbackMixin(base) {
     }
   }
 
-  class BlueFrame extends PostSlotchangeCallbackMixin(HTMLElement) {
+  class BlueFrame extends PostSlotchangeMixin(HTMLElement) {
     constructor(){
       super();
       this.attachShadow({mode: "open"});

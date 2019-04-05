@@ -146,16 +146,42 @@ set of fallback nodes, when their users in turn do not pass in any transposed no
 
 ## Why FallbackNodesFallout happen
 
-The second example fails because the inner `<slot>` element *is not empty*, but instead filled with
-an empty outer `<slot>` element: 
-1. `<slot>` placeholders can be filled with each other. 
+The second example fails because the inner `<slot>` element is "EmptyButNotEmpty". 
+The inner `<slot>` is filled with an empty outer `<slot>` element, and because:
+1. `<slot>` placeholders can be filled with each other; 
 2. once an outer `<slot>` is chained to an inner `<slot>`, then the outer `<slot>` will fill the 
-   inner `<slot>`.
-3. When the inner `<slot>` element is filled, then its fallback nodes are permanently lost.
-4. Even when the outer `<slot>` has no fallback nodes of its own to offer.
+   inner `<slot>`;
+3. when the inner `<slot>` element is filled, then its fallback nodes are permanently lost,
+4. even when the outer `<slot>` has neither `assignedNodes` nor fallback nodes to transpose.
 
-This feels like irregular behavior, but it actually is in line with the logic of SlotMatroska. 
+This feels like irregular behavior at first, but it is in line with the logic of SlotMatroska. 
 It is not a bug in the browser, it is a bug in the spec.
+
+## Detecting EmptyButNotEmpty `assignedNodes`
+
+Technically, we can say that the result of `.assignedNodes({flatten: true})` is EmptyButNotEmpty when
+it contains:
+1. at least one, but possibly many `<slot>` elements,
+2. all `<slot>` elements has no `childNodes`, and
+3. nothing but whitespace text nodes.
+ * It is important to note that the result must contain an empty `<slot>` element, and not only 
+   whitespace text nodes, as this alone can be used to overwrite the inner fallback nodes with empty.
+
+```javascript
+function emptyButNotEmpty(assignedNodesFlatten){
+  let emptySlot = false;
+  for (let node of assignedNodesFlatten) {
+    if (node.tagName && node.tagName === "SLOT"){
+      if (node.childNodes.length !== 0)
+        return false;
+      emptySlot = true;
+    } else if(!(node.nodeType === 8 || (node.nodeType === 3 && !(/[^\t\n\r ]/.test(node.textContent)))){
+      return false;
+    }
+  }
+  return emptySlot;
+}
+```
 
 ## Consequence of FallbackNodesFallout
 
@@ -170,5 +196,5 @@ for building courteous conventions. FallbackNodesFallout hinder web components i
 
 ## References
 
- * 
+ * [MDN: whitespace in the DOM](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace_in_the_DOM)
 

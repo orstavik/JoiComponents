@@ -6,25 +6,23 @@ function notNipSlip(composedPath, shadowRoot) {
   for (let node of composedPath) {
     if (node.tagName !== "SLOT")
       return null;
-    if (node.ownerDocument === shadowRoot)
+    if (node.getRootNode() === shadowRoot)
       return node;
   }
   return null;
 }
 
 function doCallSlotCallback(slotchange) {
-  const slot = notNipSlip(slotchange, this.shadowRoot);
-  slot && this.slotCallback(slot);
+  const slot = notNipSlip(slotchange.composedPath(), this.shadowRoot);
+  slot && this.slotCallback(slot, slot.assignedNodes().length === 0);       //change One
 }
 
 function setupElements() {
   for (let el of constructedElements) {
     el.shadowRoot.addEventListener("slotchange", doCallSlotCallback.bind(el));
     let slots = el.shadowRoot.querySelectorAll("slot");
-    for (let slot of slots) {
-      if (slot.assignedNodes().length > 0)
-        el.slotchangeCallback(slot);
-    }
+    for (let slot of slots)
+      el.slotCallback(slot, slot.assignedNodes().length === 0);             //change Two
   }
   constructedElements = [];
   isRunning = false;
@@ -49,8 +47,8 @@ function setupSlotchangeCallback(self) {
   });
 }
 
-export function SlotchangeCallbackMixin(base) {
-  return class SlotchangeCallbackMixin extends base {
+export function SlotchangeMixin(base) {
+  return class SlotchangeMixin extends base {
 
     constructor() {
       super();

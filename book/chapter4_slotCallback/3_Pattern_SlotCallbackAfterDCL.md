@@ -85,7 +85,7 @@ function notNipSlip(composedPath, shadowRoot){
   for(let node of composedPath){
     if (node.tagName !== "SLOT")
       return null;
-    if (node.ownerDocument === shadowRoot)
+    if (node.getRootNode() === shadowRoot)
       return node;
   }
   return null;
