@@ -1,39 +1,26 @@
-# Discussion: how to isolate functional mixins for web components?
+# HowTo: Isolate functional mixins for web components?
 
-All functional mixins are applied to a `Base` class.
-All mixins make some **implicit assumptions** about what resources are available in their `Base`
-in order to complete their tasks. One implicit assumption is that all `Base` classes 
-has a constructor called `super` and that any subclass that implement a constructor themselves
-must first call this `super` constructor before running their own constructor instructions.
+To **isolate** a functional mixin is to decide and clarify which assumptions the mixins can/must
+make about its `Base`. Syntactically, the `Base` class can be *any* JS class. But, in practice, 
+semantically, the mixin often adds some assumptions about some other properties or methods that the 
+`Base` class must include. To make this decision is *to isolate the mixin*.
 
-When I say **isolating** a functional mixin I mean the process of deciding and clarifying 
-such implicit assumptions for the mixins `Base`. The possible `Base` classes are *isolated* from
-all the other possible JS classes out there. Below, I describe how and why the `Base` for the 
-mixins in this book is isolated.
+This decision about what other requirement the `Base` class must conform to is not written in stone.
+Often, it is not written down anywhere at all: it is just assumed that the user of the mixin knows
+about them. To make reusable functions based on such "insider knowledge" is not a very good practice.
+Thus, the "tacit knowing" of how a set of mixins are *isolated* should be written down and 
+communicated to its users as part of the API.
 
-## Step 1: Expanding the `Base` to include `HTMLElement`
+## Nesting mixins
 
-When you are making functional mixins for web components, the `Base` for the functional mixin 
-will be `HTMLElement` (to be precise, the `Base` can an HTMLElement or a subclass of HTMLElement, 
-but we refer to that here as just `HTMLElement`).
-When making `HTMLElement`s there are some rules that must be followed such as "neither attributes nor shadowDom 
-content can be set in constructor".
-By defining our `Base` element as `HTMLElement` we are adding these rules to our implied assumptions,
-and we can say that we are "*expanding* our `Base` to include `HTMLElement`".
+Many functional mixins can be combined together on the same element:
 
-When the `Base` includes `HTMLElement`, all the resources available in the `HTMLElement` 
-are available to the functional mixin. This includes:
-* lifecycle methods `connectedCallback()`, `disconnectedCallback()`, `attributeChangedCallback()` ++.
-* other methods such as `.addEventlistener()`
-* +++ 
-
-## Step 2: Expanding *and* constraining the `Base` to include functional mixins of `HTMLElement`
-Many functional mixins can be combined together on the same element, for example:
 ```javascript                                               
 class MyComponent extends MixinA(MixinB(HTMLElement)) { 
   ...
 }
 ```
+
 The `Base` of MixinA is the product of `MixinB` applied to `HTMLElement`.
 This is the main point of functional mixins; they provide a means to implement multiple inheritance.
 When making mixins, it is also a good rule of thumb to as far as possible make the order of mixins irrelevant.
@@ -41,6 +28,38 @@ This means that `MixinA(MixinB(Base))` and `MixinB(MixinB(Base))` should be func
 
 The ability to combine our mixins like this, expands the number of classes that can be the `Base` greatly.
 Our `Base` must include *both* `HTMLElement` *and* other functional mixins with the same `Base`.
+
+Below, I describe how web component mixins can be *isolated* explicitly in four steps:
+
+## Step 1: Expanding the `Base` to `HTMLElement`
+
+When you are making functional mixins for web components, the `Base` for the functional mixin 
+will be either:
+1. the `HTMLElement` class, or
+2. another class that itself `extends HTMLElement`.
+
+When the `Base` includes `HTMLElement`, all the resources available in the `HTMLElement` 
+are available to the functional mixin. This includes:
+* `constructor()`,
+* lifecycle methods: `connectedCallback()`, `disconnectedCallback()`, `attributeChangedCallback()` ++.
+* other methods such as `.attachShadow(..)` and `.addEventlistener(..)`
+* and much, much more.
+
+By defining our `Base` element as `HTMLElement` we are adding these rules to our implied assumptions.
+We *expanding* our `Base` to include `HTMLElement`.
+
+## Step 2: Constraining the `Base` to `HTMLElement`
+
+Once we have said that the `Base` must be a (sub)class of `HTMLElement`, we also *exclude* most other
+JS classes out there. Obviously. We cannot have our cake and eat it too: if we say that the mixin
+can use the properties and methods of `HTMLElement`, we cannot at the same time say that the `Base`
+can skip these properties and methods if it wants to.
+
+Also, `HTMLElement` has its own "extra" rules that its subclasses must follow. For example:
+1. attributes cannot be set in `constructor()`.
+2. attributes may not be available in `constructor()`.
+3. `disconnectedCallback()` is not triggered when the user closes the window
+4. etc. etc.
 
 ## Step 3: Constraining the `Base` to ensure compatibility between mixins
 To combine several functional mixins together also adds some *constraints* to our `Base`.

@@ -6,8 +6,8 @@
 This book is framework independent: all patterns are intended to run natively in any browser 
 that supports web components and vanilla es6. 
 However, the book is meant to be framework relevant: 
-the patterns should all be useful to understand either how to make web components in other frameworks or
-how other frameworks could or should function internally.
+the patterns should all be useful to understand either how to make web components in other frameworks 
+or how other frameworks could or should function internally.
 
 Web component patterns consists of the following types of recipes:
 * problem descriptions that detail and frame frequent use-cases,
@@ -15,8 +15,7 @@ Web component patterns consists of the following types of recipes:
 * mixins that illustrate how these patterns can be implemented and reused, plus
 * demos and tests of both problems, patterns and implementations.
 
-> If you have your own use cases, problems, patterns and/or solutions that you feel JOI about,
-> please let us know!
+> If you have your own use cases, problems, patterns and/or solutions, please let us know!
 
 ## Chapter 1: How to make a web component?
 1. [Intro: Web components](book/chapter1/1_Intro_web_comp)
@@ -61,12 +60,41 @@ Web component patterns consists of the following types of recipes:
 6. [Pattern: SlotChildCallback](book/chapter4_slotCallback/6_Pattern_SlotChildCallback)
 7. [Pattern: SlottablesEvent](book/chapter4_slotCallback/7_Pattern_SlottablesEvent)
 8. [Pattern: SlottablesCallback](book/chapter4_slotCallback/8_Pattern_SlottablesCallback)
+<!-- X. [Make this chapter into a mixin chapter for How to `MutationObserver` mixin?](book/chapter1/HowTo_MutationObserver.md)-->
 9. [Pattern: FalloutFix](book/chapter4_slotCallback/9_Pattern_FalloutFix)
-<!--
-3. [How to `MutationObserver`](book/chapter1/HowTo_MutationObserver.md)
--->
 
-## Chapter 5: How to make mixins
+## Chapter 5: Style
+1. [Intro: Style_in_web_comps](book/chapter5_style/0_Intro_Style_in_web_comps)
+2. [HowTo: shadowStyle](book/chapter5_style/1_HowTo1_shadowStyle)
+3. [Problem: ThisStyleIsNotMyStyle](book/chapter5_style/2_Problem_ThisStyleIsNotMyStyle)
+4. [HowTo: HostWithStyle](book/chapter5_style/3_HowTo2_HostWithStyle)
+5. [HowTo: CssVariables](book/chapter5_style/4_HowTo3_CssVariables)
+6. [Pattern: CssCoordinatorClass](book/chapter5_style/5_Pattern_CssCoordinatorClass)
+7. [Pattern: CssCoordinatorAttribute](book/chapter5_style/6_Pattern_CssCoordinatorAttribute)
+8. [Pattern: StyleCoordinatorAttribute](book/chapter5_style/7_Pattern_StyleCoordinatorAttribute)
+9. [Pattern: NaiveStyleCallback](book/chapter5_style/8_Pattern_NaiveStyleCallback)
+10. [Mixin: NaiveStyleCallback](book/chapter5_style/9_Mixin_NaiveStyleCallback)
+11. [HowTo: TraverseTheCssom](book/chapter5_style/10_HowTo_TraverseTheCssom)
+12. [Pattern: TreeOrderedCssomTraversal](book/chapter5_style/11_Pattern_TreeOrderedCssomTraversal)
+13. [Mixin: StyleCallback](book/chapter5_style/12_Mixin_StyleCallback)
+14. [Test: StyleCallback](book/chapter5_style/13_Test_StyleCallback)
+
+## Chapter 6: Layout
+1. [HowTo: ReactToLayout](book/chapter6_layout/1_HowTo_ReactToLayout)
+2. [Problem: DOM_folding](book/chapter6_layout/2_Problem_DOM_folding)
+3. [Pattern: NaiveLayoutAttributes](book/chapter6_layout/3_Pattern_NaiveLayoutAttributes)
+4. [Pattern: LayoutAttributes](book/chapter6_layout/4_Pattern_LayoutAttributes)
+
+## Chapter 7: HTML Composition
+1. [Introduction: HTML is list](book/chapter7_html_comp/Intro_HTML-Lists)
+2. [FosterParentChild (`<ul-li>`)](book/chapter7_html_comp/Pattern1_FosterParentChild)
+3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter7_html_comp/Pattern2_HelicopterParentChild)
+4. [CulDeSacElements (`<img>`)](book/chapter7_html_comp/Pattern3_CulDeSacElements)
+5. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter7_html_comp/Pattern4_MiniMe)
+6. [Pattern: JSONAttributes](book/chapter7_html_comp/Pattern_jsonAttributes)
+7. [Discussion: HTML composition](book/chapter7_html_comp/Discussion_HTML_composition)
+
+## Chapter 8: Mixins
 1. [Reactive method](book/chapter2_HowToMakeMixins/Pattern1_ReactiveMethod.md)
 2. [Isolated functional mixin](book/chapter2_HowToMakeMixins/Pattern2_FunctionalMixin.md)
 3. [StaticSetting](book/chapter2_HowToMakeMixins/Pattern3_StaticSettings.md)
@@ -77,83 +105,7 @@ Web component patterns consists of the following types of recipes:
 8. [MixinSingletons](book/chapter2_HowToMakeMixins/Pattern8_MixinSingleton.md)
 8. [Discussion: isolate FunctionalMixins](book/chapter2_HowToMakeMixins/Discussion_IsolatedFunctionalMixin.md)
 
-## Chapter 6: Patterns for HTML Composition
-1. [Introduction: HTML is list](book/chapter6_html_comp/Intro_HTML-Lists.md)
-2. [FosterParentChild (`<ul-li>`)](book/chapter6_html_comp/Pattern1_FosterParentChild.md)
-3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter6_html_comp/Pattern2_HelicopterParentChild.md)
-4. [CulDeSacElements (`<img>`)](book/chapter6_html_comp/Pattern3_CulDeSacElements.md)
-5. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter6_html_comp/Pattern4_MiniMe.md)
-6. [Pattern: JSONAttributes](book/chapter6_html_comp/Pattern_jsonAttributes.md)
-7. [Discussion: HTML composition](book/chapter6_html_comp/Discussion_HTML_composition.md)
-
-
-<!--
-A. Polymer BaseElement with just mapping properties to attributes.
-B. LitElement and its ._render() method.
-
-Put A and B in the chapter 1?
-
-Y. Lazy-img 
-Dont know where to put this one. :Chapter on use-case examples??
-Element to wrap methods for lazy-loading image. 
-Sometimes, this needs to be inlined. But often not, only loaded first.
-Look at the lighthouse presentation Google/IO
-
-Z. Sibling based ordered list.
-
--->
-
-## Chapter 5: Style                                   
-1. [`this.style` is not my style](book/chapter7_style/old/Pattern1_this_style_is_not_my_style.md) 
-2. [`:host()` with `<style>`](book/chapter7_style/old/Pattern2_host_with_style.md) 
-3. [CSS variables](book/chapter7_style/Pattern3b_css_variables.md) 
-4. [Compound elements, replace CSS pseudo elements](book/chapter7_style/old/Pattern4_css_pseudo_elements.md) 
-5. [ResponsiveLayout, extend CSS media queries](book/chapter7_style/old/Pattern5_ResponsiveLayout.md)
-6. [Discussion about CSS pseudo elements and CSS media queries](book/chapter7_style/old/Discussion_mediaqueries_pseudoelements.md) 
-
-<!--
-## Chapter 3: Lifecycle callbacks
-1. [Intro: element lifecycle](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Intro_element_lifecycle.md)
-2. [Pattern: setupCallback()](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin2_InitialAttributes.md)
-4. [Mixin: UnloadDisconnects](trash/book/chapter3_element_lifecycle/chapter3_lifecycle/Mixin3_unload_disconnects.md)
-1. [.attributeChangedCallback()](book/chapter1/HowTo_attributeChangedCallback.md)
-4. .hashChangedCallback()
-4. liefi
-
-## Chapter 5: Gestures
-1. [Sloppy fingers](book/chapter11_event_comp/chapter5_gestures/Problem1_sloppy_fingers.md)
-2. [Gesture stuttering](book/chapter11_event_comp/chapter5_gestures/Problem2_gesture_stuttering.md)
-3. [Touch makes mouse](book/chapter11_event_comp/chapter5_gestures/Problem3_touch_the_mouse.md)
-4. [Conflicting gestures](book/chapter11_event_comp/chapter5_gestures/Problem4_conflicting_gestures.md)
-5. [InvadeAndRetreat!](book/chapter11_event_comp/chapter5_gestures/Pattern5_InvadeAndRetreat.md)
-6. [Coarse sensors](book/chapter11_event_comp/chapter5_gestures/Problem5_coarse_sensors.md)
-7. [DragFlingMixin](book/chapter11_event_comp/chapter5_gestures/Mixin1_DraggingFlingGesture.md) (PointerGesture)
-8. [SwipeFlingMixin](book/chapter11_event_comp/chapter5_gestures/Mixin2_FlingEventMixin.md) (MultiFingerGesture)
-9. [PinchGesture](book/chapter11_event_comp/chapter5_gestures/Mixin3_PinchSpinGesture.md) (TwoFingerGesture)
--->
-
-
-
-<!--3. [.resizeCallback()](book/chapter4_basicMixins_whileConnected/Mixin2_ResizeMixin.md)-->
-
-<!---
-7. Discussion. Coherence and style
-* How to handle app-wide styling. Local coherence (cohesion), thematic coherence, global coherence.
-When and why to put the content of an element in the lightDom? In app-specific elements where you want 
-to apply global/thematic styles to the element. And when you have control of the use of that element.
-Don't split this piece of the app into too many pieces. These pieces of the app should mostly be about 
-template composition. And only minor event composition. If you need to apply a lot of UI logic, 
-you probably need a generic UI web component.
-
-8. keep it light. App specific components and style. Non-composable, but universally stylable.
-
-9. Path based styling. Changing the path in the stylesheet, and not the class or attribute on the element.
-Sometimes you have a tree structure in your DOM that reflects a tree structure in you state data.
-When you have such a mapping, and you have everything in the same lightDOM accessible to the same stylesheets,
-you can instead of changing each element, change the css paths that attribute styles to each element.
-This is not for beginners. This is not necessarily a good pattern. But it is a pattern.
--->
-## Chapter 6: How to polyfill web components?
+## Chapter 9: Polyfill web components
 1. [Introduction: What's a polyfill?](book/chapter9_polyfill/Intro_Polyfills.md)
 2. [FeatureDetection](book/chapter9_polyfill/Pattern1_FeatureDetection.md)
 3. [Dynamically loading scripts](book/chapter9_polyfill/Pattern2_LoadScript.md)
@@ -165,147 +117,3 @@ This is not for beginners. This is not necessarily a good pattern. But it is a p
 9. [Polyfill loader generator](book/chapter9_polyfill/Pattern8_PolyfillLoaderGenerator.md)
 10. [Sync vs async polyfills](book/chapter9_polyfill/Discussion_sync_vs_async_polyfilling.md)
 11. [Webcomponentsjs](book/chapter9_polyfill/Pattern9_webcomponentsjsCousin.md)
-<!---
-5. [Transpile web components to es5](tutorials/chapter1/PatternX_HowToPolyfillOnClient.md)
-explain that custom elements with content in the lightDom should be considered app-specific components.
--->
-
-## How to use the recipes
-The isolated functional mixins presented do **not** make a framework. 
-In fact, it is the ambition of this book that to make scalable, manageable, simple, yet powerful web apps
-without a framework. Modern browsers now has all the power you desire.
-Every mixin strives for no other dependencies than itself and the (polyfilled) platform. 
-
-### Mixins:
-
-##### Polyfill:
- * [polyfill-loader.js](src/polyfill-loader.js)
-
-##### Slot:
- * [SlottableMixin.js](src/slot/SlottableMixin.js)
- * [SlotchangeMixin.js](trash/src/SlotchangeMixin.js)
-
-##### Layout:
- * [EnterViewMixin.js](src/layout/EnterViewMixin.js)
- * [ResizeMixin.js](src/layout/ResizeMixin.js)
-
-##### Style:
- * [StyleCallbackMixin.js](src/style/old/StyleChangedMixin.js)
- * 
-
-##### Gestures:
- * [gestures/DraggingFling.js](src/gestures/DraggingFling.js)
- * [gestures/PinchSpin.js](src/gestures/PinchSpin.js)
- * [gestures/Swipe.js](src/gestures/Swipe.js)
-
-##### Network:
- * [HashChangedMixin.js](src/network/HashChangedMixin.js)
- * [LieFi.js] not made yet
-
-##### Other:
- * [FirstConnectedMixin.js](src/FirstConnectedMixin.js)
-
-The mixins are directly available via rawgit.com and unpkg.com:
- * [https://unpkg.com/joicomponents@1.2.0/src/SlottableMixin.js](https://unpkg.com/joicomponents@1.2.0/src/SlotchangeMixin.js)
- * [https://cdn.rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js](https://rawgit.com/orstavik/JoiComponents/master/src/EnterViewMixin.js)
-
-|            | Atomic  | Composed |
-| ---------- |-------- | -------- |
-| lifecycle<br>sequential  | **constructor()**<br>**connectedCallback()**<br>**disconnectedCallback()**<br>firstConnectedCallback()<br>enterViewCallback()<br>setupCallback() |  |
-| event<br>random      | **attributeChangedCallback(name, oldValue, newValue)**<br>**adoptedCallback()**<br>slotchangeCallback(name, newFlattenedChildNodes, oldFlattenedChildNodes)<br>resizeCallback(contentRect)<br>hashchangedCallback("hash")<br> | dragFlingCallbacks<br>pinchCallbacks<br>swipeCallbacks|
-
-
-
-<!---
-## Chapter 8: Composition of app-specific web components
-1. 
-2. props down, (composed) events up
-((ATT!! In generic custom elements, it is more children and attributes down, events up)).
-
-3. dispatch and observe, in a joiState
-
-2. MVC. Catching app events on window (or another element event bus 
-(https://stackoverflow.com/questions/42757051/web-components-design-pattern)
-).
-
-<!--6. [KeepItLight - benefits of adding dom to the lightDom in app specific components is ](book/chapter4/Pattern5_KeepItLight.md)--> 
-
-<!--
-## Chapter 9: Single state management
-1. Using an event bus. With a state mananger.
-2. dispatching directly on an element. 
-3. the concept of immutability. and the benefits of dirty checking.
-4. what are reducers? and the benefit of pure functions.
-5. what are computer functions? and the problem of either nesting reducers or redundant functionality.
-6. why use observers? and the problem of managing async actions in a sync centralized state.
-7. what is joiState and how to use it?
--->
-
-<!--
-### What do you mean "web component"?
-
-Many different frameworks such as React and Angular enable developers to make components for the web.
-However, components tailored and dependent on a framework we call by that frameworks name, such as 
-"React component" or "Angular component". They are components made to be used on the web, 
-but they are not what is commonly refered to as "web components".
-
-"Web components" means a components that can run *natively* in a modern browser. 
-"Web components" always imply "*native* web components".
-They do not rely on a framework in browsers compliant with the whatwg and es6 specification.
-
-Still, "web components" can mean many different things. 
-On the one hand, when we say "web components", we might refer to the simplest custom element. 
-A custom element that uses neither shadowDom nor HTML template, and that is directly defined before use in the app (no es6 module loading).
-On the other hand, a "web component" might refer to a most advanced custom element.
-A custom element with a HTML template based shadowDom, written by someone else and loaded as an es6 module.
-
-To clarify this myriad of terms, I think it is wise to apply the following taxonomy.
-If you intend for a web component to be reused, it should be made available as an importable module.
-You should also highlight that the web component is intended to be "reusable", generic to many apps and 
-complying more thoroughly with HTML standards. You often should add the label "reusable" to that component.
-
-If you are talking about a `custom element` that uses neither shadowDom nor 
-
-Web components provide an excellent interface for integrating custom HTML+JS+CSS modules. 
-Once familiar with the makeup of web components, it is my contention that you no longer will need a framework.
-Web components is enough. They provide a great means both to organize and stabilize your own work and 
-collaborate with others. It might not be perfect. And it needs to be polyfilled in old browsers. 
-But it will still provides you with the only, cleanest and simplest API for making native HTML+JS+CSS modules.
--->
-
-<!--
-## Discussion: Is this a framework?
-The resources presented in this book solves most of the problems that other frameworks solve.
-You can therefore compare the content of this book with the content of other frameworks.
-
-However, all the mixins and punchline and other resources in this book are **isolated**.
-They do not depend on each other, they have no cross dependencies.
-This means that you can use them one by one, and import them one by one.
-
-One major difference between this books and other frameworks is that it does not extend the HTML template.
-If you want, you can combine the resources in this book with a template library such as 
-hyperHTML or lit-html.
-However, in my experience, using such complex templates inside the shadowDOM of a custom element 
-more often than not ends up as a temporary meassure.
-As the complexity inside a custom element with a big and functionaly complex template grows,
-the need to split the element up pushes the developer to also split up and de-functionalize the template.
-Sure, syntactic sugar such as simple databinding and/or simple binding of event listeners might persist, 
-but when the template shrinks, the benefit of using a template engine over plain HTML and JS decreases.
-In my opinion, the scales hinges on making web components reusable as in *composeable*.
-And this problem I feel is solved with the right mix of isolated functional mixins that produce 
-reactive callbacks, and in use, these mixins removes the need and desire for extending the HTML template.
-
-This book also strives for 100% transparency.
-In addition to web components v.1 standard and es6, this book aims to explain all the important 
-problems and all the relevant design decisions made in the framework.
-Complete transparency. A no FUD framework. 
-If the resources you use in addition to the platform does something you do not understand, or 
-has made a design choice you do not understand, the goal is that you in this book will find
-a description of all the problems this resource needs to address, the patterns used to solve them,
-demos of these patterns *and* the code itself so that you can undertand it *fully* yourself and
-write your own alternative solution or fix the existing solution yourself.
-
-The value in this book is therefore foremost the problem and pattern descriptions.
-These descriptions illustrate a journey you can take in order to make a framework (in this manner).
-
--->
