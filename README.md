@@ -2,18 +2,8 @@
 
 ## The native web components cookbook
 
-"Web component design patterns" is a set of recipes for developing simple and reusable web components. 
-This book is framework independent: all patterns are intended to run natively in any browser 
-that supports web components and vanilla es6. 
-However, the book is meant to be framework relevant: 
-the patterns should all be useful to understand either how to make web components in other frameworks 
-or how other frameworks could or should function internally.
-
-Web component patterns consists of the following types of recipes:
-* problem descriptions that detail and frame frequent use-cases,
-* patterns that explain how to solve these problems,
-* mixins that illustrate how these patterns can be implemented and reused, plus
-* demos and tests of both problems, patterns and implementations.
+"Web component design patterns" are recipes for simple and reusable web components. 
+All patterns run natively in any browser that supports web components and vanilla es6. 
 
 > If you have your own use cases, problems, patterns and/or solutions, please let us know!
 

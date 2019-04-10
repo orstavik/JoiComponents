@@ -192,5 +192,5 @@ that by following normal variable resolution with more clarity can replace both 
 
 ## References
  
-
+ * [kk.org: Progression of the inevitable](https://kk.org/thetechnium/progression-of/)
  
