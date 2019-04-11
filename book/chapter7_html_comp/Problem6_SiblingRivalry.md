@@ -161,6 +161,19 @@ as `opened`, not just the last `selected`. The solution in such scenarios is *no
 the current `selected` attribute to encompass more use-cases, but to add *other*, additional
 attributes such as `opened`.
 
+This pattern should *not* be implemented as a mixin because:
+
+1. the pattern spans *two* different element definitions. This would require the creation of *two*
+   mixins employed on *two* different web component definitions. This is doable, but the
+   complexity of the implied binding between the two such mixins is a huge drawback.
+
+2. the HelicopterChild needs to observe the `selected` attribute. If this functionality was moved
+   into a mixin, that would require both the `static get observedAttributes()` and the 
+   `attributeChangedCallback(...)` to be overridden in a similar manner as 
+   `super.connectedCallback && super.connectedCallback()`. The mixins in this book is isolated to
+   only force requirements on the `constructor()`, `connectedCallback()`and `disconnectedCallback()`
+   because it considers the requirement of doing similar requirements to `static get observedAttributes()` 
+   and `attributeChangedCallback(...)` to add too many bindings and complexity when using the mixins.
 
 ## References
 
