@@ -1,75 +1,174 @@
 # Problem: SiblingRivalry
 
-> HTML element siblings/descendant can rival about HTML attributes under a HelicopterParent.
+when making HelicopterParentChild components, a frequently recurring problem is SiblingRivalry
+over a single HTML attribute. 
 
-A frequently recurring problem when making HelicopterChild patterns is how to handle siblings,
-or descendant family, all trying to control an attribute.
+## Example: Select me, select me!
 
-For example, you have a `<select>`+`<option>` HelicopterParentChild setup.
-Only one of the `<option>` children can have the attribute `selected` at the same time.
-The user of the `<select>`+`<option>` web components should be able to set the `selected` 
-attribute *both* in the HTML template *and* in JS a) in the web component definition in for example 
-a `click` event listener and b) via `setAttribute("selected", "")`.
+We make a `<select>`+`<option>` HelicopterParentChild pair.
+It is required that:
+1. only *one* `<option>` child can be `selected` at the same time.
+2. When the user activate the `selected` attribute on an `<option>` element, 
+   then the `<select>`+`<option>` elements will remove any `selected` attribute 
+   from *previously* selected sibling `<option>` elements themselves, automatically.
 
-When one `<option>` element updates its `selected` attribute via click listener or setAttribute call,
-then this `<option>` element HelicopterChild needs to alert its lightDOM HelicopterParent about 
-this change of state. This should be done via a `child-selected` event: this is the safest way to 
-find the current correct HelicopterParent in a DOM that can be dynamically mutated.
+Furthermore, the `selected` attribute can be set on the `<option>` element from both HTML and JS:
+ 
+1. In HTML, the user of the web components needs to mark an `<option>` as `selected` by default:
+```html
+<select>
+  <option value="one">one</option>
+  <option value="two" selected>two</option>
+  <option value="three">three</option>
+</select> 
+```
 
-The reason the HelicopterChild needs to alert its HelicopterParent about it becoming `selected` is 
-that the HelicopterParent wishes to alert another `<option>` element that was *previously* `selected`.
-When a new `<option>` element becomes `selected`, the `<select>` HelicopterParent needs to *remove*
-the `selected` attribute from the other, *previously* `selected` HelicopterChild. Only *one*
-child `<option>` element can be `selected` at the same time.
+2. In JS, the developer needs to be able to change the `selected` attribute when the element is
+   clicked on by the user. This is done using a `click` event listener on the `<option>` element
+   that calls `setAttribute("selected", "")` on the host element.
 
-But, to remove the `selected` attribute of the second child, will trigger a new 
-`attributeChangedCallback("selected", ...)` on the child being altered when the HelicopterParent
-is cleaning up the siblings or other descendants being affected.
+## Pattern: AddVocallyRemoveSilently
 
-## Pattern: ThereCanBeOnlyOne
+The main task for the developer of the `<select>`+`<option>` HelicopterParentChild pair is to 
+remove the `selected` attribute from the previously selected `<option>` child. If the 
+HelicopterParentChild pair can do this on their own, then they will automatically maintain the state 
+that only one `<option>` child can be selected at the same time.
 
-There are two ways to handle this conflict.
+This is achieved with the following division of labour:
 
-1. In some use-cases, the HelicopterParent only needs to do sibling/family tree maintenance when
-   `selected` is added, but not when it is removed. In such scenarios, the problem can be fixed
-   by only dispatching an event from the HelicopterChild when the `selected` is added, but not when
-   it is removed.
+1. The HelicopterChild `<option>` will alert its `<select>` HelicopterParent with an `option-selected`
+   event *only* when it becomes `selected`. As the `selected` attribute *can be* set in template,
+   the HelicopterChild `<option>` dispatches this event in the lightDOM from an 
+   `attributeChangedCallback("selected", ...)` reaction, ie. AddVocally.
 
-2. If the HelicopterParent needs to be alerted when `selected` is both added and removed, 
-   then a custom JS method should be set up in the HelicopterChild that allows outside elements
-   to mutate its `selected` attribute without triggering an `selected-update` event.
-   As the `attributeChangedCallback(...)` is run async, the HelicopterChild needs to store the
-   state of the attribute which should not trigger an event. This method should also only be called 
-   from the HelicopterParent. And this is not very pretty.
+2. The HelicopterParent listens for `option-selected` events in the lightDOM. If this event comes from
+   one of its own descendants, then it will find all its other `selected` descendants and *remove*
+   the `selected` attribute from them.
+
+3. When the `selected` attribute is removed, none of the HelicopterChild `<option>`s alert the 
+   HelicopterParent about this change. They *only* alert their HelicopterParent when the `selected`
+   attribute is added to the element, neither when its value is changed nor removed, ie.
+   RemoveSilently.
    
+## Example: `<my-select>`+`<my-option>` with `selected`-attribute
+
+Below is an example of how a HelicopterParentChild pair `<my-select>`+`<my-option>` can be 
+implemented to only allow one a single `selected` 
+
+<code-demo src="demo/SelectOption.html"></code-demo>
+```html
+<script>
+
+  function noNestedParentsOfType(children, parent, excludeType) {
+    return Array.from(children).filter(function (child) {
+      for (let parentNode = child; parentNode !== parent; parentNode = parentNode.parentNode) {
+        if (parentNode.tagName === excludeType)
+          return false;
+      }
+      return true;
+    });
+  }
+
+  class MySelect extends HTMLElement {
+    constructor() {
+      super();
+      this.addEventListener("option-selected", this.optionSelected.bind(this));
+    }
+
+    optionSelected(e) {
+      e.stopPropagation();
+      const options = noNestedParentsOfType(this.querySelectorAll("my-option[selected]"), this, "MY-SELECT");
+      for (let i = 0; i < options.length; i++) {
+        let option = options[i];
+        option !== e.target && option.removeAttribute("selected");
+      }
+    }
+  }
+
+  class MyOption extends HTMLElement {
+    constructor() {
+      super();
+      this.addEventListener("click", this.clickSelect.bind(this));
+    }
+
+    static get observedAttributes() {
+      return ["selected"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "selected" && newValue !== null && oldValue === null) {
+        this.dispatchEvent(new CustomEvent("option-selected", {bubbles: true}));
+      }
+    }
+
+    clickSelect(e) {
+      e.stopPropagation();
+      this.hasAttribute("selected") ? this.removeAttribute("selected") : this.setAttribute("selected", "");
+    }
+  }
+
+  customElements.define("my-select", MySelect);
+  customElements.define("my-option", MyOption);
+</script>
+
+<style>
+  my-select {
+    display: block;
+    border: 2px solid grey;
+    margin-left: 10px;
+  }
+  my-option {
+    display: block;
+    margin: 0 10px;
+  }
+  [selected] {
+    border-left: 4px solid red;
+  }
+  #inner [selected] {
+    border-left: 4px solid blue;
+  }
+</style>
+<my-select>
+  <my-option>click
+    <my-option>to
+      <my-option selected>select
+        <my-option>between</my-option>
+        <my-option>us</my-option>
+      </my-option>
+    </my-option>
+  </my-option>
+
+  <my-option>
+    Inner select
+    <my-select id="inner">
+      <my-option>click</my-option>
+      <my-option>to</my-option>
+      <my-option selected>select</my-option>
+      <my-option>between</my-option>
+      <my-option>us</my-option>
+    </my-select>
+  </my-option>
+  <my-option>so</my-option>
+  <my-option>many</my-option>
+  <my-option>options..</my-option>
+</my-select>
+```
+
+## Discussion
+
+Sometimes, it can feel as if this mechanism is not enough. You need for example to mark an element
+as `opened`, not just the last `selected`. The solution in such scenarios is *not* to try to alter 
+the current `selected` attribute to encompass more use-cases, but to add *other*, additional
+attributes such as `opened`.
+
+
+## References
+
+ * 
+ 
+## Old drafts
+
 # Pattern: stopping the looping of attributes from parent to child
-
-> todo delegate the task of constraint from the parent to the child. 
-> todo 1. Make a "mutateAttributeWithoutCallback(name, value)" on the child.
-> todo 2. if the value is falsy, then make the thing remove the attribute
-> todo 3. in the child, make a property _noAttributeChangedCallback to true, and then update the 
-> attributeCallback to switch and update this property.
-
-The `<select>`+`<option>`+`selected`-attribute problem.
-
-1. First of all, the helicopter parent `<select>` needs to be able to set attribute `selected` 
-to true (`""`) on a child `<option>`. And remove the `selected` attribute from the previous 
-selected child `<option>`. In response to User input.
-
-2. But, this `selected` attribute might also be dynamically altered from JS.
-Therefore the child `<option>` needs to add an `attributeChangeListener` to `selected`.
-And the child then needs to alert its parent about that.
-
-This means that if the parent changes the child's attribute, 
-that can trigger an attributeChangedCallback,
-that in turn alerts its parent,
-that again starts setting its children attributes.
-
-To fix the issue, you must make receiver methods on both parent and child, 
-and ensure that no method "resets" the same attribute value on a child, as that will trigger a 
-redundant circular check on the parent. 
-Similarly check the state in the parent to verify if what the child alerts the parent of is a state change 
-or just a redundant call.
 
 ```javascript
 //todo completely untested code, written purely as text..

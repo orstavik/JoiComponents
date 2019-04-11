@@ -1,0 +1,95 @@
+<script>
+
+  function noNestedParentsOfType(children, parent, excludeType) {
+    return Array.from(children).filter(function (child) {
+      for (let parentNode = child; parentNode !== parent; parentNode = parentNode.parentNode) {
+        if (parentNode.tagName === excludeType)
+          return false;
+      }
+      return true;
+    });
+  }
+
+  class MySelect extends HTMLElement {
+    constructor() {
+      super();
+      this.addEventListener("option-selected", this.optionSelected.bind(this));
+    }
+
+    optionSelected(e) {
+      e.stopPropagation();
+      const options = noNestedParentsOfType(this.querySelectorAll("my-option[selected]"), this, "MY-SELECT");
+      for (let i = 0; i < options.length; i++) {
+        let option = options[i];
+        option !== e.target && option.removeAttribute("selected");
+      }
+    }
+  }
+
+  class MyOption extends HTMLElement {
+    constructor() {
+      super();
+      this.addEventListener("click", this.clickSelect.bind(this));
+    }
+
+    static get observedAttributes() {
+      return ["selected"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "selected" && newValue !== null && oldValue === null) {
+        this.dispatchEvent(new CustomEvent("option-selected", {bubbles: true}));
+      }
+    }
+
+    clickSelect(e) {
+      e.stopPropagation();
+      this.hasAttribute("selected") ? this.removeAttribute("selected") : this.setAttribute("selected", "");
+    }
+  }
+
+  customElements.define("my-select", MySelect);
+  customElements.define("my-option", MyOption);
+</script>
+
+<style>
+  my-select {
+    display: block;
+    border: 2px solid grey;
+    margin-left: 10px;
+  }
+  my-option {
+    display: block;
+    margin: 0 10px;
+  }
+  [selected] {
+    border-left: 4px solid red;
+  }
+  #inner [selected] {
+    border-left: 4px solid blue;
+  }
+</style>
+<my-select>
+  <my-option>click
+    <my-option>to
+      <my-option selected>select
+        <my-option>between</my-option>
+        <my-option>us</my-option>
+      </my-option>
+    </my-option>
+  </my-option>
+
+  <my-option>
+    Inner select
+    <my-select id="inner">
+      <my-option>click</my-option>
+      <my-option>to</my-option>
+      <my-option selected>select</my-option>
+      <my-option>between</my-option>
+      <my-option>us</my-option>
+    </my-select>
+  </my-option>
+  <my-option>so</my-option>
+  <my-option>many</my-option>
+  <my-option>options..</my-option>
+</my-select>
