@@ -1,4 +1,54 @@
+# Problem: SiblingRivalry
+
+> HTML element siblings/descendant can rival about HTML attributes under a HelicopterParent.
+
+A frequently recurring problem when making HelicopterChild patterns is how to handle siblings,
+or descendant family, all trying to control an attribute.
+
+For example, you have a `<select>`+`<option>` HelicopterParentChild setup.
+Only one of the `<option>` children can have the attribute `selected` at the same time.
+The user of the `<select>`+`<option>` web components should be able to set the `selected` 
+attribute *both* in the HTML template *and* in JS a) in the web component definition in for example 
+a `click` event listener and b) via `setAttribute("selected", "")`.
+
+When one `<option>` element updates its `selected` attribute via click listener or setAttribute call,
+then this `<option>` element HelicopterChild needs to alert its lightDOM HelicopterParent about 
+this change of state. This should be done via a `child-selected` event: this is the safest way to 
+find the current correct HelicopterParent in a DOM that can be dynamically mutated.
+
+The reason the HelicopterChild needs to alert its HelicopterParent about it becoming `selected` is 
+that the HelicopterParent wishes to alert another `<option>` element that was *previously* `selected`.
+When a new `<option>` element becomes `selected`, the `<select>` HelicopterParent needs to *remove*
+the `selected` attribute from the other, *previously* `selected` HelicopterChild. Only *one*
+child `<option>` element can be `selected` at the same time.
+
+But, to remove the `selected` attribute of the second child, will trigger a new 
+`attributeChangedCallback("selected", ...)` on the child being altered when the HelicopterParent
+is cleaning up the siblings or other descendants being affected.
+
+## Pattern: ThereCanBeOnlyOne
+
+There are two ways to handle this conflict.
+
+1. In some use-cases, the HelicopterParent only needs to do sibling/family tree maintenance when
+   `selected` is added, but not when it is removed. In such scenarios, the problem can be fixed
+   by only dispatching an event from the HelicopterChild when the `selected` is added, but not when
+   it is removed.
+
+2. If the HelicopterParent needs to be alerted when `selected` is both added and removed, 
+   then a custom JS method should be set up in the HelicopterChild that allows outside elements
+   to mutate its `selected` attribute without triggering an `selected-update` event.
+   As the `attributeChangedCallback(...)` is run async, the HelicopterChild needs to store the
+   state of the attribute which should not trigger an event. This method should also only be called 
+   from the HelicopterParent. And this is not very pretty.
+   
 # Pattern: stopping the looping of attributes from parent to child
+
+> todo delegate the task of constraint from the parent to the child. 
+> todo 1. Make a "mutateAttributeWithoutCallback(name, value)" on the child.
+> todo 2. if the value is falsy, then make the thing remove the attribute
+> todo 3. in the child, make a property _noAttributeChangedCallback to true, and then update the 
+> attributeCallback to switch and update this property.
 
 The `<select>`+`<option>`+`selected`-attribute problem.
 
