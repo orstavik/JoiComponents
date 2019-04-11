@@ -2,35 +2,47 @@
 
 [Problem: FallbackNodesFallout](../chapter3_slot_matroska/4_Problem_FallbackNodesFallout) describes
 how the fallback nodes of an *inner* web component cannot be reused in a SlotMatroska. 
-In this chapter we fix this problem, with no external and minimal internal impact.
+In this chapter we fix this problem using a trick called SlotMasking.
 
-In principle, the FalloutFix breaks the connection between the slotted nodes and the slot,
-while interfering with the internal styles of the renamed `<slot>` elements as little as possible.
-This dynamic change of the `<slot>` element is internal to the web component. No other external 
-element should use the `<slot>` element's `name` attribute for other purposes than transposing nodes.
-And, this behavior is exactly what we desire to enhance.
+## Trick: SlotMasking
 
-Inside the web component, the developer should keep an eye out for `slot[name="X"]` selectors. 
-If you need to select `<slot>` elements in CSS and JS, give them different `id`s in the shadowDOM.
-Use selectors that use the `<slot>` element's id, such as `slot#idNotName`, not `slot[name=xyz]`. 
-If it can't be helped, use `slot[name^=xyz]`.
+If you add two or more `<slot>` elements with the same `name` attribute in a shadowDOM, 
+then all the transposed nodes will *only* be sent to the *first* of these `<slot>` elements.
+
+```html
+<script type="module">
+
+  class BlueFrame extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>:host {border: 2px solid blue;}</style>
+        <slot>alpha</slot>
+        <slot>beta</slot>
+        <slot name="janus">one</slot>
+        <slot name="janus">two</slot>`;
+    }
+  }
+
+  customElements.define("blue-frame", BlueFrame);
+</script>
+
+Hello <blue-frame> world <span slot="janus"> sunshine </span></blue-frame>
+```
+
+SlotMasking breaks the connection between the slotted nodes and the second slot, causing the second 
+`<slot>` element to show its fallback nodes.
 
 ## Implementation: FalloutFix
 
-The FalloutFix algorithm is:
+FalloutFix uses SlotMasking to divert an EmptyButNotEmpty set of transposed nodes away from an 
+original `<slot>` element and to a temporary `<slot>` element with the same `name`.
+This temporary `<slot>` element is then hidden using `disply: none`, and the original `<slot>` element
+is freed to show its own fallback nodes.
 
-1. When `slottables-changed` yields a set of EmptyButNotEmpty nodes for a `<slot>` with a `name`=X,
-2. then find all `slot[name=X]` in the shadowDOM,
-3. and *suffix* their `name` with `_EmptyButNotEmpty`.
-
-1. When `slottables-changed` yields a set of *not*EmptyButNotEmpty nodes for a `<slot>` with a `name`=X,
-2. then find all `slot[name=X_EmptyButNotEmpty]` in the shadowDOM,
-3. and *remove the suffix* "_EmptyButNotEmpty" from their `name` attribute. 
-
-This will effectively rename and thus *hide* any `<slot>` element in the shadowDOM that has an 
-EmptyButNotEmpty set of `assignedNodes`, just until their `assignedNodes` are no longer 
-EmptyButNotEmpty. While hidden, no transposed nodes will reach them, thus allowing them to show their
-own fallback childNodes.
+FalloutFix is an internal dynamic, clearly delineated change of a web component's shadowDOM only. 
+It does not affect neither transposed nodes nor user web components or apps in any way.
 
 ```javascript
 import {SlottablesEvent} from "./SlottablesEvent.js";
@@ -66,20 +78,17 @@ function emptyButNotEmpty(slot) {
   return ws === 0;
 }
 
-const suffix = "_EmptyButNotEmpty";
-
 function checkNoFallout(el, slot) {
-  const isSlot = slot instanceof HTMLElement;
+  const isHidden = slot.classList.contains("__falloutFixHide__");
   const empty = emptyButNotEmpty(slot);
-  if (isSlot && empty) {               //hidden
-    const q = name === "" ? 'slot:not([name]), slot[name=""]' : 'slot[name="' + name + '"]';
-    const slots = el.shadowRoot.querySelectorAll(q);
-    for (let slot of slots)
-      slot.setAttribute("name", slot.name + suffix);
-  } else if (!isSlot && !empty) {
-    const slots = el.shadowRoot.querySelectorAll('slot[name="' + slot.name + suffix + '"]');
-    for (let node of slots)
-      node.setAttribute("name", slot.name);
+  if (empty && !isHidden) {
+    const hider = document.createElement("slot");
+    hider.classList.add("__falloutFixHide__");
+    hider.setAttribute("name", slot.name);
+    hider.style.display = "none";
+    el.shadowRoot.prepend(hider);
+  } else if (!empty && isHidden) {
+    slot.remove();
   }
 }
 

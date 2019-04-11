@@ -1,10 +1,9 @@
 <script type="module">
-
   import {FalloutFix} from "../../src/slot/FalloutFix.js";
 
   class PassePartout extends FalloutFix(HTMLElement) {
 
-    constructor(){
+    constructor() {
       super();
       this.attachShadow({mode: "open"});     //[1]
       this.shadowRoot.innerHTML =
@@ -26,9 +25,10 @@
         </div>`;
     }
   }
+
   class GreenFrame extends HTMLElement {
 
-    constructor(){
+    constructor() {
       super();
       this.attachShadow({mode: "open"});     //[1]
       this.shadowRoot.innerHTML =
@@ -45,6 +45,7 @@
         </div>`;
     }
   }
+
   customElements.define("passe-partout", PassePartout);
   customElements.define("green-frame", GreenFrame);
 </script>
@@ -54,7 +55,7 @@
 <green-frame id="two"></green-frame>
 
 <script>
-  setTimeout(function(){
+  setTimeout(function () {
     document.querySelector("#two").innerText = "hello sunshine!";
   }, 3000);
 </script>

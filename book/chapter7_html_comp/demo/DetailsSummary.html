@@ -1,0 +1,53 @@
+<button style="position: fixed; top: 0; right: 0;" onclick="toggleDetails()"> sunshine on/off</button>
+<script>
+  function toggleDetails() {
+    const native = document.querySelector('details');
+    native.hasAttribute("open") ? native.removeAttribute("open") : native.setAttribute("open", "");
+    const custom = document.querySelector('custom-details');
+    custom.hasAttribute("open") ? custom.removeAttribute("open") : custom.setAttribute("open", "");
+  }
+</script>
+
+<details open>
+  <summary>Native details/summary pair</summary>
+  hello world!
+</details>
+
+<script>
+  class CustomDetails extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            display: block;
+          }
+          :host(:not([open])) slot#content {
+            display: none;
+          }
+          b {
+            display: inline-block;
+          }
+          :host([open]) b {
+            transform: rotate(90deg);
+          }
+        </style>
+        <div><b>&#x25BA;</b> <slot name="summary">Details</slot>
+        </div>
+        <slot id="content"></slot>
+      `;
+      this.shadowRoot.querySelector("b").addEventListener("click", function () {
+        this.hasAttribute("open") ? this.removeAttribute("open") : this.setAttribute("open", "");
+      }.bind(this));
+    }
+  }
+
+  customElements.define("custom-details", CustomDetails);
+</script>
+
+<h1></h1>
+<custom-details open>
+  <span slot="summary">custom-details/slot="summary" pair:</span>
+  <span>Hello</span> sunshine!!
+</custom-details>

@@ -31,20 +31,17 @@ function emptyButNotEmpty(slot) {
   return ws === 0;
 }
 
-const suffix = "_EmptyButNotEmpty";
-
 function checkNoFallout(el, slot) {
-  const isSlot = slot instanceof HTMLElement;
+  const isHidden = slot.classList.contains("__falloutFixHide__");
   const empty = emptyButNotEmpty(slot);
-  if (isSlot && empty) {               //hidden
-    const q = name === "" ? 'slot:not([name]), slot[name=""]' : 'slot[name="' + name + '"]';
-    const slots = el.shadowRoot.querySelectorAll(q);
-    for (let slot of slots)
-      slot.setAttribute("name", slot.name + suffix);
-  } else if (!isSlot && !empty) {
-    const slots = el.shadowRoot.querySelectorAll('slot[name="' + slot.name + suffix + '"]');
-    for (let node of slots)
-      node.setAttribute("name", slot.name);
+  if (empty && !isHidden) {
+    const hider = document.createElement("slot");
+    hider.classList.add("__falloutFixHide__");
+    hider.setAttribute("name", slot.name);
+    hider.style.display = "none";
+    el.shadowRoot.prepend(hider);
+  } else if (!empty && isHidden) {
+    slot.remove();
   }
 }
 
