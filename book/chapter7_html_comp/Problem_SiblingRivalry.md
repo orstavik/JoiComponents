@@ -59,10 +59,10 @@ implemented to only allow one a single `selected`
 ```html
 <script>
 
-  function noNestedParentsOfType(children, parent, excludeType) {
-    return Array.from(children).filter(function (child) {
-      for (let parentNode = child; parentNode !== parent; parentNode = parentNode.parentNode) {
-        if (parentNode.tagName === excludeType)
+  function excludeBranches(nodes, branchPoints) {
+    return Array.from(nodes).filter(function (node) {
+      for (let i = 0; i < branchPoints.length; i++) {
+        if (branchPoints[i].contains(node))
           return false;
       }
       return true;
@@ -77,7 +77,7 @@ implemented to only allow one a single `selected`
 
     optionSelected(e) {
       e.stopPropagation();
-      const options = noNestedParentsOfType(this.querySelectorAll("my-option[selected]"), this, "MY-SELECT");
+      const options = excludeBranches(this.querySelectorAll("my-option[selected]"), this.querySelectorAll("my-select"));
       for (let i = 0; i < options.length; i++) {
         let option = options[i];
         option !== e.target && option.removeAttribute("selected");
