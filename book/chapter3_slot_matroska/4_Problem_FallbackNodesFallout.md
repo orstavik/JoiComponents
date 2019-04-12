@@ -159,27 +159,37 @@ It is not a bug in the browser, it is a bug in the spec.
 
 ## Detecting EmptyButNotEmpty `assignedNodes`
 
-Technically, we can say that the result of `.assignedNodes({flatten: true})` is EmptyButNotEmpty when
-it contains:
-1. at least one, but possibly many `<slot>` elements,
-2. all `<slot>` elements has no `childNodes`, and
-3. nothing but whitespace text nodes.
- * It is important to note that the result must contain an empty `<slot>` element, and not only 
-   whitespace text nodes, as this alone can be used to overwrite the inner fallback nodes with empty.
+A `<slot>` element is EmptyButNotEmpty when:
+1. it is assigned *one* or more `<slot>` elements,
+2. and nothing else except whitespace text nodes, and
+3. all `<slot>` elements has no `childNodes`, are not empty, or are themselves EmptyButNotEmpty.
+
+A `<slot>` element is *not* EmptyButNotEmpty when:
+1. It is not assigned any nodes (ie. EmptyAndEmpty). 
+2. It only contains whitespace. Assigning only whitespace to a `<slot>` element leaves it blank
+   intentionally. This rule: "whitespace around a `<slot>` element is ignored, but whitespace on its own 
+   is not", is not nice. But it is the best I can see.
 
 ```javascript
-function emptyButNotEmpty(assignedNodesFlatten){
-  let emptySlot = false;
-  for (let node of assignedNodesFlatten) {
-    if (node.tagName && node.tagName === "SLOT"){
-      if (node.childNodes.length !== 0)
-        return false;
-      emptySlot = true;
-    } else if(!(node.nodeType === 8 || (node.nodeType === 3 && !(/[^\t\n\r ]/.test(node.textContent)))){
+function isEmptyButNotEmpty(slot) {
+  const assigned = slot.assignedNodes();
+  const slots = [];
+  for (let node of assigned) {
+    if (node.nodeType === 3 && !/[^\t\n\r ]/.test(node.textContent)) //ignore whitespace
+      continue;
+    if (!node.tagName || node.tagName !== "SLOT") //not a slot
       return false;
-    }
+    if (node.childNodes.length !== 0)             //not empty slot
+      return false;
+    slots.push(node);
   }
-  return emptySlot;
+  if (slots.length === 0)                       //it was whitespace only
+    return false;
+  for (let slot of slots) {                     //we delay recursive testing for performance
+    if (slot.assignedNodes().length && !isEmptyButNotEmpty(slot))
+      return false;
+  }
+  return true;
 }
 ```
 

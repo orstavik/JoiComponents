@@ -1,39 +1,29 @@
 import {SlottablesEvent} from "./SlottablesEvent.js";
 
-function hasEmptyChainedSlot(slot) {
-  let emptySlot = false;
-  let ws = 0;
-  for (let node of slot.assignedNodes()) {
-    if (node.tagName && node.tagName === "SLOT") {
-      if (node.childNodes.length !== 0)
-        return false;
-      emptySlot = true;
-    } else if (node.nodeType !== 3 || /[^\t\n\r ]/.test(node.textContent)) {
+function isEmptyButNotEmpty(slot) {
+  const assigned = slot.assignedNodes();
+  const slots = [];
+  for (let node of assigned) {
+    if (node.nodeType === 3 && !/[^\t\n\r ]/.test(node.textContent)) //ignore whitespace
+      continue;
+    if (!node.tagName || node.tagName !== "SLOT") //not a slot
       return false;
-    } else {
-      ws++;
-    }
+    if (node.childNodes.length !== 0)             //not empty slot
+      return false;
+    slots.push(node);
   }
-  return ws;
-}
-
-function emptyButNotEmpty(slot) {
-  let ws = hasEmptyChainedSlot(slot);
-  if (ws === false)
+  if (slots.length === 0)                       //it was whitespace only
     return false;
-  const assignedNodesFlatten = slot.assignedNodes({flatten: true});
-  for (let node of assignedNodesFlatten) {
-    if (node.nodeType === 3 && !(/[^\t\n\r ]/.test(node.textContent)))
-      ws--;
-    else
+  for (let slot of slots) {                     //we delay recursive testing for performance
+    if (slot.assignedNodes().length && !isEmptyButNotEmpty(slot))
       return false;
   }
-  return ws === 0;
+  return true;
 }
 
 function checkNoFallout(el, slot) {
   const isHidden = slot.classList.contains("__falloutFixHide__");
-  const empty = emptyButNotEmpty(slot);
+  const empty = isEmptyButNotEmpty(slot);
   if (empty && !isHidden) {
     const hider = document.createElement("slot");
     hider.classList.add("__falloutFixHide__");

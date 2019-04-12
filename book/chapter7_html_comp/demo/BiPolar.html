@@ -1,0 +1,103 @@
+<script>
+  class DePressed extends HTMLElement {
+
+    constructor() {
+      super();
+      this.__sadness = 100;
+      setInterval(function () {
+        this.__sadness -= 1;
+      }.bind(this), 200);
+    }
+
+    static get observedAttributes() {
+      return ["happy"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "happy") {
+        if (this.__sadness > 0) {
+          this.removeAttribute("happy");
+          console.log("Time heals all.");
+        }
+      }
+    }
+  }
+
+  class BiPolar extends HTMLElement {
+
+    constructor() {
+      super();
+      this.__stubborn = null;
+      setInterval(this.flip.bind(this), 2000);
+    }
+
+    static get observedAttributes() {
+      return ["_mood"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "_mood") {
+        if (newValue !== this.__stubborn)
+          this.__stubborn !== null ? this.setAttribute(name, this.__stubborn) : this.removeAttribute(name);
+      }
+    }
+
+    flip() {
+      const random = Math.floor(Math.random() * 3);
+      random === 2 ? this.__stubborn = "manic" :
+        random === 1 ? this.__stubborn = "depressed" :
+          this.__stubborn = null;
+      this.__stubborn === null ?
+        this.removeAttribute("_mood") :
+        this.setAttribute("_mood", this.__stubborn);
+    }
+  }
+
+  customElements.define("de-pressed", DePressed);
+  customElements.define("bi-polar", BiPolar);
+</script>
+
+<script>
+  class StubbornComponent extends HTMLElement {
+
+  }
+
+  customElements.define("stubborn-component", StubbornComponent);
+</script>
+
+<style>
+  de-pressed {
+    font-weight: bold;
+    color: grey;
+  }
+  de-pressed[happy] {
+    color: gold;
+  }
+  bi-polar[_mood] {
+    border: 2px solid red;
+  }
+  bi-polar[_mood="manic"] {
+    text-decoration: line-through;
+  }
+  bi-polar[_mood="depressed"] {
+    border-color: black;
+  }
+  bi-polar[sunshine] {
+    border-bottom: 2px solid gold;
+  }
+</style>
+
+<de-pressed _happy>Hello world!</de-pressed>
+
+<bi-polar _mood sunshine>Hello sunshine!</bi-polar>
+
+<script>
+  setInterval(function () {
+    var el1 = document.querySelector("de-pressed");
+    el1.setAttribute("happy", "comeOnComeOnComeOn");
+
+    var el = document.querySelector("bi-polar");
+    el.hasAttribute("sunshine") ? el.removeAttribute("sunshine") : el.setAttribute("sunshine", "");
+    el.hasAttribute("_stubborn") ? el.removeAttribute("_stubborn") : el.setAttribute("_stubborn", "");
+  }, 1000);
+</script>

@@ -55,9 +55,10 @@
 <green-frame id="two"></green-frame>
 
 <script>
-  setTimeout(function () {
-    document.querySelector("#two").innerText = "hello sunshine!";
-  }, 3000);
+  setInterval(function () {
+    const two = document.querySelector("#two");
+    two.innerText ? two.innerText = "" : two.innerText = "hello sunshine!";
+  }, 2000);
 </script>
 <p>
   This example WORKS. "nice elaborate set of DOM nodes!" are shown on screen.
