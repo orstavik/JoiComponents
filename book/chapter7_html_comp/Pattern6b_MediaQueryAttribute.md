@@ -1,4 +1,25 @@
-## StubbornAttribute
+## MediaQueryAttribute
+
+## Why not just an internal property?
+
+HTML attributes can be read from CSS. When an HTML attribute changes, it can turn on or off CSS styles.
+This has *two* big use-cases:
+
+1. The host element. You want the styles of a web component's host element to react to changes of 
+   the element's inner state, *and* you want these different sets of styles to be overridden from the
+   lightDOM. What do you do? Do you :
+   1. expose a myriad of CSS variables? Or 
+   2. add an attribute on the host element that can turn on/off CSS selectors in the lightDOM,
+      and keep this attribute *always* true to the element's inner state?
+   
+   Second alternative is *far* better.
+   
+2. Slotted descendants. You want a branch of elements that are slotted into a web component to be
+   styled according to that web component's inner state. Now, you have 
+   (and desperately need) the style of a component (or especially the component's children)
+to be set in the lightDOM, and then 
+
+##
 
 A StubbornAttribute is *only controlled from the inside* and cannot be set from the outside. 
 If you try, the web component will only immediately reset it. Stubbornly. 

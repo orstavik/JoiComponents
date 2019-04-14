@@ -1,0 +1,121 @@
+<template>
+  <style>
+
+    :host {
+      display: block;
+      position: relative;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+    ::slotted(*:not(page-menu):not(page-content)) {
+      display: none;
+    }
+
+    /*mobile */
+    @media screen and (max-width: 600px) {
+      :host{
+
+      }
+      ::slotted(page-menu),
+      ::slotted(page-content) {
+        display: block;
+        overflow: auto;
+        width: 100%;
+      }
+      ::slotted(page-menu) {
+        position: fixed;
+        height: 40px;
+        height: var(--page-menu-height, 40px);
+        background-color: grey;
+        z-index: 1;
+      }
+      ::slotted(page-content) {
+        position: absolute;            /*top: 0; left: 0;*/
+        min-height: 100%;
+        box-sizing: border-box;
+        z-index: 0;
+      }
+    }
+    /*desktop*/
+    @media screen and (min-width: 601px) {
+      /*the 600px will be replaced by another number when an attribute change*/
+      ::slotted(page-menu) {
+        display: block;
+        position: fixed; /*top: 0; left: 0;*/
+        height: 100%;
+        width: var(--page-menu-width, 200px);
+        overflow: auto;
+      }
+      ::slotted(page-content) {
+        display: block;
+        position: fixed; /*top: 0;*/
+        left: var(--page-menu-width, 200px);
+        width: calc(100% - (var(--page-menu-width, 200px)));
+        padding: 1px 16px;
+        min-height: 100%;
+      }
+    }
+  </style>
+  <slot></slot>
+</template>
+
+<script>
+
+  class PageRoot extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      const template = document.querySelector("template").content;
+      this.shadowRoot.appendChild(template.cloneNode(true));
+      this._prevScrollpos = window.pageYOffset;
+      this._prevMargin = 0;
+      window.addEventListener("scroll", this.onScroll.bind(this));
+    }
+
+    onScroll() {
+      const movement = window.pageYOffset - this._prevScrollpos;
+      this._prevScrollpos = window.pageYOffset;
+      const newMargin = this._prevMargin + movement;
+      if (newMargin > 40 || newMargin < 0)
+        return;
+      this._prevMargin = newMargin;
+      this.querySelector("page-menu").style.marginTop = "-" + newMargin + "px";
+    }
+  }
+
+  class PageMenu extends HTMLElement {
+
+  }
+
+  class PageContent extends HTMLElement {
+
+  }
+
+  customElements.define("page-root", PageRoot);
+  customElements.define("page-menu", PageMenu);
+  customElements.define("page-content", PageContent);
+</script>
+
+<style>
+  body {
+    padding: 0;
+    margin: 0;
+    /*--page-menu-height : 30px;*/
+  }
+  page-menu {
+    background-color: lightblue;
+  }
+  page-content {
+    padding-top: 40px;
+    background-color: pink;
+  }
+</style>
+
+<page-root>
+  <page-menu>menu</page-menu>
+  <page-content>
+    <div style="height: 125vh;">content</div>
+  </page-content>
+</page-root>

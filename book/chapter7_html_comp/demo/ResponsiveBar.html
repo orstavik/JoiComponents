@@ -1,0 +1,154 @@
+<template>
+  <div id="container">
+    <div id="menu">
+      <slot name="menu">the menu</slot>
+    </div>
+    <div id="content">
+      <div id="menuSpacer"></div>
+      <slot>the page content</slot>
+    </div>
+  </div>
+  <style>
+    /*mobile */
+    div {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+    :host([_size="small"]) #menuSpacer {
+      height: 100px;
+    }
+    :host([_size="small"]) #menu {
+      position: fixed;
+      height: 100px;
+      background-color: grey;
+    }
+    :host([_size="small"]) #content {
+      background-color: #DDDDDD;
+      min-height: calc(100% - 100px);
+    }
+    /*desktop*/
+    :host([_size="big"]) #menu {
+      position: fixed;
+      height: 100%;
+      width: 250px;
+      background-color: grey;
+    }
+    :host([_size="big"]) #menuSpacer {
+      float: left;
+      width: 250px;
+      height: 100%;
+    }
+    :host([_size="big"]) #content {
+      float: left;
+      min-height: 100%;
+      background-color: #DDDDDD;
+    }
+  </style>
+</template>
+
+<script>
+
+  function postConstructionCallback(cb) {
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", cb);
+    } else {
+      Promise.resolve().then(function () {
+        Promise.resolve().then(cb)
+      });
+    }
+  }
+
+  class SideBar extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      const template = document.querySelector("template").content;
+      this.shadowRoot.appendChild(template.cloneNode(true));
+
+      /*scroller*/
+      this._onScrollListener = this.onScroll.bind(this);
+      this._prevScrollpos = undefined;
+      this._prevMargin = undefined;
+
+      /*media query listener*/
+      this.__size = undefined;
+      this._widthChangeListener = undefined;
+      this._mql = undefined;
+      postConstructionCallback(function () {
+        this.setUpMQL();
+        this.widthChange(this._mql);
+      }.bind(this));
+
+    }
+
+    static get observedAttributes() {
+      return ["_size", "switch-width"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "_size" && newValue !== this.__size)
+        this.setAttribute("_size", this.__size);
+      if (name === "switch-width")
+        this.setUpMQL();
+    }
+
+    widthChange(e) {
+      if (e.matches) {                                            /* viewport <= 600px */
+        this.setAttribute("_size", this.__size = "small");
+        window.addEventListener("scroll", this._onScrollListener);
+        this._prevScrollpos = window.pageYOffset;
+        this._prevMargin = 0;
+      } else {                                                    /* viewport > 600px */
+        this.setAttribute("_size", this.__size = "big");
+        window.removeEventListener("scroll", this._onScrollListener);
+        this.shadowRoot.querySelector("#menu").style.transform = undefined;
+      }
+    }
+
+    setUpMQL() {
+      //remove the old mql listener (if any)
+      if (this._mql)
+        this._mql.removeListener(this._widthChangeListener);
+
+      //setup new mql listener
+      const width = this.getAttribute("switch-width") || "600px";
+      this._widthChangeListener = this.widthChange.bind(this);
+      this._mql = window.matchMedia('(max-width: ' + width + ')');
+      this._mql.addListener(this._widthChangeListener);
+    }
+
+    onScroll() {
+      //todo find a smoother alternative for this one
+      const movement = window.pageYOffset - this._prevScrollpos;
+      this._prevScrollpos = window.pageYOffset;
+      const newMargin = this._prevMargin + movement;
+      if (newMargin > 100 || newMargin < 0)
+        return;
+      this._prevMargin = newMargin;
+      this.shadowRoot.querySelector("#menu").style.transform = "translateY(-" + newMargin + "px)";
+    }
+  }
+
+  customElements.define("side-bar", SideBar);
+</script>
+
+<style>
+  body {
+    padding: 0;
+    margin: 0;
+    /*--page-menu-height : 30px;*/
+  }
+  [slot="menu"] {
+    background-color: lightblue;
+  }
+  div#content {
+    background-color: pink;
+  }
+</style>
+
+<side-bar>
+  <div slot="menu">Here comes the menu</div>
+  <div id="content" style="height: 125vh;">content</div>
+</side-bar>

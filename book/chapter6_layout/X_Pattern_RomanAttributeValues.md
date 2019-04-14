@@ -21,8 +21,7 @@ attribute, use addition-only Roman numerals.
  * *After* the Roman numeral you can write what you want with whitespace and small letters.
    no capital letters as they might be mistaken for digits.
  * Zero don't exist. It is just `.`.
- * Positive numbers are prefixed with `+`.
- * Negative numbers are prefixed with `-`.
+ * All numbers are prefixed with either `+` or `-`.
    
 The value of the Roman digits:
  * `M` = 1000, 
