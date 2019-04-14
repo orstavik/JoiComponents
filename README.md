@@ -71,18 +71,22 @@ All patterns run natively in any browser that supports web components and vanill
 
 ## Chapter 6: Layout
 1. [HowTo: ReactToLayout](book/chapter6_layout/1_HowTo_ReactToLayout)
-2. [Problem: DOM_folding](book/chapter6_layout/2_Problem_DOM_folding)
-3. [Pattern: NaiveLayoutAttributes](book/chapter6_layout/3_Pattern_NaiveLayoutAttributes)
-4. [Pattern: LayoutAttributes](book/chapter6_layout/4_Pattern_LayoutAttributes)
+2. [Pattern: MediaQueryAttribute](book/chapter6_layout/2_Pattern_MediaQueryAttribute)
+3. [Pattern: ResponsiveElement](book/chapter6_layout/3_Pattern_ResponsiveElement)
+4. [Problem: DOM_folding](book/chapter6_layout/4_Problem_DOM_folding)
+5. [Pattern: NaiveLayoutAttributes](book/chapter6_layout/5_Pattern_NaiveLayoutAttributes)
+6. [Pattern: LayoutAttributes](book/chapter6_layout/6_Pattern_LayoutAttributes)
 
 ## Chapter 7: HTML Composition
-1. [Introduction: HTML is list](book/chapter7_html_comp/Intro_HTML-Lists)
-2. [FosterParentChild (`<ul-li>`)](book/chapter7_html_comp/Pattern1_FosterParentChild)
-3. [HelicopterParentChild (`<ol>+<li>`)](book/chapter7_html_comp/Pattern2_HelicopterParentChild)
-4. [CulDeSacElements (`<img>`)](book/chapter7_html_comp/Pattern3_CulDeSacElements)
-5. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter7_html_comp/Pattern4_MiniMe)
-6. [Pattern: JSONAttributes](book/chapter7_html_comp/Pattern_jsonAttributes)
-7. [Discussion: HTML composition](book/chapter7_html_comp/Discussion_HTML_composition)
+1. [Pattern: JsonAttributes](book/chapter7_html_comp/1_Pattern_JsonAttributes)
+2. [Pattern: StubbornAttribute](book/chapter7_html_comp/2_Pattern_StubbornAttribute)
+3. [Introduction: HTML is list](book/chapter7_html_comp/Intro_HTML-Lists)
+4. [FosterParentChild (`<ul-li>`)](book/chapter7_html_comp/Pattern1_FosterParentChild)
+5. [HelicopterParentChild (`<ol>+<li>`)](book/chapter7_html_comp/Pattern2_HelicopterParentChild)
+6. [CulDeSacElements (`<img>`)](book/chapter7_html_comp/Pattern3_CulDeSacElements)
+7. [MiniMeDOM (make the index in `<the-book>+<a-chapter>`)](book/chapter7_html_comp/Pattern4_MiniMe)
+8. [Pattern: JSONAttributes](book/chapter7_html_comp/Pattern_jsonAttributes)
+9. [Discussion: HTML composition](book/chapter7_html_comp/Discussion_HTML_composition)
 
 ## Chapter 8: Mixins
 1. [Reactive method](book/chapter2_HowToMakeMixins/Pattern1_ReactiveMethod.md)
