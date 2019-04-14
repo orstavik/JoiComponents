@@ -82,7 +82,7 @@ class SettingsAttribute extends HTMLElement {
       const settings = JSON.parse(newValue);
       let txt = "";
       for (let keyValue of Object.entries(settings)) {
-        txt += keyValue[0] + ": " + keyValue[1] + "\n"; 
+        txt += keyValue[0] + ": " + (keyValue[1]*2) + "\n"; 
       }
       this.shadowRoot.innerText = "<pre>" + txt + "</pre>";
     }
@@ -90,10 +90,10 @@ class SettingsAttribute extends HTMLElement {
 }
 customElements.define("settings-attribute", SettingsAttribute);
 </script>
-<settings-attribute settings="{'S': 0, 'M': 600, 'L': 1024}"></settings-attribute>
+<settings-attribute settings="{'S': 600, 'M': 1024, 'L': 1920}"></settings-attribute>
 ```
 
-which will display: `Hello sunshine!`.
+which will display how we will perceive screens in the future.
 
 ## Anti-pattern: MySpecialWayJustThisOnce
 
@@ -127,10 +127,16 @@ MySpecialWayJustThisOnce is perfectly fine in the beginning. The problem *can* a
 component and attribute proliferate in good, but unforeseeable ways.
 
 There is no way to avoid the co-dependency between the algorithms of encoding and decoding when 
-passing non-string data values as HTML attribute strings. But, there is a way to generalize this 
-dependency, reducing potential conflicts. And that is to use JSON, the universal way to pass 
-string-encode data between objects on the web.
+passing non-string data values as HTML attribute strings. There will always be at least a semantic
+co-dependency on what data should be there. 
+
+But, in MySpecialWayJustThisOnce, the *syntax* of the data transfer is also potentially in flux. 
+By using JSON, this syntactic co-dependency will still be there, but it is generalized: 
+JSON is the universal way to pass string-encode data between objects on the web. 
+And by using a universal syntax for encoding and decoding the data values, 
+conflicts and room for bugs and errors are reduced.
 
 ## References
 
- * 
+ * [Stackoverflow: why "quotes" in simple JSON Object keys](https://stackoverflow.com/questions/4201441/is-there-any-practical-reason-to-use-quoted-strings-for-json-keys#answer-4201631)
+ * [todo check that this is a video is the same as in the stackoverflow article, find out what number the quote is](https://www.youtube.com/watch?v=-C-JoyNuQJs)

@@ -28,6 +28,8 @@ the scope of the developer of a web component to itself.
 
 ## Native layout reactions in JS
 
+> todo add `MediaQuery.addListener` 
+
 Chrome provides an observer called `ResizeObserver()` that enable the developer to observe the 
 layout properties for each individual element and then trigger a callback function as a reaction in JS 
 to each and every change of the elements layout size.
