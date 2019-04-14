@@ -1,13 +1,13 @@
 # Pattern: ResponsiveElements
 
-Most modern web apps and pages share one thing: responsiveness. 
+Most modern web apps and pages share one ideal: responsiveness. 
 With CSS media queries, a handful of HTML elements, 10 - 20 CSS rules and a little JS,
 they make the app be manageable both on a small mobile screen or a larger desktop screen.
 
 To make a web app responsive is not particularly hard. The problem with the resources above is that
 they add detail and nuance to the code. These details and nuances gets mixed in and interwoven with
-all the other details and nuances in the app, adding to the apps complexity which is eventually what
-stops the app from growing more features and/or spawn bugs.
+all the other details and nuances in the app, adding to the apps complexity, reducing its readability
+which eventually causes the app to spawn bugs, and stops it from growing more features.
 
 So, the problem of responsiveness is how to encapsulate its complexity into a neat unit that can
 hide all the CSS, HTML and JS detail that in essence only concern this aspect of the app.
