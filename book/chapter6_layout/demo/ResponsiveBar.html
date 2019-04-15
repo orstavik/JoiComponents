@@ -16,31 +16,31 @@
       height: 100%;
       width: 100%;
     }
-    :host([_size="small"]) #menuSpacer {
-      height: 100px;
+    :host([_size="S"]) #menuSpacer {
+      height: var(--responsive-element-menu-s-height, 100px);
     }
-    :host([_size="small"]) #menu {
+    :host([_size="S"]) #menu {
       position: fixed;
-      height: 100px;
+      height: var(--responsive-element-menu-s-height, 100px);
       background-color: grey;
     }
-    :host([_size="small"]) #content {
+    :host([_size="S"]) #content {
       background-color: #DDDDDD;
-      min-height: calc(100% - 100px);
+      min-height: calc(100% - var(--responsive-element-menu-s-height, 100px));
     }
     /*desktop*/
-    :host([_size="big"]) #menu {
+    :host([_size="L"]) #menu {
       position: fixed;
       height: 100%;
-      width: 250px;
+      width: var(--responsive-element-menu-l-width, 250px);
       background-color: grey;
     }
-    :host([_size="big"]) #menuSpacer {
+    :host([_size="L"]) #menuSpacer {
       float: left;
-      width: 250px;
+      width: var(--responsive-element-menu-l-width, 250px);
       height: 100%;
     }
-    :host([_size="big"]) #content {
+    :host([_size="L"]) #content {
       float: left;
       min-height: 100%;
       background-color: #DDDDDD;
@@ -60,63 +60,70 @@
     }
   }
 
+  const defaultSizes = {
+    S: 0,
+    L: 800
+  };
+
   class SideBar extends HTMLElement {
+
     constructor() {
       super();
       this.attachShadow({mode: "open"});
       const template = document.querySelector("template").content;
       this.shadowRoot.appendChild(template.cloneNode(true));
 
+      /* _size and size-settings*/
+      this.__size = undefined;
+      this._sizeSettings = defaultSizes;
+      this._viewportObserver = this.viewportChanged.bind(this);
+      postConstructionCallback(this._viewportObserver);
+
       /*scroller*/
       this._onScrollListener = this.onScroll.bind(this);
       this._prevScrollpos = undefined;
       this._prevMargin = undefined;
+    }
 
-      /*media query listener*/
-      this.__size = undefined;
-      this._widthChangeListener = undefined;
-      this._mql = undefined;
-      postConstructionCallback(function () {
-        this.setUpMQL();
-        this.widthChange(this._mql);
-      }.bind(this));
+    connectedCallback() {
+      window.addEventListener("resize", this._viewportObserver);
+    }
 
+    disconnectedCallback() {
+      window.removeEventListener("resize", this._viewportObserver);
     }
 
     static get observedAttributes() {
-      return ["_size", "switch-width"];
+      return ["_size", "size-settings"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "_size" && newValue !== this.__size)
         this.setAttribute("_size", this.__size);
-      if (name === "switch-width")
-        this.setUpMQL();
+      if (name === "size-settings")
+        this._sizeSettings = newValue ? JSON.parse(newValue) : defaultSizes;
     }
 
-    widthChange(e) {
-      if (e.matches) {                                            /* viewport <= 600px */
-        this.setAttribute("_size", this.__size = "small");
+    viewportChanged() {
+      const sorted = Object
+        .entries(this._sizeSettings)
+        .sort(([aKey, aValue], [bKey, bValue]) => aValue <= bValue)
+        .filter(([key, value]) => value <= window.innerWidth);
+      const newSize = sorted.length ? sorted[sorted.length - 1][0] : null;
+      if (this.__size === newSize)
+        return;
+      this.__size = newSize;
+      this.__size === null ? this.removeAttribute("_size") : this.setAttribute("_size", this.__size);
+
+      /* setup listeners */
+      if (this.__size === "S") {
         window.addEventListener("scroll", this._onScrollListener);
         this._prevScrollpos = window.pageYOffset;
         this._prevMargin = 0;
-      } else {                                                    /* viewport > 600px */
-        this.setAttribute("_size", this.__size = "big");
+      } else {
         window.removeEventListener("scroll", this._onScrollListener);
         this.shadowRoot.querySelector("#menu").style.transform = undefined;
       }
-    }
-
-    setUpMQL() {
-      //remove the old mql listener (if any)
-      if (this._mql)
-        this._mql.removeListener(this._widthChangeListener);
-
-      //setup new mql listener
-      const width = this.getAttribute("switch-width") || "600px";
-      this._widthChangeListener = this.widthChange.bind(this);
-      this._mql = window.matchMedia('(max-width: ' + width + ')');
-      this._mql.addListener(this._widthChangeListener);
     }
 
     onScroll() {
@@ -124,10 +131,13 @@
       const movement = window.pageYOffset - this._prevScrollpos;
       this._prevScrollpos = window.pageYOffset;
       const newMargin = this._prevMargin + movement;
-      if (newMargin > 100 || newMargin < 0)
-        return;
-      this._prevMargin = newMargin;
-      this.shadowRoot.querySelector("#menu").style.transform = "translateY(-" + newMargin + "px)";
+      if (newMargin <= 0) {
+        this._prevMargin = 0;
+        this.shadowRoot.querySelector("#menu").style.transform = "";
+      } else {
+        this._prevMargin = newMargin >= 100 ? 100 : newMargin;
+        this.shadowRoot.querySelector("#menu").style.transform = "translateY(-" + this._prevMargin + "px)";
+      }
     }
   }
 
@@ -136,19 +146,26 @@
 
 <style>
   body {
-    padding: 0;
-    margin: 0;
-    /*--page-menu-height : 30px;*/
+    margin: 0; padding: 0;
+  }
+  side-bar {
+    display: block;
+  }
+  side-bar[_size="S"] {
+    border-right: 5px solid red;
+  }
+  side-bar[_size="L"] {
+    border-right: 5px solid green;
   }
   [slot="menu"] {
     background-color: lightblue;
   }
   div#content {
-    background-color: pink;
+    background-color: white;
   }
 </style>
 
-<side-bar>
+<side-bar size-settings='{"S": 0, "L": 600}'>
   <div slot="menu">Here comes the menu</div>
   <div id="content" style="height: 125vh;">content</div>
 </side-bar>

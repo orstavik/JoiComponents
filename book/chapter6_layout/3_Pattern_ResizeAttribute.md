@@ -56,11 +56,11 @@ A web component that implements the ResizeAttribute pattern consists of:
       this._onScrollListener = this.onScroll.bind(this);
     }
 
-    connectedCallback(){
+    connectedCallback() {
       window.addEventListener("resize", this._viewportObserver);
     }
 
-    disconnectedCallback(){
+    disconnectedCallback() {
       window.removeEventListener("resize", this._viewportObserver);
     }
 
@@ -80,17 +80,17 @@ A web component that implements the ResizeAttribute pattern consists of:
         .entries(this._sizeSettings)
         .sort(([aKey, aValue], [bKey, bValue]) => aValue <= bValue)
         .filter(([key, value]) => value <= window.innerWidth);
-      if (!sorted.length) {
-        this.__size = null;
-        this.removeAttribute("_size");
-      } else {
-        this.__size = sorted[sorted.length - 1][0];
-        this.setAttribute("_size", this.__size);
-        if (this.__size === "S")
-          window.addEventListener("scroll", this._onScrollListener);
-        else
-          window.removeEventListener("scroll", this._onScrollListener);
-      }
+      const newSize = sorted.length ? sorted[sorted.length - 1][0] : null;
+      if (this.__size === newSize)
+        return;
+      this.__size = newSize;
+      this.__size === null ? this.removeAttribute("_size") : this.setAttribute("_size", this.__size);
+
+      /* setup listeners */
+      if (this.__size === "S")
+        window.addEventListener("scroll", this._onScrollListener);
+      else
+        window.removeEventListener("scroll", this._onScrollListener);
     }
 
     onScroll() {
