@@ -72,10 +72,11 @@ All patterns run natively in any browser that supports web components and vanill
 ## Chapter 6: Layout
 1. [HowTo: ReactToLayout](book/chapter6_layout/1_HowTo_ReactToLayout)
 2. [Pattern: MediaQueryAttribute](book/chapter6_layout/2_Pattern_MediaQueryAttribute)
-3. [Pattern: ResponsiveElement](book/chapter6_layout/3_Pattern_ResponsiveElement)
-4. [Problem: DOM_folding](book/chapter6_layout/4_Problem_DOM_folding)
-5. [Pattern: NaiveLayoutAttributes](book/chapter6_layout/5_Pattern_NaiveLayoutAttributes)
-6. [Pattern: LayoutAttributes](book/chapter6_layout/6_Pattern_LayoutAttributes)
+3. [Pattern: ResizeAttribute](book/chapter6_layout/3_Pattern_ResizeAttribute)
+4. [Pattern: ResponsiveElement](book/chapter6_layout/4_Pattern_ResponsiveElement)
+5. [Problem: DOM_folding](book/chapter6_layout/5_Problem_DOM_folding)
+6. [Pattern: NaiveLayoutAttributes](book/chapter6_layout/6_Pattern_NaiveLayoutAttributes)
+7. [Pattern: LayoutAttributes](book/chapter6_layout/7_Pattern_LayoutAttributes)
 
 ## Chapter 7: HTML Composition
 1. [Pattern: JsonAttributes](book/chapter7_html_comp/1_Pattern_JsonAttributes)

@@ -141,9 +141,37 @@ A web component that implements the MediaQueryAttribute pattern consists of:
 <small-medium-large id="two" size-settings='{"S": 0, "M": 200, "L": 400}'>
   custom sizes
 </small-medium-large>
-```   
-##
 
+<i>
+  Att!! If you resize up and down often, you will see that sometimes the MediaQuery listener callback
+  is not triggered (tested in Chrome).
+</i>
+```   
+
+## Problems with the MediaQuery interface
+
+Sometimes, MediaQuery listeners do **not** trigger (in Chrome). 
+This causes the component to miss its reaction.
+
+To fix this problem, the web component can add a `setInterval` poll calling `viewportChanged()`.
+This will catch any MediaQuery listeners callbacks that has fallen through the MediaQuery subsystem 
+cracks, although with a delay (on average half the time of the `setInterval`).
+
+This is not a perfect solution neither. Adding a `setInterval` listener will draw resources from 
+the app *at all times*.
+    
+Instead, it is better to use the `resize` events instead. And skip MediaQuery listener.
+The resize event is safer, it should not intermittently fall through cracks like MediaQuery listeners. 
+And therefore *not* require a `setInterval` listener.
+   
+The drawback of using the `resize` events is that it will be dispatched *for all* changes of size. 
+This means that *during* window `resize` activity, the `viewportChanged()` JS function will run much 
+more frequently. However, the viewport rarely changes. In most app instances it never changes at all. 
+`resize` is a rare event, and when it occurs, it has and can take all the attention of the user and 
+the app. Thus, *adding a lot more work when the viewport changes* is better than *adding very litte 
+work when the viewport remains still*.
+
+In the next chapter [Pattern: ResizeAttribute](2b_Pattern_ResizeAttribute) we describe how this is done.
 
 ## References
 
