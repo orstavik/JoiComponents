@@ -5,7 +5,8 @@ can be slotted, but not yet are. It also avoids SlotchangeSurprise and Premature
 It filters out SlotchangeNipSlips.
 
 But, we would like to add initial FallbackSlotchange events. Thus, we make a 
-`slottablesCallback(slot)`. We don't add the second argument `fallbackMode` in this mixin
+`slotCallback(slot)` for `slottables-changed` events. 
+We don't add the second argument `fallbackMode` in this mixin
 as it can be checked from inside using `slot.assignedNodes().length === 0`
 
 ```javascript
