@@ -1,6 +1,35 @@
 # Pattern: FosterParentChild
 
+> todo test this out
+
+```html
+<script>
+  class UlLi extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          ::slotted(*)::before {
+            content: " * ";
+          }
+        </style>
+        <slot></slot>`;
+    }
+  }
+
+  customElements.define("ul-li", UlLi);
+</script>
+
+<ul-li>
+  <div>one</div>
+  <div>two</div>
+  three
+</ul-li>
+```
+
 ## the DOM is always a one-way, one-to-many parent-child tree
+
 By default, the DOM is structured as a tree of nodes.
 Instances of HTML elements can be connected to the DOM tree as DOM nodes.
 Every DOM node has two properties: `.children[]` and `.parent`.

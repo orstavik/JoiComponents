@@ -1,0 +1,23 @@
+<script>
+  class UlLi extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          ::slotted(*)::before {
+            content: " * ";
+          }
+        </style>
+        <slot></slot>`;
+    }
+  }
+
+  customElements.define("ul-li", UlLi);
+</script>
+
+<ul-li>
+  <div>one</div>
+  <div>two</div>
+  three
+</ul-li>
