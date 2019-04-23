@@ -23,7 +23,7 @@ function setupElements() {
     let slots = el.shadowRoot.querySelectorAll("slot");
     for (let slot of slots) {
       if (slot.assignedNodes().length > 0)
-        el.slotchangeCallback(slot);
+        el.slotCallback(slot);
     }
   }
   constructedElements = [];
