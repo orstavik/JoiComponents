@@ -1,3 +1,9 @@
+<!--
+problems with this solution:
+1. doesn't add stars to text nodes, which is good, if not there would be stars for every whitespace
+2. does it work in firefox and safari? it is after all a pseudo element on a pseudo element
+-->
+
 <script>
   class UlLi extends HTMLElement {
     constructor() {
@@ -21,3 +27,37 @@
   <div>two</div>
   three
 </ul-li>
+
+<!--
+    doesn't work because you cannot add html elements in ::before and ::after, its only a text node with style.
+    this means that you cant wrap individual elements with for example a web component in the shadowDOM, without
+    manually manipulating the content. And as this is slotted content can come from a SlotMatryoshka, then this
+    might need the construction of separate rows of slot elements. Horrible...
+
+    must have HelicopterParentChild
+-->
+<script>
+  class UlLi2 extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          ::slotted(*)::before {
+            content: "<b>";
+          }
+          ::slotted(*)::after {
+            content: "</b>";
+          }
+        </style>
+        <slot></slot>`;
+    }
+  }
+
+  customElements.define("ul-li2", UlLi2);
+</script>
+
+<ul-li2>
+  <div>one</div>
+  <div>two</div>
+</ul-li2>

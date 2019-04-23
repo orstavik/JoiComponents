@@ -127,15 +127,36 @@
     }
 
     onScroll() {
-      //todo find a smoother alternative for this one
+      //todo 2. when we scroll up, the menu is coming down again. But, if you scrolled up to actually see the content
+      //todo    above, then you would have to scroll down the whole menu before it made an impact.
+      //todo    Therefore, when we scroll up (movement is less than 0), maybe we would like to double the scroll effect
+      //todo    while the newMargin is less than menuHeight?
+
+      //todo to fix this, I can add a _doubleDistortion. translateY with a positive value for the
+      //
+      // when we scroll up, the menu is coming down again. But, if you scrolled up to actually see the content
+      // and while the menu is coming down, i.e. for the first 100px,
+      if (this._skipMe){
+        this._skipMe = false;
+        return;
+      }
+      const menuHeight = this.shadowRoot.children[0].children[0].offsetHeight;
       const movement = window.pageYOffset - this._prevScrollpos;
       this._prevScrollpos = window.pageYOffset;
       const newMargin = this._prevMargin + movement;
       if (newMargin <= 0) {
         this._prevMargin = 0;
         this.shadowRoot.querySelector("#menu").style.transform = "";
-      } else {
-        this._prevMargin = newMargin >= 100 ? 100 : newMargin;
+      } else if (newMargin > 0) {
+        if (movement < 0 && window.pageYOffset > 0) {
+          console.log("boo");
+//          debugger;
+          this._skipMe = true;
+          this._prevScrollpos = window.pageYOffset + movement;
+          scroll(window.pageXOffset, this._prevScrollpos);
+//          window.pageYOffset = window.pageYOffset + movement;
+        }
+        this._prevMargin = newMargin >= menuHeight ? menuHeight : newMargin;
         this.shadowRoot.querySelector("#menu").style.transform = "translateY(-" + this._prevMargin + "px)";
       }
     }
@@ -167,5 +188,31 @@
 
 <side-bar size-settings='{"S": 0, "L": 600}'>
   <div slot="menu">Here comes the menu</div>
-  <div id="content" style="height: 125vh;">content</div>
+  <div id="content" style="height: 125vh;">
+    <pre>
+      content
+    a
+    b
+    c
+    d
+    e
+    f
+    g
+    h
+    i
+    j
+    k
+    l
+    m
+    n
+    o
+    p
+    q
+    r
+    s
+    t
+    u
+    v
+    </pre>
+  </div>
 </side-bar>
