@@ -2,4 +2,4 @@
 # empty ---front matter--- triggers Jekyll processing upon commit
 # [{% for p in site.static_files %}{% if p.extname == ".md" %}"{{ p.path }}", {% endif %}{% endfor %}]
 ---
-{{ site.static_files | where:"extname", ".md" | jsonify }}
+{{ site.static_files | where:"extname", ".md" | map: "path" | jsonify }}
