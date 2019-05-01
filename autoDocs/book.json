@@ -3,7 +3,7 @@
 # [{% for p in site.static_files %}{% if p.extname == ".md" %}"{{ p.path }}", {% endif %}{% endfor %}]
 # content path name url
 ---
-{% assign bookPages = site.pages | where_exp:"p", "p.url contains '/book/'" %}
+{% assign bookPages = site.pages | where_exp:"p", "p.url contains '/book/chapter' and p.url contains 1_" %}
 
 {% assign result = "" | split: "" %}
 {% for p in bookPages %}
