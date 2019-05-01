@@ -1,6 +1,16 @@
 ---
 # empty ---front matter--- triggers Jekyll processing upon commit
 # [{% for p in site.static_files %}{% if p.extname == ".md" %}"{{ p.path }}", {% endif %}{% endfor %}]
----
-{% for p in site.static_files %}{% if p.extname == ".md" %}"{{ p.path }}", {% endif %}{% endfor %}
-{{ site.static_files | where:"extname", ".md" | map: "path" | jsonify }}
+# content path name url
+--
+{% assign bookPages = site.pages | where_exp:"p", "p.url contains '/book/'" %}
+
+{% assign result = "" | split: "" %}
+{% for p in bookPages %}
+{% assign arr = "" | split: "" %}
+{% assign content = p.content | markdownify %}
+{% assign arr = arr | push: p.url | push: content %}
+{% assign result = result | push: arr %}
+{% endfor %}
+
+{{result | jsonify}}
