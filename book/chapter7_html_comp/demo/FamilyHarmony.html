@@ -1,0 +1,65 @@
+<script>
+  class FamilyMember extends HTMLElement {
+
+    constructor() {
+      super();
+      this.__shutUp = undefined;
+    }
+
+    static get observedAttributes() {
+      return ["shut-up"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "shut-up") {
+        if (newValue === this.__shutUp) {
+          this.__shutUp = undefined;
+          return;
+        }
+        for (let sib of this.parentNode.children) {
+          if (sib !== this && sib.tagName && sib.tagName === "FAMILY-MEMBER")
+            sib.shutUp(newValue);
+        }
+      }
+    }
+
+    shutUp(value) {              //This is the BackstopMethod
+      this.__shutUp = value;
+      value === null ?
+        this.removeAttribute("shut-up") :
+        this.setAttribute("shut-up", value);
+    }
+  }
+
+  class FamilyHarmony extends HTMLElement {
+  }
+
+  customElements.define("family-harmony", FamilyHarmony);
+  customElements.define("family-member", FamilyMember);
+</script>
+
+<style>
+  [shut-up] {
+    border: 4px solid red;
+  }
+</style>
+
+<family-harmony>
+  Give me: 
+  <family-member>one</family-member>
+  <family-member>two</family-member>
+  <family-member>three</family-member>
+  <family-member>four</family-member>
+  <family-member>five</family-member>
+</family-harmony>
+
+<script>
+  const familyMembers = document.querySelectorAll("family-member");
+
+  setInterval(function () {
+    const randomMember = familyMembers[Math.floor(Math.random() * familyMembers.length)];
+    randomMember.hasAttribute("shut-up") ?
+      randomMember.removeAttribute("shut-up") :
+      randomMember.setAttribute("shut-up", "");
+  }, 1000);
+</script>
