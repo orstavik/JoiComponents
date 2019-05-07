@@ -1,0 +1,104 @@
+<script type="module">
+
+  import {SlotchangeMixin} from "https://unpkg.com/joicomponents@1.2.27/src/slot/SlotChildMixin.js";
+
+  class TreeNode extends SlotchangeMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<slot></slot>";
+      this.shadowRoot.children[0].addEventListener("click", this.onClick.bind(this));
+      this.__expectedSelect = undefined;
+      this.__isTriggered = false;
+      this.__isSetup = false;
+    }
+
+    slotCallback(slot) {
+      this.__isSetup = true;
+      this.getRootTreeNode().syncAtBranchChange();
+    }
+
+    static get observedAttributes() {
+      return ["selected"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "selected") {
+        if (!this.__isSetup)         //the initial callbacks are skipped in favor of equivalent cleanup based on slotCallback
+          return;
+        if (newValue === this.__expectedSelect) {
+          this.__expectedSelect = undefined;
+          return;
+        }
+        this.unSelectAllOthers(this);
+      }
+    }
+
+    unSelectAllOthers(skip) {
+      let selecteds = this.getRootTreeNode().querySelectorAll("tree-node[selected]");
+      skip = skip || selecteds[selecteds.length - 1];
+      for (let selected of selecteds) {
+        if (selected !== skip) {
+          selected.__expectedSelect = null;
+          selected.removeAttribute("selected")
+        }
+      }
+    }
+
+    getRootTreeNode() {
+      let parent = this;
+      while (parent.parentNode && parent.parentNode.tagName && parent.parentNode.tagName === "TREE-NODE")
+        parent = parent.parentNode;
+      return parent;
+    }
+
+    onClick(e) {
+      e.stopPropagation();
+      this.hasAttribute("selected") ?
+        this.removeAttribute("selected") :
+        this.setAttribute("selected", "");
+    }
+
+    syncAtBranchChange() {
+      if (this.__isTriggered)
+        return;
+      this.__isTriggered = true;
+      Promise.resolve().then(() => {
+        this.__isTriggered = false;
+        this.unSelectAllOthers();
+      });
+    }
+  }
+
+  customElements.define("tree-node", TreeNode);
+</script>
+
+<style>
+  tree-node {
+    display: block;
+    padding-left: 10px
+  }
+  tree-node[selected] {
+    border: 2px solid red;
+  }
+</style>
+
+<tree-node id="boo">
+  <tree-node selected>book
+    <tree-node>
+      chapter 1
+      <tree-node>
+        chapter 1.1
+        <tree-node selected>chapter 1.1.1</tree-node>
+        <tree-node>chapter 1.1.2</tree-node>
+      </tree-node>
+      <tree-node>chapter 1.2</tree-node>
+    </tree-node>
+    <tree-node>
+      chapter 2
+      <tree-node>chapter 2.1</tree-node>
+      <tree-node selected>chapter 2.2</tree-node>
+    </tree-node>
+  </tree-node>
+</tree-node>
+
