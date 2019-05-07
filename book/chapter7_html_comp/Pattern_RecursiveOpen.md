@@ -1,4 +1,4 @@
-# Pattern: RecursiveElement
+# Pattern: RecursiveElement 1
 
 This pattern describes an element type whose instances can be nested in the lightDOM.
 The RecursiveElement is its own HelicopterParent, and its own HelicopterChild:
@@ -9,6 +9,16 @@ attribute on parent and/or child elements of the same type (depending on the val
 The elements above and/or below will then be responsible for alerting their ancestors/descendants of
 the same type. Thus, the elements are nested in the lightDOM, and then the behavior of one or more
 of their attributes cascades from parent to child recursively.
+
+This selected pattern is much harder than one presupposes. The strategy is:
+1. One source of truth. The DOM. The reason for this choice is that reuseable web components should be as stateless as possible. This means that they should not persist state in the shadowDom. But they can and do persist state in the lightDOM, as attribute values on the host node.
+2. Attributes in the lightDOM can be controlled from many angles. A) The author of the lightDOM can set them at startup. B) Scripts in the lightDOM can alter them at run-time. C) The lifecycle callbacks and other reactive methods in the web component itself can alter them. To ensure that there are no race conditions or highly inefficient processes when the components do not know their surrounding is a difficult cognitive balance act.
+3. The strategy when tackling the lightDom state at startup is to batch all calls on the root node after the initial slotchangeCallback. To ensure that no branch of tree-nodes are created with multiple selected nodes, the root node of each newly sprouted tree is pruned to contain only a single selected element, the last (or first?) queryselector("[selected]").
+4. When the attribute is set from a lightDOM script, it always changes the element and immediately trigger a process to remove any previously selected element under the same ancestor root tree-node.
+5. The act of *removing* the other previously selected attribute in the same tree from within one of the tree-nodes themselves, that is the backstop preventing an infinite loop. The tree-node calls a custom function that blocks the immediate attributeChangedCallback that otherwise would ensue on that element.
+*. The backstop pattern. It can be implemented with only a boolean skipNextCall = true property. But, it feels better to use the assumed value of the attribute as skipping check instead. I don't know why, maybe I'm wrong, but it feels a bit safer. But, I might be wrong. I should make an evem simpler pattern here: AttributeBackstop.
+Maybe boolean is best. I can illustrate both. And then maybe the alternative seems clear. Thinking longer on the problem, the boolean alternative seems less error-prone.
+
 
 ## Example: TreeNodes with a recursive `open` attribute
 

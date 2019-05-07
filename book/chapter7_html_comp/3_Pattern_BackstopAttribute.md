@@ -25,7 +25,7 @@ The BackstopMethod pattern sets up custom JS methods on the custom element that 
 (in the know) to flip one or more of its attributes while at the same time blocking any reaction to
 the attribute change by the element.
 
-To acccomplish this task, the custom element implementing the BackstopMethod pattern:
+To accomplish this task, the custom element implementing the BackstopMethod pattern:
 1. creates an internal property for that specifies an attribute value,
 2. every time the `attributeChangedCallback` for this attribute changes, it will check if its value
    is the same as this internal property. If it is, it will void this internal property and return.
@@ -103,6 +103,11 @@ in kind, cyclically, it will use the BackstopMethod, and not `.setAttribute(...)
   }, 1000);
 </script>
 ```
+
+Note, the `attributeChangedCallback` is async, meaning that code can actually change an attribute
+several times before the first queued callback is triggered. This means that using a simple boolean
+value to skip the `attributeChangedCallback` will not work, as a second change might be made that 
+should cause the reaction to run.
 
 ## References
 
