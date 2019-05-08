@@ -74,13 +74,42 @@ between them. They are by default completely untrusted.
 
 But, what if the content of the alternative frame is trustworthy? What if you wanted to embed HTML
 fragments from another one of your servers? Or from a server that you trusted as much as your own?
-What if you wanted to avoid the annoying scroll behavior of `<iframe>`s? What if you wanted a 
-`<responsive-iframe>`, a `<true-inline-iframe>`?
+What if your problem was not primarily sandboxing js, but avoiding redundancy when sharing 
+trustworthy HTML fragments across several different apps? What if you wanted to avoid the annoying 
+scroll behavior of `<iframe>`s? What if your problem was coordinating events and synchronising style?
+What if you wanted a `<responsive-iframe>`, a `<true-inline-iframe>`?
 
-But, what if you don't want two sets of scrollbars? To solve this issue, the web app must implement
-its own form of overflow, its own way of making the frame of the `<iframe>` expand to its content size 
-in a way that 1) doesn't trick the user and 2) removes the need for additional scrollbars.
-And, the `<iframe>` must also transpose the scrolling event from the `<iframe>` too its parent.
+In these trusted use-cases, the security restrictions for `<iframe>` layout becomes a problem.
+
+Yes, to stylistically inline an `<iframe>` by making its content able to overflow 
+over the parent page, can confuse the user and thus create a potential risk for clickjacking. 
+But, no, `<iframe>` overflow can also be handled safely by the parent page. 
+An `<iframe>` positioned bottom right could for example `allow-overflow-right` and 
+`allow-overflow-down` could be easily recognizable and safe. 
+If the `<iframe>` did direct the scrolling behavior inside itself, but allowed these events to pass 
+to its parent, a smooth `scrolling="no"` `<iframe>` that could room content of dynamic size could
+be safe and easy.
+
+Similarly, `<iframe>`s whose content is already known to the parent frame, ie. from either same-origin
+sources or set via `srcdoc` attribute, could populate inner dimensions fo the contained document
+onto the `<iframe>` element itself. 
+
+None of the layout restrictions cross `<iframe>` borders listed here can however be lifted via HTML.
+To solve them, an imperative solution must be implemented.
+
+## Solution: `<trusty-iframe>`
+
+The `<trusty-iframe>` is a web component that adds `allow-overflow-right/left/top/down` to `<iframe>`.
+The `<trusty-iframe>` can only accomplish this with `same-origin` `<iframe>`s *and*
+`<iframe>`s whose content is set via JS or `srcdoc`, but that does not have the sandbox `same-origin`
+feature.
+
+To accomplish its goal, the `<trusty-iframe>` wraps its `<iframe>` in a block element. 
+The outer block element's dimensions is set to match its inner dimensions, but with overflow.
+It then sets the dimensions of an inner, normal `<iframe>` to be that of its full dimensions,
+while at the same time cloning and transposing the outer dimensions of the outer block onto the 
+root HTML element in the inner `<iframe>`.
+
 
 
 
