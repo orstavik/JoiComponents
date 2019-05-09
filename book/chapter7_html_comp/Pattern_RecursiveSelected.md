@@ -51,22 +51,22 @@ The tree-nodes can be nested inside each other like nodes in a tree, and when yo
       super();
       this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML = "<slot></slot>";
-      this.shadowRoot.children[0].addEventListener("click", this.onClick.bind(this));
-      this.__expectedSelect = undefined;
-      this.__isTriggered = false;
-      this.__isSetup = false;
+       this.shadowRoot.children[0].addEventListener("click", this.onClick.bind(this));  //[1]
+      this.__expectedSelect = undefined;                                               //[1a]
+      this.__isTriggered = false;                                                      //[1b]
+      this.__isSetup = false;                                                          //[1c]
     }
-
-    slotCallback(slot) {
-      this.__isSetup = true;
-      this.getRootTreeNode().syncAtBranchChange();
+ 
+    slotCallback(slot) {                                                               //[2]
+      this.__isSetup = true;                                                           //[2a]
+      this.getRootTreeNode().syncAtBranchChange();                                     //[3, 3a]
     }
 
     static get observedAttributes() {
       return ["selected"];
     }
 
-    attributeChangedCallback(name, oldValue, newValue) {
+    attributeChangedCallback(name, oldValue, newValue) {                               //[5]
       if (name === "selected") {
         if (!this.__isSetup)         //the initial callbacks are skipped in favor of equivalent cleanup based on slotCallback
           return;
@@ -78,38 +78,38 @@ The tree-nodes can be nested inside each other like nodes in a tree, and when yo
       }
     }
 
-    unSelectAllOthers(skip) {
-      let selecteds = this.getRootTreeNode().querySelectorAll("tree-node[selected]");
-      skip = skip || selecteds[selecteds.length - 1];
-      for (let selected of selecteds) {
+  unSelectAllOthers(skip) {                                                           
+      let selecteds = this.getRootTreeNode().querySelectorAll("tree-node[selected]");   //[4]
+      skip = skip || selecteds[selecteds.length - 1];                                   //[4a]
+      for (let selected of selecteds) {                                      
         if (selected !== skip) {
-          selected.__expectedSelect = null;
+          selected.__expectedSelect = null;                                             //[4b]
           selected.removeAttribute("selected")
         }
       }
     }
 
-    getRootTreeNode() {
+    getRootTreeNode() {                                                                 //[3]
       let parent = this;
       while (parent.parentNode && parent.parentNode.tagName && parent.parentNode.tagName === "TREE-NODE")
         parent = parent.parentNode;
       return parent;
     }
 
-    onClick(e) {
+    onClick(e) {                                                                        //[1]
       e.stopPropagation();
       this.hasAttribute("selected") ?
         this.removeAttribute("selected") :
         this.setAttribute("selected", "");
     }
 
-    syncAtBranchChange() {
+    syncAtBranchChange() {                                                              //[3a]
       if (this.__isTriggered)
         return;
       this.__isTriggered = true;
       Promise.resolve().then(() => {
         this.__isTriggered = false;
-        this.unSelectAllOthers();
+        this.unSelectAllOthers();                                                       //[4]
       });
     }
   }
@@ -147,6 +147,19 @@ The tree-nodes can be nested inside each other like nodes in a tree, and when yo
 </tree-node>
 ```
 
+1. Event listener for click event ([0] corresponds to `<slot>` element inside the shadowDOM <tree-node> element).<br>
+  a. `this.__expectedSelect` - is used in `attributeChangedCallback()` to protect against infinitive loop function calls when removing extra `selected` attributes.<br>
+  b. `this.__isTriggered` - is added to call the 'unSelectAllOthers()' function (which removes extra 'select' attributes) only once after the first 'slotCallback()` is activated.  This is necessary to avoid calling it every time 'slotCallback()` is activated. In order to start deleting unnecessary attributes, we have added ''Promise.resolve()'' which guarantees that deletion of attributes will start after the completion of the DOM <br>
+  c. ` this.__isSetup` - is used to ensure that `attributeChangedCallback()` doesn't do anything before `slotCallback`()` triggers. This is because the user can add attributes to the lightDOM manually, that cause `attributeChangedCallback`()` in the process of building the DOM.   
+2. `slotCallback()` triggers whenever elements are placed inside <slot> of the element inside the shadowDOM of the <tree-node> element. <br>
+  a. As mentioned earlier, `attributeChangedCallback()` works earlier than `slotCallback` and therefore `this.__isSetup = true` here.
+3. In order to remove unnecessary selected attributes the function `getRootTreeNode()` is called, which returns the root element of the branch.<br>
+ a. Then the `syncAtBranchChange()` function is called, which calls `unSelectAllOthers()` with delay. This delay is necessary for the function to be called after the end of DOM construction, when all the elements will be placed in slots. <br>
+4. `unSelectAllOthers()` selects all `<tree-node>` elements inside the root element containing the `selected` attribute. <br>
+ a. In addition, the item that will not be changed is selected (the last one in the list).
+ b. In order to avoid an infinite loop of call `attributeChangedCallback`, which is called when deleting an attribute, selected.__expectedSelect = null. Simply put, when deleting the observed attribute, newValue = null, and selected.__expectedSelect also, and it means that when adding a new attribute, a function will be called that will delete the old one. And when deleting, no function will be called.
+5. 'attributeChangedCallback()' will be called each time the selected attribute is added or removed.
+
 ## References
  
- *  
+ *  [MDN: DOMContent Loaded event](https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event)
