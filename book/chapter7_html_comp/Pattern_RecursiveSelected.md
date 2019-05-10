@@ -51,39 +51,39 @@ The tree-nodes can be nested inside each other like nodes in a tree, and when yo
       super();
       this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML = "<slot></slot>";
-       this.shadowRoot.children[0].addEventListener("click", this.onClick.bind(this));  //[1]
-      this.__expectedSelect = undefined;                                               //[1a]
-      this.__isTriggered = false;                                                      //[1b]
-      this.__isSetup = false;                                                          //[1c]
+      this.shadowRoot.addEventListener("click", this.onClick.bind(this));              //[1]
+      this.__expectedSelect = undefined;                                               //[2]
+      this.__isTriggered = false;                                                      //[3]
+      this.__isSetup = false;                                                          //[4]
     }
  
-    slotCallback(slot) {                                                               //[2]
-      this.__isSetup = true;                                                           //[2a]
-      this.getRootTreeNode().syncAtBranchChange();                                     //[3, 3a]
+    slotCallback(slot) {                                                               
+      this.__isSetup = true;                                                           //[4]
+      this.getRootTreeNode().syncAtBranchChange();                                     //[3]
     }
 
     static get observedAttributes() {
       return ["selected"];
     }
 
-    attributeChangedCallback(name, oldValue, newValue) {                               //[5]
+    attributeChangedCallback(name, oldValue, newValue) {                               
       if (name === "selected") {
         if (!this.__isSetup)         //the initial callbacks are skipped in favor of equivalent cleanup based on slotCallback
           return;
-        if (newValue === this.__expectedSelect) {
-          this.__expectedSelect = undefined;
+        if (newValue === this.__expectedSelect) {                                      //[2]
+          this.__expectedSelect = undefined;                                           //[2]
           return;
         }
-        this.unSelectAllOthers(this);
+        this.unSelectAllOthers(this);                                                   //[5]
       }
     }
 
-  unSelectAllOthers(skip) {                                                           
-      let selecteds = this.getRootTreeNode().querySelectorAll("tree-node[selected]");   //[4]
-      skip = skip || selecteds[selecteds.length - 1];                                   //[4a]
+    unSelectAllOthers(skip) {                                                           //[5]
+      let selecteds = this.getRootTreeNode().querySelectorAll("tree-node[selected]");   
+      skip = skip || selecteds[selecteds.length - 1];                                   
       for (let selected of selecteds) {                                      
         if (selected !== skip) {
-          selected.__expectedSelect = null;                                             //[4b]
+          selected.__expectedSelect = null;                                             //[2]
           selected.removeAttribute("selected")
         }
       }
@@ -103,13 +103,13 @@ The tree-nodes can be nested inside each other like nodes in a tree, and when yo
         this.setAttribute("selected", "");
     }
 
-    syncAtBranchChange() {                                                              //[3a]
+    syncAtBranchChange() {                                                              //[3]
       if (this.__isTriggered)
         return;
       this.__isTriggered = true;
       Promise.resolve().then(() => {
         this.__isTriggered = false;
-        this.unSelectAllOthers();                                                       //[4]
+        this.unSelectAllOthers();                                                       //[5]
       });
     }
   }
@@ -147,18 +147,24 @@ The tree-nodes can be nested inside each other like nodes in a tree, and when yo
 </tree-node>
 ```
 
-1. Event listener for click event ([0] corresponds to `<slot>` element inside the shadowDOM <tree-node> element).<br>
-  a. `this.__expectedSelect` - is used in `attributeChangedCallback()` to protect against infinitive loop function calls when removing extra `selected` attributes.<br>
-  b. `this.__isTriggered` - is added to call the 'unSelectAllOthers()' function (which removes extra 'select' attributes) only once after the first 'slotCallback()` is activated.  This is necessary to avoid calling it every time 'slotCallback()` is activated. In order to start deleting unnecessary attributes, we have added ''Promise.resolve()'' which guarantees that deletion of attributes will start after the completion of the DOM <br>
-  c. ` this.__isSetup` - is used to ensure that `attributeChangedCallback()` doesn't do anything before `slotCallback`()` triggers. This is because the user can add attributes to the lightDOM manually, that cause `attributeChangedCallback`()` in the process of building the DOM.   
-2. `slotCallback()` triggers whenever elements are placed inside <slot> of the element inside the shadowDOM of the <tree-node> element. <br>
-  a. As mentioned earlier, `attributeChangedCallback()` works earlier than `slotCallback` and therefore `this.__isSetup = true` here.
-3. In order to remove unnecessary selected attributes the function `getRootTreeNode()` is called, which returns the root element of the branch.<br>
- a. Then the `syncAtBranchChange()` function is called, which calls `unSelectAllOthers()` with delay. This delay is necessary for the function to be called after the end of DOM construction, when all the elements will be placed in slots. <br>
-4. `unSelectAllOthers()` selects all `<tree-node>` elements inside the root element containing the `selected` attribute. <br>
- a. In addition, the item that will not be changed is selected (the last one in the list).
- b. In order to avoid an infinite loop of call `attributeChangedCallback`, which is called when deleting an attribute, selected.__expectedSelect = null. Simply put, when deleting the observed attribute, newValue = null, and selected.__expectedSelect also, and it means that when adding a new attribute, a function will be called that will delete the old one. And when deleting, no function will be called.
-5. 'attributeChangedCallback()' will be called each time the selected attribute is added or removed.
+1. Event listener for `click` event on the `shadowRoot`.
+   The `onClick` method simply switches on or off the `selected` attribute.
+2. `this.__expectedSelect`. This BackstopAttribute is used to prevent `attributeChangedCallback()` 
+   from going into infinitive loops when the elements alter the `selected` attributes on each other.
+3. `syncAtBranchChange()` is a method that is called when a tree of `<tree-node>`s is created
+   or mutated. It is triggered by `slotCallback(...)` at startup, and at later points during the
+   elements life cycle. 
+   To make the method more efficient, the `syncAtBranchChange()` is only called on the root 
+   `<tree-node>`, and as several child `<tree-node>`s might trigger it, the `this.__isTriggered`
+   property of the `<tree-node>` ensures that it is only executed once per frame.
+4. ` this.__isSetup` ensures that `attributeChangedCallback()` is deactivated until `slotCallback()`
+   is run for the first time. `attributeChangedCallback()` should be deactivated at startup because
+   the `<tree-node>` elements are upgraded sequentially, and will all trigger inefficiently if the
+   several `<tree-node>`s are marked as `selected` in the lightDOM by the author.
+5. `unSelectAllOthers()` finds all `<tree-node selected>` elements from the root `<tree-node>` element
+   and then unselects them. If there are more than one `selected` `<tree-node>` at the beginning,
+   it will `unSelectAllOthers()` except the last one. When one `<tree-node>` becomes `selected`,
+   the method will `unSelectAllOthers()`, but skip the one that has just been `selected`.
 
 ## References
  
