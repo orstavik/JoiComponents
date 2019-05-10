@@ -9,27 +9,20 @@ First, some facts:
    disingenuous, selfish, malign actors.
 
 3. When you surf the web, you can interact with *hundreds* of different web places in minutes. 
-   You are in as much control as when you zap through 50 TV channels in 50 seconds, or 
-   feverishly try to read *all* the magazines in a kiosk while the clerk serves the customer in front 
-   of you. 
+   You are in as much control as when you zap through 50 TV channels in 20 seconds. 
 
 4. The browser is "the thing" that gives us the web. In milliseconds, the browser can take you to 
-   the other side of the world by opening up *another's* code in *your* hands. In an hour, 
-   the browser can let you effortlessly surf unknown code to meet with friends, study, work, 
-   government, play, date, shop, watch a movie, read the news, and lots, lots more. 
-   The browser exposes you. No other application comes close in letting you interact with so many
-   other people in some many ways so quickly. The browser, HTML, CSS and JS are the lingua franca;
-   they are the web.
+   the other side of the world by opening up **another's** text, images and **code in your hands**.
    
 5. When you surf the web, you often bump into disingenuous, selfish, malign actors.
-   These actors' code and data are downloaded and run *inside* your browser. 
-   Your last line of defence is your browser's security. 
+   These actors *open up their code* and run it *inside* your browser. 
+   Your browser must protect you in such instances. 
    
 6. The easier it is for bad actors to violate you via the browser, the more they gain and try.
    Thus, relaxed browser security would only feed a cycle of malice.
    
-7. Too strict security, and the world is excluded. Sure, your date is safe and can be exposed online. 
-   But *you* are not. Nor is *your* money. So no job, date and government service for you. 
+7. Too strict security, and the world is excluded. Sure, your date is safe and squeeky clean. 
+   But *you* are not. 
 
 The balance between open+insecure vs. closed+safe is *always* up for debate.
 The browsers and web ecosystem always try to find that point of balance. 
@@ -39,10 +32,11 @@ a good balance: embedding HTML fragments client-side.
 
 ## HowTo: Embed HTML server-side
 
-To embed HTML is to make *one* HTML presentation from *two or more* HTML files.
-And, server-side, embedding HTML files into one another flourishes. 
-For example, in PHP a `header.html` and `footer.html` file can be included into an `sunshine.php`
-file like so:
+To embed HTML is to make *one* HTML presentation from *two or more* HTML fragments.
+
+Server-side, embedding HTML files into one another thrives. 
+In PHP, for example, a `header.html` and `footer.html` file can easily be included into an 
+`sunshine.php` file like so:
 
 ```php
 <?php include "header.html"; ?>
@@ -64,52 +58,71 @@ In Jenkins/Liquid, it looks like this:
 {% include footer.html %}
 ```
 
-Embedding HTML server-side is truly simple. Primitive. Conceptually simple addition of HTML files. 
-But, embedding HTML fragments client-side is truly complex. How is that?
+Embedding HTML server-side is truly simple. Primitive. A conceptually simple merge of HTML files. 
+So, how do we do the same client-side?
 
 ## Problem: Embed HTML client-side using `<iframe>`
 
-In HTML, there is *no* good solution for client side embedding of HTML fragments.
+Client-side, there is *no* good solution for embedding of HTML fragments.
+Embedding HTML fragments client-side is truly complex. How is that?
+
 The browsers provide two HTML tags for this purpose: `<iframe>` and `<frame>`(+`<frameset>`).
 
 `<frame>` is no good because it was deprecated nearly ten years ago. The browsers basically say 
 they might remove support for it tomorrow, meaning you can't use it today.
 
-`<iframe>` is designed for and works well for the unsafe and restrictive usecases. 
-`<iframe>` presupposes complete distrust between frames, while at the same time try to
-facilitate complete trust within each frame. To achieve this goal, `<iframe>` must create
-two completely different **"browsing contexts"** for all frames. In essence, this means:
+`<iframe>` is designed for:
+1. including complete web pages inside another, picture in picture style, and
+2. handle everything from 100% untrusted, third party HTML code to 100% trusted, same-origin HTML code.
+
+To achieve these two goals, the `<iframe>` creates a separate **"browsing contexts"**. 
+In essence, this means the embedding vs. embedded HTML fragments exists as:
 
 1. Two separate DOM objects, one inside the other. 
-   This organization of the DOM is in itself unproblematic.
-
+   This organization of DOM nodes is fairly unproblematic, but it can be perceived as 
+   slightly heavy when inlining trusted, small HTML fragments.
+   
 2. Two separate `baseURI` contexts.
    In the embedded HTML fragment, relative links such as `<img src="./img/link.jpg">` and 
-   `<a href="nextPage.html">` will all be "based" on the `<iframe>`'s source URL. 
-   The term "browsing context" from the early 1990s best fit the `baseURI` / `<base href="baseUrl">`
-   context.
-   Having the opportunity of setting a different `baseURI` is most often a necessity when embedding 
-   HTML fragments client-side, and this is only really possible using an `<iframe>`.
+   `<a href="nextPage.html">` will all be "based" on the `<iframe>`'s source URL.
+   The `<iframe>` has its own `<base href="baseURI">`.
+   The term "browsing context" from the early 1990s best fit the `baseURI` context.
    
+   Being able to control the `baseURI` context for embedded HTML fragments is *absolutely crucial*.
+   First, any HTML fragment is written in *one* context, but can be used in *many* contexts.
+   This applies *not only* to large, third page sources, but even small small, trusted HTML fragments
+   can include links to source-relative images.
+   Second, a *single* HTML page can embed *many* HTML fragments from *many* different sources.  
+   Thus, it is *not feasible* to have a unified `baseURI` context for both the embedding and embedded
+   HTML sources, and at the same time allow relative image and link URLs.
+   The *only* solutions are therefore:
+   
+   1. *no* relative links, *only* absolute links in embedded HTML fragments, or
+   2. establish a separate `baseURI` context for embedded HTML fragments.
+   
+   The second option is clearly the superior, and *only* `<iframe>` can do this in a browser.
+      
 3. Two separate JS contexts. 
-   To allow scripts to run in an `<iframe>`, the developer sets `sandbox="allow-same-origin"` or 
+   To allow scripts to run in an `<iframe>`, the developer sets `sandbox="allow-script"` or 
    no `sandbox` attribute. To allow the script inside the `<iframe>` to access its parent 
    frame, then `sandbox="allow-same-origin"` or no `sandbox` attribute. By default, the parent
    frame is not allowed to access the script context of the `<iframe>` when its source is sent 
    without an allow CORS header. However, when `<iframe>`s are loaded with content directly 
    from JS using for example the `srcdoc` attribute, the parent frame is allowed to access the script
    context of its nested `<iframe>`.
-   Contrary to what one might fear, restricting and opening up for JS script interaction
-   when embedding HTML client-side in `<iframe>` is relatively simple and safe.
+   
+   Contrary to what one might expect, restricting and opening up for JS script interaction
+   when embedding HTML client-side in `<iframe>` is better supported and less complicated than
+   controlling style or events.
 
 4. Two separate CSS contexts. 
    The CSS context of the `<iframe>` is completely locked off from its parent frame, and vice versa.
    This means that you cannot *declare* CSS rules in the parent frame context that will apply to 
    the embedded HTML fragment. Never. Instead, any static and dynamic style that is to be applied 
-   to the embedded content must be transposed *imperatively* using JS functions. 
-   Now, this only works when the parent frame has access to the `<iframe>`s JS context.
-   And, to do so practically require heavy polling in the parent frame and complex messaging between
-   frames.
+   to the embedded content must be transposed *imperatively* with JS. 
+   
+   To transpose style therefore *only* works when the parent frame has script access to the `<iframe>`.
+   Furthermore, transposing CSS style across frames manually require heavy polling and complex set up.
    Thus, contrary to what most client-side developers expect, the "absolute `<iframe>` CSS wall" 
    is the first *major* headache.
     

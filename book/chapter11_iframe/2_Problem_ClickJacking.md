@@ -12,30 +12,30 @@ the website that you are currently browsing? What if a small `<iframe>` in the b
 with just a random advertisements, and equivalent technical vetting by both the advertisements agency
 and the trusted web site you are visiting, could invisibly and silently expand its code *outside* the 
 designated area of that `<iframe>`? What if this "overflowing `<iframe>`", this invisible overlay of 
-your web page now received all your keystrokes and mouse/touch gestures? What if WYSINWYG?
+your web page now received all your keystrokes and mouse/touch gestures?
 
 ## Problem: UI redressing, clickjacking and `<iframe>`
 
 If somebody could "redress" the UI of the web site you are visiting, they would easily be able to:
-1. make you *think* you are still at the trusted web site doing what you intended to do, while
-2. in reality interacting with a completely different web site that is stealing your keystrokes
-   and "clickjacking" you.
+1. make you *think* that you are still interacting with the trusted web site, while
+2. in reality a completely different web site is stealing your keystrokes and misdirecting 
+   your network navigation.
 
 Client-side, `<iframe>` would be one of many natural place to launch such an attack. 
 
-1. If the source of an `<iframe>` on a web site could be altered, such as if the `<iframe>` for example 
-   could contain a small piece of user generated HTML, CSS and/or JS code, and
+1. If the source of an `<iframe>` on a web site could be altered, such as if the `<iframe>` 
+   for example could contain a small piece of user generated HTML, CSS and/or JS code, and
 2. if the `<iframe>` could overflow its given view frame/layout area on screen, 
 3. then the content of an `<iframe>` could invisibly place itself above all the rest of the page
-   and clickjack the user.
+   and "clickjack" the user.
 
 That is why:
-1. **The layout of an `<iframe>`** is locked down with fixed `width` and `height` properties.
+1. **The layout of an `<iframe>`** is strictly bound to its `width` and `height` properties.
 2. The content of an `<iframe>` can **not overflow**, never ever.
 3. If an `<iframe>` contains more content than can be fitted within its fixed `width` and `height`,
    then this content can only be accessed by *scrolling* inside the `<iframe>`.
-4. `<iframe>`s are their own "scroll-browsing contexts", that as long as they're content is bigger
-   than their layout frames need their own scrollbars.
+4. `<iframe>`s are their own "scroll-browsing contexts". As long as their content is bigger
+   than their layout, then `<iframe>`s need their own scrollbars.
    
 ## Problem: SecretSizeIframe
 
