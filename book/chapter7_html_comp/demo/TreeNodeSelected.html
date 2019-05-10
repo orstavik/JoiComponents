@@ -7,14 +7,14 @@
       super();
       this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML = "<slot></slot>";
-      this.addEventListener("click", this.onClick.bind(this));
-      this.__isTriggered = false;
-      this.__isSetup = false;
+      this.addEventListener("click", this.onClick.bind(this));                         //[1]
+      this.__isTriggered = false;                                                      //[2]
+      this.__isSetup = false;                                                          //[3]
     }
 
     slotCallback(slot) {
-      this.__isSetup = true;
-      this.getRootTreeNode().syncAtBranchChange();
+      this.__isSetup = true;                                                           //[3]
+      this.getRootTreeNode().syncAtBranchChange();                                     //[2]
     }
 
     static get observedAttributes() {
@@ -24,11 +24,11 @@
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "selected") {
         if (this.__isSetup && newValue !== null)
-          this.unSelectAllOthers(this);
+          this.unSelectAllOthers(this);                                                 //[4]
       }
     }
 
-    unSelectAllOthers(skip) {
+    unSelectAllOthers(skip) {                                                           //[4]
       let selecteds = this.getRootTreeNode().querySelectorAll("tree-node[selected]");
       skip = skip || selecteds[selecteds.length - 1];
       this !== skip && this.removeAttribute("selected");
@@ -36,27 +36,27 @@
         selected !== skip && selected.removeAttribute("selected")
     }
 
-    getRootTreeNode() {
+    getRootTreeNode() {                                                                 //[2]
       let parent = this;
       while (parent.parentNode && parent.parentNode.tagName && parent.parentNode.tagName === "TREE-NODE")
         parent = parent.parentNode;
       return parent;
     }
 
-    onClick(e) {
+    onClick(e) {                                                                        //[1]
       e.stopPropagation();
       this.hasAttribute("selected") ?
         this.removeAttribute("selected") :
         this.setAttribute("selected", "");
     }
 
-    syncAtBranchChange() {
+    syncAtBranchChange() {                                                              //[2]
       if (this.__isTriggered)
         return;
       this.__isTriggered = true;
       Promise.resolve().then(() => {
         this.__isTriggered = false;
-        this.unSelectAllOthers();
+        this.unSelectAllOthers();                                                       //[4]
       });
     }
   }

@@ -53,46 +53,36 @@ The `selected` element has a red border.
       super();
       this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML = "<slot></slot>";
-      this.shadowRoot.addEventListener("click", this.onClick.bind(this));              //[1]
-      this.__expectedSelect = undefined;                                               //[2]
-      this.__isTriggered = false;                                                      //[3]
-      this.__isSetup = false;                                                          //[4]
+      this.addEventListener("click", this.onClick.bind(this));                         //[1]
+      this.__isTriggered = false;                                                      //[2]
+      this.__isSetup = false;                                                          //[3]
     }
- 
-    slotCallback(slot) {                                                               
-      this.__isSetup = true;                                                           //[4]
-      this.getRootTreeNode().syncAtBranchChange();                                     //[3]
+
+    slotCallback(slot) {
+      this.__isSetup = true;                                                           //[3]
+      this.getRootTreeNode().syncAtBranchChange();                                     //[2]
     }
 
     static get observedAttributes() {
       return ["selected"];
     }
 
-    attributeChangedCallback(name, oldValue, newValue) {                               
+    attributeChangedCallback(name, oldValue, newValue) {
       if (name === "selected") {
-        if (!this.__isSetup)         //the initial callbacks are skipped in favor of equivalent cleanup based on slotCallback
-          return;
-        if (newValue === this.__expectedSelect) {                                      //[2]
-          this.__expectedSelect = undefined;                                           //[2]
-          return;
-        }
-//        if (newValue !== null)
-          this.unSelectAllOthers(this);                                                   //[5]
+        if (this.__isSetup && newValue !== null)
+          this.unSelectAllOthers(this);                                                 //[4]
       }
     }
 
-    unSelectAllOthers(skip) {                                                           //[5]
-      let selecteds = this.getRootTreeNode().querySelectorAll("tree-node[selected]");   
-      skip = skip || selecteds[selecteds.length - 1];                                   
-      for (let selected of selecteds) {                                      
-        if (selected !== skip) {
-          selected.__expectedSelect = null;                                             //[2]
-          selected.removeAttribute("selected")
-        }
-      }
+    unSelectAllOthers(skip) {                                                           //[4]
+      let selecteds = this.getRootTreeNode().querySelectorAll("tree-node[selected]");
+      skip = skip || selecteds[selecteds.length - 1];
+      this !== skip && this.removeAttribute("selected");
+      for (let selected of selecteds)
+        selected !== skip && selected.removeAttribute("selected")
     }
 
-    getRootTreeNode() {                                                                 //[3]
+    getRootTreeNode() {                                                                 //[2]
       let parent = this;
       while (parent.parentNode && parent.parentNode.tagName && parent.parentNode.tagName === "TREE-NODE")
         parent = parent.parentNode;
@@ -106,13 +96,13 @@ The `selected` element has a red border.
         this.setAttribute("selected", "");
     }
 
-    syncAtBranchChange() {                                                              //[3]
+    syncAtBranchChange() {                                                              //[2]
       if (this.__isTriggered)
         return;
       this.__isTriggered = true;
       Promise.resolve().then(() => {
         this.__isTriggered = false;
-        this.unSelectAllOthers();                                                       //[5]
+        this.unSelectAllOthers();                                                       //[4]
       });
     }
   }
@@ -130,41 +120,44 @@ The `selected` element has a red border.
   }
 </style>
 
-<tree-node>
-  <tree-node selected>book
+<tree-node selected>book
+  <tree-node>
+    chapter 1
     <tree-node>
-      chapter 1
-      <tree-node>
-        chapter 1.1
-        <tree-node selected>chapter 1.1.1</tree-node>
-        <tree-node>chapter 1.1.2</tree-node>
-      </tree-node>
-      <tree-node>chapter 1.2</tree-node>
+      chapter 1.1
+      <tree-node selected>chapter 1.1.1</tree-node>
+      <tree-node>chapter 1.1.2</tree-node>
     </tree-node>
-    <tree-node>
-      chapter 2
-      <tree-node>chapter 2.1</tree-node>
-      <tree-node selected>chapter 2.2</tree-node>
-    </tree-node>
+    <tree-node>chapter 1.2</tree-node>
+  </tree-node>
+  <tree-node>
+    chapter 2
+    <tree-node>chapter 2.1</tree-node>
+    <tree-node selected>chapter 2.2</tree-node>
   </tree-node>
 </tree-node>
+
+<script>
+  const clone = document.querySelector("tree-node").cloneNode(true);
+  setTimeout(function () {
+    document.querySelector("tree-node[selected]").appendChild(clone);
+  }, 3000);
+</script>
 ```
 
-1. Event listener for `click` event on the `shadowRoot`.
+1. Event listener for `click` event on the host node.
    The `onClick` method simply switches on or off the `selected` attribute.
-2. `this.__expectedSelect`. This BackstopAttribute is used to prevent `attributeChangedCallback()` 
-   from going into infinitive loops when the elements alter the `selected` attributes on each other.
-3. `syncAtBranchChange()` is a method that is called when a tree of `<tree-node>`s is created
-   or mutated. It is triggered by `slotCallback(...)` at startup, and at later points during the
-   elements life cycle. 
-   To make the method more efficient, the `syncAtBranchChange()` is only called on the root 
-   `<tree-node>`, and as several child `<tree-node>`s might trigger it, the `this.__isTriggered`
-   property of the `<tree-node>` ensures that it is only executed once per frame.
-4. ` this.__isSetup` ensures that `attributeChangedCallback()` is deactivated until `slotCallback()`
+2. `syncAtBranchChange()` is a method that is called when a tree of `<tree-node>`s is created
+   or mutated. It is triggered by `slotCallback(...)`.
+   As several child `<tree-node>`s might be `selected` at when the tree is created or mutated,
+   the `syncAtBranchChange()` is only called on the root `<tree-node>`.
+   To make the method more efficient, the calls is run only once per frame of `slotCallback(...)`s,
+   enforced by `this.__isTriggered`.
+3. ` this.__isSetup` ensures that `attributeChangedCallback()` is deactivated until `slotCallback(...)`
    is run for the first time. `attributeChangedCallback()` should be deactivated at startup because
    the `<tree-node>` elements are upgraded sequentially, and will all trigger inefficiently if the
    several `<tree-node>`s are marked as `selected` in the lightDOM by the author.
-5. `unSelectAllOthers()` finds all `<tree-node selected>` elements from the root `<tree-node>` element
+4. `unSelectAllOthers()` finds all `<tree-node selected>` elements from the root `<tree-node>` element
    and then unselects them. If there are more than one `selected` `<tree-node>` at the beginning,
    it will `unSelectAllOthers()` except the last one. When one `<tree-node>` becomes `selected`,
    the method will `unSelectAllOthers()`, but skip the one that has just been `selected`.
