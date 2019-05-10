@@ -1,45 +1,47 @@
 # Pattern: RecursiveSelected
 
-Once RecursiveElements gets nested, they can form big trees of family relationships.
+Once RecursiveElements gets nested, they can form big family trees.
+These family trees exists in the lightDOM, and even though all the elements are the same type,
+the nodes in the family trees form HelicopterParentChild relationships with each other.
+This means that the same element must contain the functionality of the parent and the functionality
+of the child in the relationship.
 
+The RecursiveSelected pattern controls a `selected` attribute *within* such a lightDOM family tree. 
+The RecursiveSelected pattern stipulates that only one member of the family tree can be
+`selected` at any one time. The pattern therefore ensures that whenever a RecursiveElement is 
+`selected`, the newly `selected` element will notify the rest of the family tree and cause any 
+previously `selected` element to remove its `selected` attribute.
 
-This pattern describes an element type whose instances can be nested in the lightDOM.
-The RecursiveElement is its own HelicopterParent, and its own HelicopterChild:
-they form parent-child pairs with each other.
+## Notes on implementation
 
-The RecursiveElement works by setting an attribute on itself, and then updating the same 
-attribute on parent and/or child elements of the same type (depending on the value of the attribute).
-The elements above and/or below will then be responsible for alerting their ancestors/descendants of
-the same type. Thus, the elements are nested in the lightDOM, and then the behavior of one or more
-of their attributes cascades from parent to child recursively.
+The strategy is:
 
-This selected pattern is much harder than one presupposes. The strategy is:
-
-1. One source of truth. The DOM. The reason for this choice is that reusable web components should 
-   be as stateless as possible. This means that they should not persist state in the shadowDom. 
-   But they can and do persist state in the lightDOM, as attribute values on the host node.
+1. One source of truth. The lightDOM. The reason for this choice is that reusable web components 
+   should be as stateless as possible. But, stateless here mainly apply to the shadowDOM;
+   reusable elements can be given and persist state in the lightDOM, as attribute values.
    
-2. Attributes in the lightDOM can be controlled from many angles. 
+2. The attributes in the lightDOM can be set from many angles. 
    1. The author of the lightDOM can set them at startup. 
    2. Scripts in the lightDOM can alter them at run-time. 
    3. The lifecycle callbacks and other reactive methods in the web component itself can alter them. 
-   To ensure that there are no race conditions or highly inefficient processes when the components 
-   do not know their surrounding is a difficult cognitive balance act.
+   
+   It is difficult to prevent race conditions or inefficient processing of attributes on RecursiveElements.
 
-3. The strategy when tackling the lightDom state at startup is to batch all calls on the root node after the initial slotchangeCallback. To ensure that no branch of tree-nodes are created with multiple selected nodes, the root node of each newly sprouted tree is pruned to contain only a single selected element, the last (or first?) queryselector("[selected]").
-4. When the attribute is set from a lightDOM script, it always changes the element and immediately trigger a process to remove any previously selected element under the same ancestor root tree-node.
-5. The act of *removing* the other previously selected attribute in the same tree from within one of the tree-nodes themselves, that is the backstop preventing an infinite loop. The tree-node calls a custom function that blocks the immediate attributeChangedCallback that otherwise would ensue on that element.
+3. To make the processing of attributes efficient at startup, the setting of the initial `selected` 
+   element is delegated and batched to the root node from an initial `slotCallback()`. 
+   This ensures that no branch of recursive elements can be created with multiple `selected` nodes.
+   
+4. When the attribute is set from a lightDOM script, it will always change the element node attribute
+   state and trigger a process to remove any previously `selected` element in the same family tree.
+   
+5. The RecursiveSelected pattern does not need the BackstopAttribute pattern because there is no
+   reaction triggered when an element is un-`selected`.
+   
+## Example: TreeNodes with a recursive `selected` attribute
 
-
-## Example: TreeNodes with a recursive `open` attribute
-
-In this example we use an attribute `open` to hide or show the content of an element.
-The tree-nodes can be nested inside each other like nodes in a tree, and when you:
- * add the `open` attribute on a node, it will show its content and also ensures that its parentNode
-   is `open` too, if that node is also a tree-node.
- * remove the `open` attribute, it will hide its content and also ensure that all its tree-node 
-   childNodes are also *not* `open`.
-
+In this example we set up a tree of family nodes.
+Only one node in this tree can be selected at any one time.
+The `selected` element has a red border.
 
 ```html
 <script type="module">
@@ -74,7 +76,8 @@ The tree-nodes can be nested inside each other like nodes in a tree, and when yo
           this.__expectedSelect = undefined;                                           //[2]
           return;
         }
-        this.unSelectAllOthers(this);                                                   //[5]
+//        if (newValue !== null)
+          this.unSelectAllOthers(this);                                                   //[5]
       }
     }
 
