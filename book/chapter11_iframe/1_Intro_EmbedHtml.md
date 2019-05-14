@@ -1,38 +1,8 @@
 # Intro: EmbedHtml
 
-First, some facts:
-
-1. The web is the world. A web page is no longer *just* text or images. The web is everything. 
-   Its your money, the government, your family, neighbourhood friends, your work and your dinner date. 
-   
-2. Although mostly fair, benign and geared towards collaboration, the web is also filled with 
-   disingenuous, selfish, malign actors.
-
-3. When you surf the web, you can interact with *hundreds* of different web places in minutes. 
-   You are in as much control as when you zap through 50 TV channels in 20 seconds. 
-
-4. The browser is "the thing" that gives us the web. In milliseconds, the browser can take you to 
-   the other side of the world by opening up **another's** text, images and **code in your hands**.
-   
-5. When you surf the web, you often bump into disingenuous, selfish, malign actors.
-   These actors *open up their code* and run it *inside* your browser. 
-   Your browser must protect you in such instances. 
-   
-6. The easier it is for bad actors to violate you via the browser, the more they gain and try.
-   Thus, relaxed browser security would only feed a cycle of malice.
-   
-7. Too strict security, and the world is excluded. Sure, your date is safe and squeeky clean. 
-   But *you* are not. 
-
-The balance between open+insecure vs. closed+safe is *always* up for debate.
-The browsers and web ecosystem always try to find that point of balance. 
-And as the web is thriving, we all seem to be doing a fairly good job finding that balance.
-But. There is *one* area where we can safely say that the browsers and web ecosystem has *not* struck
-a good balance: embedding HTML fragments client-side. 
+> To embed HTML is to make *one* HTML presentation from *two or more* HTML fragments.
 
 ## HowTo: Embed HTML server-side
-
-To embed HTML is to make *one* HTML presentation from *two or more* HTML fragments.
 
 Server-side, embedding HTML files into one another thrives. 
 In PHP, for example, a `header.html` and `footer.html` file can easily be included into an 
@@ -58,49 +28,95 @@ In Jenkins/Liquid, it looks like this:
 {% include footer.html %}
 ```
 
-Embedding HTML server-side is truly simple. Primitive. A conceptually simple merge of HTML files. 
-So, how do we do the same client-side?
+Server-side embedding presupposes that all HTML fragments included are local and stored on the same 
+server. As all sources are limited to `same-origin`, embedding them is truly simple. Primitive. 
+A conceptually simple merge of HTML files.
 
-## Problem: Embed HTML client-side using `<iframe>`
+## Problem: Embed HTML client-side
 
-Client-side, there is *no* good solution for embedding of HTML fragments.
-Embedding HTML fragments client-side is truly complex. How is that?
+The reason HTML fragments are hard to embed client-side, is that client-side developers are much 
+more eager to include HTML fragments from third party sources. Client-side developers want to include
+sources from several of their own servers, third party vendors (such as youtube or twitter) and maybe
+other user's generated code (such as codepen and jsfiddle). Client-side developers quickly look to 
+include HTML fragments "cross origin", from a server with a different hostname.
 
-The browsers provide two HTML tags for this purpose: `<iframe>` and `<frame>`(+`<frameset>`).
+However, client-side, there is *no* good solution for embedding of HTML fragments.
+Embedding HTML fragments client-side is truly complex. And incomplete. How and why is that?
 
-`<frame>` is no good because it was deprecated nearly ten years ago. The browsers basically say 
-they might remove support for it tomorrow, meaning you can't use it today.
+### `<frame>` is no good
 
-`<iframe>` is designed for:
-1. including complete web pages inside another, picture in picture style, and
-2. handle everything from 100% untrusted, third party HTML code to 100% trusted, same-origin HTML code.
+The browsers provide two custom HTML tags to embed one HTML fragments into one another: 
+`<frame>`(+`<frameset>`) and `<iframe>`.
 
-To achieve these two goals, the `<iframe>` creates a separate **"browsing contexts"**. 
-In essence, this means the embedding vs. embedded HTML fragments exists as:
+`<frame>` is no good because it was deprecated nearly ten years ago in HTML 4! 
+Although it actually still is supported, the browsers basically say they might remove support for it 
+tomorrow, meaning you can't use it today. There are other pros and cons with the `<frame>`
+element too, but because of its `obsolete` status, we will simply skip it here.
+
+### Problem: `<iframe>` is patchy and sluggish
+
+The only other option for embedding HTML in HTML in HTML, is the `<iframe>`.
+
+The original purpose of `<iframe>` is to *include complete web pages inside another*, 
+picture in picture style. But, as the headers and footers and menus that are typically embedded 
+server-side plus the youtube and twitter feeds typically embedded client-side illustrate,
+"complete web pages" is a non-typical embeddable fragment. Thus, the use-case`<iframe>` is oriented 
+towards is a bit atypical for the most common use-cases for embedding HTML.
+
+Having been the only HTML option for a decade, `<iframe>` must handle *both* third party *and* 
+`same-origin` HTML fragments. But, to embed 100% trusted vs. 100% untrusted HTML *code* are two quite 
+somewhat conflicting goals. And in this conflict, the `<iframe>` must err on the side of caution, 
+on the side of 100% untrusted, third party sources. 
+
+At its core, by default, the `<iframe>` therefore erects a big firewall between the embedded and 
+embedding content. This firewall is erected by establishing a separate **"browsing context"** for the
+`<iframe>` and its embedded code, ie. a complete browser tab within the current browsing tab.
+When embedding small, trusted HTML fragments, this firewall feels very out of place, like bringing
+a canon to a knife fight. Sure, it looks good on paper, but while you log around and try to load your
+canon, someone or something just runs up to you and stab you in the back.
+
+## WhatIs: `<iframe>` "browsing context"?
+
+In essence, this means that the two embedding and embedded HTML fragments exist as:
 
 1. Two separate DOM objects, one inside the other. 
-   This organization of DOM nodes is fairly unproblematic, but it can be perceived as 
-   slightly heavy when inlining trusted, small HTML fragments.
+   In itself, this organization of DOM nodes is unproblematic. 
+   However, it can be perceived as heavy when inlining trusted, small HTML fragments.
    
 2. Two separate `baseURI` contexts.
    In the embedded HTML fragment, relative links such as `<img src="./img/link.jpg">` and 
-   `<a href="nextPage.html">` will all be "based" on the `<iframe>`'s source URL.
+   `<a href="nextPage.html">` will all be interpreted relative to the `<iframe>`'s source URL.
    The `<iframe>` has its own `<base href="baseURI">`.
    The term "browsing context" from the early 1990s best fit the `baseURI` context.
    
    Being able to control the `baseURI` context for embedded HTML fragments is *absolutely crucial*.
-   First, any HTML fragment is written in *one* context, but can be used in *many* contexts.
-   This applies *not only* to large, third page sources, but even small small, trusted HTML fragments
-   can include links to source-relative images.
-   Second, a *single* HTML page can embed *many* HTML fragments from *many* different sources.  
-   Thus, it is *not feasible* to have a unified `baseURI` context for both the embedding and embedded
-   HTML sources, and at the same time allow relative image and link URLs.
-   The *only* solutions are therefore:
    
-   1. *no* relative links, *only* absolute links in embedded HTML fragments, or
-   2. establish a separate `baseURI` context for embedded HTML fragments.
+   1. An HTML fragment is *written in one context*, but can be *used in many contexts*.
+      For a large, third party HTML fragment, it's obvious that a) it needs relative URLs and b)
+      that these URLs must be interpreted against its *context of writing*, not its *context of use*.
+      But, even micro HTML fragments (for example just an image: `<img src="/imgs/cat.jpg">`),
+      served by a completely trusted source (for example the same organization), must if
+      it is embedded in two apps with different hostnames, either be wrapped in a separate `baseURI` 
+      context, or only use absolute URLs.
+      
+   2. A *single* HTML page can embed *many* HTML fragments from *many* different sources.  
+      Thus, the logic cannot be reversed: even if you have full control of the HTML document that
+      is embedding other HTML fragments, you still would need separate `baseURI` contexts for different
+      embedded fragments.
+
+   With regular, native HTML elements and CSS, it is possible to recognize and interpret all relative
+   links at the time an HTML fragment is embedded. Possible, but *not* desirable. However,
+   for JS code, it is not possible to identify and interpret all relative links that might be pursued
+   at the time of embedding. Furthermore, new custom elements might also define relative links in tags
+   that also are impossible to recognize at the time of embedding.
    
-   The second option is clearly the superior, and *only* `<iframe>` can do this in a browser.
+   Thus, this leaves two options. Either pursue and establish a separate `baseURI` context for 
+   embedded HTML fragments in the browser. The `<iframe>` is the *only* means by which this can be
+   achieved in today's browsers. Or, specify that embeddable HTML fragments can only contain absolute
+   links from the time they are written (as a server script would be no better positioned to recognize
+   potential relative links in JS code nor custom element attributes). 
+   
+   The first option, *separate browsing context* is clearly superior, most dynamic solution.
       
 3. Two separate JS contexts. 
    To allow scripts to run in an `<iframe>`, the developer sets `sandbox="allow-script"` or 
@@ -129,58 +145,97 @@ In essence, this means the embedding vs. embedded HTML fragments exists as:
 5. Two separate Event contexts.
    As events would normally flow along the branches in the DOM hierarchy, it is as expected that
    the child `<iframe>`  cannot access events occuring only in their parent frame.
-   But, with `<iframe>`s there is no declarative, simple way to for example turn *off* the 
-   event management aspect of the "browsing context" of the nested `<iframe>`. 
-   This means that navigation and scrolling inside the embedded HTML fragment becomes a huge mess.
-   Thus, the second *major* headache when adding HTML fragments via `<iframe>` is the lack of control
-   of the inner "browsing contexts" event management.
+   But, with `<iframe>`s there is no declarative, simple way to allow events to bubble up
+   into the parent "browsing context". 
+   This means that navigation and scrolling events that originate from inside the embedded HTML 
+   fragment, events that you often would like to control globally and coherently for the app as 
+   a whole, are divided and cut off from unified control.
+   
+   This is the second *major* headache when using `<iframe>`s to embed HTML fragments seamlessly:
+   how to partially coordinate event management across different "browsing contexts"?
     
    Note. The `target` system, ie. `<a target="badIdea" href="link">` to `<iframe name="badIdea">`,
    is *not* a good idea. It answers very few of the event direction usecases when embedding third 
-   party HTML fragments from (partially) trusted sources. So, `target` is something old to look at,
-   but it is not something useful today.
+   party HTML fragments from (partially) trusted sources. You do not want to allow another frame
+   to *directly* trigger navigation or scrolling of another browsing context. What you need is to
+   let nested browsing context dispatch events, recognizable by the parent browsing context, so that
+   they can be handled and controlled by the same means it handles its other events for navigation 
+   and scrolling.
 
-To summarize: `<iframe>` works for embedding HTML fragments from untrusted source. 
-`<iframe>` also works for embedding HTML fragments that require safe management of third party scripts,
-and `<iframe>` provides the only means to simply handle different `baseURI` from different sources.
-But. `<iframe>` plagues developers when it comes to a) style and b) event management.
-And this is a great drawback when trying to integrate, inline, seamlessly embed HTML fragments
-in today's *responsive, interactive web apps*.
+## Two browsing context, pros and cons
 
-But why? Why can't doesn't the browser let styles flow freely from a parent to a child `<iframe>`?
+Pros. By creating a separate browsing context, the `<iframe>` successfully enable developers
+to split and manage both the `baseURI` context and JS code contexts. `<iframe>`s are safe "enough" 
+to allow JS code and network requests of third parties be integrated into apps in the wild,
+if you're interaction is not super sensitive such as banking. 
+
+Cons. `<iframe>` plagues developers when it comes to *seamlessly* integrating a) style and 
+b) event management for navigation and scrolling. Thus, `<iframe>` works poorly as a means for
+lots of the use-cases in today's *responsive, dynamic, SPA/MPA web apps*.
+
+Another con is that `<iframe>`s are resource expensive. Especially when imperative steps are taken 
+to integrate style and event management. `<iframe>`s can make an app laggy.
+
+## Problem: Embed HTML client-side using JS
+
+In order to get around the drawbacks of the `<iframe>`, many people use JS to directly inline
+HTML fragments into the main document. When the HTML fragment is part of the same document, it is
+styled in accordance with the same CSS context and all its events are managed by the main document
+event management system. 
+
+But. HTML code can contain several potential security risks. The two biggest ones are javascript and 
+trusted network requests. When an HTML fragment is fused into the main document, all the links and 
+javascript in the HTML fragment are given equal access to the resources on both the client and the 
+server as the rest of the app.
+
+If the HTML fragment you inline include third party contributions (content generated by other users
+or content from servers outside of your control), you have a problem. With untrusted content you would 
+need to manually sandbox all javascript and network requests in the untrusted source. The code would 
+also need to be stylistically sandbox so as not to confuse the user and clickjack their content. The 
+inlined document may add invisible entities that overlay other parts of your page. In short, you 
+would need to replicate all the CSS, JS, network and event sandboxing that `<iframe>` uses. 
+This is a [rabbit-hole pipe-dream of the worst sort](https://hi.wikipedia.org/wiki/%E0%A4%90%E0%A4%B2%E0%A4%BF%E0%A4%B8%E0%A5%87%E0%A4%9C%E0%A4%BC_%E0%A4%8F%E0%A4%A1%E0%A5%8D%E0%A4%B5%E0%A5%88%E0%A4%A8%E0%A5%8D%E0%A4%9A%E0%A4%B0%E0%A5%8D%E0%A4%B8_%E0%A4%87%E0%A4%A8_%E0%A4%B5%E0%A4%A3%E0%A5%8D%E0%A4%A1%E0%A4%B0%E0%A4%B2%E0%A5%88%E0%A4%A3%E0%A5%8D%E0%A4%A1).
+
+If you include HTML fragments from a 100% trusted source, inlining HTML code with JS works 90%. 
+The missing 10% is the `baseURI` context. An inlined, embedded HTML fragment must share the `baseURI` 
+context with the embedding HTML document, and as described earlier, this requires all links in the 
+embedded HTML fragment to be *written* in absolute form.
+
+In sum, inlining HTML code via JS is only appropriate in *one* use-cases:
+100% trusted HTML code with *only* absolute links (from CSS, HTML, and JS alike).
+
+## Other alternatives
+
+HTML filters and HTML subset languages such as AMP can be used to create safe, third party HTML 
+fragments. They sandbox HTML template grammatically. However, as they too inline the HTML fragment,
+they are also restricted.
+To understand the concept of AMP, I recommend this article: [Google AMP go to hell](https://www.polemicdigital.com/google-amp-go-to-hell/).
+Even if you end up liking AMP, this critique is a good way to understand AMP's technological approach
+and motivation.
+
+## Future problems
+
+But why? Why can't the browser let styles flow freely from a parent to a child `<iframe>`?
 Why can't the events of the `<iframe>` be directed by the parent document?
 Why can't the content of an `<iframe>` be allowed to be styled in the flow of the current document?
 These questions have to do with security, and we will look at them more in-depth shortly.
 
-## Problem: Embed HTML client-side using JS
+## References
 
-Because there is no good HTML, declarative alternative to embed (partially) trusted HTML fragments, 
-lots of imperative JS based alternatives have sprung up. In fact, most third party services 
-would ask other developers to grant them *complete* trust and embed their content as JS script, with 
-*all* rights included.
-
-To meet this generic need, complex JS template engines such as lit-html and hyperHTML can also be used.
-Inexperienced or reckless developers might use extremely unsafe JS operations such as `.innerHTML`. 
-Finally, HTML filters and HTML subset languages such as AMP can be used to 
-create safe, third party HTML fragments. Embedding HTML fragments client-side is *off* balance.
+ * [wiki: Framekiller](https://en.wikipedia.org/wiki/Framekiller)
+ * [wiki: Framing](https://en.wikipedia.org/wiki/Framing_(World_Wide_Web))
+ * [MDN: baseURI](https://developer.mozilla.org/en-US/docs/Web/API/Node/baseURI)
 
 
 
-Second, the reason the browsers hasn't been able to agree upon a set of good HTML solutions for 
-embedding HTML client-side, is security. Client-side developers are much more eager to include HTML
-fragments from third party sources than server-side developers. In fact, server-side inclusion is 
-simple because it presupposes that the HTML fragments included are safe, local, stored on the same server,
-`same origin`. Client-side, `<iframe>` presupposes that the sources of the HTML fragment are unsafe,
-`cross origin`. The `<iframe>` therefore blocks several layout attributes on the `<iframe>` by default
-such as an `<iframe>'s contents ability to `overflow`, for security reasons` (ie. clickjacking), 
-thus causing lots of problematic situations for the developers. The client-side `<frame>` solution 
-was intended for `same  origin` sources, but as this alternative has been redacted, the use-case has 
-essentially been left without an HTML provision. Which triggers the explosion of alternative JS 
-solutions and the vortex of confusion that follows in their wake.
 
-In this chapter we will discuss all these problems and solutions in more detail. We will look at how
-`<iframe>`s can be used to secure and sandbox and pigeonhole the embedded HTML fragments. Here we will
-look at the solutions that `<iframe>` provides, such as `sandbox`-ing the network requests and scripts
+
+
+
+
+
+1. how can `<iframe>`s be used to secure and pigeonhole the embedded HTML fragments?
+   Here we will look at the solutions that the `<iframe>` provides, such as `sandbox`-ing the network requests and scripts
 within, and we will look at how we can solve the problems `<iframe>` gives us such as trying to
 provide an overflow layout (to fix the scrollbar issues for `<iframe>`s considered safe from 
 clickjacking), passing style both statically and dynamically into an `<iframe>` from the parent context,
@@ -202,11 +257,8 @@ And finally we look at the problem of style. Should and can all CSS rules in the
 pigeonholed to the fragment? Or must we remove all `<style>` and `<link rel="style">` from the
 HTML fragments included?
 
-## References
 
- * [wiki: Framekiller](https://en.wikipedia.org/wiki/Framekiller)
- * [wiki: Framing](https://en.wikipedia.org/wiki/Framing_(World_Wide_Web))
- * [MDN: baseURI](https://developer.mozilla.org/en-US/docs/Web/API/Node/baseURI)
+
  
 To include HTML fragments with potentially malign code from a third party  is a *big* security 
 risk. Both the HTML, CSS and JS code in an HTML fragment can be exploited in many creative ways.

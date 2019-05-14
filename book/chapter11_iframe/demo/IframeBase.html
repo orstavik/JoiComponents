@@ -1,0 +1,28 @@
+<template>
+  <base href="https://picsum.photos/">
+  <img src="/id/1/100/100" alt="">
+  <script>
+    //debugger;
+    //to test the access and rights from the code dropped into the iframe, debug from here.
+  </script>
+</template>
+
+<iframe sandbox="allow-scripts" frameborder="0"></iframe>
+<hr>
+<img src="https://picsum.photos/id/0/100/100" alt="">
+
+<script>
+
+  const iframe = document.querySelector("iframe");
+  const templ = document.querySelector("template").content.cloneNode(true);
+  const div = document.createElement("div");
+  div.appendChild(templ);
+  iframe.setAttribute("srcdoc", div.innerHTML);
+  //debugger;
+  //to test the access and rights from the parent browsing context into the code dropped into the iframe, debug from here.
+</script>
+
+<!--
+  This code is untested. I have only done superficial tests from within devtools in Chrome.
+  The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
+-->
