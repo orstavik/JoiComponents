@@ -1,3 +1,19 @@
+# Patter: IframeInheritsStyle
+
+The IframeInheritsStyle pattern embeds an *untrusted* HTML fragment that *inherits* all inherited 
+CSS properties from the node in the embedding HTML document onto which the `<iframe>` is appended. 
+
+IframeInheritsStyle is implemented as a web component that uses the StyleCallback pattern and 
+a `styleCallback(...)` to dynamically listen for changes in the values of all inheritable CSS
+on its host element. Whenever these values changes, the IframeInheritsStyle sends a message to the
+inner iframe.
+
+The inner `<iframe>` only inherits the style when it has an `allow-inherited-css-properties`
+attribute.
+
+## Web comp: `<iframe-inherits-style>`
+
+```html
 <script type="module">
   function iframeScript() {
     return `
@@ -183,8 +199,13 @@
 <!--
   This code is untested. I have only done superficial tests from within devtools in Chrome.
   The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
-
+  
   todo there are still some issues to fix.
   todo 1. how to ensure that inherited styles do not override the styles set by the HTML fragment?
   todo 2. how to remove the inherited styles when the `allow-inherited-css-properties` is removed?
 -->
+```
+
+## References
+
+ * 

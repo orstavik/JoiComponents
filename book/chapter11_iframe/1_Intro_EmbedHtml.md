@@ -20,12 +20,12 @@ In PHP, for example, a `header.html` and `footer.html` file can easily be includ
 In Jenkins/Liquid, it looks like this:
 
 ```liquid
-{% include header.html %}
+{ % include header.html %}
 
 <h1>Hello sunshine!</h1>  
 <p>Welcome to our beautiful web site that embeds a static header and footer.</p>
 
-{% include footer.html %}
+{ % include footer.html %}
 ```
 
 Server-side embedding presupposes that all HTML fragments included are local and stored on the same 
