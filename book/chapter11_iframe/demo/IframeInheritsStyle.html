@@ -1,0 +1,158 @@
+<script type="module">
+  function makeBaseString(baseURI) {
+    if (!baseURI)
+      return "";
+    const base = document.createElement("base");
+    base.setAttribute("href", baseURI);
+    return base.outerHTML;
+  }
+
+  function iframeScript() {
+    return `
+<script>
+(function(){
+  parent.postMessage("ready", "*");
+  window.addEventListener("message", function(e){
+    const data = JSON.parse(e.data);
+    console.log("inside iframe: ", data);
+    for (let [prop, value] of Object.entries(data))
+      document.children[0].style[prop] = value;
+  });
+})();
+</scrip` + "t>";
+  }
+
+  import {StyleCallbackMixin} from "https://unpkg.com/joicomponents@1.2.27/src/style/StyleCallbackMixin.js";
+
+  class IframeInheritsStyle extends StyleCallbackMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.appendChild(document.createElement("iframe"));
+      this._iframe = this.shadowRoot.children[0];
+      this._iframe.setAttribute("sandbox", "allow-scripts");
+
+      this._ready = false;
+      window.addEventListener("message", this.onMessage.bind(this));
+
+      this._updatedStyles = {};
+    }
+
+    static get observedAttributes() {
+      return ["srcdoc"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "srcdoc") {
+        const src =
+          iframeScript() +
+          (newValue || "");
+        this._iframe.setAttribute("srcdoc", src);
+      }
+    }
+
+    sendMessage(value) {
+      if (!this._ready) {                                                      //delay sending this message until
+        console.log("delaying 1 rAF...");
+        return requestAnimationFrame(this.sendMessage.bind(this, value));    //inner iframe is ready to receive messages
+      }
+      this._iframe.contentWindow.postMessage(value, "*");
+    }
+
+    onMessage(e) {
+      if (e.source !== this._iframe.contentWindow)
+        return;
+      if (e.data === "ready")
+        return this._ready = true;
+      console.log("message received in parent: ", e.data);
+    }
+
+    static get observedStyles() {
+      return ["azimuth",
+        "border-collapse",
+        "border-spacing",
+        "caption-side",
+        "color",
+        "cursor",
+        "direction",
+        "elevation",
+        "empty-cells",
+        "font-family",
+        "font-size",
+        "font-style",
+        "font-variant",
+        "font-weight",
+        "font",
+        "letter-spacing",
+        "line-height",
+        "list-style-image",
+        "list-style-position",
+        "list-style-type",
+        "list-style",
+        "orphans",
+        "pitch-range",
+        "pitch",
+        "quotes",
+        "richness",
+        "speak-header",
+        "speak-numeral",
+        "speak-punctuation",
+        "speak",
+        "speech-rate",
+        "stress",
+        "text-align",
+        "text-indent",
+        "text-transform",
+        "visibility",
+        "voice-family",
+        "volume",
+        "white-space",
+        "widows",
+        "word-spacing"];
+    }
+
+    styleCallback(name, oldValue, newValue) {
+//      if (name === "*") {
+      this._updatedStyles[name] = newValue;
+      this._updateIframe();
+//      }
+    }
+
+    _updateIframe() {
+      if (this._willUpdate)
+        return;
+      this._willUpdate = true;
+      Promise.resolve().then(function () {
+        this._willUpdate = false;
+        this.sendMessage(JSON.stringify(this._updatedStyles));
+      }.bind(this));
+    }
+  }
+
+  customElements.define("iframe-inherits-style", IframeInheritsStyle);
+
+</script>
+
+<style>
+  body {
+    font-style: italic;
+    font-size: 20px;
+    font-weight: bold;
+    color: red;
+  }
+</style>
+
+Hello world!
+<img src="https://picsum.photos/id/0/100/100" alt="">
+
+<hr>
+
+<iframe-inherits-style allow-inherit-style
+                       srcdoc="Hello sunshine! <img src='https://picsum.photos/id/1/100/100'>">
+</iframe-inherits-style>
+
+
+<!--
+  This code is untested. I have only done superficial tests from within devtools in Chrome.
+  The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
+-->
