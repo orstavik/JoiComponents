@@ -1,0 +1,139 @@
+<script type="module">
+  function makeFrame(node, hrefOrSrc) {
+    const clone = node.cloneNode(false);
+    if (clone.hasAttribute(hrefOrSrc)) {
+      const src = clone.getAttribute("src");
+      const abs = new URL(src, document.baseURI).href;
+      clone.setAttribute("src", abs);
+    }
+    return clone.outerHTML;
+  }
+
+  function startFrameStripIframeDash(node, hrefOrSrc, stripIframeDash) {
+    let frame = makeFrame(node, hrefOrSrc);
+    return stripIframeDash ?
+      "<" + frame.substr(8, frame.lastIndexOf("</") - 8) :
+      frame.substr(0, frame.lastIndexOf("</"));
+  }
+
+  class StyledScriptedIframe extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.appendChild(document.createElement("iframe"));
+      this._iframe = this.shadowRoot.children[0];
+      this._iframe.setAttribute("sandbox", "allow-scripts");
+    }
+
+    static get observedAttributes() {
+      return ["srcdoc"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "srcdoc") {
+        const src =
+          this.getOuterIncluded() +
+          this.getInnerIncluded() +
+          (newValue || "");
+        this._iframe.setAttribute("srcdoc", src);
+      }
+    }
+
+    getInnerIncluded() {
+      let res = "";
+      for (let child of this.children) {
+        if (child.tagName === "IFRAME-SCRIPT") {
+          const frame = startFrameStripIframeDash(child, "src", true);
+          res += frame + child.innerHTML + "<" + "/script>";
+        }
+        if (child.tagName === "IFRAME-STYLE") {
+          const frame = startFrameStripIframeDash(child, "href", true);
+          res += frame + child.innerHTML + "<" + "/style>";
+        }
+      }
+      return res;
+    }
+
+    getOuterIncluded() {
+      let res = "";
+      const styles = this.getAttribute("included-styles").split(" ");
+      for (let styleId of styles) {
+        let styleTxt = document.querySelector("style#" + styleId).outerHTML;
+        //here I must make the src attribute absolute
+        res += styleTxt;
+      }
+      const scripts = this.getAttribute("included-scripts").split(" ");
+      for (let scriptId of scripts) {
+        const child = document.querySelector("script#" + scriptId);
+        const frame = startFrameStripIframeDash(child, "src", false);
+        res += frame + child.innerHTML + "<" + "/script>";
+      }
+      return res;
+    }
+
+  }
+
+  customElements.define("iframe-styled-scripted", StyledScriptedIframe);
+
+</script>
+<header-one>Hello<br>sunshine!</header-one>
+<hr>
+<style id="style1">
+  header-one {
+    color: red;
+  }
+</style>
+<style id="style2">
+  header-one {
+    background-color: pink;
+  }
+</style>
+<script id="script1">
+  class HeaderOne extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = "<style>slot {font-weight: bold; font-size: 2em;}</style><slot></slot>"
+    }
+  }
+
+  customElements.define("header-one", HeaderOne);
+  console.log("script1"); //should print twice
+</script>
+<script id="script2">
+  console.log("script2");
+</script>
+<script id="script3">
+  console.log("script3");
+</script>
+
+
+<iframe-styled-scripted
+    included-scripts="script1 script3"
+    included-styles="style1"
+    srcdoc="<header-one>Hello<br>sunshine!</header-one>">
+  <iframe-style>
+    header-one {
+    border-bottom: 4px dotted blue;
+    }
+  </iframe-style>
+  <iframe-script src="scriptedIframe.js">
+    exclude me
+  </iframe-script>
+  <iframe-script>
+    console.log("iframe-script says hi!");
+  </iframe-script>
+</iframe-styled-scripted>
+
+<script>
+  setInterval(() => document.querySelector("body").classList.toggle("one"), 1000);
+  setTimeout(() => document.querySelector("iframe-styled-scripted").removeAttribute("allow-inherited-css-properties"), 4000);
+</script>
+<!--
+  This code is untested. I have only done superficial tests from within devtools in Chrome.
+  The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
+
+  todo there are still some issues to fix.
+  todo 1. how to ensure that inherited styles do not override the styles set by the HTML fragment?
+  todo 2. how to remove the inherited styles when the `allow-inherited-css-properties` is removed?
+-->
