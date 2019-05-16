@@ -47,8 +47,12 @@
           res += frame + child.innerHTML + "<" + "/script>";
         }
         if (child.tagName === "IFRAME-STYLE") {
-          const frame = startFrameStripIframeDash(child, "href", true);
+          const frame = startFrameStripIframeDash(child, undefined, true);
           res += frame + child.innerHTML + "<" + "/style>";
+        }
+        if (child.tagName === "IFRAME-LINK") {
+          const frame = startFrameStripIframeDash(child, "href", true);
+          res += frame + child.innerHTML + "<" + "/link>";
         }
       }
       return res;
@@ -58,9 +62,18 @@
       let res = "";
       const styles = this.getAttribute("included-styles").split(" ");
       for (let styleId of styles) {
-        let styleTxt = document.querySelector("style#" + styleId).outerHTML;
-        //here I must make the src attribute absolute
-        res += styleTxt;
+        const child = document.querySelector("style#" + styleId);
+        const frame = startFrameStripIframeDash(child, undefined, false);
+        res += frame + child.innerHTML + "<" + "/style>";
+      }
+      const attribute = this.getAttribute("included-links");
+      if (attribute) {
+        const links = attribute.split(" ");
+        for (let linkId of links) {
+          const child = document.querySelector("link#" + linkId);
+          const frame = startFrameStripIframeDash(child, "href", false);
+          res += frame + child.innerHTML + "<" + "/link>";
+        }
       }
       const scripts = this.getAttribute("included-scripts").split(" ");
       for (let scriptId of scripts) {
