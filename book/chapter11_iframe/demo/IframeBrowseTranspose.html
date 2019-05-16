@@ -1,13 +1,3 @@
-# Pattern: IframeEventTransposition
-
-The IframeEventTransposition pattern illustrate how to make events propagate from within an `<iframe>`.
-This can enable a parent frame browsing context to react to events such as navigation.
-
-The example below implements a script for the JoiEvent composed event: `browse`.
-
-## WebComp: `<overflow-iframe>`
-
-```html
 <script>
   const innerTemplate = `
 <script src="https://unpkg.com/joievents@1.0.16/src/link-click-es6.js"></scrip` + `t>
@@ -84,8 +74,3 @@ The example below implements a script for the JoiEvent composed event: `browse`.
   This code is untested. I have only done superficial tests from within devtools in Chrome.
   The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
 -->
-```
-
-## References
-
- * 
