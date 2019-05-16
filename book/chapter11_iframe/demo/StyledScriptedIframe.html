@@ -7,25 +7,24 @@
     return clone.outerHTML;
   }
 
-  function startTag(node, hrefOrSrc, stripIframeDash) {
-    let frame = makeFrame(node, hrefOrSrc);
-    return stripIframeDash ?
-      "<" + frame.substr(8, frame.lastIndexOf("</") - 8) :
-      frame.substr(0, frame.lastIndexOf("</"));
-  }
-
-  function makeTransportableTag(node, endTag) {
-    let stripIframeDash;
-    if (node.tagName.startsWith("IFRAME-"))
-      stripIframeDash = true;
-    else
-      stripIframeDash = false;
+  function transposeTag(node) {
+    if (!node)
+      return "";                        //todo throw a warning here?
+    let tagName = node.tagName.toLowerCase();
+    if (tagName.startsWith("iframe-"))
+      tagName = tagName.substr(7);
     let hrefOrSrc = undefined;
-    if (endTag === "script")
+    if (tagName === "script")
       hrefOrSrc = "src";
-    else if (endTag === "link")
+    else if (tagName === "link")
       hrefOrSrc = "href";
-    return startTag(node, hrefOrSrc, stripIframeDash) + node.innerHTML + "</" + endTag + ">";
+
+    let frame = makeFrame(node, hrefOrSrc);
+    frame = "<" + tagName + frame.substr(node.tagName.length + 1);
+    const endTagStart = frame.lastIndexOf("</");
+    if (endTagStart !== -1)
+      frame = frame.substr(0, endTagStart);
+    return frame + node.innerHTML + "</" + tagName + ">";
   }
 
   class StyledScriptedIframe extends HTMLElement {
@@ -43,44 +42,20 @@
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
-        const src =
-          this.getOuterIncluded() +
-          this.getInnerIncluded() +
-          (newValue || "");
-        this._iframe.setAttribute("srcdoc", src);
+        const resources = this.getOuterIncluded().concat(this.getInnerIncluded());
+        debugger;
+        let src = resources.map(child => transposeTag(child)).join("");
+        this._iframe.setAttribute("srcdoc", src + (newValue || ""));
       }
     }
 
     getInnerIncluded() {
-      let res = "";
-      for (let child of this.children) {
-        if (child.tagName === "IFRAME-SCRIPT")
-          res += makeTransportableTag(child, "script");
-        else if (child.tagName === "IFRAME-STYLE")
-          res += makeTransportableTag(child, "style");
-        else if (child.tagName === "IFRAME-LINK")
-          res += makeTransportableTag(child, "link");
-      }
-      return res;
+      return Array.from(this.children).filter(n => n.tagName === "IFRAME-SCRIPT" || n.tagName === "IFRAME-STYLE" || n.tagName === "IFRAME-LINK");
     }
 
     getOuterIncluded() {
-      let res = "";
-      const styles = this.getAttribute("included-styles").split(" ");
-      for (let styleId of styles)
-        res += makeTransportableTag(document.querySelector("style#" + styleId), "style");
-      const attribute = this.getAttribute("included-links");
-      if (attribute) {
-        const links = attribute.split(" ");
-        for (let linkId of links)
-          res += makeTransportableTag(document.querySelector("link#" + linkId), "link");
-      }
-      const scripts = this.getAttribute("included-scripts").split(" ");
-      for (let scriptId of scripts)
-        res += makeTransportableTag(document.querySelector("script#" + scriptId), "script");
-      return res;
+      return this.getAttribute("included-resources").split(" ").map(selector => document.querySelector(selector));
     }
-
   }
 
   customElements.define("iframe-styled-scripted", StyledScriptedIframe);
@@ -88,17 +63,18 @@
 </script>
 <header-one>Hello<br>sunshine!</header-one>
 <hr>
-<style id="style1">
+<style id="alpha">
   header-one {
     color: red;
   }
 </style>
-<style id="style2">
+<style id="beta">
   header-one {
     background-color: pink;
   }
 </style>
-<script id="script1">
+<link id="uno" rel="stylesheet" href="styledIframe.css">
+<script id="one">
   class HeaderOne extends HTMLElement {
     constructor() {
       super();
@@ -110,17 +86,12 @@
   customElements.define("header-one", HeaderOne);
   console.log("script1"); //should print twice
 </script>
-<script id="script2">
+<script id="two">
   console.log("script2");
 </script>
-<script id="script3">
-  console.log("script3");
-</script>
-
 
 <iframe-styled-scripted
-    included-scripts="script1 script3"
-    included-styles="style1"
+    included-resources="script#one script#three style#alpha link#uno"
     srcdoc="<header-one>Hello<br>sunshine!</header-one>">
   <iframe-style>
     header-one {
@@ -135,15 +106,7 @@
   </iframe-script>
 </iframe-styled-scripted>
 
-<script>
-  setInterval(() => document.querySelector("body").classList.toggle("one"), 1000);
-  setTimeout(() => document.querySelector("iframe-styled-scripted").removeAttribute("allow-inherited-css-properties"), 4000);
-</script>
 <!--
   This code is untested. I have only done superficial tests from within devtools in Chrome.
   The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
-
-  todo there are still some issues to fix.
-  todo 1. how to ensure that inherited styles do not override the styles set by the HTML fragment?
-  todo 2. how to remove the inherited styles when the `allow-inherited-css-properties` is removed?
 -->
