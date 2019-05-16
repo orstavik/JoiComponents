@@ -1,0 +1,1 @@
+console.log("This is the ScriptedIframe.js script.");
