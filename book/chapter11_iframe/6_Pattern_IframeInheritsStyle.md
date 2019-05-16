@@ -1,4 +1,4 @@
-# Patter: IframeInheritsStyle
+# Pattern: IframeInheritsStyle
 
 The IframeInheritsStyle pattern embeds an *untrusted* HTML fragment that *inherits* all inherited 
 CSS properties from the node in the embedding HTML document onto which the `<iframe>` is appended. 

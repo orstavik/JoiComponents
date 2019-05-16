@@ -1,3 +1,13 @@
+# Pattern: IframeEventTransposition
+
+The IframeEventTransposition pattern illustrate how to make events propagate from within an `<iframe>`.
+This can enable a parent frame browsing context to react to events such as navigation and scrolling.
+
+Be aware that scripts inside the 
+
+## WebComp: `<overflow-iframe>`
+
+```html
 <script>
   const innerTemplate = `
 <script>(function(){
@@ -26,18 +36,17 @@
     border: none;
     margin: 0;
     padding: 0;
+    overflow: visible;
   }
   :host{
-    overflow: visible;
     display: inline-block;
   }
   iframe {
-    overflow: hidden;
-    height: 100%;     /*initial value only, will be overwritten later*/
-    width: 100%;      /*initial value only, will be overwritten later*/
+    height: 100%;
+    width: 100%;
   }
 </style>
-<iframe sandbox="allow-scripts" scrolling="no" frameborder="0"></iframe>`;
+<iframe sandbox="allow-scripts" frameborder="0"></iframe>`;
 
   class OverflowIframe extends HTMLElement {
     constructor() {
@@ -81,3 +90,18 @@
   This code is untested. I have only done superficial tests from within devtools in Chrome.
   The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
 -->
+```
+
+## Todo
+
+There are problems with the overflow here. I am not sure how to control the max width of the iframe
+best.
+
+Not implemented yet: The OverflowIframe pattern is controlled via an attribute `allow-overflow` that 
+can be given one or two directions in the xy-axis such as: `n`, `e`, `s`, `w`, `ne`, `we`. 
+
+Currently only top left overflow is happening, flowing from top left corner out bottom right.
+
+## References
+
+ * 

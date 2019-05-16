@@ -1,4 +1,4 @@
-# Patter: IframeMessages
+# Pattern: IframeMessages
 
 The IframeMessages pattern illustrate how to send messages back and forth between a web component 
 and an inner `<iframe>` that both `allow-scripts`, but that are *not* `same-origin`.

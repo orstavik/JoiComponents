@@ -1,4 +1,4 @@
-# Patter: TrustyBase
+# Pattern: TrustyBase
 
 The TrustyBase pattern embeds an *untrusted* HTML fragment that can *run scripts* with a 
 *separate `baseURI` context* into an HTML document using an `<iframe>`. 

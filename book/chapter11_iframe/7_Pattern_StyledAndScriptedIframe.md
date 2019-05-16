@@ -1,4 +1,4 @@
-# Patter: StyledAndScriptedIframe
+# Pattern: StyledAndScriptedIframe
 
 The StyledAndScriptedIframe pattern embeds an *untrusted* HTML fragment that can be passed a list
 of CSS stylesheets and JS script files. The files passed into the HTML fragment will be accessible

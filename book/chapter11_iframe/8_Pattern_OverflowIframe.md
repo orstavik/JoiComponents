@@ -1,4 +1,4 @@
-# Patter: OverflowIframe
+# Pattern: OverflowIframe
 
 The OverflowIframe pattern illustrate how to send messages back and forth between a web component 
 and an inner `<iframe>` that allows the inner `<iframe>` to overflow in a given direction.
