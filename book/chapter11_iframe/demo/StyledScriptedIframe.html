@@ -1,10 +1,15 @@
 <script type="module">
-  function makeFrame(node, hrefOrSrc) {
+  function updateAttributes(node, hrefOrSrc) {
     const clone = node.cloneNode(false);
     const src = clone.getAttribute(hrefOrSrc);
     if (src)
       clone.setAttribute(hrefOrSrc, new URL(src, document.baseURI).href);
-    return clone.outerHTML;
+    let frame = clone.outerHTML;
+    frame = frame.substr(node.tagName.length + 1);
+    const endTagStart = frame.lastIndexOf("</");
+    if (endTagStart !== -1)
+      frame = frame.substr(0, endTagStart-1);
+    return frame;
   }
 
   function transposeTag(node) {
@@ -19,12 +24,8 @@
     else if (tagName === "link")
       hrefOrSrc = "href";
 
-    let frame = makeFrame(node, hrefOrSrc);
-    frame = "<" + tagName + frame.substr(node.tagName.length + 1);
-    const endTagStart = frame.lastIndexOf("</");
-    if (endTagStart !== -1)
-      frame = frame.substr(0, endTagStart);
-    return frame + node.innerHTML + "</" + tagName + ">";
+    let frame = updateAttributes(node, hrefOrSrc);
+    return "<" + tagName + frame +">"+ node.innerHTML + "</" + tagName + ">";
   }
 
   class StyledScriptedIframe extends HTMLElement {
@@ -43,9 +44,8 @@
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
         const resources = this.getOuterIncluded().concat(this.getInnerIncluded());
-        debugger;
-        let src = resources.map(child => transposeTag(child)).join("");
-        this._iframe.setAttribute("srcdoc", src + (newValue || ""));
+        let srcs = resources.map(child => transposeTag(child));
+        this._iframe.setAttribute("srcdoc", srcs.join("") + (newValue || ""));
       }
     }
 
