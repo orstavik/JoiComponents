@@ -1,15 +1,12 @@
 <script type="module">
-  function updateAttributes(node, hrefOrSrc) {
-    const clone = node.cloneNode(false);
-    const src = clone.getAttribute(hrefOrSrc);
-    if (src)
-      clone.setAttribute(hrefOrSrc, new URL(src, document.baseURI).href);
-    let frame = clone.outerHTML;
-    frame = frame.substr(node.tagName.length + 1);
-    const endTagStart = frame.lastIndexOf("</");
-    if (endTagStart !== -1)
-      frame = frame.substr(0, endTagStart-1);
-    return frame;
+  function makeAttributeLinksAbs(node) {
+    let res = "";
+    for (let i = 0; i < node.attributes.length; i++) {
+      let att = node.attributes[i];
+      const v = (att.name === "href" || att.name === "src") ? new URL(att.value, document.baseURI).href : att.value;
+      res += " " + att.name + '="' + v + '"';
+    }
+    return res;
   }
 
   function transposeTag(node) {
@@ -18,14 +15,9 @@
     let tagName = node.tagName.toLowerCase();
     if (tagName.startsWith("iframe-"))
       tagName = tagName.substr(7);
-    let hrefOrSrc = undefined;
-    if (tagName === "script")
-      hrefOrSrc = "src";
-    else if (tagName === "link")
-      hrefOrSrc = "href";
 
-    let frame = updateAttributes(node, hrefOrSrc);
-    return "<" + tagName + frame +">"+ node.innerHTML + "</" + tagName + ">";
+    let frame = makeAttributeLinksAbs(node);
+    return "<" + tagName + frame + ">" + node.innerHTML + "</" + tagName + ">";
   }
 
   class StyledScriptedIframe extends HTMLElement {
