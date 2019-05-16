@@ -2,10 +2,8 @@
   function makeFrame(node, hrefOrSrc) {
     const clone = node.cloneNode(false);
     const src = clone.getAttribute(hrefOrSrc);
-    if (src) {
-      const abs = new URL(src, document.baseURI).href;
-      clone.setAttribute(hrefOrSrc, abs);
-    }
+    if (src)
+      clone.setAttribute(hrefOrSrc, new URL(src, document.baseURI).href);
     return clone.outerHTML;
   }
 
@@ -16,8 +14,18 @@
       frame.substr(0, frame.lastIndexOf("</"));
   }
 
-  function makeTransportableTag(child, hrefOrSrc, stripIframeDash, endTag) {
-    return startTag(child, hrefOrSrc, stripIframeDash) + child.innerHTML + "</" + endTag + ">";
+  function makeTransportableTag(node, endTag) {
+    let stripIframeDash;
+    if (node.tagName.startsWith("IFRAME-"))
+      stripIframeDash = true;
+    else
+      stripIframeDash = false;
+    let hrefOrSrc = undefined;
+    if (endTag === "script")
+      hrefOrSrc = "src";
+    else if (endTag === "link")
+      hrefOrSrc = "href";
+    return startTag(node, hrefOrSrc, stripIframeDash) + node.innerHTML + "</" + endTag + ">";
   }
 
   class StyledScriptedIframe extends HTMLElement {
@@ -46,15 +54,12 @@
     getInnerIncluded() {
       let res = "";
       for (let child of this.children) {
-        if (child.tagName === "IFRAME-SCRIPT") {
-          res += makeTransportableTag(child, "src", true, "script");
-        }
-        if (child.tagName === "IFRAME-STYLE") {
-          res += makeTransportableTag(child, undefined, true, "style");
-        }
-        if (child.tagName === "IFRAME-LINK") {
-          res += makeTransportableTag(child, "href", true, "link");
-        }
+        if (child.tagName === "IFRAME-SCRIPT")
+          res += makeTransportableTag(child, "script");
+        else if (child.tagName === "IFRAME-STYLE")
+          res += makeTransportableTag(child, "style");
+        else if (child.tagName === "IFRAME-LINK")
+          res += makeTransportableTag(child, "link");
       }
       return res;
     }
@@ -63,16 +68,16 @@
       let res = "";
       const styles = this.getAttribute("included-styles").split(" ");
       for (let styleId of styles)
-        res += makeTransportableTag(document.querySelector("style#" + styleId), undefined, false, "style");
+        res += makeTransportableTag(document.querySelector("style#" + styleId), "style");
       const attribute = this.getAttribute("included-links");
       if (attribute) {
         const links = attribute.split(" ");
         for (let linkId of links)
-          res += makeTransportableTag(document.querySelector("link#" + linkId), "href", false, "link");
+          res += makeTransportableTag(document.querySelector("link#" + linkId), "link");
       }
       const scripts = this.getAttribute("included-scripts").split(" ");
       for (let scriptId of scripts)
-        res += makeTransportableTag(document.querySelector("script#" + scriptId), "src", false, "script");
+        res += makeTransportableTag(document.querySelector("script#" + scriptId), "script");
       return res;
     }
 
