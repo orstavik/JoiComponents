@@ -1,23 +1,23 @@
 <script type="module">
-  function makeAttributeLinksAbs(node) {
+  function attributesAbsoluteUrlAsTxt(node) {
     let res = "";
     for (let i = 0; i < node.attributes.length; i++) {
-      let att = node.attributes[i];
-      const v = (att.name === "href" || att.name === "src") ? new URL(att.value, document.baseURI).href : att.value;
-      res += " " + att.name + '="' + v + '"';
+      const name = node.attributes[i].name;
+      let value = node.attributes[i].value;
+      if (name === "href" || name === "src")
+        value = new URL(value, document.baseURI).href;
+      res += ` ${name}="${value}"`;
     }
     return res;
   }
 
   function transposeTag(node) {
     if (!node)
-      return "";                        //todo throw a warning here?
-    let tagName = node.tagName.toLowerCase();
-    if (tagName.startsWith("iframe-"))
-      tagName = tagName.substr(7);
-
-    let frame = makeAttributeLinksAbs(node);
-    return "<" + tagName + frame + ">" + node.innerHTML + "</" + tagName + ">";
+      return null;                        //todo throw a warning here?
+    const tagName = (node.tagName.startsWith("IFRAME-") ? node.tagName.substr(7) : node.tagName).toLowerCase();
+    const attributes = attributesAbsoluteUrlAsTxt(node);
+    const content = node.innerHTML;
+    return `<${tagName} ${attributes}>${content}</${tagName}>`;
   }
 
   class StyledScriptedIframe extends HTMLElement {
@@ -35,18 +35,15 @@
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
-        const resources = this.getOuterIncluded().concat(this.getInnerIncluded());
-        let srcs = resources.map(child => transposeTag(child));
-        this._iframe.setAttribute("srcdoc", srcs.join("") + (newValue || ""));
+        const outerIncluded = this.getAttribute("included-resources")
+          .split(" ")
+          .map(selector => document.querySelector(selector));
+        const innerIncluded = Array.from(this.children)
+          .filter(n => n.tagName === "IFRAME-SCRIPT" || n.tagName === "IFRAME-STYLE" || n.tagName === "IFRAME-LINK");
+        const outer = outerIncluded.map(child => transposeTag(child));
+        const inner = innerIncluded.map(child => transposeTag(child));
+        this._iframe.setAttribute("srcdoc", outer.join("") + inner.join("") + (newValue || ""));
       }
-    }
-
-    getInnerIncluded() {
-      return Array.from(this.children).filter(n => n.tagName === "IFRAME-SCRIPT" || n.tagName === "IFRAME-STYLE" || n.tagName === "IFRAME-LINK");
-    }
-
-    getOuterIncluded() {
-      return this.getAttribute("included-resources").split(" ").map(selector => document.querySelector(selector));
     }
   }
 
