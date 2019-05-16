@@ -3,8 +3,13 @@
     return `
 <script>
 (function(){
+//  todo Promise.resolve().then(()=> window.startStyles = todo FilterToIncludeProperties(document.children[0].style, this.constructor.observedStyles()));
   parent.postMessage("ready", "*");
   window.addEventListener("message", function(e){
+//  todo if (e.data === "reset") {
+//  todo       for (let [prop, value] of Object.entries(window.startStyles))
+//  todo         document.children[0].style[prop] = value;
+//  todo } else {
     const data = JSON.parse(e.data);
     console.log("inside iframe: ", data);
     for (let [prop, value] of Object.entries(data))
@@ -40,6 +45,17 @@
           iframeScript() +
           (newValue || "");
         this._iframe.setAttribute("srcdoc", src);
+      } else if (name === "allow-inherited-css-properties"){
+        if (newValue === null){
+//        todo how to remove the inherited styles when the `allow-inherited-css-properties` is removed?
+//          this._willUpdate = false;
+//          this.sendMessage("reset");
+//          this._changedStyles = {};
+        } else {
+//        todo how to add ALL the inherited styles when the `allow-inherited-css-properties` is added again?
+//        this._changedStyles = todo FilterToIncludeProperties(getComputedStyle(this), this.constructor.observedStyles());
+//        this._updateIframe();
+        }
       }
     }
 
@@ -186,5 +202,4 @@
 
   todo there are still some issues to fix.
   todo 1. how to ensure that inherited styles do not override the styles set by the HTML fragment?
-  todo 2. how to remove the inherited styles when the `allow-inherited-css-properties` is removed?
 -->
