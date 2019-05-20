@@ -44,7 +44,8 @@
         const src =
           iframeScript() +
           (newValue || "");
-        this._iframe.setAttribute("srcdoc", src);
+        const blob = new Blob([src], {type: "text/html"});
+        this._iframe.setAttribute("src", URL.createObjectURL(blob));
       } else if (name === "allow-inherited-css-properties"){
         if (newValue === null){
 //        todo how to remove the inherited styles when the `allow-inherited-css-properties` is removed?
