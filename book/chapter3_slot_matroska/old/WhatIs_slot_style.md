@@ -97,7 +97,7 @@ nodes *within each document*.
 
 *After* the DOM is flattened, **inherited** CSS property values gets attributed to each node.
 The inherited value of CSS properties thus follow the *flattened* hierarchy of the DOM working
-*across DOM document borders*.
+*across DOM document borders*. (Todo write about this in the chapter on Style)
 
 *As a result* in the flattened DOM, we see that:
 1. **CSS rules** are *only* attributed **within document borders, before documents are flattened** while

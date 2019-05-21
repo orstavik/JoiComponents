@@ -245,7 +245,7 @@ complexity to apps and web components, while at the same time add its own practi
 and edge-cases. But, `styleCallback(..)` is most relevant in that it adds and reduces the conceptual 
 complexity of web components and HTML+CSS+JS programming.
 
-On the side, the `styleCallback(..)` reduces complexity by giving the developer all the tools
+On one side, the `styleCallback(..)` reduces complexity by giving the developer all the tools
 needed to make custom CSS property values. The `styleCallback(..)` gives the ability to implement true,
 full custom CSS properties (CSS variables only implement custom CSS property *names*, not custom CSS
 property *values*). Custom CSS property values is the last missing component 

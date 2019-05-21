@@ -1,0 +1,126 @@
+<script type="module">
+  import {OnceLayoutAttributesMixin} from "../../../src/layout/LayoutAttributesMixin.js";
+
+  class SuperBeltNotches extends OnceLayoutAttributesMixin(HTMLElement){
+
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+<style>
+  div {
+    height: 100%;
+  }
+  :host([_layout-width]) div {
+    border-width: 5px;
+  }
+  :host([_layout-width^="1"]) div {
+    border-width: 10px;
+  }
+  :host([_layout-width^="2"]) div {
+    border-width: 15px;
+  }
+
+  :host([_layout-height]) div {
+    border-style: dotted;
+  }
+  :host([_layout-height^="1"]) div {
+    border-style: solid;
+  }
+  :host([_layout-height^="2"]) div {
+    border-style: double;
+  }
+
+  :host([_layout-left]) div {
+    border-left-color: red;
+  }
+  :host([_layout-left^="1"]) div {
+    border-left-color: orange;
+  }
+  :host([_layout-left^="2"]) div {
+    border-left-color: yellow;
+  }
+
+  :host([_layout-right]) div {
+    border-right-color: red;
+  }
+  :host([_layout-right^="1"]) div {
+    border-right-color: orange;
+  }
+  :host([_layout-right^="2"]) div {
+    border-right-color: yellow;
+  }
+
+  :host([_layout-top]) div {
+    border-top-color: red;
+  }
+  :host([_layout-top^="1"]) div {
+    border-top-color: orange;
+  }
+  :host([_layout-top^="2"]) div {
+    border-top-color: yellow;
+  }
+
+  :host([_layout-bottom]) div {
+    border-bottom-color: red;
+  }
+  :host([_layout-bottom^="1"]) div {
+    border-bottom-color: orange;
+  }
+  :host([_layout-bottom^="2"]) div {
+    border-bottom-color: yellow;
+  }
+
+</style>
+<div>nothing yet</div>
+    `;
+    }
+
+    static get observedAttributes(){
+      return ["_layout-width", "_layout-height", "_layout-left", "_layout-right", "_layout-top", "_layout-bottom"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue){
+      this.shadowRoot.children[1].innerText = name + ": " + newValue;
+    }
+  }
+
+  customElements.define("super-belt-notches", SuperBeltNotches);
+</script>
+
+<div id="parent" style="position: fixed; left: 5px; top: 105px; width: 110px; height: 110px">
+  <super-belt-notches
+      auto-layout="w: 100, 200; h: 100, 200; t; b; r; l"
+  ></super-belt-notches>
+</div>
+
+<button id="left">&#8592;</button>
+<button id="right">&#8594;</button>
+<button id="top">&#8593;</button>
+<button id="bottom">&#8595;</button>
+<button id="wider">&#8608;</button>
+<button id="thinner">&#8606;</button>
+<button id="taller">&#8609;</button>
+<button id="shorter">&#8607;</button>
+
+<script >
+  window.addEventListener("click", function(e){
+    let parent = document.querySelector("#parent");
+    if (e.target.id === "left")
+      parent.style.left = (parseInt(parent.style.left) - 50) + "px";
+    else if (e.target.id === "right")
+      parent.style.left = (parseInt(parent.style.left) + 50) + "px";
+    else if (e.target.id === "top")
+      parent.style.top = (parseInt(parent.style.top) - 50) + "px";
+    else if (e.target.id === "bottom")
+      parent.style.top = (parseInt(parent.style.top) + 50) + "px";
+    else if (e.target.id === "thinner")
+      parent.style.width = (parseInt(parent.style.width) - 50) + "px";
+    else if (e.target.id === "wider")
+      parent.style.width = (parseInt(parent.style.width) + 50) + "px";
+    else if (e.target.id === "shorter")
+      parent.style.height = (parseInt(parent.style.height) - 50) + "px";
+    else if (e.target.id === "taller")
+      parent.style.height = (parseInt(parent.style.height) + 50) + "px";
+  });
+</script>

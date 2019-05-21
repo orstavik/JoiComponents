@@ -296,7 +296,7 @@ Yes, this is syntactic salt, not syntactic sugar.
 But. The benefits of the pattern is that it frees the user of the web component to specify the CSS 
 styles separate from the observed properties values. And as a developer of reusable web components,
 you simply cannot ignore the need to do this. Both timelines and spatial dimensions are likely to
-vary from app to app and element to element, while the element still needs to adher to the same styles.
+vary from app to app and element to element, while the element still needs to adhere to the same styles.
 Thus, the trick of splitting step number from threshold value using a `:` is not only useful, but necessary.
 
 My advice is to use this convention in all SteppedAutoAttribute implementation from the beginning. 
