@@ -57,22 +57,21 @@ export function unsubscribeLayoutAttributes(el) {
     batch.splice(index, 1);
 }
 
-function findNearestStep(stepsTxt, width){
-  let steps = stepsTxt.split(",");
-  for (let i = steps.length -1; i >= 0; i--){
-    let step = parseInt(steps[i]);
+function findNearestStep(steps, width) {
+  for (let i = steps.length - 1; i >= 0; i--) {
+    let step = steps[i];
     if (width > step)
-      return i+1;
+      return i + 1;
   }
   return 0;
 }
 
-function getSubscriptions(el){
-  let res = [];
+function getSubscriptions(el) {
+  let res = {};
   let subs = el.getAttribute("auto-layout").split(";");
   for (let sub of subs) {
     let keyValue = sub.split(":");
-    let key = keyValue[0].trim.toLowerCase();
+    let key = keyValue[0].trim().toLowerCase();
     if (key === "w") key = "width";
     if (key === "h") key = "height";
     if (key === "l") key = "left";
@@ -80,29 +79,29 @@ function getSubscriptions(el){
     if (key === "t") key = "top";
     if (key === "b") key = "bottom";
     let steps = keyValue[1].trim().split(" ").map(str => parseInt(str));
-    res.push({key, steps});
+    res[key] = steps;
   }
   return res;
 }
 
-function observeLayout(el){
+function observeLayout(el) {
   let rect = el.getBoundingClientRect();
   let subs = getSubscriptions(el);
-   let res = {};
-   for (let sub in subs) {
-     res[sub] = {value: rect[subs], steps: subs[sub]};
-   }
-   return res;
+  let res = {};
+  for (let sub in subs) {
+    res[sub] = {value: rect[sub], steps: subs[sub]};
+  }
+  return res;
 }
 
 //this is a naive iteration of the batch
 //because elements can be added to or removed from the batch
 //by attributeChangedCallback(...)s that are triggered when _layout-width changes.
-function processElements(){
+function processElements() {
   const activeElements = [];
   const activeElementsData = new WeakMap();
   for (let el of batch) {
-    if (el.hasAttribute("auto-layout")){
+    if (el.hasAttribute("auto-layout")) {
       activeElements.push(el);
       activeElementsData.set(el, observeLayout(el));
     }
@@ -112,23 +111,21 @@ function processElements(){
     for (let prop in observations) {
       let values = observations[prop];
       let step = findNearestStep(values.steps, values.value);
-      if (!el.hasAttribute("_layout-"+prop))
-        el.setAttribute("_layout"+prop, step + ":" + values.value);
-      let oldValue = el.getAttribute("_layout-"+prop);
-      if (!oldValue.startsWith(step + ":"))
-        el.setAttribute("_layout-"+prop, step + ":" + values.value);  
+      const layoutProp = "_layout-" + prop;
+      if (!el.hasAttribute(layoutProp) || parseInt(el.getAttribute(layoutProp).split(":")[0]) !== step)
+        el.setAttribute(layoutProp, step + ":" + values.value);
     }
   }
 }
 
-export function startBatchCallback(){
-  interval = requestAnimationFrame(function(){
+export function startBatchCallback() {
+  interval = requestAnimationFrame(function () {
     processElements();
     startBatchCallback();
   });
 }
 
-export function stopBatchCallback(){
+export function stopBatchCallback() {
   clearInterval(interval);
 }
 
@@ -162,7 +159,7 @@ whenever its size changes, it updates its `.innerText` so that the user gets inf
 
 ```html
 <script type="module">
-  import {OnceLayoutAttributesMixin} from "../../src/layout/OnceLayoutAttributesMixin.js";
+  import {OnceLayoutAttributesMixin} from "../../../src/layout/OnceLayoutAttributesMixin.js";
 
   class SuperBeltNotches extends OnceLayoutAttributesMixin(HTMLElement){
 
@@ -171,6 +168,9 @@ whenever its size changes, it updates its `.innerText` so that the user gets inf
       this.attachShadow({mode: "open"});
       this.shadowRoot.innerHTML = `
 <style>
+  div {
+    height: 100%;
+  }
   :host([_layout-width]) div {
     border-width: 5px;
   }
@@ -184,10 +184,10 @@ whenever its size changes, it updates its `.innerText` so that the user gets inf
   :host([_layout-height]) div {
     border-style: dotted;
   }
-  :host([_layout-width^="1:"]) div {
+  :host([_layout-height^="1:"]) div {
     border-style: solid;
   }
-  :host([_layout-width^="2:"]) div {
+  :host([_layout-height^="2:"]) div {
     border-style: double;
   }
 
@@ -248,25 +248,40 @@ whenever its size changes, it updates its `.innerText` so that the user gets inf
   customElements.define("super-belt-notches", SuperBeltNotches);
 </script>
 
-<div id="parent" style="width: 110px">
-  <super-belt-notches 
-     auto-layout="w: 50, 150; h: 50, 150; t: 50, 150; b: 50, 150; r: 50, 150; l: 50, 150"
-     ></super-belt-notches>
+<div id="parent" style="position: fixed; left: 5px; top: 105px; width: 110px; height: 110px">
+  <super-belt-notches
+      auto-layout="w: 100, 200; h: 100, 200; t: 50, 150; b: 50, 150; r: 50, 150; l: 50, 150"
+  ></super-belt-notches>
 </div>
 
-<input id="prop" type="text" value="left">
-<button id="plus">+50</button>
-<button id="minus">-50</button>
-<script >
-  var parent = document.querySelector("#parent");
-  var prop = document.querySelector("#prop");
+<button id="left">&#8592;</button>
+<button id="right">&#8594;</button>
+<button id="top">&#8593;</button>
+<button id="bottom">&#8595;</button>
+<button id="wider">&#8608;</button>
+<button id="thinner">&#8606;</button>
+<button id="taller">&#8609;</button>
+<button id="shorter">&#8607;</button>
 
+<script >
   window.addEventListener("click", function(e){
-    let prop = prop.value;
-    if (e.target.id === "plus")
-      parent.style[prop] = (parseInt(parent.style[prop]) + 50) + "px";
-    else if (e.target.id === "minus")
-      parent.style[prop] = (parseInt(parent.style[prop]) - 50) + "px";
+    let parent = document.querySelector("#parent");
+    if (e.target.id === "left")
+      parent.style.left = (parseInt(parent.style.left) - 50) + "px";
+    else if (e.target.id === "right")
+      parent.style.left = (parseInt(parent.style.left) + 50) + "px";
+    else if (e.target.id === "top")
+      parent.style.top = (parseInt(parent.style.top) - 50) + "px";
+    else if (e.target.id === "bottom")
+      parent.style.top = (parseInt(parent.style.top) + 50) + "px";
+    else if (e.target.id === "thinner")
+      parent.style.width = (parseInt(parent.style.width) - 50) + "px";
+    else if (e.target.id === "wider")
+      parent.style.width = (parseInt(parent.style.width) + 50) + "px";
+    else if (e.target.id === "shorter")
+      parent.style.height = (parseInt(parent.style.height) - 50) + "px";
+    else if (e.target.id === "taller")
+      parent.style.height = (parseInt(parent.style.height) + 50) + "px";
   });
 </script>
 ```

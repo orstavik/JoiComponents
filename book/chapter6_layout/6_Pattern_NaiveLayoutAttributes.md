@@ -127,7 +127,7 @@ whenever its size changes, it updates its `.innerText` so that the user gets inf
 
 ```html
 <script type="module">
-  import {NaiveLayoutWidthAttributeMixin} from "../../src/layout/NaiveLayoutWidthAttributeMixin.js";
+  import {NaiveLayoutWidthAttributeMixin} from "../../../src/layout/NaiveLayoutWidthAttributeMixin.js";
 
   class BeltNotches extends NaiveLayoutWidthAttributeMixin(HTMLElement){
 
