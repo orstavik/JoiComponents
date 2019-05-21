@@ -1,6 +1,6 @@
 <script>
   //javascript
-  const innerScript = `
+  const innerTemplate = `<script>(function(){
   var pW = undefined;
   var pH = undefined;
   const r = document.children[0];
@@ -16,8 +16,8 @@
     parent.postMessage(JSON.stringify({w, h}), "*");
     requestAnimationFrame(alertSize);
   }
-  alertSize();`;
-  const innerTemplate = `<script>(function(){${innerScript}})();</scrip` + `t>`;
+  alertSize();
+})();</scrip` + `t>`;
 
   const outerTemplate = document.createElement("template");
   outerTemplate.innerHTML = `
@@ -54,7 +54,9 @@
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
-        this._iframe.setAttribute("srcdoc", innerTemplate + (newValue || ""));
+        const src = innerTemplate + (newValue || "");
+        let blob = new Blob([src], {type: "text/html"});
+        this._iframe.setAttribute("src", URL.createObjectURL(blob));
       }
     }
 

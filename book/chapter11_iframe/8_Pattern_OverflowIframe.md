@@ -20,8 +20,7 @@ It only sendMessage to parent browsing context when the dimensions change.
 
 ```html
 <script>
-  const innerTemplate = `
-<script>(function(){
+  const innerTemplate = `<script>(function(){
   var pW = undefined;
   var pH = undefined;
   const r = document.children[0];
@@ -47,17 +46,18 @@ It only sendMessage to parent browsing context when the dimensions change.
     border: none;
     margin: 0;
     padding: 0;
-    overflow: visible;
   }
   :host{
+    overflow: visible;
     display: inline-block;
   }
   iframe {
-    height: 100%;
-    width: 100%;
+    overflow: hidden;
+    height: 100%;     /*initial value only, will be overwritten later*/
+    width: 100%;      /*initial value only, will be overwritten later*/
   }
 </style>
-<iframe sandbox="allow-scripts" frameborder="0"></iframe>`;
+<iframe sandbox="allow-scripts" scrolling="no" frameborder="0"></iframe>`;
 
   class OverflowIframe extends HTMLElement {
     constructor() {
@@ -74,7 +74,9 @@ It only sendMessage to parent browsing context when the dimensions change.
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
-        this._iframe.setAttribute("srcdoc", innerTemplate + (newValue || ""));
+        const src = innerTemplate + (newValue || "");
+        let blob = new Blob([src], {type: "text/html"});
+        this._iframe.setAttribute("src", URL.createObjectURL(blob));
       }
     }
 

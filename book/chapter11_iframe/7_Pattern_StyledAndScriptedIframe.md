@@ -63,7 +63,9 @@ be reflected in the inner `<iframe>`, the `srcdoc` attribute on `<iframe-styled-
           .filter(n => n.tagName === "IFRAME-SCRIPT" || n.tagName === "IFRAME-STYLE" || n.tagName === "IFRAME-LINK");
         const outer = outerIncluded.map(child => transposeTag(child));
         const inner = innerIncluded.map(child => transposeTag(child));
-        this._iframe.setAttribute("srcdoc", outer.join("") + inner.join("") + (newValue || ""));
+        const src = outer.join("") + inner.join("") + (newValue || "");
+        let blob = new Blob([src], {type: "text/html"});
+        this._iframe.setAttribute("src", URL.createObjectURL(blob));
       }
     }
   }
