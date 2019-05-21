@@ -68,13 +68,9 @@ function processElements() {
     for (let prop in observations) {
       let values = observations[prop];
       let step = findNearestStep(values.steps, values.value);
-      if (!el.hasAttribute("_layout-" + prop)) {
-        el.setAttribute("_layout-" + prop, step + ":" + values.value);
-      } else {
-        let oldValue = el.getAttribute("_layout-" + prop);
-        if (!oldValue.startsWith(step + ":"))
-          el.setAttribute("_layout-" + prop, step + ":" + values.value);
-      }
+      const layoutProp = "_layout-" + prop;
+      if (!el.hasAttribute(layoutProp) || parseInt(el.getAttribute(layoutProp).split(":")[0]) !== step)
+        el.setAttribute(layoutProp, step + ":" + values.value);
     }
   }
 }
