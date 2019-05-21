@@ -85,27 +85,31 @@
     }
 
     static get observedAttributes() {
-      return ["srcdoc"];
+      return ["srcdoc", "inherit-css"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
-        const src =
-          inputScript +
-          (newValue || "");
+        const src = inputScript + (newValue || "");
         const blob = new Blob([src], {type: "text/html"});
         this._iframe.setAttribute("src", URL.createObjectURL(blob));
-      } else if (name === "inherit-css") {
+        return;
+      }
+      if (name === "inherit-css") {
         if (newValue === null) {
-//        todo how to remove the inherited styles when the `inherit-css` is removed?
-//          this._willUpdate = false;
-//          this.sendMessage("reset");
-//          this._changedStyles = {};
+          //pause the styleCallback
+          console.log("TWF");
+          this._changedStyles = undefined;
+          this._updateIframe();
         } else {
-//        todo how to add ALL the inherited styles when the `inherit-css` is added again?
-//        this._changedStyles = todo FilterToIncludeProperties(getComputedStyle(this), inheritableCssProperties);
-//        this._updateIframe();
+          //restart the styleCallback
+          this._changedStyles = {};
+          const nowStyle = getComputedStyle(this);
+          for (let prop of inheritableCssProperties)
+            this._changedStyles[prop] = nowStyle[prop];
+          this._updateIframe();
         }
+        return;
       }
     }
 
@@ -132,17 +136,21 @@
 
     styleCallback(name, oldValue, newValue) {
 //      if (name === whatever) {
+      if (!this._changedStyles)
+        return;
       this._changedStyles[name] = newValue;
       this._updateIframe();
 //      }
     }
 
     _updateIframe() {
-      if (this._willUpdate || !this.hasAttribute("inherit-css"))
+      if (this._once)
         return;
-      this._willUpdate = true;
+      this._once = true;
       Promise.resolve().then(function () {
-        this._willUpdate = false;
+        this._once = false;
+        if (!this._changedStyles)
+          return this.sendMessage("reset");
         this.sendMessage(JSON.stringify(this._changedStyles));
         this._changedStyles = {};
       }.bind(this));
@@ -195,8 +203,10 @@
 </iframe-inherits-style>
 
 <script>
-  setInterval(() => document.querySelector("body").classList.toggle("one"), 1000);
-  setTimeout(() => document.querySelector("iframe-inherits-style").removeAttribute("inherit-css"), 4000);
+  const iIframe = document.querySelector("iframe-inherits-style");
+  const body = document.querySelector("body");
+  setInterval(() => body.classList.toggle("one"), 1000);
+  setInterval(() => iIframe.hasAttribute("inherit-css") ? iIframe.removeAttribute("inherit-css") : iIframe.setAttribute("inherit-css", ""), 4000);
 </script>
 <!--
   This code is untested. I have only done superficial tests from within devtools in Chrome.
