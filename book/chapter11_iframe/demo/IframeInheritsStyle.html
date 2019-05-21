@@ -50,7 +50,7 @@
     "list-style",
   ];
 
-  const header = `
+  const inputScript = `
 <style>html {}</style>
 <script>(function(){
   const inheritRule = document.styleSheets[0].cssRules[0].style;
@@ -91,18 +91,18 @@
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
         const src =
-          header +
+          inputScript +
           (newValue || "");
         const blob = new Blob([src], {type: "text/html"});
         this._iframe.setAttribute("src", URL.createObjectURL(blob));
-      } else if (name === "allow-inherited-css-properties") {
+      } else if (name === "inherit-css") {
         if (newValue === null) {
-//        todo how to remove the inherited styles when the `allow-inherited-css-properties` is removed?
+//        todo how to remove the inherited styles when the `inherit-css` is removed?
 //          this._willUpdate = false;
 //          this.sendMessage("reset");
 //          this._changedStyles = {};
         } else {
-//        todo how to add ALL the inherited styles when the `allow-inherited-css-properties` is added again?
+//        todo how to add ALL the inherited styles when the `inherit-css` is added again?
 //        this._changedStyles = todo FilterToIncludeProperties(getComputedStyle(this), inheritableCssProperties);
 //        this._updateIframe();
         }
@@ -138,7 +138,7 @@
     }
 
     _updateIframe() {
-      if (this._willUpdate || !this.hasAttribute("allow-inherited-css-properties"))
+      if (this._willUpdate || !this.hasAttribute("inherit-css"))
         return;
       this._willUpdate = true;
       Promise.resolve().then(function () {
@@ -190,13 +190,13 @@
 </ol>
 <hr>
 <iframe-inherits-style
-    allow-inherited-css-properties
+    inherit-css
     srcdoc="<li>Hello<br>sunshine!</li><ol><li>Hello<br>sunshine!</li></ol>">
 </iframe-inherits-style>
 
 <script>
   setInterval(() => document.querySelector("body").classList.toggle("one"), 1000);
-  setTimeout(() => document.querySelector("iframe-inherits-style").removeAttribute("allow-inherited-css-properties"), 4000);
+  setTimeout(() => document.querySelector("iframe-inherits-style").removeAttribute("inherit-css"), 4000);
 </script>
 <!--
   This code is untested. I have only done superficial tests from within devtools in Chrome.
