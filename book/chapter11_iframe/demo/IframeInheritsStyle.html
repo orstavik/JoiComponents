@@ -1,5 +1,18 @@
 <script type="module">
 
+  const active = [];
+
+  function batchCallsMicro(fn) {
+    if (active.indexOf(fn) !== -1)
+      return;
+    active.push(fn);
+    Promise.resolve().then(() => {
+      const i = active.indexOf(fn);
+      active.splice(i, 1);
+      fn();
+    });
+  }
+
   const inheritableCssProperties = [
     "quotes",
     "orphans",
@@ -58,12 +71,10 @@
     if (e.data === "reset") {
       for(let prop; prop = inheritRule.item(0);)
         inheritRule.removeProperty(prop);
-      return;
+    } else {
+      for (let [prop, value] of Object.entries(JSON.parse(e.data)))
+        inheritRule[prop] = value;
     }
-    const data = JSON.parse(e.data);
-    console.log("inside iframe: ", data);
-    for (let [prop, value] of Object.entries(data))
-      inheritRule[prop] = value;
   });
   parent.postMessage("ready", "*");
 })();</scrip` + `t>`;
@@ -80,6 +91,7 @@
 
       this._ready = false;
       window.addEventListener("message", this.onMessage.bind(this));
+      this._updateIframeObj = this._updateIframe.bind(this);
 
       this._changedStyles = {};
     }
@@ -99,15 +111,14 @@
         if (newValue === null) {
           //pause the styleCallback
           this._changedStyles = undefined;
-          this._batchCalls(this._sendMsg.bind(this));
         } else {
           //restart the styleCallback
           this._changedStyles = {};
           const nowStyle = getComputedStyle(this);
           for (let prop of inheritableCssProperties)
             this._changedStyles[prop] = nowStyle[prop];
-          this._batchCalls(this._sendMsg.bind(this));
         }
+        batchCallsMicro(this._updateIframeObj);
         return;
       }
     }
@@ -138,22 +149,15 @@
       if (!this._changedStyles)
         return;
       this._changedStyles[name] = newValue;
-      this._batchCalls(this._sendMsg.bind(this));
+      batchCallsMicro(this._updateIframeObj);
 //      }
     }
 
-    _sendMsg() {
+    _updateIframe() {
       if (!this._changedStyles)
         return this.sendMessage("reset");
       this.sendMessage(JSON.stringify(this._changedStyles));
       this._changedStyles = {};
-    }
-
-    _batchCalls(fn) {
-      if (this._once)
-        return;
-      this._once = true;
-      Promise.resolve().then(() => (this._once = false) || fn());
     }
   }
 
