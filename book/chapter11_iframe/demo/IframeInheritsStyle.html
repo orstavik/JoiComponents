@@ -50,23 +50,23 @@
     "list-style",
   ];
 
-  const iframeScript = `
-  parent.postMessage("ready", "*");
+  const inputScript = `
+<style>html {}</style>
+<script>(function(){
+  const inheritRule = document.styleSheets[0].cssRules[0].style;
   window.addEventListener("message", function(e){
-/*
-todo
     if (e.data === "reset") {
-      for (let prop of ${JSON.stringify(inheritableCssProperties)})
-        document.children[0].style[prop] = "initial";
+      for(let prop; prop = inheritRule.item(0);)
+        inheritRule.removeProperty(prop);
       return;
     }
-*/
     const data = JSON.parse(e.data);
     console.log("inside iframe: ", data);
     for (let [prop, value] of Object.entries(data))
-      document.children[0].style[prop] = value;
-  });`;
-  const inputScript = `<script>(function(){${iframeScript}})();</scrip` + `t>`;
+      inheritRule[prop] = value;
+  });
+  parent.postMessage("ready", "*");
+})();</scrip` + `t>`;
 
   import {StyleCallbackMixin} from "https://unpkg.com/joicomponents@1.2.27/src/style/StyleCallbackMixin.js";
 
@@ -103,7 +103,7 @@ todo
 //          this._changedStyles = {};
         } else {
 //        todo how to add ALL the inherited styles when the `allow-inherited-css-properties` is added again?
-//        this._changedStyles = todo FilterToIncludeProperties(getComputedStyle(this), this.constructor.observedStyles());
+//        this._changedStyles = todo FilterToIncludeProperties(getComputedStyle(this), inheritableCssProperties);
 //        this._updateIframe();
         }
       }
@@ -201,7 +201,4 @@ todo
 <!--
   This code is untested. I have only done superficial tests from within devtools in Chrome.
   The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
-
-  todo there are still some issues to fix.
-  todo 1. how to ensure that inherited styles do not override the styles set by the HTML fragment?
 -->
