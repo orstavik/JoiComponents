@@ -1,0 +1,50 @@
+<script>
+  (function () {
+    function makeBaseString(baseURI) {
+      if (!baseURI)
+        return "";
+      const base = document.createElement("base");
+      base.setAttribute("href", baseURI);
+      return base.outerHTML;
+    }
+
+    class IframeBase extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.appendChild(document.createElement("iframe"));
+        this._iframe = this.shadowRoot.children[0];
+        this._iframe.setAttribute("sandbox", "allow-scripts");
+      }
+
+      static get observedAttributes() {
+        return ["srcdoc"];
+      }
+
+      attributeChangedCallback(name, oldValue, newValue) {
+        if (name === "srcdoc") {
+          let src = makeBaseString(this.getAttribute("base")) + (newValue || "");
+//        src += '<script>debugger;</scr'+'ipt>';
+          let blob = new Blob([src], {type: "text/html"});
+          this._iframe.setAttribute("src", URL.createObjectURL(blob));
+        }
+      }
+    }
+
+    customElements.define("iframe-base", IframeBase);
+  })();
+</script>
+
+<iframe-base
+    srcdoc="Hello sunshine! <img src='100/100'>"
+    base="https://picsum.photos/id/1/">
+</iframe-base>
+
+<hr>
+Hello world!
+<img src="https://picsum.photos/id/0/100/100" alt="">
+
+<!--
+  This code is untested. I have only done superficial tests from within devtools in Chrome.
+  The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
+-->

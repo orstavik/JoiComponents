@@ -2,33 +2,94 @@
 
 The IframeInheritsStyle pattern embeds an *untrusted* HTML fragment that *inherits* all inherited 
 CSS properties from the node in the embedding HTML document onto which the `<iframe>` is appended. 
+The inner `<iframe>` only inherits the style when it has an `inherit-css` attribute.
 
 IframeInheritsStyle is implemented as a web component that uses the StyleCallback pattern and 
 a `styleCallback(...)` to dynamically listen for changes in the values of all inheritable CSS
 on its host element. Whenever these values changes, the IframeInheritsStyle sends a message to the
-inner iframe.
-
-The inner `<iframe>` only inherits the style when it has an `allow-inherited-css-properties`
-attribute.
+inner `<iframe>`. The inner `<iframe>` contains a default CSS stylesheet with a single rule for the
+root `html { ... }` element. This rule is then populated with all the same CSS values for all the
+inheritable CSS properties on the container element.
 
 ## Web comp: `<iframe-inherits-style>`
 
 ```html
 <script type="module">
-  function iframeScript() {
-    return `
-<script>
-(function(){
-  parent.postMessage("ready", "*");
-  window.addEventListener("message", function(e){
-    const data = JSON.parse(e.data);
-    console.log("inside iframe: ", data);
-    for (let [prop, value] of Object.entries(data))
-      document.children[0].style[prop] = value;
-  });
-})();
-</scrip` + "t>";
+
+  const active = [];
+
+  function batchCallsMicro(fn) {
+    if (active.indexOf(fn) === -1) {
+      active.push(fn);
+      Promise.resolve().then(() => active.splice(active.indexOf(fn), 1) && fn());
+    }
   }
+
+  const inheritableCssProperties = [
+    "quotes",
+    "orphans",
+    "widows",
+    "cursor",
+    "caret-color",
+    "direction",
+    "writing-mode",
+    "-webkit-writing-mode",
+    "text-combine-upright",
+    "-webkit-text-combine",
+    "text-orientation",
+    "border-collapse",
+    "border-spacing",
+    "caption-side",
+    "empty-cells",
+    "visibility",
+    "color",
+    "color-adjust",
+    "-webkit-color-adjust",
+    "hyphens",
+    "letter-spacing",
+    "overflow-wrap",
+    "paint-order",
+    "tab-size",
+    "text-align",
+    "text-align-last",
+    "text-indent",
+    "text-justify",
+    "text-size-adjust",
+    "hanging-punctuation",
+    "text-transform",
+    "white-space",
+    "word-break",
+    "word-spacing",
+    "text-shadow",
+    "text-underline-position",
+    "font",
+    "line-height-step",
+    "font-kerning",
+    "-webkit-font-kerning",
+    "font-synthesis",
+    "font-language-override",
+    "font-optical-sizing",
+    "font-size-adjust",
+    "font-feature-settings",
+    "font-variation-settings",
+    "list-style",
+  ];
+
+  const inputScript = `
+<style>html {}</style>
+<script>(function(){
+  const inheritRule = document.styleSheets[0].cssRules[0].style;
+  window.addEventListener("message", function(e){
+    if (e.data === "reset") {
+      for(let prop; prop = inheritRule.item(0);)
+        inheritRule.removeProperty(prop);
+    } else {
+      for (let [prop, value] of Object.entries(JSON.parse(e.data)))
+        inheritRule[prop] = value;
+    }
+  });
+  parent.postMessage("ready", "*");
+})();</scrip` + `t>`;
 
   import {StyleCallbackMixin} from "https://unpkg.com/joicomponents@1.2.27/src/style/StyleCallbackMixin.js";
 
@@ -42,20 +103,35 @@ attribute.
 
       this._ready = false;
       window.addEventListener("message", this.onMessage.bind(this));
+      this._updateIframeObj = this._updateIframe.bind(this);
 
       this._changedStyles = {};
     }
 
     static get observedAttributes() {
-      return ["srcdoc"];
+      return ["srcdoc", "inherit-css"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
-        const src =
-          iframeScript() +
-          (newValue || "");
-        this._iframe.setAttribute("srcdoc", src);
+        const src = inputScript + (newValue || "");
+        const blob = new Blob([src], {type: "text/html"});
+        this._iframe.setAttribute("src", URL.createObjectURL(blob));
+        return;
+      }
+      if (name === "inherit-css") {
+        if (newValue === null) {
+          //pause the styleCallback
+          this._changedStyles = undefined;
+        } else {
+          //restart the styleCallback
+          this._changedStyles = {};
+          const nowStyle = getComputedStyle(this);
+          for (let prop of inheritableCssProperties)
+            this._changedStyles[prop] = nowStyle[prop];
+        }
+        batchCallsMicro(this._updateIframeObj);
+        return;
       }
     }
 
@@ -76,74 +152,24 @@ attribute.
     }
 
     static get observedStyles() {
-      return [
-        "quotes",
-        "orphans",
-        "widows",
-        "cursor",
-        "caret-color",
-        "direction",
-        "writing-mode",
-        "-webkit-writing-mode",
-        "text-combine-upright",
-        "-webkit-text-combine",
-        "text-orientation",
-        "border-collapse",
-        "border-spacing",
-        "caption-side",
-        "empty-cells",
-        "visibility",
-        "color",
-        "color-adjust",
-        "-webkit-color-adjust",
-        "hyphens",
-        "letter-spacing",
-        "overflow-wrap",
-        "paint-order",
-        "tab-size",
-        "text-align",
-        "text-align-last",
-        "text-indent",
-        "text-justify",
-        "text-size-adjust",
-        "hanging-punctuation",
-        "text-transform",
-        "white-space",
-        "word-break",
-        "word-spacing",
-        "text-shadow",
-        "text-underline-position",
-        "font",
-        "line-height-step",
-        "font-kerning",
-        "-webkit-font-kerning",
-        "font-synthesis",
-        "font-language-override",
-        "font-optical-sizing",
-        "font-size-adjust",
-        "font-feature-settings",
-        "font-variation-settings",
-        "list-style",
-      ];
+      return inheritableCssProperties;
     }
 
 
     styleCallback(name, oldValue, newValue) {
 //      if (name === whatever) {
+      if (!this._changedStyles)
+        return;
       this._changedStyles[name] = newValue;
-      this._updateIframe();
+      batchCallsMicro(this._updateIframeObj);
 //      }
     }
 
     _updateIframe() {
-      if (this._willUpdate || !this.hasAttribute("allow-inherited-css-properties"))
-        return;
-      this._willUpdate = true;
-      Promise.resolve().then(function () {
-        this._willUpdate = false;
-        this.sendMessage(JSON.stringify(this._changedStyles));
-        this._changedStyles = {};
-      }.bind(this));
+      if (!this._changedStyles)
+        return this.sendMessage("reset");
+      this.sendMessage(JSON.stringify(this._changedStyles));
+      this._changedStyles = {};
     }
   }
 
@@ -174,7 +200,7 @@ attribute.
     font-weight: bold;
     line-height: 1.5em;
     color: blue;
-    list-style-image: url("css.svg"); /*will be absolute in the getComputedStyle*/
+    list-style-image: url("css.svg"); /*getComputedStyle returns an absolute URL value, so no problem*/
     list-style-position: outside;
   }
 </style>
@@ -188,21 +214,19 @@ attribute.
 </ol>
 <hr>
 <iframe-inherits-style
-    allow-inherited-css-properties
+    inherit-css
     srcdoc="<li>Hello<br>sunshine!</li><ol><li>Hello<br>sunshine!</li></ol>">
 </iframe-inherits-style>
 
 <script>
-  setInterval(() => document.querySelector("body").classList.toggle("one"), 1000);
-  setTimeout(() => document.querySelector("iframe-inherits-style").removeAttribute("allow-inherited-css-properties"), 4000);
+  const iIframe = document.querySelector("iframe-inherits-style");
+  const body = document.querySelector("body");
+  setInterval(() => body.classList.toggle("one"), 1000);
+  setInterval(() => iIframe.hasAttribute("inherit-css") ? iIframe.removeAttribute("inherit-css") : iIframe.setAttribute("inherit-css", ""), 4000);
 </script>
 <!--
   This code is untested. I have only done superficial tests from within devtools in Chrome.
   The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
-  
-  todo there are still some issues to fix.
-  todo 1. how to ensure that inherited styles do not override the styles set by the HTML fragment?
-  todo 2. how to remove the inherited styles when the `allow-inherited-css-properties` is removed?
 -->
 ```
 

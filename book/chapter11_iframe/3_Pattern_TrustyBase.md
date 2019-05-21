@@ -52,46 +52,53 @@ The TrustyBase will always be `sandbox="allow-scripts"` and will *never* `allow-
 -->
 ```
 
-## Alternative 2: blob
+`srcdoc` has several drawbacks. First, it fills the DOM with a massive HTML document. This essentially
+ruins any good experience in the elements view of devtools. Second, `srcdoc` is not supported in 
+IE and Edge.
 
-Implement and test this
 
-## Demo: `<iframe-base>`
+## Alternative 2: `URL.createObjectURL(new Blob(...))`
+
+Thus, we look to `URL.createObjectURL(new Blob(...))`. This approach does not a) reflect the content 
+of the `<iframe>` as an attribute and is b) better supported. In addition, this approach would be 
+easier to reuse when different HTML fragments are loaded into the same `<iframe>` over time.
 
 ```html
 <script>
-  function makeBaseString(baseURI) {
-    if (!baseURI)
-      return "";
-    const base = document.createElement("base");
-    base.setAttribute("href", baseURI);
-    return base.outerHTML;
-  }
-
-  class IframeBase extends HTMLElement {
-    constructor() {
-      super();
-      this.attachShadow({mode: "open"});
-      this.shadowRoot.appendChild(document.createElement("iframe"));
-      this._iframe = this.shadowRoot.children[0];
-      this._iframe.setAttribute("sandbox", "allow-scripts");
+  (function () {
+    function makeBaseString(baseURI) {
+      if (!baseURI)
+        return "";
+      const base = document.createElement("base");
+      base.setAttribute("href", baseURI);
+      return base.outerHTML;
     }
 
-    static get observedAttributes() {
-      return ["srcdoc"];
-    }
+    class IframeBase extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.appendChild(document.createElement("iframe"));
+        this._iframe = this.shadowRoot.children[0];
+        this._iframe.setAttribute("sandbox", "allow-scripts");
+      }
 
-    attributeChangedCallback(name, oldValue, newValue) {
-      if (name === "srcdoc") {
-        let src = makeBaseString(this.getAttribute("base")) + (newValue || "");
+      static get observedAttributes() {
+        return ["srcdoc"];
+      }
+
+      attributeChangedCallback(name, oldValue, newValue) {
+        if (name === "srcdoc") {
+          let src = makeBaseString(this.getAttribute("base")) + (newValue || "");
 //        src += '<script>debugger;</scr'+'ipt>';
-        this._iframe.setAttribute("srcdoc", src);
+          let blob = new Blob([src], {type: "text/html"});
+          this._iframe.setAttribute("src", URL.createObjectURL(blob));
+        }
       }
     }
 
-  }
-
-  customElements.define("iframe-base", IframeBase);
+    customElements.define("iframe-base", IframeBase);
+  })();
 </script>
 
 <iframe-base
@@ -109,3 +116,6 @@ Hello world!
 -->
 ```
 
+## References
+
+ * [How to use `Blob` to load html in an `<iframe>`](https://dev.to/pulljosh/how-to-load-html-css-and-js-code-into-an-iframe-2blc)

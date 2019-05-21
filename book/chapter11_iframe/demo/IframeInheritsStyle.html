@@ -3,14 +3,10 @@
   const active = [];
 
   function batchCallsMicro(fn) {
-    if (active.indexOf(fn) !== -1)
-      return;
-    active.push(fn);
-    Promise.resolve().then(() => {
-      const i = active.indexOf(fn);
-      active.splice(i, 1);
-      fn();
-    });
+    if (active.indexOf(fn) === -1) {
+      active.push(fn);
+      Promise.resolve().then(() => active.splice(active.indexOf(fn), 1) && fn());
+    }
   }
 
   const inheritableCssProperties = [
@@ -188,7 +184,7 @@
     font-weight: bold;
     line-height: 1.5em;
     color: blue;
-    list-style-image: url("css.svg"); /*will be absolute in the getComputedStyle*/
+    list-style-image: url("css.svg"); /*getComputedStyle returns an absolute URL value, so no problem*/
     list-style-position: outside;
   }
 </style>

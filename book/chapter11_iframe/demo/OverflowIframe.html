@@ -1,6 +1,6 @@
 <script>
-  const innerTemplate = `
-<script>(function(){
+  //javascript
+  const innerScript = `
   var pW = undefined;
   var pH = undefined;
   const r = document.children[0];
@@ -16,8 +16,8 @@
     parent.postMessage(JSON.stringify({w, h}), "*");
     requestAnimationFrame(alertSize);
   }
-  alertSize();
-})();</scrip` + `t>`;
+  alertSize();`;
+  const innerTemplate = `<script>(function(){${innerScript}})();</scrip` + `t>`;
 
   const outerTemplate = document.createElement("template");
   outerTemplate.innerHTML = `

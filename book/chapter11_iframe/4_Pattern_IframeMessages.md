@@ -17,8 +17,8 @@ to delay any message sent before child is ready.
 <iframe-updater srcdoc="<h1>Hello sunshine!</h1>"></iframe-updater>
 
 <script type="module">
-  function iframeScript() {
-    return `
+  (function () {
+    const iframeScript = `
 <script>
 (function(){
   parent.postMessage("ready", "*");
@@ -30,59 +30,59 @@ to delay any message sent before child is ready.
   setTimeout(function(){parent.postMessage("two", "*")}, 2000);
   setTimeout(function(){parent.postMessage("three", "*")}, 3000);
 })();
-</scrip`+`t>`;
-  }
+</scrip` + "t>";
 
-  class IframeUpdater extends HTMLElement {
-    constructor() {
-      super();
-      this.attachShadow({mode: "open"});
-      this.shadowRoot.appendChild(document.createElement("iframe"));
-      this._iframe = this.shadowRoot.children[0];
-      this._iframe.setAttribute("sandbox", "allow-scripts");
+    class IframeUpdater extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({mode: "open"});
+        this.shadowRoot.appendChild(document.createElement("iframe"));
+        this._iframe = this.shadowRoot.children[0];
+        this._iframe.setAttribute("sandbox", "allow-scripts");
 
-      this._ready = false;
-      window.addEventListener("message", this.onMessage.bind(this))
-    }
+        this._ready = false;
+        window.addEventListener("message", this.onMessage.bind(this))
+      }
 
-    static get observedAttributes() {
-      return ["srcdoc"];
-    }
+      static get observedAttributes() {
+        return ["srcdoc"];
+      }
 
-    attributeChangedCallback(name, oldValue, newValue) {
-      if (name === "srcdoc") {
-        const src =
-          iframeScript() +
-          (newValue || "");
-        this._iframe.setAttribute("srcdoc", src);
+      attributeChangedCallback(name, oldValue, newValue) {
+        if (name === "srcdoc") {
+          const src =
+            iframeScript +
+            (newValue || "");
+          const blob = new Blob([src], {type: "text/html"});
+          this._iframe.setAttribute("src", URL.createObjectURL(blob));
+        }
+      }
+
+      sendMessage(value) {
+        if (!this._ready) {                                                      //delay sending this message until
+          console.log("delaying 1 rAF...");
+          return requestAnimationFrame(this.sendMessage.bind(this, value));    //inner iframe is ready to receive messages
+        }
+        this._iframe.contentWindow.postMessage(value, "*");
+      }
+
+      onMessage(e) {
+        if (e.source !== this._iframe.contentWindow)
+          return;
+        if (e.data === "ready")
+          return this._ready = true;
+        console.log("message received in parent: ", e.data);
       }
     }
 
-    sendMessage(value) {
-      if (!this._ready) {                                                      //delay sending this message until
-        console.log("delaying 1 rAF...");
-        return requestAnimationFrame(this.sendMessage.bind(this, value));    //inner iframe is ready to receive messages
-      }
-      this._iframe.contentWindow.postMessage(value, "*");
-    }
+    customElements.define("iframe-updater", IframeUpdater);
 
-    onMessage(e) {
-      if (e.source !== this._iframe.contentWindow)
-        return;
-      if (e.data === "ready")
-        return this._ready = true;
-      console.log("message received in parent: ", e.data);
-    }
-  }
-
-  customElements.define("iframe-updater", IframeUpdater);
-
-  const iframeUpdater = document.querySelector("iframe-updater");
-  iframeUpdater.sendMessage(JSON.stringify(0));
-  setTimeout(() => iframeUpdater.sendMessage(JSON.stringify(1)), 1000);
-  setTimeout(() => iframeUpdater.sendMessage(JSON.stringify(2)), 2000);
-  setTimeout(() => iframeUpdater.sendMessage(JSON.stringify(3)), 3000);
-
+    const iframeUpdater = document.querySelector("iframe-updater");
+    iframeUpdater.sendMessage(JSON.stringify(0));
+    setTimeout(() => iframeUpdater.sendMessage(JSON.stringify(1)), 1000);
+    setTimeout(() => iframeUpdater.sendMessage(JSON.stringify(2)), 2000);
+    setTimeout(() => iframeUpdater.sendMessage(JSON.stringify(3)), 3000);
+  })();
 </script>
 <!--
   This code is untested. I have only done superficial tests from within devtools in Chrome.

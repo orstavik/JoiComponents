@@ -41,39 +41,41 @@ other user's generated code (such as codepen and jsfiddle). Client-side develope
 include HTML fragments "cross origin", from a server with a different hostname.
 
 However, client-side, there is *no* good solution for embedding of HTML fragments.
-Embedding HTML fragments client-side is truly complex. And incomplete. How and why is that?
+Embedding HTML fragments client-side is truly complex. And patchy. How and why is that?
 
 ### `<frame>` is no good
 
 The browsers provide two custom HTML tags to embed one HTML fragments into one another: 
 `<frame>`(+`<frameset>`) and `<iframe>`.
 
-`<frame>` is no good because it was deprecated nearly ten years ago in HTML 4! 
+`<frame>` is no good because it was deprecated nearly ten years ago in HTML 4. 
 Although it actually still is supported, the browsers basically say they might remove support for it 
-tomorrow, meaning you can't use it today. There are other pros and cons with the `<frame>`
-element too, but because of its `obsolete` status, we will simply skip it here.
+tomorrow. And that means that you can't use it today. There are many other problems with the 
+`<frame>` and `<frameset>` elements too: it breaks the principle that "one url for one web page" and
+managing navigation across `<frame>`s is awful. But, here we disregard it due to its `obsolete` status.
 
 ### Problem: `<iframe>` is patchy and sluggish
 
 The only other option for embedding HTML in HTML in HTML, is the `<iframe>`.
 
-The original purpose of `<iframe>` is to *include complete web pages inside another*, 
-picture in picture style. But, as the headers and footers and menus that are typically embedded 
-server-side plus the youtube and twitter feeds typically embedded client-side illustrate,
-"complete web pages" is a non-typical embeddable fragment. Thus, the use-case`<iframe>` is oriented 
-towards is a bit atypical for the most common use-cases for embedding HTML.
+The original purpose of `<iframe>` is to include a complete web pages inside another, 
+picture-in-picture style. But, to embed "complete web pages" is not the archetypal use-case
+for embedding HTML fragments: server-side we typically embed *in-complete* headers, footers and menus; 
+client-side we typically embed *partial* ads, widgets, and other content articles. Thus, the use-case 
+for `<iframe>`s is oriented towards a fringe use-case for embedding HTML fragments.
 
 Having been the only HTML option for a decade, `<iframe>` must handle *both* third party *and* 
 `same-origin` HTML fragments. But, to embed 100% trusted vs. 100% untrusted HTML *code* are two quite 
 somewhat conflicting goals. And in this conflict, the `<iframe>` must err on the side of caution, 
 on the side of 100% untrusted, third party sources. 
 
-At its core, by default, the `<iframe>` therefore erects a big firewall between the embedded and 
-embedding content. This firewall is erected by establishing a separate **"browsing context"** for the
-`<iframe>` and its embedded code, ie. a complete browser tab within the current browsing tab.
+To be on the safe side, the `<iframe>` erects a big firewall between the embedded and embedding 
+content by default. This firewall is implemented as a separate **"browsing context"** for the
+`<iframe>` and its embedded code, ie. browser-tab-in-browser-tab.
+
 When embedding small, trusted HTML fragments, this firewall feels very out of place, like bringing
-a canon to a knife fight. Sure, it looks good on paper, but while you log around and try to load your
-canon, someone or something just runs up to you and stab you in the back.
+a canon to a knife fight. Sure, it looks good on paper, but while you log around on your canon, 
+your problems run circles around you and stab you in the stomach.
 
 ## WhatIs: `<iframe>` "browsing context"?
 
