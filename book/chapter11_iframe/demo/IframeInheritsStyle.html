@@ -50,7 +50,7 @@
     "list-style",
   ];
 
-  const inputScript = `
+  const header = `
 <style>html {}</style>
 <script>(function(){
   const inheritRule = document.styleSheets[0].cssRules[0].style;
@@ -91,7 +91,7 @@
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
         const src =
-          inputScript +
+          header +
           (newValue || "");
         const blob = new Blob([src], {type: "text/html"});
         this._iframe.setAttribute("src", URL.createObjectURL(blob));
