@@ -51,20 +51,20 @@
   ];
 
   const iframeScript = `
-//todo  const inheritableStyles = ${JSON.stringify(inheritableCssProperties)};
   parent.postMessage("ready", "*");
   window.addEventListener("message", function(e){
-/*todo
+/*
+todo
     if (e.data === "reset") {
-      for (let prop of inheritableStyles)
+      for (let prop of ${JSON.stringify(inheritableCssProperties)})
         document.children[0].style[prop] = "initial";
-    } else {
-todo */
+      return;
+    }
+*/
     const data = JSON.parse(e.data);
     console.log("inside iframe: ", data);
     for (let [prop, value] of Object.entries(data))
       document.children[0].style[prop] = value;
-//todo }
   });`;
   const inputScript = `<script>(function(){${iframeScript}})();</scrip` + `t>`;
 
