@@ -98,16 +98,15 @@
       if (name === "inherit-css") {
         if (newValue === null) {
           //pause the styleCallback
-          console.log("TWF");
           this._changedStyles = undefined;
-          this._updateIframe();
+          this._batchCalls(this._sendMsg.bind(this));
         } else {
           //restart the styleCallback
           this._changedStyles = {};
           const nowStyle = getComputedStyle(this);
           for (let prop of inheritableCssProperties)
             this._changedStyles[prop] = nowStyle[prop];
-          this._updateIframe();
+          this._batchCalls(this._sendMsg.bind(this));
         }
         return;
       }
@@ -139,21 +138,22 @@
       if (!this._changedStyles)
         return;
       this._changedStyles[name] = newValue;
-      this._updateIframe();
+      this._batchCalls(this._sendMsg.bind(this));
 //      }
     }
 
-    _updateIframe() {
+    _sendMsg() {
+      if (!this._changedStyles)
+        return this.sendMessage("reset");
+      this.sendMessage(JSON.stringify(this._changedStyles));
+      this._changedStyles = {};
+    }
+
+    _batchCalls(fn) {
       if (this._once)
         return;
       this._once = true;
-      Promise.resolve().then(function () {
-        this._once = false;
-        if (!this._changedStyles)
-          return this.sendMessage("reset");
-        this.sendMessage(JSON.stringify(this._changedStyles));
-        this._changedStyles = {};
-      }.bind(this));
+      Promise.resolve().then(() => (this._once = false) || fn());
     }
   }
 
