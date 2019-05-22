@@ -53,9 +53,9 @@ html {
 </style>
 <iframe sandbox="allow-scripts" scrolling="no" frameborder="0"></iframe>`;
 
-  import {OnceLayoutAttributesMixin} from "https://unpkg.com/joicomponents@1.2.30/src/layout/LayoutAttributesMixin.js";
+  import {LayoutAttributesMixin} from "https://unpkg.com/joicomponents@1.2.31/src/layout/LayoutAttributesMixin.js";
 
-  class OverflowIframe extends OnceLayoutAttributesMixin(HTMLElement) {
+  class OverflowIframe extends LayoutAttributesMixin(HTMLElement) {
     constructor() {
       super();
       this.attachShadow({mode: "open"});
