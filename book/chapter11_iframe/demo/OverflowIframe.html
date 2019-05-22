@@ -1,13 +1,27 @@
-<script>
-  //javascript
-  const innerTemplate = `<script>(function(){
+<script type="module">
+  const innerTemplate = `
+<style>
+html {
+  border: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+</style>
+<script>(function(){
   var pW = undefined;
   var pH = undefined;
   const r = document.children[0];
-  r.style.border = "none";
-  r.style.margin = 0;
-  r.style.padding = 0;
-  r.style.overflow = "hidden";
+  const s = document.styleSheets[0].cssRules[0];
+
+  window.addEventListener("message", function(e){
+    const data = JSON.parse(e.data);
+    for (let [key, value] of Object.entries(data)){
+      console.log(key, value);
+      s.style[key] = value;
+    }
+    alertSize();
+  });
 
   function alertSize() {
     const w = r.scrollWidth, h = r.scrollHeight;
@@ -39,20 +53,27 @@
 </style>
 <iframe sandbox="allow-scripts" scrolling="no" frameborder="0"></iframe>`;
 
-  class OverflowIframe extends HTMLElement {
+  import {OnceLayoutAttributesMixin} from "https://unpkg.com/joicomponents@1.2.30/src/layout/LayoutAttributesMixin.js";
+
+  class OverflowIframe extends OnceLayoutAttributesMixin(HTMLElement) {
     constructor() {
       super();
       this.attachShadow({mode: "open"});
       this.shadowRoot.appendChild(outerTemplate.content.cloneNode(true));
       this._iframe = this.shadowRoot.children[1];
       window.addEventListener("message", this.onMessage.bind(this))
+      this._ready = false;
     }
 
     static get observedAttributes() {
-      return ["srcdoc"];
+      return ["srcdoc", "_layout-width"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "_layout-width") {
+        console.log(newValue);
+        this.sendMessage(JSON.stringify({width: newValue}));
+      }
       if (name === "srcdoc") {
         const src = innerTemplate + (newValue || "");
         let blob = new Blob([src], {type: "text/html"});
@@ -60,24 +81,33 @@
       }
     }
 
+    sendMessage(value) {
+      if (!this._ready) {                                                      //delay sending this message until
+        console.log("delaying 1 rAF...");
+        return requestAnimationFrame(this.sendMessage.bind(this, value));    //inner iframe is ready to receive messages
+      }
+      this._iframe.contentWindow.postMessage(value, "*");
+    }
+
     onMessage(e) {
       if (e.source !== this._iframe.contentWindow)
         return;
+      this._ready = true;
       const dim = JSON.parse(e.data);
       this._iframe.style.width = dim.w + "px";
       this._iframe.style.height = dim.h + "px";
     }
   }
 
-  customElements.define("overflow-iframe", OverflowIframe);
+  customElements.define("overflow-iframe-part2", OverflowIframe);
 </script>
 
 <h1>Hello world!</h1>
 <hr>
-<overflow-iframe
-    style="background: lightblue; width: 100%"
-    srcdoc="<h1>Hello sunshine!</h1><script>setInterval(()=> document.querySelector('h1').innerText += ' goodbye rain! ', 1000);</script>"
-></overflow-iframe>
+<overflow-iframe-part2 auto-layout="w"
+                       style="background: lightblue; width: 100%"
+                       srcdoc="<h1>Hello sunshine!</h1><h2 style='width: 5000px; border: 2px solid blue;'>I'm toooooo long...</h2><script>setInterval(()=> document.querySelector('h1').innerText += ' goodbye rain! ', 1000);</script>"
+></overflow-iframe-part2>
 
 <!--
   This code is untested. I have only done superficial tests from within devtools in Chrome.
