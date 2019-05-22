@@ -89,8 +89,8 @@ export function stopBatchCallback() {
 startBatchCallback();
 
 
-export function OnceLayoutAttributesMixin(type) {
-  return class OnceLayoutAttributesMixin extends type {
+export function LayoutAttributesMixin(type) {
+  return class LayoutAttributesMixin extends type {
 
     connectedCallback() {
       super.connectedCallback && super.connectedCallback();

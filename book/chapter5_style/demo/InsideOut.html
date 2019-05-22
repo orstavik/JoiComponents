@@ -1,0 +1,78 @@
+<script>
+  class InsideOut extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+       <style>
+         :host {
+           display: block;
+           border: 2px solid red;
+         }
+       </style>
+       <pre></pre>`;
+      this._rafID = requestAnimationFrame(this.pollStyle.bind(this));
+      this._previousStyleValues = {};
+    }
+
+    pollStyle() {
+      const computedStyle = getComputedStyle(this);
+      const newStyles = {};
+      for (let i = 0; i < computedStyle.length; i++) {
+        let prop = computedStyle.item(i);
+        newStyles[prop] = computedStyle.getPropertyValue(prop);
+      }
+      const alteredProps = Object.keys(newStyles).filter(key => newStyles[key] !== this._previousStyleValues[key]);
+      if (alteredProps.length) {
+        const newStylesSmall = {}, oldStyles = {};
+        for (let prop of alteredProps) {
+          newStylesSmall[prop] = newStyles[prop];
+          oldStyles[prop] = this._previousStyleValues[prop];
+        }
+        this._previousStyleValues = newStyles;
+        this.styleCallback("*", oldStyles, newStylesSmall);
+      } else {
+        this._previousStyleValues = newStyles;
+      }
+      this._rafID = requestAnimationFrame(this.pollStyle.bind(this));
+    }
+
+    /*
+        startStyleCallback(){
+          this._rafID = requestAnimationFrame(this.pollStyle.bind(this));
+        }
+
+        stopStyleCallback(){
+          this._rafID = cancelAnimationFrame(this._rafID);
+        }
+    */
+
+    styleCallback(name, oldValue, newValue) {
+      if (name === "*") {
+        this.shadowRoot.children[1].innerText = JSON.stringify(newValue, null, "  ");
+      }
+    }
+  }
+
+  customElements.define("inside-out", InsideOut);
+</script>
+
+<style>
+  body {
+    font-weight: bold;
+  }
+  #one {
+    margin-left: 20px;
+  }
+</style>
+
+<inside-out id="one"></inside-out>
+<hr>
+<inside-out id="two"></inside-out>
+
+<script>
+  setTimeout(function () {
+    const one = document.querySelector("inside-out#one");
+    one.style.color = "blue";
+  }, 3000);
+</script>

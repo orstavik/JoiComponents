@@ -1,0 +1,21 @@
+<script type="module" src="./InlineIframe.js"></script>
+<inline-iframe
+    allow-browse
+    allow-overflow
+    srcdoc="<a href='sunshine.com'><h1>Hello sunshine!</h1></a><img src='100/100'><script>setInterval(()=> {const h1 = document.querySelector('h1'); h1.style.height = '150vh'; h1.style.width = '150vw';}, 1000);</script>"
+    base="https://picsum.photos/id/1/">
+</inline-iframe>
+
+<hr>
+Hello world!
+<img src="https://picsum.photos/id/0/100/100" alt="">
+
+<script>
+  window.addEventListener("browse", function (e) {
+    console.log("browse", e);
+  });
+</script>
+<!--
+  This code is untested. I have only done superficial tests from within devtools in Chrome.
+  The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
+-->

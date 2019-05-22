@@ -45,7 +45,9 @@
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
-        this._iframe.setAttribute("srcdoc", (newValue || "") + innerTemplate);
+        const src = (newValue || "") + innerTemplate;
+        let blob = new Blob([src], {type: "text/html"});
+        this._iframe.setAttribute("src", URL.createObjectURL(blob));
       }
     }
 
