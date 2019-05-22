@@ -7,10 +7,10 @@
     const iframeScript = `
 <script>
 (function(){
-  parent.postMessage("ready", "*");
   window.addEventListener("message", function(e){
     console.log("inside iframe: ", JSON.parse(e.data));
   });
+  parent.postMessage("ready", "*");
 
   setTimeout(function(){parent.postMessage("one", "*")}, 1000);
   setTimeout(function(){parent.postMessage("two", "*")}, 2000);
