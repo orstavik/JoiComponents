@@ -3,52 +3,71 @@
 <style>
 html {
   border: none;
-  margin: 0;
-  padding: 0;
   overflow: visible;
 }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+/*html, body {*/
+  /*overflow: visible;*/
+/*}*/
+/*body {*/
+  /*height: auto;*/
+  /*width: auto;*/
+/*}*/
 </style>
 <script>(function(){
   var pW = undefined;
   var pH = undefined;
-  const r = document.children[0];
   const s = document.styleSheets[0].cssRules[0];
 
   window.addEventListener("message", function(e){
     const data = JSON.parse(e.data);
     for (let [key, value] of Object.entries(data)){
-      console.log(key, value);
+      console.log("inner: ", key, value);
+      debugger;
       s.style[key] = value;
     }
     alertSize();
   });
 
   function alertSize() {
-    const w = r.scrollWidth, h = r.scrollHeight;
+    const html = document.children[0];
+    const body = html.children[1];
+    //debugger;
+    //scrollHeight is always as big as offsetHeight. If the offsetHeight of the body is capped at the offsetHeight of the parent, then use scrollHeight
+    let h = body.offsetHeight === html.offsetHeight ? body.scrollHeight : body.offsetHeight;
+    let w = body.offsetWidth === html.offsetWidth ? body.scrollWidth : body.offsetWidth;
     if (pW === w && pH === h)
       return setTimeout(alertSize, 150);
+    debugger;
+    pW = w; pH = h;
     parent.postMessage(JSON.stringify({w, h}), "*");
     requestAnimationFrame(alertSize);
   }
-  alertSize();
+  document.addEventListener("DOMContentLoaded", alertSize);
 })();</scrip` + `t>`;
 
   const outerTemplate = document.createElement("template");
   outerTemplate.innerHTML = `
 <style>
   :host, iframe {
+    box-sizing: border-box;
     border: none;
     margin: 0;
     padding: 0;
   }
   :host{
     overflow: visible;
-    display: inline-block;
+    /*display: inline-block;*/
+    display: block;
   }
   iframe {
     overflow: hidden;
-    height: 100%;     /*initial value only, will be overwritten later*/
-    width: 100%;      /*initial value only, will be overwritten later*/
+    height: 0;     /*initial value only, will be overwritten later*/
+    width: 0;      /*initial value only, will be overwritten later*/
   }
 </style>
 <iframe sandbox="allow-scripts" scrolling="no" frameborder="0"></iframe>`;
@@ -61,19 +80,28 @@ html {
       this.attachShadow({mode: "open"});
       this.shadowRoot.appendChild(outerTemplate.content.cloneNode(true));
       this._iframe = this.shadowRoot.children[1];
-      window.addEventListener("message", this.onMessage.bind(this))
+      window.addEventListener("message", this.onMessage.bind(this));
       this._ready = false;
+      this._iframeWidth;
+      this._iframeHeight;
     }
 
     static get observedAttributes() {
-      return ["srcdoc", "_layout-width"];
+      return ["srcdoc"/*, "_layout-width", "_layout-height"*/];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-      if (name === "_layout-width") {
-        console.log(newValue);
-        this.sendMessage(JSON.stringify({width: newValue}));
-      }
+//      if (name === "_layout-width" || name === "_layout-height") {
+//        if (!this.hasAttribute("_layout-width") || !this.hasAttribute("_layout-height"))
+//          return console.log(false, name, newValue);
+//        let width = Math.min(window.innerWidth, this.offsetWidth);
+//        let height = Math.min(window.innerHeight, this.offsetHeight);
+//        this.sendMessage(JSON.stringify({width, height}));
+//      }
+//      if (name === "_layout-width" || name === "_layout-width") {
+//        console.log(name, newValue);
+//        this.sendMessage(JSON.stringify({width: newValue}));
+//      }
       if (name === "srcdoc") {
         const src = innerTemplate + (newValue || "");
         let blob = new Blob([src], {type: "text/html"});
@@ -82,33 +110,58 @@ html {
     }
 
     sendMessage(value) {
-      if (!this._ready) {                                                      //delay sending this message until
-        console.log("delaying 1 rAF...");
-        return requestAnimationFrame(this.sendMessage.bind(this, value));    //inner iframe is ready to receive messages
-      }
+//      if (!this._ready) {                                                      //delay sending this message until
+//        return requestAnimationFrame(this.sendMessage.bind(this, value));    //inner iframe is ready to receive messages
+//      }
       this._iframe.contentWindow.postMessage(value, "*");
     }
 
     onMessage(e) {
       if (e.source !== this._iframe.contentWindow)
         return;
-      this._ready = true;
+//      debugger;
       const dim = JSON.parse(e.data);
       this._iframe.style.width = dim.w + "px";
       this._iframe.style.height = dim.h + "px";
+      if (!this._ready)                                             //first time only
+        this.observeStrangeCousin();
+      this._ready = true;
+    }
+
+    observeStrangeCousin() {
+      const omg = document.querySelector("#omg");
+      const dims2 = getComputedStyle(omg);
+      const width = dims2.width;
+      const height = dims2.height;
+      if (this._iframeHeight === height && this._iframeWidth === width)
+        return setTimeout(this.observeStrangeCousin.bind(this), 150);
+      debugger;
+      this._iframeHeight = height;
+      this._iframeWidth = width;
+      this.sendMessage(JSON.stringify({width, height}));
+      requestAnimationFrame(this.observeStrangeCousin.bind(this));
     }
   }
 
   customElements.define("overflow-iframe-part2", OverflowIframe);
 </script>
-
-<h1>Hello world!</h1>
-<hr>
-<overflow-iframe-part2 auto-layout="w"
-                       style="background: lightblue; width: 100%"
-                       srcdoc="<h1>Hello sunshine!</h1><h2 style='width: 5000px; border: 2px solid blue;'>I'm toooooo long...</h2><script>setInterval(()=> document.querySelector('h1').innerText += ' goodbye rain! ', 1000);</script>"
-></overflow-iframe-part2>
-
+<table>
+  <tr>
+    <td>space here:</td>
+    <td>
+      <h1>Hello world!</h1>
+      <hr>
+      <div id="omg"
+           style="position: absolute; height: 100%; width: 100%; visibility: hidden;"></div>
+      <overflow-iframe-part2 auto-layout="w; h"
+                             style="display: inline-block; background: grey; border: 2px solid red;"
+                             srcdoc="<h1>Hello sunshine!</h1><h2 style='width: 5000px; border: 2px solid blue;'>I'm toooooo long...</h2><script>setTimeout(()=> {const h1 = document.querySelector('h1'); h1.style.height = '10%'; h1.style.width = '10%';}, 1000);</script>"
+      ></overflow-iframe-part2>
+      <hr>
+      <h1>Hello sunshine!</h1>
+    </td>
+  </tr>
+</table>
 <!--
   This code is untested. I have only done superficial tests from within devtools in Chrome.
   The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
