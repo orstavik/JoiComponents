@@ -1,0 +1,54 @@
+<script type="module" src="InlineIframe.js"></script>
+
+<script id="two">
+  console.log("script2");
+</script>
+<style id="alpha">
+  h1 {
+    color: red;
+  }
+</style>
+
+<style>
+  h1 {
+    background-color: blue;
+  }
+</style>
+
+<link id="uno" rel="stylesheet" href="../styledIframeUno.css">
+
+<inline-iframe
+    included-resources="script#two style#alpha link#uno"
+    allow-browse
+    allow-overflow
+    srcdoc="<a href='sunshine.com'><h1>Hello sunshine!</h1></a><img src='100/100'><script>setTimeout(()=> {const h1 = document.querySelector('h1'); h1.style.height = '1500px'; h1.style.width = '1500px';}, 1000);</script>"
+    base="https://picsum.photos/id/1/">
+
+  <iframe-style>
+    h1 {
+      border-left: 4px dotted blue;
+    }
+  </iframe-style>
+  <iframe-link id="dos" rel="stylesheet" href="styledIframeDos.css"></iframe-link>
+  <iframe-script src="scriptedIframe.js">
+    exclude me
+  </iframe-script>
+  <iframe-script>
+    console.log("iframe-script says hi!");
+  </iframe-script>
+
+</inline-iframe>
+
+<hr>
+<h1>Hello world!</h1>
+<img src="https://picsum.photos/id/0/100/100" alt="">
+
+<script>
+  window.addEventListener("browse", function (e) {
+    console.log("browse", e);
+  });
+</script>
+<!--
+  This code is untested. I have only done superficial tests from within devtools in Chrome.
+  The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
+-->

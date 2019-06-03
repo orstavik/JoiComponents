@@ -35,14 +35,20 @@
 
     attributeChangedCallback(name, oldValue, newValue) {
       if (name === "srcdoc") {
-        const outerIncluded = this.getAttribute("included-resources")
-          .split(" ")
-          .map(selector => document.querySelector(selector));
+        let res = "";
+        if (this.hasAttribute("included-resources")){
+          const outerIncluded = this.getAttribute("included-resources")
+            .split(" ")
+            .map(selector => document.querySelector(selector));
+          const outer = outerIncluded.map(child => transposeTag(child));
+          res += outer.join("");
+        }
         const innerIncluded = Array.from(this.children)
           .filter(n => n.tagName === "IFRAME-SCRIPT" || n.tagName === "IFRAME-STYLE" || n.tagName === "IFRAME-LINK");
-        const outer = outerIncluded.map(child => transposeTag(child));
         const inner = innerIncluded.map(child => transposeTag(child));
-        const src = outer.join("") + inner.join("") + (newValue || "");
+        res += inner.join("");
+
+        const src = res + (newValue || "");
         let blob = new Blob([src], {type: "text/html"});
         this._iframe.setAttribute("src", URL.createObjectURL(blob));
       }

@@ -86,6 +86,12 @@ The example below implements a script for the JoiEvent composed event: `browse`.
 -->
 ```
 
+## Use with: `base`
+
+If don't set the `base` of the content inside the iframe, and you use blob to add its content, then
+relative links will be interpreted against blob which will not work. Thus, transposing navigation
+events should always also set the base to at minimum `https:`.
+
 ## References
 
  * 

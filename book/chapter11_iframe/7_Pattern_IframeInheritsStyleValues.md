@@ -1,3 +1,21 @@
+# Pattern: IframeInheritsStyleValues
+
+The IframeInheritsStyleValues pattern ensures that CSS values that depend on the dimensions of the
+window, such as `vh` and `vw`. The problem with these values is that they should be bound to the
+tackles the problem of embeds an *untrusted* HTML fragment that *inherits* all inherited 
+CSS properties from the node in the embedding HTML document onto which the `<iframe>` is appended. 
+The inner `<iframe>` only inherits the style when it has an `inherit-css` attribute.
+
+IframeInheritsStyle is implemented as a web component that uses the StyleCallback pattern and 
+a `styleCallback(...)` to dynamically listen for changes in the values of all inheritable CSS
+on its host element. Whenever these values changes, the IframeInheritsStyle sends a message to the
+inner `<iframe>`. The inner `<iframe>` contains a default CSS stylesheet with a single rule for the
+root `html { ... }` element. This rule is then populated with all the same CSS values for all the
+inheritable CSS properties on the container element.
+
+## Web comp: `<iframe-inherits-style>`
+
+```html
 <script type="module">
 
   const active = [];
@@ -212,3 +230,8 @@
   This code is untested. I have only done superficial tests from within devtools in Chrome.
   The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
 -->
+```
+
+## References
+
+ * 

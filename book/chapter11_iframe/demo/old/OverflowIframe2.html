@@ -1,0 +1,182 @@
+<script type="module">
+  const innerTemplate = `
+<style>
+html {
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  display: inline-block;
+}
+</style>
+<script>(function(){
+  var pW = undefined;
+  var pH = undefined;
+  const s = document.styleSheets[0].cssRules[0];
+
+  window.addEventListener("message", function(e){
+    const dim = JSON.parse(e.data);
+    s.style.width = dim.width + "px";
+    s.style.height = dim.height + "px";
+//    sizeHasChanged();
+  });
+
+  function sizeHasChanged(){
+    const html = document.children[0];
+    const body = html.children[1];
+    //scrollHeight is always as big as offsetHeight. If the offsetHeight of the body is capped at the offsetHeight of the parent, then use scrollHeight
+    let height = body.offsetHeight === html.offsetHeight ? body.scrollHeight : body.offsetHeight;
+    let width = body.offsetWidth === html.offsetWidth ? body.scrollWidth : body.offsetWidth;
+    debugger;
+    if (pW === width && pH === height)
+      return false;
+    pW = width; pH = height;
+    parent.postMessage(JSON.stringify({width, height}), "*");
+    return true;
+  }
+
+  function observeSize() {
+    sizeHasChanged() ?
+      requestAnimationFrame(observeSize):
+      setTimeout(observeSize, 150);
+  }
+  document.addEventListener("DOMContentLoaded", observeSize);
+})();</scrip` + `t>`;
+
+  const outerTemplate = document.createElement("template");
+  outerTemplate.innerHTML = `
+<style>
+  :host, iframe {
+    box-sizing: border-box;
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+  :host{
+    overflow: visible;
+    display: inline-block;
+  }
+  iframe {
+    overflow: hidden;
+    height: 0;     /*initial value only, will be overwritten later*/
+    width: 0;      /*initial value only, will be overwritten later*/
+  }
+</style>
+<iframe sandbox="allow-scripts" scrolling="no" frameborder="0"></iframe>`;
+
+  import {LayoutAttributesMixin} from "https://unpkg.com/joicomponents@1.2.31/src/layout/LayoutAttributesMixin.js";
+
+  class OverflowIframe extends LayoutAttributesMixin(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.appendChild(outerTemplate.content.cloneNode(true));
+      this._iframe = this.shadowRoot.children[1];
+      window.addEventListener("message", this.onMessage.bind(this));
+      this._ready = false;
+      this._cbObj = this.autoUpdateInnerFrame.bind(this);
+      this._iframeWidth;
+      this._iframeHeight;
+    }
+
+    static get observedAttributes() {
+      return ["srcdoc"/*, "_layout-width", "_layout-height"*/];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+//      if (name === "_layout-width" || name === "_layout-height") {
+//        if (!this.hasAttribute("_layout-width") || !this.hasAttribute("_layout-height"))
+//          return console.log(false, name, newValue);
+//        let width = Math.min(window.innerWidth, this.offsetWidth);
+//        let height = Math.min(window.innerHeight, this.offsetHeight);
+//        this.sendMessage(JSON.stringify({width, height}));
+//      }
+//      if (name === "_layout-width" || name === "_layout-width") {
+//        console.log(name, newValue);
+//        this.sendMessage(JSON.stringify({width: newValue}));
+//      }
+      if (name === "srcdoc") {
+        const src = innerTemplate + (newValue || "");
+        let blob = new Blob([src], {type: "text/html"});
+        this._iframe.setAttribute("src", URL.createObjectURL(blob));
+      }
+    }
+
+    onMessage(e) {
+      if (e.source !== this._iframe.contentWindow)
+        return;
+      const dim = JSON.parse(e.data);
+      this._iframe.style.width = dim.width + "px";
+      this._iframe.style.height = dim.height + "px";
+      this.updateWidthHeight();
+    }
+
+    autoUpdateInnerFrame() {
+      this.updateWidthHeight() ?
+        requestAnimationFrame(this._cbObj) :
+        setTimeout(this._cbObj, 250);
+    }
+
+    updateWidthHeight() {
+      const [width, height] = this.getMyPotentialContentArea();
+      if (this._iframeHeight === height && this._iframeWidth === width)
+        return false;
+      this._iframeHeight = height;
+      this._iframeWidth = width;
+      this._iframe.contentWindow.postMessage(JSON.stringify({width, height}), "*");
+      return true;
+    }
+
+    getMyPotentialContentArea() {
+      //alternative approach here would be to make a different element, copy over the padding and border from this element
+      //then append this at the end of the parent of this element.
+      //then read that elements width and height, and then remove it again
+      const oldDisplay = this.style.display;
+      const oldWidth = this.style.width;
+      const oldHeight = this.style.height;
+      this.style.display = "block";
+      this.style.width = "100%";
+      this.style.height = "100%";
+      const width = this.clientWidth;
+      const height = this.clientHeight;
+      this.style.display = oldDisplay;
+      this.style.width = oldWidth;
+      this.style.height = oldHeight;
+      return [width, height];
+    }
+  }
+
+  customElements.define("overflow-iframe-part2", OverflowIframe);
+</script>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  overflow-iframe-part2 {
+    border: 100px solid orange;
+  }
+</style>
+<h1>Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello
+  sunshine!</h1>
+<hr>
+<div style="width: 100%; height:100%; border: 5px solid red;">
+  <!--<overflow-iframe-part2 auto-layout="w; h" srcdoc="<h1 style='height: 60%; border: 3px dotted pink;'>Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! Hello sunshine! </h1>"></overflow-iframe-part2>-->
+  <!--<hr>-->
+  <!--<overflow-iframe-part2 auto-layout="w; h" srcdoc="<h1 style='padding-right: 2000px; border: 2px dotted blue;'>I'm also toooooo long......</h1>"></overflow-iframe-part2>-->
+  <!--<hr>-->
+  <!--<overflow-iframe-part2 auto-layout="w; h" srcdoc="<h1 style='height: 100%; border: 5px dotted green'>Hello sunshine! </h1><script>setTimeout(()=> {const h1 = document.querySelector('h1'); h1.style.height = '10%'; h1.style.width = '100%';}, 1000);</script>"></overflow-iframe-part2>-->
+  <hr>
+  <overflow-iframe-part2 auto-layout="w; h" srcdoc="<h1 style='height: 100%; width: 110%; border: 5px dotted green'>Hello sunshine! </h1>"></overflow-iframe-part2>
+</div>
+
+<!--
+
+  This code is untested. I have only done superficial tests from within devtools in Chrome.
+  The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
+-->

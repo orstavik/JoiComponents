@@ -1,0 +1,58 @@
+<!--This thing cannot overflow to the left or upwards-->
+<script type="module" src="ScrollsizeIframe.js"></script>
+
+<style>
+  overflow-iframe-part2 {
+    border: 2px solid orange;
+  }
+  .inline {
+    display: inline-block;
+    width: 300px;
+    overflow: auto;
+  }
+</style>
+100x100
+<overflow-iframe-part2 viewport-width="100"
+                       viewport-height="100"
+                       srcdoc="<h1 style='height: 120px; width: 110%; border: 5px dotted green'>Hello sweet, sweet suuuuunshine! </h1>"></overflow-iframe-part2>
+<hr>
+600x200
+<overflow-iframe-part2 viewport-width="600"
+                       viewport-height="200"
+                       srcdoc="<h1 style='height: 120px; width: 110%; border: 5px dotted green'>Hello sweet, sweet suuuuunshine! </h1>"></overflow-iframe-part2>
+<hr>
+w200xh0
+<overflow-iframe-part2 viewport-width="200"
+                       srcdoc="<h1 style='height: 120px; width: 110%; border: 5px dotted green'>Hello sweet, sweet suuuuunshine! </h1>"></overflow-iframe-part2>
+<hr>
+w0xh200
+<overflow-iframe-part2 viewport-height="200"
+                       srcdoc="<h1 style='height: 120px; width: 110%; border: 5px dotted green'>Hello sweet, sweet suuuuunshine! </h1>"></overflow-iframe-part2>
+<hr>
+100x100
+<overflow-iframe-part2 viewport-width="100"
+                       viewport-height="100"
+                       class="inline"
+                       srcdoc="<h1 style='height: 120px; width: 110%; border: 5px dotted green'>Hello sweet, sweet suuuuunshine! </h1>"></overflow-iframe-part2>
+<hr>
+600x200
+<overflow-iframe-part2 viewport-width="600"
+                       viewport-height="200"
+                       class="inline"
+                       srcdoc="<h1 style='height: 120px; width: 110%; border: 5px dotted green'>Hello sweet, sweet suuuuunshine! </h1>"></overflow-iframe-part2>
+<hr>
+w200xh0
+<overflow-iframe-part2 viewport-width="200"
+                       class="inline"
+                       srcdoc="<h1 style='height: 120px; width: 110%; border: 5px dotted green'>Hello sweet, sweet suuuuunshine! </h1>"></overflow-iframe-part2>
+<hr>
+w0xh200
+<overflow-iframe-part2 viewport-height="200"
+                       class="inline"
+                       srcdoc="<h1 style='height: 120px; width: 110%; border: 5px dotted green'>Hello sweet, sweet suuuuunshine! </h1>"></overflow-iframe-part2>
+
+<!--
+
+  This code is untested. I have only done superficial tests from within devtools in Chrome, Firefox.
+  The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
+-->

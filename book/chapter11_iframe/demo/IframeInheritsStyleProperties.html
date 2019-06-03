@@ -1,19 +1,3 @@
-# Pattern: IframeInheritsStyle
-
-The IframeInheritsStyle pattern embeds an *untrusted* HTML fragment that *inherits* all inherited 
-CSS properties from the node in the embedding HTML document onto which the `<iframe>` is appended. 
-The inner `<iframe>` only inherits the style when it has an `inherit-css` attribute.
-
-IframeInheritsStyle is implemented as a web component that uses the StyleCallback pattern and 
-a `styleCallback(...)` to dynamically listen for changes in the values of all inheritable CSS
-on its host element. Whenever these values changes, the IframeInheritsStyle sends a message to the
-inner `<iframe>`. The inner `<iframe>` contains a default CSS stylesheet with a single rule for the
-root `html { ... }` element. This rule is then populated with all the same CSS values for all the
-inheritable CSS properties on the container element.
-
-## Web comp: `<iframe-inherits-style>`
-
-```html
 <script type="module">
 
   const active = [];
@@ -93,7 +77,7 @@ inheritable CSS properties on the container element.
 
   import {StyleCallbackMixin} from "https://unpkg.com/joicomponents@1.2.27/src/style/StyleCallbackMixin.js";
 
-  class IframeInheritsStyle extends StyleCallbackMixin(HTMLElement) {
+  class IframeInheritsStyleProperties extends StyleCallbackMixin(HTMLElement) {
     constructor() {
       super();
       this.attachShadow({mode: "open"});
@@ -173,7 +157,7 @@ inheritable CSS properties on the container element.
     }
   }
 
-  customElements.define("iframe-inherits-style", IframeInheritsStyle);
+  customElements.define("iframe-inherits-style", IframeInheritsStyleProperties);
 
 </script>
 
@@ -228,8 +212,3 @@ inheritable CSS properties on the container element.
   This code is untested. I have only done superficial tests from within devtools in Chrome.
   The code should only work in Chrome, Safari, Firefox as template does not work in IE and Edge.
 -->
-```
-
-## References
-
- * 

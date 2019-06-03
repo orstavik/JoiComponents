@@ -1,36 +1,52 @@
-# Pattern: OverflowIframe
+# Pattern: ScrollsizeIframe
 
-The OverflowIframe pattern makes it possible for a safely sandboxed `<iframe>` to overflow in a
-given direction deemed safe for user confusion in the parent browsing context.
+The ScrollsizeIframe pattern makes it possible for a safely sandboxed `<iframe>` to overflow 
+right- and downwards. This enables the content inside the iframe to overlay or 
+replace other content from the embedding, parent frame, thus enabling the iframe content to
+clickjack or keyboard-jack users expecting a form or links or other actions right of or below the
+iframe. ScrollsizeIframe pattern must therefore not be used in a visual context where UI content is 
+expected to the right of or below the iframe content.
 
-The OverflowIframe pattern basically transpose the style of an `<overflow-iframe>` into the root 
-`<html>` element inside the `document` in the inner `<iframe>`. The inner `<iframe>` then transpose
-back out the `scrollWidth` and `scrollHeight` of its `document`, which the inner `<iframe>` uses to
-grow or shrink.
+The outer ScrollsizeIframe element has two properties, `flow-width` and `flow-height`.
+These two properties are transposed into the inner `<iframe>` every time they change.
+Inside the inner `<iframe>`, they are used as the `width` and `height` dimensions of the root
+`<html>` element. 
 
-To accomplish this, the OverflowIframe pattern uses the following resources:
-1. The outer `<overflow-iframe>` element observes the `getComputedStyle(this)` dimensions of
-   itself using the `LayoutAttributesMixin`. Whenever its height and/or width changes (which depends 
-   on which way it is allowed to overflow), the outer `<overflow-iframe>` sends a message to its
-   inner `<iframe>` about the change.
-2. The inner `<iframe>` sets a rule in its default stylesheet specifying the updated width and height.
-3. The inner `<iframe>` also observes the `scrollWidth` and `scrollHeight` of its root `<html>` 
-   element, and sends a message to its parent `<overflow-iframe>` whenever these dimensions change.
-   * The inner `<iframe>` polls its `scrollWidth` and `scrollHeight` every 150ms.
-     When these dimensions changes it switches to polling every `requestAnimationFrame()`.
-     When the dimensions do not change, it switches back to polling every 150ms.
-     It only sendMessage to parent browsing context when the dimensions change.
+The inner `<iframe>` observes its own `scrollWidth` and `scrollHeight` properties.
+Whenever these properties change, the inner `<iframe>` alerts its parent which then resets the
+`<iframe>`'s size so that it has enough space to show all its content without scrollbars.
 
-4. The parent `<overflow-iframe>` then sets these new dimensions as the width and height of its 
-   inner `<iframe>` element, which is allowed to overflow the boundaries of the outer `<overflow-iframe>`
-   element.
+todo: implement a mechanism to stop polling scrollsize inside the inner iframe being controlled 
+with an attribute/method from the outer parent element.
 
-As long as the user will not be confused in that the content originates from the `<iframe>` browsing
-context and not the parent browsing context, it is unlikely that `<overflow-iframe>` poses a security
-risk. For example, in a normal web page flowing left to right, top to bottom, with an `<iframe>` 
-positioned bottom right, is unlikely to encounter much problems if it allows the content of this `<iframe>`
-overflow on its right or bottom. As far as I can tell.
+## Open issues
 
+There are three issues the ScrollsizeIframe pattern does not solve:
+
+1. There is *no* way to transpose the viewport width and height from the parent frame into the
+   `<iframe>`. This means that if the embedded HTML fragment inside the `<iframe>` uses `vh`, `vw`,
+   `vmin`, or `vmax`, then these properties will be wrong.
+   (The only situation where these properties will still be correct is the situation where the content
+   does not overflow the `<iframe>` and the `<iframe>` fills the parent viewport entirely.)
+   
+   There is a potential fix for this. `<meta name="viewport" ...>` could be used to define these 
+   properties in an `<iframe>`. Or, a `viewport` attribute could be added to the `<iframe>` element.
+   However, this is just a dream. No browser, asfaik, has even considered this.
+   
+2. The viewport of the ScrollsizeIframe element is static. This means that a script must update the
+   `flow-width` and `flow-height` if these properties are to change.
+   
+   Originally, my intent was to make one ScrollsizeIframe web component that would update these two 
+   properties automatically. But. The semantics of an element's size is extremely complex. 
+   It depends on `display` mode in addition to `position` type, which is both interpreted from an 
+   ancestor found in context.
+   
+   To make the methods necessary for such options would require making a `.getInnerSize()` and 
+   `onSizeChange` callback or event, for all combinations of `display` and `position` modes. 
+   This task is considered beyond the scope of this pattern.
+   
+3. The ScrollsizeIframe only overflows right and down. It does not overflow left and top. 
+   
 ## WebComp: `<overflow-iframe>`
 
 ```html
@@ -91,7 +107,7 @@ html {
 
   import {OnceLayoutAttributesMixin} from "https://unpkg.com/joicomponents@1.2.30/src/layout/LayoutAttributesMixin.js";
 
-  class OverflowIframe extends OnceLayoutAttributesMixin(HTMLElement) {
+  class ScrollsizeIframe extends OnceLayoutAttributesMixin(HTMLElement) {
     constructor() {
       super();
       this.attachShadow({mode: "open"});
@@ -102,7 +118,7 @@ html {
     }
 
     static get observedAttributes() {
-      return ["srcdoc", "_layout-width"];
+      return ["srcdoc"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -135,7 +151,7 @@ html {
     }
   }
 
-  customElements.define("overflow-iframe-part2", OverflowIframe);
+  customElements.define("overflow-iframe-part2", ScrollsizeIframe);
 </script>
 
 <h1>Hello world!</h1>
@@ -169,19 +185,27 @@ The solution would be to use `<meta name="viewport">` as a mechanism to specify 
 should use.
 
 
+## Old drafts
 
-## Todo: specify overflow direction 
+To accomplish this, the ScrollsizeIframe pattern uses the following resources:
+1. The inner `<iframe>` sets a rule in its default stylesheet specifying the updated width and height.
+3. The inner `<iframe>` also observes the `scrollWidth` and `scrollHeight` of its root `<html>` 
+   element, and sends a message to its parent `<overflow-iframe>` whenever these dimensions change.
+   * The inner `<iframe>` polls its `scrollWidth` and `scrollHeight` every 150ms.
+     When these dimensions changes it switches to polling every `requestAnimationFrame()`.
+     When the dimensions do not change, it switches back to polling every 150ms.
+     It only sendMessage to parent browsing context when the dimensions change.
 
-1. Infinite loops of changes that are caused by the css properties such as `height: 150vh`. 
-   This will grow infinitely in this setup.
-   
-2. There needs to be limitations for too fluid style updates. When css animations or js scripts 
-   continuosly change the scrollHeight and scrollWidth of the inner iframe, its should not continue
-   to grow forever. 
+4. The parent `<overflow-iframe>` then sets these new dimensions as the width and height of its 
+   inner `<iframe>` element, which is allowed to overflow the boundaries of the outer `<overflow-iframe>`
+   element.
 
-3. Currently, only support for overflow on the right side is implemented.
-   Not implemented yet: The OverflowIframe pattern is controlled via an attribute `allow-overflow` that 
-   can be given one or two directions in the xy-axis such as: `n`, `e`, `s`, `w`, `ne`, `we`. 
+As long as the user will not be confused in that the content originates from the `<iframe>` browsing
+context and not the parent browsing context, it is unlikely that `<overflow-iframe>` poses a security
+risk. For example, in a normal web page flowing left to right, top to bottom, with an `<iframe>` 
+positioned bottom right, is unlikely to encounter much problems if it allows the content of this `<iframe>`
+overflow on its right or bottom. As far as I can tell.
+
 
 ## References
 

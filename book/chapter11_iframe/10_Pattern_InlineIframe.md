@@ -10,8 +10,8 @@ element, while in addition supporting the following attributes:
  * `base`
  * `inherit-css`
  * `included-resources`, and it will recognize `<iframe-script>`, `<iframe-style>`, and `<iframe-link>` 
- * `allow-overflow`, (currently only supports overflow `right`) 
- * `transpose-event`, (currently only supports overflow `browse`)
+ * `scrollsize`, (currently only supports overflowing the `right` and `bottom` boundaries) 
+ * `transpose-event`, (currently only supports the `browse` event)
  
 ## WebComp: `<inline-iframe>`
 
