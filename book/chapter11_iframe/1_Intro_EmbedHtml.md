@@ -4,22 +4,16 @@
 
 ## Embed HTML usecase: WordPress
 
-WordPress dominates the web server-side. 
-But what function does WordPress and
+WordPress dominates the web server-side. But what function does WordPress and
 other CMSes fill? They embed HTML. 
 
 I do mean to belittle WordPress here. 
-The engine that powers ~25% of websites
-is not magic. Its role is mainly to
-put together several HTML fragments into
-coherent, unary HTML documents.
+The engine that powers ~25% of websites is not magic. Its role is mainly to
+put together several HTML fragments into coherent, unary HTML documents.
 
-But. To sew together several pieces
-of HTML into one, that can't be that 
-hard? Why do we need a server-side 
-engine, a CMS to do that? To answer
-this question, we need to dive into 
-the details of embedding HTML.
+But. To sew together several pieces of HTML into one, that can't be that hard? 
+Why do we need a server-side engine, a CMS to do that? 
+To answer this question, we need to dive into the details of embedding HTML.
 
 ## HowTo: Embed HTML server-side
 
