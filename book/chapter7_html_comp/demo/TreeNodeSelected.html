@@ -12,13 +12,13 @@
       this.__isSetup = false;                                                          //[3]
     }
 
+    static get observedAttributes() {
+      return ["selected"];
+    }
+
     slotCallback(slot) {
       this.__isSetup = true;                                                           //[3]
       this.getRootTreeNode().syncAtBranchChange();                                     //[2]
-    }
-
-    static get observedAttributes() {
-      return ["selected"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {

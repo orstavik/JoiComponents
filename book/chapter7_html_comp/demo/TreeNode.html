@@ -1,76 +1,51 @@
-<script>
-  class TreeNode extends HTMLElement {
-    constructor() {
-      super();
-      this.attachShadow({mode: "open"});
-      this.shadowRoot.innerHTML = `
-        <style>
-          :host {
-            display: block;
-          }
-          span {
-            cursor: pointer;
-            display: inline-block;
-            transform: rotate(45deg);
-            transition: 300ms ease-in-out;
-          }
-          :host([open]) span {
-            transform: rotate(0deg);
-          }
-          slot {
-            display: none;
-          }
-          :host([open]) slot {
-            display: inline;
-          }
-        </style>
-        <span>+</span>
-        <slot></slot>`;
-      this.shadowRoot.querySelector("span").addEventListener("click", this.onClick.bind(this));
-    }
-
-    static get observedAttributes() {
-      return ["open"];
-    }
-
-    attributeChangedCallback(name, oldValue, newValue) {
-      if (name === "open")
-        newValue === null ? this.closeChildren() : this.openParent();
-    }
-
-    closeChildren() {
-      for (let child of this.children) {
-        if (child.tagName === "TREE-NODE" && child.hasAttribute("open"))
-          child.removeAttribute("open");
-      }
-    }
-
-    openParent() {
-      const parent = this.parentNode;
-      if (parent.tagName && parent.tagName === "TREE-NODE" && !parent.hasAttribute("open"))
-        parent.setAttribute("open", "");
-    }
-
-    onClick(e) {
-      e.stopPropagation();
-      this.hasAttribute("open") ? this.removeAttribute("open") : this.setAttribute("open", "");
-    }
-  }
-
-  customElements.define("tree-node", TreeNode);
-</script>
+<script type="module" src="TreeNode.js"></script>
 
 <style>
   tree-node {
-    border: 2px solid grey;
-    padding: 10px;
+    display: block;
+    padding-left: 10px;
+  }
+  tree-node[open] {
+    color: green;
+  }
+  tree-node[selected] {
+    font-style: italic;
+  }
+  tree-node:not([selected]) {
+    font-style: normal;
+  }
+  tree-node:not([open]) {
+    color: red;
+    display: none;
+  }
+  tree-node#root,
+  tree-node[open] > tree-node:not([open]) {
+    display: block;
   }
 </style>
 
-<tree-node>
-  <tree-node>hello world</tree-node>
+<tree-node id="root">book
   <tree-node>
-    <tree-node>hello sunshine</tree-node>
-    <tree-node>hello blue skies</tree-node>
+    chapter 1
+    <tree-node selected>
+      chapter 1.1
+      <tree-node open>chapter 1.1.1</tree-node>
+      <tree-node>chapter 1.1.2</tree-node>
+    </tree-node>
+    <tree-node id="a">chapter 1.2</tree-node>
+  </tree-node>
+
+  <tree-node>
+    chapter 2
+    <tree-node open>chapter 2.1</tree-node>
+    <tree-node>chapter 2.2</tree-node>
   </tree-node>
 </tree-node>
+
+<script>
+  const clone = document.querySelector("tree-node").cloneNode(true);
+  clone.id = undefined;
+  setTimeout(function () {
+    document.querySelector("tree-node#a").appendChild(clone);
+  }, 3000);
+</script>
