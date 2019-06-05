@@ -116,6 +116,16 @@ Hello world!
 -->
 ```
 
+## Problem: `<meta charset="UTF-8">`
+
+When you make a `new Blob([aStringInJs], {type: "text/html"})` and open it inside the 
+`<iframe>.contentWindow`, then this `Blob` is made using a regular JS string `DOMString` that is 
+`UTF-16`. In order for the characters to display correctly, the charset of the `<iframe>` must be
+set to `UTF-8`. This is done by adding a `<meta charset="UTF-8">` tag inside the `<iframe>`.
+
+Todo. This pattern doesn't support other, richer text formats such as Unicode yet.
+A new pattern should be set up to describe how to pass unicode text into the `<iframe>`.
+
 ## References
 
  * [How to use `Blob` to load html in an `<iframe>`](https://dev.to/pulljosh/how-to-load-html-css-and-js-code-into-an-iframe-2blc)

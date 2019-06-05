@@ -23,7 +23,7 @@
 
       attributeChangedCallback(name, oldValue, newValue) {
         if (name === "srcdoc") {
-          let src = makeBaseString(this.getAttribute("base")) + (newValue || "");
+          let src = '<meta charset="utf-8">' + makeBaseString(this.getAttribute("base")) + (newValue || "");
 //        src += '<script>debugger;</scr'+'ipt>';
           let blob = new Blob([src], {type: "text/html"});
           this._iframe.setAttribute("src", URL.createObjectURL(blob));
@@ -36,7 +36,7 @@
 </script>
 
 <iframe-base
-    srcdoc="Hello sunshine! <img src='100/100'>"
+    srcdoc="Hello sunshine! <img src='100/100'> €"
     base="https://picsum.photos/id/1/">
 </iframe-base>
 

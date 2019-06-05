@@ -90,7 +90,7 @@ function makeBaseString(baseURI) {
 
 
 let innerTempl = function (width, height, base) {
-  return makeBaseString(base) + `
+  return `<meta charset="UTF-8">` + makeBaseString(base) + `
 <style>
 html {}
 body, html {
@@ -187,25 +187,7 @@ class InlineIframe extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === "srcdoc") {
-      const width = this.getAttribute("flow-width") || 0;
-      const height = this.getAttribute("flow-height") || 0;
-
-      let res = "";
-      if (this.hasAttribute("included-resources")){
-        const outerIncluded = this.getAttribute("included-resources")
-          .split(" ")
-          .map(selector => document.querySelector(selector));
-        const outer = outerIncluded.map(child => transposeTag(child));
-        res += outer.join("");
-      }
-      const innerIncluded = Array.from(this.children)
-        .filter(n => n.tagName === "IFRAME-SCRIPT" || n.tagName === "IFRAME-STYLE" || n.tagName === "IFRAME-LINK");
-      const inner = innerIncluded.map(child => transposeTag(child));
-      res += inner.join("");
-
-      const src = innerTempl(parseInt(width), parseInt(height), this.getAttribute("base")) + res + (newValue || "");
-      let blob = new Blob([src], {type: "text/html"});
-      this._iframe.setAttribute("src", URL.createObjectURL(blob));
+      this.setContent(newValue);
     }
     if (name === "flow-width" || name === "flow-height") {
       const width = this.getAttribute("flow-width") || 0;
@@ -227,6 +209,28 @@ class InlineIframe extends HTMLElement {
       }
       batchCallsMicro(this._updateIframeObj);
     }
+  }
+
+  setContent(htmlFragment) {
+    const width = this.getAttribute("flow-width") || 0;
+    const height = this.getAttribute("flow-height") || 0;
+
+    let res = "";
+    if (this.hasAttribute("included-resources")) {
+      const outerIncluded = this.getAttribute("included-resources")
+        .split(" ")
+        .map(selector => document.querySelector(selector));
+      const outer = outerIncluded.map(child => transposeTag(child));
+      res += outer.join("");
+    }
+    const innerIncluded = Array.from(this.children)
+      .filter(n => n.tagName === "IFRAME-SCRIPT" || n.tagName === "IFRAME-STYLE" || n.tagName === "IFRAME-LINK");
+    const inner = innerIncluded.map(child => transposeTag(child));
+    res += inner.join("");
+
+    const src = innerTempl(parseInt(width), parseInt(height), this.getAttribute("base")) + res + (htmlFragment || "");
+    let blob = new Blob([src], {type: "text/html"});
+    this._iframe.setAttribute("src", URL.createObjectURL(blob));
   }
 
   onMessage(e) {
