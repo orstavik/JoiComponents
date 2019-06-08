@@ -28,11 +28,11 @@ The actual width of the GoldenPage element is given by the element context.
     * below `column-width-min` both margin-left and margin-right is decreased to make the column wider and the text more easily readable. 
     * above `column-width-max` only margin-right will grow. 
 
-5. The height of the GoldenPage can be fixed as either `fixed-ratio="portrait"` (default) or `fixed-ratio="landscape"`. When `fixed-ratio` is set, the dimensions of the GoldenPage *and* the text column will be the golden ratio, the margin-left = 2/9 width, margin-right = 1/9 width, and the dimensions of the top-left margin square be the golden-ratio. The bottom margin is the remainder.
+5. The height of the GoldenPage can be `fixed-length`. When `fixed-length` is set, the dimensions of the GoldenPage *and* the text column will be the golden ratio, the margin-left = 2/9 width, margin-right = 1/9 width, and the dimensions of the top-left margin square be the golden-ratio. The bottom-left margin rectangle will be a perfect square.
  
-## Problem: the text is too narrow or wide for the page
+## Problem: text vs. margin
 
-As is evident from many mobile web pages, space for text is prioritized over space for margins when a page becomes too narrow. This can be viewed in terms of characters per line (`cpl`). If a "page" becomes too narrow so that it will produce a text of less than say 30cpl, then margins should be reduced to achieve a min-cpl number.
+As is evident from many mobile web pages, space for text is prioritized over space for margins when a space becomes scarce. This can be viewed in terms of characters per line (`cpl`). If a "page" becomes too narrow so that it will produce a text of less than say 30cpl, then margins should be reduced to achieve a min-cpl number.
 
 Similarly, if the page is too wide for the given text, the width of the column becomes too wide. In such cases, the width of the column should be capped at a certain max-cpl number, say 90cpl.
 
@@ -42,9 +42,9 @@ To calculate cpl is not easy as it varies with:
 3. font-spacing.
 4. font-size.
 
-In JS it is possible to compute the mean cpl for a given text, but this will be very heavy. 
+In JS it is possible to compute the mean cpl for a given text, but this will cost compute resources. 
 
-Thus, instead of adapting the min-text-width and max-text-width to cpl, min-text-width and max-text-width is specified against `em`. In typography, `m`-width originally referred to the width of the `M` character in a typeset. In CSS `em` is a known length unit for any element. Thus, `min-text-width` and `max-text-width` is specified in `em` as this gives a good enough estimate for when margin-space should be deprioritized/prioritized.
+Thus, instead of implementing a min-cpl and max-cpl, `column-width-min` and `column-width-max` should be specified in `em`. In typography, `m`-width originally referred to the width of the `M` character in a typeset. In CSS `em` refers to inherited font-size which is a known length unit for any element. CSS `em` may or may not correspond to the original width of an `M`, but this will require control from the outside, lightDOM context of the GoldenPage element.
 
 ## Implementation
 
