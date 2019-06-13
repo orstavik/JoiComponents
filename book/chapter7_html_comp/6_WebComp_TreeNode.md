@@ -1,14 +1,11 @@
 # WebComp: TreeNode
 
-The TreeNode web component in this chapter implements both the RecursiveSelected and RecursiveOpen
-pattern. The resulting TreeNode component can be used in many different context for graphs such as:
+The TreeNode web component in this chapter implements both the RecursiveSelected and RecursiveOpen pattern. The resulting TreeNode component can be used in many different context for graphs such as:
 
 1. JSON objects
 2. chapters in a book
 
-But, the TreeNode must be able to distinguish between users opening them and users selecting them.
-To do so, the implementation needs a prefix, a cross that can be opened or closed.
-This cross can be replaced with a slotted alternative. 
+But, the TreeNode must be able to distinguish between users opening them and users selecting them. To do so, the implementation needs a prefix, a triangle, that can be opened or closed. This triangle can be replaced with a slotted alternative. 
 
 ## Implementation: TreeNode
 
