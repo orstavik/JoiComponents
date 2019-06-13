@@ -8,19 +8,20 @@
   tree-node[open] {
     color: green;
   }
+  tree-node[_empty] {
+    color: black;
+  }
   tree-node[selected] {
     font-style: italic;
   }
   tree-node:not([selected]) {
     font-style: normal;
   }
-  tree-node:not([open]) {
+  tree-node:not([open]):not([_empty]) {
     color: red;
-    display: none;
   }
-  tree-node#root,
-  tree-node[open] > tree-node:not([open]) {
-    display: block;
+  tree-node:not([open]) > tree-node {
+    display: none;
   }
 </style>
 

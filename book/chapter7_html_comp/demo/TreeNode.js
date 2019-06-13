@@ -2,6 +2,7 @@ const templ = document.createElement("template");
 templ.innerHTML = `<style>
 span { display: inline-block; }
 :host(:not([open])) span { transform: rotate(-90deg); }
+:host([_empty]) slot[name="prefix"] { display: none; }
 </style>
 <slot name='prefix'><span>▼</span></slot>
 <slot></slot>`;
@@ -20,12 +21,13 @@ class TreeNode extends SlotchangeMixin(HTMLElement) {
   }
 
   static get observedAttributes() {
-    return ["open", "selected"];
+    return ["open", "selected", "_empty"];
   }
 
   slotCallback(slot) {
     this.__isSetup = true;
     this.getRootTreeNode().syncAtBranchChange();
+    (slot.name === "") && this.updateEmpty();
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -35,6 +37,8 @@ class TreeNode extends SlotchangeMixin(HTMLElement) {
     } else if (name === "selected") {
       if (this.__isSetup && newValue !== null)
         this.unSelectAllOthers(this);                                                 //[4]
+    } else if (name === "_empty") {
+      this.updateEmpty();
     }
   }
 
@@ -94,6 +98,22 @@ class TreeNode extends SlotchangeMixin(HTMLElement) {
     this.hasAttribute("selected") ?
       this.removeAttribute("selected") :
       this.setAttribute("selected", "");
+  }
+
+  updateEmpty() {
+    const isParent = this.isParent();
+    if (!isParent && !this.hasAttribute("_empty"))
+      this.setAttribute("_empty", "");
+    if (isParent && this.hasAttribute("_empty"))
+      this.removeAttribute("_empty");
+  }
+
+  isParent(){
+    for (let child of this.children) {
+      if (child.tagName === "TREE-NODE")
+        return true;
+    }
+    return false;
   }
 }
 
