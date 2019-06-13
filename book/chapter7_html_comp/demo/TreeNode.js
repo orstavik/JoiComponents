@@ -1,3 +1,8 @@
+//todo add a pattern for processedClick: a stopPropagation that works for only one element type.
+//todo selectable
+
+let processedClick;
+
 const templ = document.createElement("template");
 templ.innerHTML = `<style>
 span { display: inline-block; }
@@ -8,6 +13,10 @@ span::before { content: var(--tree-node-prefix, "▼"); }
 <slot name='prefix'><span></span></slot>
 <slot></slot>`;
 
+function toggleAttribute(el, attName) {
+  el.hasAttribute(attName) ? el.removeAttribute(attName) : el.setAttribute(attName, "");
+}
+
 import {SlotchangeMixin} from "https://unpkg.com/joicomponents@1.2.27/src/slot/SlotChildMixin.js";
 
 class TreeNode extends SlotchangeMixin(HTMLElement) {
@@ -16,7 +25,7 @@ class TreeNode extends SlotchangeMixin(HTMLElement) {
     this.attachShadow({mode: "open"});
     this.shadowRoot.appendChild(templ.content.cloneNode(true));
     this.shadowRoot.children[1].addEventListener("click", this.onPrefixClick.bind(this));
-    this.addEventListener("click", this.onClick.bind(this));
+    this.shadowRoot.addEventListener("click", this.onClick.bind(this));
     this.__isTriggered = false;
     this.__isSetup = false;
   }
@@ -88,18 +97,18 @@ class TreeNode extends SlotchangeMixin(HTMLElement) {
   }
 
   onPrefixClick(e) {
-    e.stopPropagation();
-    this.hasAttribute("open") ?
-      this.removeAttribute("open") :
-      this.setAttribute("open", "");
+    if (processedClick === e)
+      return;
+    processedClick = e;
+    toggleAttribute(this, "open")
   }
 
   onClick(e) {
-    e.stopPropagation();
-    this.hasAttribute("selected") ?
-      this.removeAttribute("selected") :
-      this.setAttribute("selected", "");
-    this.onPrefixClick(e);
+    if (processedClick === e)
+      return;
+    processedClick = e;
+    const openOrSelect = (this.hasAttribute("selectable") || this.hasAttribute("_empty")) ? "selected" : "open";
+    toggleAttribute(this, openOrSelect);
   }
 
   updateEmpty() {

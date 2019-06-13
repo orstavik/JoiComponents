@@ -5,11 +5,15 @@ The TreeNode web component in this chapter implements both the RecursiveSelected
 1. JSON objects
 2. chapters in a book
 
-But, the TreeNode must be able to distinguish between users opening them and users selecting them. To do so, the implementation needs a prefix, a triangle, that can be opened or closed. This triangle can be replaced with a slotted alternative. 
+TreeNodes that have other TreeNode children are prefixed by a triangle. When the TreeNode is open, the triangle points down, when it is closed, the triangle points right.
 
 The TreeNode has a StubbornAttribute called `_empty`: whenever the TreeNode has no slotted child TreeNodes, it is `_empty` and there is no point showing a triangle to open or close it. Thus, when the TreeNode is marked `_empty`, the prefix is hidden. And the TreeNode marks itself as `_empty` when it has no children.
 
-The TreeNode also can alter the content of the 
+By default, only leaf TreeNodes are selectable. But, it is possible to add an attribute `selectable` to a parent TreeNode so as to select it. To open such a TreeNode that is selectable and also a parent of other TreeNodes, the prefix triangle must be clicked explicitly.   
+
+The TreeNode can also alter the prefix':
+1. `content` text : `--tree-node-prefix` (default `"▼"`), 
+2. `transform` property in closed state : `--tree-node-prefix-transform` (default `rotate(-45deg)`).
 
 ## Implementation: TreeNode
 
