@@ -1,10 +1,11 @@
 const templ = document.createElement("template");
 templ.innerHTML = `<style>
 span { display: inline-block; }
-:host(:not([open])) span { transform: rotate(-90deg); }
+span::before { content: var(--tree-node-prefix, "▼"); }
+:host(:not([open])) span { transform: var(--tree-node-prefix-transform, rotate(-45deg)); }
 :host([_empty]) slot[name="prefix"] { display: none; }
 </style>
-<slot name='prefix'><span>▼</span></slot>
+<slot name='prefix'><span></span></slot>
 <slot></slot>`;
 
 import {SlotchangeMixin} from "https://unpkg.com/joicomponents@1.2.27/src/slot/SlotChildMixin.js";
@@ -98,6 +99,7 @@ class TreeNode extends SlotchangeMixin(HTMLElement) {
     this.hasAttribute("selected") ?
       this.removeAttribute("selected") :
       this.setAttribute("selected", "");
+    this.onPrefixClick(e);
   }
 
   updateEmpty() {
@@ -108,7 +110,7 @@ class TreeNode extends SlotchangeMixin(HTMLElement) {
       this.removeAttribute("_empty");
   }
 
-  isParent(){
+  isParent() {
     for (let child of this.children) {
       if (child.tagName === "TREE-NODE")
         return true;

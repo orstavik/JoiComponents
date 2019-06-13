@@ -7,7 +7,9 @@ The TreeNode web component in this chapter implements both the RecursiveSelected
 
 But, the TreeNode must be able to distinguish between users opening them and users selecting them. To do so, the implementation needs a prefix, a triangle, that can be opened or closed. This triangle can be replaced with a slotted alternative. 
 
-The TreenNode also has a StubbornAttribute called `_empty`: whenever the TreeNode has no slotted child TreeNodes, it is `_empty` and there is no point showing a triangle to open or close it. Thus, when the TreeNode is marked `_empty`, the prefix is hidden. And the TreeNode marks itself as `_empty` when it has no children.
+The TreeNode has a StubbornAttribute called `_empty`: whenever the TreeNode has no slotted child TreeNodes, it is `_empty` and there is no point showing a triangle to open or close it. Thus, when the TreeNode is marked `_empty`, the prefix is hidden. And the TreeNode marks itself as `_empty` when it has no children.
+
+The TreeNode also can alter the content of the 
 
 ## Implementation: TreeNode
 
