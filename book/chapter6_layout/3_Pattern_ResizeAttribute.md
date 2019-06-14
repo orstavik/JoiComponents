@@ -1,27 +1,18 @@
 # Pattern: ResizeAttribute
 
-The ResizeAttribute is a pattern for controlling the layout and behavior of a web component 
-depending on the viewport size, very similar to MediaQueryAttribute. But, instead of using
-the MediaQuery interface, the ResizeAttribute pattern listens only for the `resize` event.
+The ResizeAttribute is a pattern for controlling the layout and behavior of a web component depending on the viewport size, very similar to MediaQueryAttribute. But, instead of using the MediaQuery interface, the ResizeAttribute pattern listens only for the `resize` event.
 
-Currently, due to flaws in the MediaQuery library in Chrome, the ResizeAttribute pattern is safer 
-and thus more efficient than the MediaQueryAttribute pattern. It also yields much simpler code.
+Currently, due to flaws in the MediaQuery library in Chrome, the ResizeAttribute pattern is safer and thus more efficient than the MediaQueryAttribute pattern. It also yields much simpler code.
 
 ## Implementation
 
 A web component that implements the ResizeAttribute pattern consists of:
 
- * `size-settings`: a JsonAttribute describing the different thresholds for the media queries.
-   The `size-settings` is given on the form `{"XS": 0, "S": 600, "M": 800, "L": 1024}`.
-   The MediaQueryAttribute has a static, default settings object to fall back on.
+ * `size-settings`: a JsonAttribute describing the different thresholds for the media queries. The `size-settings` is given on the form `{"XS": 0, "S": 600, "M": 800, "L": 1024}`. The MediaQueryAttribute has a static, default settings object to fall back on.
 
- * `_size`: a StubbornAttribute that reflects the current state of the web component 
-   (`.__size` property). Every time the viewport passes one of the thresholds specified in 
-   `size-settings`, the web component updates the `_size` attribute.
+ * `_size`: a StubbornAttribute that reflects the current state of the web component(`.__size` property). Every time the viewport passes one of the thresholds specified in `size-settings`, the web component updates the `_size` attribute.
 
- * `resize` event listener. For all changes of the viewport, check against the current `size-setting`
-   and `__size` prop. If the current size of the viewport would require the web component to update the
-   `_size` StubbornAttribute, then do so.
+ * `resize` event listener. For all changes of the viewport, check against the current `size-setting` and `__size` prop. If the current size of the viewport would require the web component to update the `_size` StubbornAttribute, then do so.
    
 <code-demo src="demo/ResizeSmallMediumLarge.html"></code-demo>
 

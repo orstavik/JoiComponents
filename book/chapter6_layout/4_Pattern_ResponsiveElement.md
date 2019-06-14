@@ -1,41 +1,26 @@
 # Pattern: ResponsiveElements
 
-Most modern web apps and pages share one ideal: responsiveness. 
-With CSS media queries, a handful of HTML elements, 10 - 20 CSS rules and a little JS,
-they make the app be manageable both on a small mobile screen or a larger desktop screen.
+Most modern web apps and pages share one ideal: responsiveness. With CSS media queries, a handful of HTML elements, 10 - 20 CSS rules and a little JS, they make the app be manageable both on a small mobile screen or a larger desktop screen.
 
-To make a web app responsive is not particularly difficult. The problem with responsiveness is that
-it adds detail to the code. These details gets mixed in with all the other details in the app, 
-building complexity and reducing readability. And, when the app becomes too complex and opaque,
-it spawns bugs and stops features from being added.
+To make a web app responsive is not particularly difficult. The problem with responsiveness is that it adds detail to the code. These details gets mixed in with all the other details in the app, building complexity and reducing readability. And, when the app becomes too complex and opaque, it spawns bugs and stops features from being added.
 
 The problem of responsiveness is:
  * How *encapsulate* its details so as to reduce template code in the app to reduce complexity?
- * How hide the details and nuances of responsive behavior and style, while at the same time give 
-   the user simple, conventional means to direct it?
+ * How hide the details and nuances of responsive behavior and style, while at the same time give the user simple, conventional means to direct it?
 
-The pattern ResponsiveElements is, in my opinion, best practice for how to best encapsulate the main
-layout responsiveness for an app. 
+The pattern ResponsiveElements is, in my opinion, best practice for how to best encapsulate the main layout responsiveness for an app. 
 
 ## Implementation
 
-The ResponsiveElements pattern is built around the ResizeAttribute pattern.
-In addition to a `_size` StubbornAttribute and a `size-setting` JsonAttribute,
-ResponsiveElements uses a small shadowDOM that itself uses the `_size` attribute to
-control its style, and add custom event listeners for the different layout modes.
+The ResponsiveElements pattern is built around the ResizeAttribute pattern. In addition to a `_size` StubbornAttribute and a `size-setting` JsonAttribute, ResponsiveElements uses a small shadowDOM that itself uses the `_size` attribute to control its style, and add custom event listeners for the different layout modes.
 
 In the lightDOM, there are *two* relationships between the host ResponsiveElement and its children:
 
-1. The host element has the stubborn `_size` attribute which can be used to style the lightDOM 
-   children, in addition to the elements in the shadowDOM.
+1. The host element has the stubborn `_size` attribute which can be used to style the lightDOM children, in addition to the elements in the shadowDOM.
 
-2. The children elements can be slotted into the `slot=""` (the default) or the `slot="menu"`.
-   The default `slot` is for the larger, page content area, and the `slot="menu"` is for the smaller
-   area.
+2. The children elements can be slotted into the `slot=""` (the default) or the `slot="menu"`. The default `slot` is for the larger, page content area, and the `slot="menu"` is for the smaller area.
    
-In addition, a set of CSS variables such as `--responsive-element-menu-s-width` and 
-`--responsive-element-menu-l-height` are exposed so the user can control relevant aspects of the
-ResponsiveElements shadowDOM.
+In addition, a set of CSS variables such as `--responsive-element-menu-s-width` and `--responsive-element-menu-l-height` are exposed so the user can control relevant aspects of the ResponsiveElements shadowDOM.
 
 ## Example: SideBar
 
@@ -43,9 +28,7 @@ Sidebar is a classical responsive web page/app layout where the menu is placed i
  1. a left nav bar on larger screens (`L` mode)
  2. a top nav nar on smaller screens (`S` mode)
 
-The Sidebar is *not* the menu; The ResponsiveSidebar only divides the page layout into two
-areas: a smaller area called `menu` placed either top or left and a larger default area for page content.
-In `S` mode, the SideBar will hide/show the `menu` area as the user scrolls down/up.
+The Sidebar is *not* the menu; The ResponsiveSidebar only divides the page layout into two areas: a smaller area called `menu` placed either top or left and a larger default area for page content. In `S` mode, the SideBar will hide/show the `menu` area as the user scrolls down/up.
 
 ```html
 <template>
