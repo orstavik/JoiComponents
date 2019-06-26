@@ -1,37 +1,18 @@
 # Strategy: DeathToCss
 
-Ok. You have heard it before. "CSS sucks". "Please kill CSS". And hell yes, this article is 
-going to be one of those articles. It is going to be opinionated and negative and dismissive of CSS. 
-And it is going to make yet another argument about *why* you should remove the complexity monster that 
-is CSS from your web app architecture, and *how* to accomplish such a feat with web components.
+Ok. You have heard it before. "CSS sucks". "Please kill CSS". And hell yes, this article is going to be one of those articles. It is going to be opinionated and negative and dismissive of CSS. And it is going to make yet another argument about *why* you should remove the complexity monster that is CSS from your web app architecture, and *how* to accomplish such a feat with web components.
 
-To accomplish this, I will try to use this "rant" productively. This "rant" is not simply an outburst 
-of frustration. This rant is not meant to comfort myself. This rant is meant to change things,
-to *fix* the problem once and for all. This rant explains *why* CSS is intrinsically an error of 
-judgment with the urgency the scale of the problem warrants and *how* this problem can and should be
-fixed.
+To accomplish this, I will try to use this "rant" productively. This "rant" is not simply an outburst of frustration. This rant is not meant to comfort myself. This rant is meant to change things, to *fix* the problem once and for all. This rant explains *why* CSS is intrinsically an error of judgment with the urgency the scale of the problem warrants and *how* this problem can and should be fixed.
 
-This article only advocate for the abolishment of CSS layout *in the main HTML document*. 
-CSS layout, in the main html document, should be replaced with reusable web component pairs that solve 
-one particular layout problem, for all relevant displays. CSS layout must still be used to
-make the resuable layout web components (low level). After I am done today, there may still be 
-multiple CSS documents on the top-most lightDOM level which control `colors`, `fonts`, `border` and 
-`padding`. But, neither beginner nor expert developers should manage *layout* in general CSS scripts,
-CSS layout should be *moved* into special web components that *only* solve a layout use case.
-This is were the CSS grid will shine. As the low level means by which "a thousand different HTML `<table>`
-elements arise. **All layout should be controlled by web components**.
+This article only advocate for the abolishment of CSS layout *in the main HTML document*.  CSS layout, in the main html document, should be replaced with reusable web component pairs that solve one particular layout problem, for all relevant displays. CSS layout must still be used to make the resuable layout web components (low level). After I am done today, there may still be multiple CSS documents on the top-most lightDOM level which control `colors`, `fonts`, `border` and `padding`. But, neither beginner nor expert developers should manage *layout* in general CSS scripts, CSS layout should be *moved* into special web components that *only* solve a layout use case. This is were the CSS grid will shine. As the low level means by which "a thousand different HTML `<table>` elements arise. **All layout should be controlled by web components**.
 
 ## Why not CSS? the false hope of separating style and content
- 
-First, a premise. Style and content *cannot* be split. They are intrinsically bound together. You be able
-to successfully divide them mostly and for most of the time, but as soon as you start to scratch the 
-surface, you always find more bindings than you thought of to begin with. I will let others argue this point
-(todo add refs here, both technical html+css stuff and theoretical).
 
-This makes a second point of HTML and CSS mute. If you have a fixed HTML template, you can change its 
-appearance quite a lot using CSS. This is true. Add `halo.css` to your HTML template, and that heavenly
-piece of HTML template is made to look like the son of God; add `horns.css`, and you are looking at the 
-devil. But. This is *not* in itself a good argument that style and content exist separately. It is just
+First, style and content can be split. At least it appears so. For example, you can make an HTML template that mainly fill with the "content" aspects of your web page, and then style the color and graphics of this template with a set of CSS rules. In fact, you can change a fixed HTML template's appearance quite a lot using CSS. Add `halo.css` to your HTML template, and that heavenly piece of HTML template is made to look like the son of God; add `horns.css`, and you are looking at the devil.
+ 
+But. What such First, a premise. Style and content *cannot* be split. They are intrinsically bound together. You might successfully divide and conquer them on the surface, but as soon as you start to scratch the surface, you always find more bindings and grey areas than you thought of to begin with. I will let others argue this point (todo add refs here, both technical html+css stuff and theoretical). Since content and style cannot be easily separated, this mutes the "raison d'etre" of CSS.
+
+But. This is *not* in itself a good argument that style and content exist separately. It is just
 an argument that you can make something look like its opposite using CSS. To make the html template 
 look like means first adding two black horns, with such a thick border that they grow into each other
 and turn into a hat, and then add the glory too, except pull it down and widen it to make it look like

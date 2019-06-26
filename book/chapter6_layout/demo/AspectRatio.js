@@ -20,7 +20,7 @@ templ.innerHTML = `<style>
 }
 </style><div id="container"><div id="content"><slot></slot></div></div>`;
 
-class AspectRatio extends HTMLElement {
+export class AspectRatio extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({mode: "open"});

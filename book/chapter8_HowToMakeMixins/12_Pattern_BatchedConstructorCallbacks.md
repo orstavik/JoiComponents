@@ -321,6 +321,14 @@ function batchedConstructorCallback(fn, el){
 Now, the flushQue() will only trigger its methods after the initial slotchange events have 
 been dispatched and passed your custom element by.
 
+## new todo          
+
+Set up a chapter for the Double PRT in mixins for other methods such as connectedCallback.
+
+Also. Sometimes, you need to wait for the style and layout to be calculated. Question:
+1. is it enough to delay this to the next rAF, does this have style and layout ready?
+2. or, is it better to trigger a single style and layout calculation for an element sync using for example getBoundingClientRect?
+
 ## TODO tests!
 test BatchedPostConstructorCallback and especially DoublePrtPostSlotchangeTrick.
 

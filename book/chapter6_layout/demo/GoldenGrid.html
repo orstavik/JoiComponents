@@ -1,0 +1,40 @@
+<script type="module" src="GoldenGrid2.js"></script>
+
+<style>
+  :host, * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  div[one] {
+    background: lightblue;
+    height: 150vh;
+  }
+  div[two] {
+    background: lightgreen;
+  }
+  div[three] {
+    background: lightgrey;
+  }
+  div[four] {
+    background: pink;
+  }
+  div[five] {
+    background: yellow;
+  }
+</style>
+
+<golden-grid four five>
+  <div one>one</div>
+  <div two>two</div>
+  <div three>three</div>
+  <div three-small>three-small</div>
+  <div four>four</div>
+  <div four-small>four-small</div>
+  <div five>five</div>
+</golden-grid>
+<!--<div style="position: fixed; top:0; bottom: 0; left: 0; right: 0;">-->
+  <!--<golden-grid three>-->
+    <!--<div three>three</div>-->
+  <!--</golden-grid>-->
+<!--</div>-->
