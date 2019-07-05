@@ -1,5 +1,7 @@
 <style>
   * {
+    margin: 0;
+    padding: 0;
     --parallax-zoom: 800;
     --parallax-x: 20;
     --parallax-y: 50;
@@ -37,19 +39,20 @@
 </head>
 
 <body>
-<parent-parallax scroll-factor-x="0.01" scroll-factor-y="0" scroll-factor-z="1" scroll-min="0" scroll-max="1000">
-  <child-parallax id="background" zoom="0">
+<parent-parallax scroll-factor-x="1.1" scroll-factor-y="1" scroll-factor-z="0.001" scroll-min="0" scroll-max="1000">
+  <child-parallax id="background" zoom="1">
     <div id="background">
-      <img id="dessertImg" src="https://i.pinimg.com/originals/d8/10/33/d810337427b40d0c17cf56b90d8490a1.jpg" alt="">
+      <img id="dessertImg" src="https://i.pinimg.com/originals/d8/10/33/d810337427b40d0c17cf56b90d8490a1.jpg"
+           alt="">
     </div>
   </child-parallax>
-  <child-parallax id="sun" zoom="0" x="2" y="1">
+  <child-parallax id="sun" zoom="1" x="2" y="1">
     <img src="https://www.stickpng.com/assets/images/580b585b2edbce24c47b270f.png" alt="" id="sunImg">
   </child-parallax>
-  <child-parallax id="dust" zoom="800" x="2" y="1">
+  <child-parallax id="dust" zoom="2" x="2" y="1">
     <img id="dustImg" src="https://img.pngio.com/dust-png-27png-dust-png-831_508.png"/>
   </child-parallax>
-  <child-parallax id="car" zoom="1000" x="2" y="1">
+  <child-parallax id="car" zoom="1.5" x="2" y="1">
     <img src="https://i.dlpng.com/static/png/169943_thumb.png" alt="" id="carImg">
   </child-parallax>
 </parent-parallax>
@@ -80,8 +83,6 @@
 
     onWheel(e) {
       e.preventDefault();
-      if (e.deltaY < 0)
-        return;
       this.handleData(e.deltaY);
     }
 
@@ -90,11 +91,7 @@
       if (!initialTouchY)
         initialTouchY = e.touches[0].clientY;
       movedDistY = e.touches[0].clientY - initialTouchY;
-      if (movedDistY >= 0) {
-        this.handleData(movedDistY * 3);
-      } else {
-        initialTouchY = undefined;
-      }
+      this.handleData(movedDistY);
     }
 
     onTouchend(e) {
@@ -103,9 +100,9 @@
     }
 
     handleData(dist) {
-      let newZoom = zooming + dist;
-      const min = parseInt(this.getAttribute("scroll-min"));
-      const max = parseInt(this.getAttribute("scroll-max"));
+      let newZoom = zooming + dist;   // 1 wheel event = 125 pixels. So 125px === 0.5x zoom.
+      const min = parseFloat(this.getAttribute("scroll-min"));
+      const max = parseFloat(this.getAttribute("scroll-max"));
       if (newZoom >= max)
         newZoom = max;
       if (newZoom < min)
@@ -113,12 +110,14 @@
       if (newZoom === zooming)
         return;
       zooming = newZoom;
-      const xFactor = parseInt(this.getAttribute("scroll-factor-x"));
-      const yFactor = parseInt(this.getAttribute("scroll-factor-y"));
-      const zFactor = parseInt(this.getAttribute("scroll-factor-z"));
-      Array.from(this.children)
-        .filter(item => item.tagName === "CHILD-PARALLAX")
-        .forEach(el => el.changePosition(zooming * xFactor, zooming * yFactor, zooming * zFactor));
+      const xFactor = parseFloat(this.getAttribute("scroll-factor-x") || 0);
+      const yFactor = parseFloat(this.getAttribute("scroll-factor-y") || 0);
+      const zFactor = parseFloat(this.getAttribute("scroll-factor-z") || 0);
+      for (let i = 0; i < this.children.length; i++) {
+        let child = this.children[i];
+        if (child.tagName === "CHILD-PARALLAX")
+          child.changePosition(dist * xFactor, dist * yFactor, dist * zFactor)
+      }
     }
   }
 
@@ -137,12 +136,15 @@
     }
 
     changePosition(xDistancePercent, yDistancePercent, zDistancePercent) {
-      //calculate the new top, left, and scale based on the movement in the different axis.
-      this.style.transform = "translate(x, y) scale(z)";
+      let xCoefitient = parseFloat(this.getAttribute("x") || 0);
+      let yCoefitient = parseFloat(this.getAttribute("y") || 0);
+      let zCoefitient = parseFloat(this.getAttribute("zoom") || 0);
+      const transform = `translate(${xDistancePercent * xCoefitient}%, ${yDistancePercent * yCoefitient}%) scale(${zDistancePercent * zCoefitient + 1})`;
+//      debugger;
+      this.style.transform = transform;
     }
   }
 
   customElements.define("parent-parallax", ParentParallax);
   customElements.define("child-parallax", ChildParallax);
 </script>
-

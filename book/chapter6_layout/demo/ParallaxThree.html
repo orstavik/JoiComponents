@@ -1,0 +1,203 @@
+<style>
+  * {
+    padding: 0;
+    margin: 0;
+  }
+  parallax-parent {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+  parallax-child {
+    transition-duration: 1000ms;
+  }
+  #m {
+    margin-top: 300px;
+    background-color: #666666;
+    transform: rotate(43deg);
+    height: 100vh;
+    width: 100vh;
+    overflow: hidden;
+  }
+  #v {
+    margin-top: 500px;
+    background-color: darkgreen;
+    transform: rotate(67deg);
+    height: 100vh;
+    width: 100vh;
+    overflow: hidden;
+  }
+  #s {
+    margin-top: 60px;
+    margin-left: 60px;
+    background-color: orange;
+    border-radius: 50%;
+    height: 100px;
+    width: 100px;
+    text-align: center;
+    line-height: 30px;
+  }
+  #h {
+    background: red;
+    height: 150px;
+    width: 100px;
+    margin-top: 60%;
+    margin-left: 40%;
+  }
+  #h:hover {
+    background: yellow;
+  }
+  #t {
+    background: white;
+    height: 150vh;
+    width: 100%;
+    margin-top: 90%;
+    /*margin-left: 75%;*/
+  }
+  #t:hover {
+    background: grey;
+  }
+  /*parallax-parent[scroll-position="800"] #t {*/
+  /*add animation to fade out;*/
+  /*}*/
+</style>
+
+<parallax-parent scroll-depth="2000">
+
+  <parallax-child depth="100000">
+    <div id="s">sun</div>
+  </parallax-child>
+  <parallax-child depth="20000">
+    <div id="m">mountain</div>
+  </parallax-child>
+  <parallax-child depth="7000">
+    <div id="v" >valley</div>
+  </parallax-child>
+  <parallax-child depth="5000">
+    <div id="h">house</div>
+  </parallax-child>
+  <parallax-child depth="2000">
+    <div id="t">here comes the text</div>
+  </parallax-child>
+</parallax-parent>
+
+<script>
+
+  //todo these elements are locking in position. should i add a stylecallback that would overwrite the position? or add important! The parent has to have either relative, absolute or fixed?
+  class ParallaxParent extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            pointer-events: none;
+            position: relative;
+            display: block;
+          }
+        </style>
+        <slot></slot>
+      `;
+      this.x = 0;
+      this.y = 0;
+      this.z = 0;
+      this.d = 0;
+    }
+
+    static get observedAttributes() {
+      return ["depth"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "depth") {
+        this._updateChildren();
+      }
+    }
+
+    goTo(x, y, z) {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      this._updateChildren();
+    }
+
+    _updateChildren() {
+      const depth = parseFloat(this.getAttribute("scroll-depth")) || 100;
+      for (let i = 0; i < this.children.length; i++) {
+        let child = this.children[i];
+        if (child.setParallaxPosition)
+          child.setParallaxPosition(this.x, this.y, this.z, depth);
+      }
+    }
+  }
+
+
+  class ParallaxChild extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            pointer-events: none;
+            position: absolute;
+            display: block;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+          }
+          ::slotted(*) {
+            pointer-events: auto;
+          }
+        </style>
+        <slot></slot>
+      `;
+    }
+
+    setParallaxPosition(x, y, z, depth) {
+      const myDepth = parseFloat(this.getAttribute("depth")) || 100;
+      const factor = depth / myDepth;
+      const alpha = myDepth - depth;
+      let scale = alpha / (alpha - z);
+      if (isNaN(scale))
+        scale = (alpha === 0 ? 1 : Number.MAX_VALUE);
+
+      this.style.transform = `translate(${factor * x}px, ${factor * y}px) scale(${scale})`;
+    }
+  }
+
+  customElements.define("parallax-parent", ParallaxParent);
+  customElements.define("parallax-child", ParallaxChild);
+</script>
+
+
+
+<!--
+scroll-px-to-step="0 -1 0" mouse-px-to-step="1 -1 0" touch-px-to-step="-1 -1 0" orientation-deg-to-step="0 0 1" _step="35"
+
+scroll-motion="0 -1 0"
+scroll-min="0" scroll-max="1000"
+
+I can add scroll-motion="1 0.3 0" on each element too!
+-->
+
+<script>
+
+  //todo if the x or z or y is more than the max, reduce them back to max
+  //todo if the x or z or y is less than the min, up them back to min
+  const parallax = document.querySelector("parallax-parent");
+
+  function onWheel(e) {
+//    const myMotion = (this.getAttribute("scroll-motion") || "0").split(" ").map(s => parseFloat(s));
+    const motion = ("0 -1 0").split(" ").map(s => parseFloat(s));
+    const x = (motion[0] || 0) * e.deltaY;
+    const y = (motion[1] || 0) * e.deltaY;
+    const z = (motion[2] || 0) * e.deltaY;
+    parallax.goTo(x, y, z);
+  }
+
+  parallax.addEventListener("wheel", onWheel, {passive: false});
+  //  setInterval(function () {
+  //    document.querySelector("parallax-parent").scroll(3);
+  //  }, 1000);
+</script>
