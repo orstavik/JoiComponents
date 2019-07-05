@@ -1,0 +1,191 @@
+<style>
+  * {
+    padding: 0;
+    margin: 0;
+  }
+  parallax-parent {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+  parallax-child {
+    transition-duration: 1000ms;
+  }
+  #m {
+    margin-top: 300px;
+    background-color: #666666;
+    transform: rotate(43deg);
+    height: 100vh;
+    width: 100vh;
+    overflow: hidden;
+  }
+  #v {
+    margin-top: 500px;
+    background-color: darkgreen;
+    transform: rotate(67deg);
+    height: 100vh;
+    width: 100vh;
+    overflow: hidden;
+  }
+  #s {
+    margin-top: 60px;
+    margin-left: 60px;
+    background-color: orange;
+    border-radius: 50%;
+    height: 100px;
+    width: 100px;
+    text-align: center;
+    line-height: 30px;
+  }
+  #h {
+    background: red;
+    height: 150px;
+    width: 100px;
+    margin-top: 60%;
+    margin-left: 40%;
+  }
+  #t {
+    background: white;
+    height: 150vh;
+    width: 100%;
+    margin-top: 90%;
+    /*margin-left: 75%;*/
+  }
+  /*parallax-parent[scroll-position="800"] #t {*/
+  /*add animation to fade out;*/
+  /*}*/
+</style>
+
+<!--
+scroll-px-to-step="0 -1 0" mouse-px-to-step="1 -1 0" touch-px-to-step="-1 -1 0" orientation-deg-to-step="0 0 1" _step="35"
+
+scroll-min="0" scroll-max="1000"
+-->
+<parallax-parent step-depth="2000" scroll-motion="0 -1 0">
+
+  <parallax-child depth="100000" motion="1 0.3 0">
+    <div id="s">sun</div>
+  </parallax-child>
+  <parallax-child depth="20000">
+    <div id="m">mountain</div>
+  </parallax-child>
+  <parallax-child depth="7000">
+    <div id="v">valley</div>
+  </parallax-child>
+  <parallax-child depth="5000">
+    <div id="h">house</div>
+  </parallax-child>
+  <parallax-child depth="2000">
+    <div id="t">here comes the text</div>
+  </parallax-child>
+</parallax-parent>
+
+<script>
+
+  //todo these elements are locking in position. should i add a stylecallback that would overwrite the position? or add important! The parent has to have either relative, absolute or fixed?
+  class ParallaxParent extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            position: relative;
+            display: block;
+          }
+        </style>
+        <slot></slot>
+      `;
+      this.diagonal = 0;
+      this.xValue = 0;
+      this.yValue = 0;
+      this.zValue = 0;
+      this.addEventListener("wheel", this.onWheel.bind(this), {passive: false});
+    }
+
+    static get observedAttributes() {
+      return ["depth"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "depth") {
+        this._updateChildren();
+      }
+      //todo add scroll-to-motion here?
+    }
+
+    onWheel(e) {
+
+      const myMotion = (this.getAttribute("scroll-motion") || "0").split(" ").map(s => parseFloat(s));
+      const myMotionX = (myMotion[0] || 0) * e.deltaY;
+      const myMotionY = (myMotion[1] || 0) * e.deltaY;
+      const myMotionZ = (myMotion[2] || 0) * e.deltaY;
+      this._updateChildren(myMotionX, myMotionY, myMotionZ);
+    }
+
+    _updateChildren(x, y, z) {
+      this.diagonal += Math.sqrt(x * x + y * y + z * z);
+      this.xValue += x;
+      this.yValue += y;
+      this.zValue += z;
+      //todo if the x or z or y is more than the max, reduce them back to max
+      //todo if the x or z or y is less than the min, up them back to min
+      for (let i = 0; i < this.children.length; i++) {
+        let child = this.children[i];
+        if (child.setParallaxPosition)
+          child.setParallaxPosition(this.xValue, this.yValue, this.zValue, this.diagonal, parseFloat(this.getAttribute("step-depth")) || 100);
+      }
+    }
+
+    scroll(x, y, z) {
+      this._updateChildren(x, y, z);
+    }
+  }
+
+
+  class ParallaxChild extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            position: absolute;
+            display: block;
+            width: 100%;
+            height: 100%;
+          }
+        </style>
+        <slot></slot>
+      `;
+    }
+
+    setParallaxPosition(x, y, z, motion, depth) {
+      const myMotion = (this.getAttribute("motion") || "0").split(" ").map(s => parseFloat(s));
+      const myMotionX = (myMotion[0] * motion) || 0;
+      const myMotionY = (myMotion[1] * motion) || 0;
+      const myMotionZ = (myMotion[2] * motion) || 0;
+
+      const myDepth = parseFloat(this.getAttribute("depth")) || 100;
+      const factor = depth / myDepth;
+      const alpha = myDepth - depth;
+      let scale = alpha / (alpha - z);
+      if (isNaN(scale))
+        scale = (alpha === 0 ? 1 : Number.MAX_VALUE);
+      let myScale = alpha / (alpha - myMotionZ);
+      if (isNaN(myScale))
+        myScale = (alpha === 0 ? 1 : Number.MAX_VALUE);
+
+      this.style.transform = `translate(${(factor * x) + myMotionX}px, ${(factor * y) + myMotionY}px) scale(${scale})`;
+    }
+  }
+
+  customElements.define("parallax-parent", ParallaxParent);
+  customElements.define("parallax-child", ParallaxChild);
+</script>
+
+<script>
+  //  setInterval(function () {
+  //    document.querySelector("parallax-parent").scroll(3);
+  //  }, 1000);
+</script>
