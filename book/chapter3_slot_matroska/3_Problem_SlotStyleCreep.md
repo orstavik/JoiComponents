@@ -79,7 +79,7 @@ In this chapter, we illustrate this behavior in a SlotMatroska. We start with th
 ## Example 2: SlotStyleCreep inherited
 
 Although confusing, non-inherited CSS properties are manageable. 
-Controlling and understanding inherited CSS properties is much trickier.
+Understanding inherited CSS properties is much trickier.
     
 ```html
 <script>
