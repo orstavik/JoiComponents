@@ -54,9 +54,9 @@ Once `tabindex` is set inside the shadowDOM on a wrapper element, the `focus` an
     }
     onKeypress(e){
       if (e.key === "PageDown")
-        console.log(e.key);
+        console.log("going down...");
       if (e.key === "PageUp")
-        console.log("pageup");
+        console.log("going up!!!");
     }
   }
 
@@ -74,6 +74,10 @@ Once `tabindex` is set inside the shadowDOM on a wrapper element, the `focus` an
 </textarea>
 </focus-able>
 ```
+
+## todo use `mouseover` and `mouseout` as triggers to listen for `keydown`?
+
+ok, should the 
  
 ## todo add the appropriate ARIA roles and attributes for the element
  

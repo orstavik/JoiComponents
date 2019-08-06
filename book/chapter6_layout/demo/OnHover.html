@@ -1,0 +1,35 @@
+<script>
+  class HoverAble extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `<slot></slot>`;
+      this._slot = this.shadowRoot.children[0];
+      this._onMouseenterListener = this.onMouseenter.bind(this);
+      this._onMouseleaveListener = this.onMouseleave.bind(this);
+      this.addEventListener("mouseenter", this._onMouseenterListener);
+    }
+
+    onMouseenter(){
+      this.removeEventListener("mouseenter", this._onMouseenterListener);
+      this.addEventListener("mouseleave", this._onMouseleaveListener);
+      console.log("hover begins on.. " + this.innerText);
+    }
+    onMouseleave(){
+      this.addEventListener("mouseenter", this._onMouseenterListener);
+      this.removeEventListener("mouseleave", this._onMouseleaveListener);
+      console.log("hover ends on.. " + this.innerText);
+    }
+  }
+
+  customElements.define("hover-able", HoverAble);
+</script>
+
+<h1>Hover over "one" and "two"</h1>
+<hover-able>
+  one
+</hover-able>
+<hr>
+<hover-able>
+  two
+</hover-able>
