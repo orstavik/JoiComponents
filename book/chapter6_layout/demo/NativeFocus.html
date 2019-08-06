@@ -1,0 +1,47 @@
+<script>
+  class FocusAble extends HTMLElement {
+    constructor(){
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `<div style="display: unset; margin: 0; padding: 0;" tabindex="0"><slot></slot></div>`;
+      this._slot = this.shadowRoot.children[0];
+      this._keypressListener = this.onKeypress.bind(this);
+      this._slot.addEventListener("focus", this.onFocus.bind(this));
+      this._slot.addEventListener("blur", this.onBlur.bind(this));
+    }
+
+    static get observedAttributes(){
+      return ["tabindex"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue){
+      this._slot.setAttribute("tabindex", newValue);
+    }
+
+    onFocus(){
+      this._slot.addEventListener("keydown", this._keypressListener);
+    }
+    onBlur(){
+      this._slot.removeEventListener("keydown", this._keypressListener);
+    }
+    onKeypress(e){
+      if (e.key === "PageDown")
+        console.log(e.key);
+      if (e.key === "PageUp")
+        console.log("pageup");
+    }
+  }
+
+  customElements.define("focus-able", FocusAble);
+</script>
+
+<focus-able>
+  tab once to me, and use pageup/pagedown
+</focus-able>
+
+<focus-able>
+  tab twice to me, and use pageup/pagedown
+  <textarea name="omg" id="" cols="30" rows="10">
+    tab  three times to me, and try to use pagedown and pageup inside me.
+</textarea>
+</focus-able>
