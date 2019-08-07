@@ -1,0 +1,48 @@
+<script>
+  class ScrollOutside extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `<slot></slot>`;
+      this._slot = this.shadowRoot.children[0];
+      this._onWheelListener = this.onWheel.bind(this);
+      this.addEventListener("wheel", this._onWheelListener);
+    }
+
+
+
+    onWheel(e) {
+      console.log(this.scrollTop);
+    }
+  }
+
+  customElements.define("scroll-outside", ScrollOutside);
+</script>
+
+<h1>Try to scroll outside the scope of the two elements below</h1>
+<style>
+  scroll-outside {
+    overflow-y: scroll;
+    height: 30vh;
+    border: 2px solid red;
+    display: block;
+  }
+  scroll-outside div{
+    height: 60vh;
+    border: 2px solid orange;
+  }
+</style>
+
+<scroll-outside>
+  <div>
+    one
+  </div>
+</scroll-outside>
+
+<hr>
+
+<scroll-outside>
+  <div>
+    two
+  </div>
+</scroll-outside>
