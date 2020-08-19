@@ -17,6 +17,7 @@ Additionally, we alter the argument of our `slotCallback(slotElement)` to be the
 ```javascript
 const slotchangeListener = Symbol("slotchangeListener");
 
+//todo we need to fix the getRootNode() here. I think that we can instead count the number of shadowDOMs and slot elements in the composedPath between the relevant shadowRoot and the slot in question. 
 function notNipSlip(composedPath, shadowRoot){
   for(let node of composedPath){
     if (node.tagName !== "SLOT")

@@ -1,0 +1,60 @@
+<devil-details>
+  <devil-summary>
+    <span>This is a good deal</span>
+  </devil-summary>
+  You get A, and you give us B.
+</devil-details>
+
+<script type="module">
+  import {SlottablesCallback} from "../slottablesCallback2.js";
+
+  class DevilDetails extends SlottablesCallback(HTMLElement) {
+    constructor() {
+      super();
+      this.attachShadow({mode: "open"});
+      this.shadowRoot.innerHTML = `
+      <details>
+        <summary>
+          <slot name="summary"></slot>
+        </summary>
+        <slot></slot>
+        <h6>And if something goes wrong, it is all your fault and you owe us money.</h6>
+      </details>
+    `;
+    }
+
+    slottablesCallback(slottables) {
+      console.log(slottables, slottables.added, slottables.removed);
+      for (let child of slottables.newChildren)
+        child.slot = "";
+      const firstDevilSlot = this.querySelector(":scope > devil-summary:first-of-type");
+      firstDevilSlot && (firstDevilSlot.slot = "summary");
+    }
+  }
+
+  class DevilSummary extends HTMLElement{}
+
+  customElements.define("devil-details", DevilDetails);
+  customElements.define("devil-summary", DevilSummary);
+</script>
+<script>
+  const ddetails = document.querySelector("devil-details");
+  const dsummary = document.querySelector("devil-summary");
+  setTimeout(function(){
+    dsummary.remove();
+    console.log("getting a callback when removing")
+  }, 100);
+  setTimeout(function(){
+    ddetails.appendChild(dsummary);
+    console.log("getting a callback when adding")
+  }, 200);
+  setTimeout(function(){
+    ddetails.appendChild(document.createElement("div"));
+    console.log("getting a callback when adding something else")
+  }, 200);
+  setTimeout(function(){
+    dsummary.remove();
+    ddetails.appendChild(dsummary);
+    console.log("getting one! callback if no changes afterwards")
+  }, 200);
+</script>
