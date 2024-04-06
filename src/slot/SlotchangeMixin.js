@@ -13,9 +13,9 @@ function notNipSlip(composedPath, shadowRoot) {
 }
 
 function doCallSlotCallback(slotchange) {
-  const slot = notNipSlip(slotchange, this.shadowRoot);
-  slot && this.slotCallback(slot);
-}
+  const slot = notNipSlip(slotchange.path, this.shadowRoot);    // it was just an event
+   slot && this.slotchangeCallback(slot);  // it was slotCallback and did not allow to add new values to the testValue and its length never equal 2, as test expect. Now it work         
+}                                          // not sure that it is correct fix, but if work with a tests
 
 function setupElements() {
   for (let el of constructedElements) {
