@@ -406,5 +406,13 @@ describe("Syntactic errors (HashDots.parse())", function () {
       expect(err.message).to.deep.equal("HashDot syntax error:\nInput:  #a.b c#d\nError:       ↑");
     }
   });
-  // HashDots.parse("#no#illegal.characters?%&¤,;:-_);
+ it("ruleIsSubsetofQuerry() input is not a string", function () {
+    const routeMap = HashDotMap.make("#one:A:B = #two:A#three:B");
+    const one = routeMap.ruleIsSubsetOfQuery(123).transform().first();
+    expect(one).to.be.equal(undefined);
+    const two = routeMap.reverse().ruleIsSubsetOfQuery({abc: "#one.a.b"}).transform().first();
+    expect(two).to.be.equal(undefined);
+    const three = routeMap.reverse().ruleIsSubsetOfQuery(["#one.a.b"]).transform().first();
+    expect(three).to.be.equal(undefined);
+  });
 });
